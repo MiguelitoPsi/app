@@ -3,18 +3,19 @@
 import type React from "react";
 import { createContext, type ReactNode, useContext, useMemo } from "react";
 import { trpc } from "@/lib/trpc/client";
+import { BADGE_DEFINITIONS } from "@/lib/constants";
 import type { AvatarConfig, GameContextType, Mood, UserStats } from "../types";
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const RANKS = [
-  { level: 1, name: "Iniciante", xpRequired: 0 },
-  { level: 2, name: "Aprendiz", xpRequired: 100 },
-  { level: 3, name: "Explorador", xpRequired: 250 },
-  { level: 4, name: "Aventureiro", xpRequired: 500 },
-  { level: 5, name: "Veterano", xpRequired: 1000 },
-  { level: 6, name: "Mestre", xpRequired: 2000 },
-  { level: 7, name: "Lenda", xpRequired: 5000 },
+  { level: 1, name: "Iniciante", xpRequired: 0, description: "O começo de uma grande jornada." },
+  { level: 2, name: "Aprendiz", xpRequired: 100, description: "Aprendendo os fundamentos." },
+  { level: 3, name: "Explorador", xpRequired: 250, description: "Descobrindo novos horizontes." },
+  { level: 4, name: "Aventureiro", xpRequired: 500, description: "Enfrentando desafios maiores." },
+  { level: 5, name: "Veterano", xpRequired: 1000, description: "Experiência acumulada." },
+  { level: 6, name: "Mestre", xpRequired: 2000, description: "Domínio sobre a mente." },
+  { level: 7, name: "Lenda", xpRequired: 5000, description: "Um exemplo para todos." },
 ];
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({
@@ -34,6 +35,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
   // Fetch badges
   const { data: badgesData = [] } = trpc.badge.getAll.useQuery();
 
+  // Fetch rewards
+  const { data: rewardsData = [] } = trpc.reward.getAll.useQuery();
+
   // Convert user profile to UserStats format
   const stats: UserStats = useMemo(() => {
     if (!userProfile) {
@@ -43,6 +47,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         level: 1,
         points: 0,
         streak: 0,
+        longestStreak: 0,
         badges: [],
         avatarConfig: { accessory: "none", shirtColor: "bg-blue-500" },
         theme: "light",
@@ -54,6 +59,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         tutorialCompleted: false,
         lastMoodXPTimestamp: undefined,
         rewards: [],
+        completedTasksHigh: 0,
+        completedTasksMedium: 0,
+        completedTasksLow: 0,
+        totalMoodLogs: 0,
+        redeemedRewards: 0,
+        engagement: 0,
       };
     }
 
@@ -63,32 +74,77 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     const theme = (userProfile.preferences as Record<string, unknown> | null)
       ?.theme as "light" | "dark" | undefined;
 
+    // Cast userProfile to any to access extendedStats since type inference might lag
+    // biome-ignore lint/suspicious/noExplicitAny: extendedStats added in router
+    const extendedStats = (userProfile as any).extendedStats || {};
+    const dbStats = (userProfile as any).stats || {};
+
+    // Calculate engagement for today
+    const now = new Date();
+    const isSameDay = (d1: number, d2: Date) => {
+      if (!d1) return false;
+      const date1 = new Date(d1);
+      return date1.getDate() === d2.getDate() && 
+             date1.getMonth() === d2.getMonth() && 
+             date1.getFullYear() === d2.getFullYear();
+    };
+
+    const lastTaskDate = userProfile.lastTaskXpDate ? new Date(userProfile.lastTaskXpDate).getTime() : 0;
+    const lastJournalDate = userProfile.lastJournalXpDate ? new Date(userProfile.lastJournalXpDate).getTime() : 0;
+    const lastMeditationDate = userProfile.lastMeditationXpDate ? new Date(userProfile.lastMeditationXpDate).getTime() : 0;
+
+    const hasTaskToday = isSameDay(lastTaskDate, now);
+    const hasJournalToday = isSameDay(lastJournalDate, now);
+    const hasMeditationToday = isSameDay(lastMeditationDate, now);
+    
+    const engagementScore = (hasTaskToday ? 1 : 0) + (hasJournalToday ? 1 : 0) + (hasMeditationToday ? 1 : 0);
+    const isEngaged = engagementScore >= 3 ? 1 : 0;
+
     return {
       name: userProfile.name || "",
       xp: userProfile.experience || 0,
       level: userProfile.level || 1,
       points: userProfile.coins || 0,
       streak: userProfile.streak || 0,
-      badges: [], // Will be populated from badgesData
+      longestStreak: dbStats.longestStreak || userProfile.streak || 0,
+      badges: badgesData.map((b) => ({
+        id: b.badgeId,
+        date: b.unlockedAt ? new Date(b.unlockedAt).getTime() : Date.now(),
+      })),
       avatarConfig: avatarConfig || {
         accessory: "none",
         shirtColor: "bg-blue-500",
       },
       theme: theme || "light",
-      totalMeditationMinutes: 0,
+      totalMeditationMinutes: extendedStats.totalMeditationMinutes || 0,
       dailyMeditationCount: 0,
-      lastMeditationDate: userProfile.lastMoodXpDate
-        ? new Date(userProfile.lastMoodXpDate).getTime()
-        : 0,
-      totalTasksCompleted: 0,
+      lastMeditationDate: lastMeditationDate,
+      totalTasksCompleted: dbStats.completedTasks || 0,
       totalJournals: journalData.length,
       tutorialCompleted: true,
       lastMoodXPTimestamp: userProfile.lastMoodXpDate
         ? new Date(userProfile.lastMoodXpDate).getTime()
         : undefined,
-      rewards: [],
+      rewards: rewardsData.map((r) => ({
+        id: r.id,
+        title: r.title,
+        category: (r.category as any) || "lazer",
+        cost: r.cost,
+        status: r.claimed
+          ? "redeemed"
+          : r.cost > 0
+          ? "approved"
+          : "pending",
+        createdAt: r.createdAt ? new Date(r.createdAt).getTime() : Date.now(),
+      })),
+      completedTasksHigh: extendedStats.completedTasksHigh || 0,
+      completedTasksMedium: extendedStats.completedTasksMedium || 0,
+      completedTasksLow: extendedStats.completedTasksLow || 0,
+      totalMoodLogs: extendedStats.totalMoodLogs || 0,
+      redeemedRewards: extendedStats.redeemedRewards || 0,
+      engagement: isEngaged,
     };
-  }, [userProfile, journalData]);
+  }, [userProfile, journalData, rewardsData, badgesData]);
 
   // Convert tasks to the expected format
   const tasks = useMemo(
@@ -99,9 +155,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
         priority: (task.priority || "medium") as "high" | "medium" | "low",
         completed: Boolean(task.completed),
         dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
-        frequency: undefined,
-        weekDays: undefined,
-        monthDays: undefined,
+        frequency: (task.frequency || "once") as "once" | "daily" | "weekly" | "monthly",
+        weekDays: task.weekDays as number[] | undefined,
+        monthDays: task.monthDays as number[] | undefined,
       })),
     [tasksData]
   );
@@ -126,19 +182,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     return journal[0]?.emotion || "neutral";
   }, [journal]);
 
-  // Convert badges to the expected format
-  const allBadges = useMemo(
-    () =>
-      badgesData.map((badge) => ({
-        id: badge.id,
-        name: badge.name,
-        description: badge.description,
-        icon: badge.icon || "🏆",
-        requirement: 1,
-        metric: "auto" as const,
-      })),
-    [badgesData]
-  );
+  // Use BADGE_DEFINITIONS directly
+  const allBadges = BADGE_DEFINITIONS;
 
   // Helper functions that use tRPC mutations
   const addXP = (amount: number) => {
@@ -261,11 +306,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const addRewardRequest = async (title: string, _category: string) => {
+  const addRewardRequest = async (title: string, category: string) => {
     try {
       await utils.client.reward.create.mutate({
         title,
         description: "",
+        category,
         cost: 0,
       });
       await utils.reward.getAll.invalidate();

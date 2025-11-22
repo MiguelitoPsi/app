@@ -40,6 +40,11 @@ export const RoutineView: React.FC = () => {
   const [selectedWeekDays, setSelectedWeekDays] = useState<number[]>([])
   const [selectedMonthDays, setSelectedMonthDays] = useState<number[]>([])
 
+  // Alert Modal State
+  const [showAlert, setShowAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
+  const [alertTitle, setAlertTitle] = useState('Atenção')
+
   // Helper to format date for display
   const formatDisplayDate = (date: Date) => {
     if (viewMode === 'month') {
@@ -96,7 +101,7 @@ export const RoutineView: React.FC = () => {
     setSelectedDate(newDate)
   }
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTaskTitle.trim()) {
       return
@@ -157,38 +162,47 @@ export const RoutineView: React.FC = () => {
       }
     }
 
-    // Validation: Check limits for each date
-    for (const timestamp of datesToCreate) {
+    console.log(`Creating ${datesToCreate.length} tasks for frequency: ${newTaskFrequency}`)
+
+    // Validation: Check limits for the first date (to prevent creation)
+    const firstTimestamp = datesToCreate[0]
+    if (firstTimestamp) {
       const tasksForDate = tasks.filter((t) => {
         const tDate = new Date(t.dueDate)
-        const targetDate = new Date(timestamp)
+        const targetDate = new Date(firstTimestamp)
         return tDate.setHours(0, 0, 0, 0) === targetDate.setHours(0, 0, 0, 0)
       })
 
       if (newTaskPriority === 'high') {
         const highCount = tasksForDate.filter((t) => t.priority === 'high').length
         if (highCount >= 2) {
-          const dateStr = new Date(timestamp).toLocaleDateString('pt-BR')
-          console.warn(
-            `Limite de tarefas urgentes atingido para ${dateStr}. Algumas tarefas não foram criadas.`
+          const dateStr = new Date(firstTimestamp).toLocaleDateString('pt-BR')
+          setAlertMessage(
+            `⚠️ Limite atingido!\n\nVocê só pode adicionar 2 tarefas de prioridade ALTA por dia.\n\nData: ${dateStr}\nTarefas de alta prioridade: ${highCount}/2`
           )
-          continue
+          setAlertTitle('Limite de Tarefas')
+          setShowAlert(true)
+          return
         }
       }
 
       if (newTaskPriority === 'medium') {
         const mediumCount = tasksForDate.filter((t) => t.priority === 'medium').length
         if (mediumCount >= 5) {
-          const dateStr = new Date(timestamp).toLocaleDateString('pt-BR')
-          console.warn(
-            `Limite de tarefas médias atingido para ${dateStr}. Algumas tarefas não foram criadas.`
+          const dateStr = new Date(firstTimestamp).toLocaleDateString('pt-BR')
+          setAlertMessage(
+            `⚠️ Limite atingido!\n\nVocê só pode adicionar 5 tarefas de prioridade MÉDIA por dia.\n\nData: ${dateStr}\nTarefas de média prioridade: ${mediumCount}/5`
           )
-          continue
+          setAlertTitle('Limite de Tarefas')
+          setShowAlert(true)
+          return
         }
       }
+    }
 
-      // Create the task
-      addTask({
+    // Create tasks for all dates
+    for (const timestamp of datesToCreate) {
+      await addTask({
         title: newTaskTitle,
         priority: newTaskPriority,
         dueDate: timestamp,
@@ -252,6 +266,26 @@ export const RoutineView: React.FC = () => {
   // Logic to hide progress bar when 100% complete
   const showProgressBar = displayTasks.length > 0 && dayProgress < 100
 
+  const handleToggleTask = (task: { id: string; dueDate: number; completed: boolean }) => {
+    if (!task.completed) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const taskDate = new Date(task.dueDate)
+      taskDate.setHours(0, 0, 0, 0)
+
+      if (taskDate.getTime() > today.getTime()) {
+        setAlertMessage(
+          '⏳ Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
+        )
+        setAlertTitle('Tarefa Futura')
+        setShowAlert(true)
+        return
+      }
+    }
+    toggleTask(task.id)
+  }
+
   const getPriorityStyles = (p: string) => {
     switch (p) {
       case 'high':
@@ -287,12 +321,12 @@ export const RoutineView: React.FC = () => {
 
   const getRewardValues = (priority: string) => {
     if (priority === 'high') {
-      return { xp: 30, pts: 40 }
+      return { xp: 30, pts: 30 }
     }
     if (priority === 'medium') {
-      return { xp: 20, pts: 20 }
+      return { xp: 10, pts: 10 }
     }
-    return { xp: 10, pts: 10 }
+    return { xp: 5, pts: 5 }
   }
 
   return (
@@ -618,7 +652,7 @@ export const RoutineView: React.FC = () => {
                       : 'border-slate-300 hover:border-violet-400 hover:bg-violet-50 dark:border-slate-600 dark:hover:bg-violet-900/20'
                   }
                     `}
-                  onClick={() => toggleTask(task.id)}
+                  onClick={() => handleToggleTask(task)}
                 >
                   {task.completed && <Check className='stroke-[3] text-white' size={16} />}
                 </button>
@@ -689,6 +723,35 @@ export const RoutineView: React.FC = () => {
           )
         })}
       </div>
+
+      {/* Alert Modal */}
+      {showAlert && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
+            <div className='bg-gradient-to-r from-red-500 to-orange-500 p-6 text-white'>
+              <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
+                <Flag className='text-white' size={24} />
+              </div>
+              <h3 className='font-bold text-xl'>{alertTitle}</h3>
+            </div>
+
+            <div className='p-6'>
+              <p className='whitespace-pre-line text-slate-700 dark:text-slate-300'>
+                {alertMessage}
+              </p>
+            </div>
+
+            <div className='border-slate-100 border-t p-4 dark:border-slate-700'>
+              <button
+                className='w-full rounded-xl bg-slate-900 py-3 font-bold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
+                onClick={() => setShowAlert(false)}
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

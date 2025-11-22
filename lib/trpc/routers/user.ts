@@ -1,8 +1,8 @@
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, sql, and, sum } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { MOOD_SCORE_MAP } from "@/lib/constants";
-import { moodHistory, userStats, users } from "@/lib/db/schema";
+import { moodHistory, userStats, users, tasks, rewards, meditationSessions } from "@/lib/db/schema";
 import { formatDateSP } from "@/lib/utils/timezone";
 import { addCoins, addRawXP, awardXPAndCoins } from "@/lib/xp";
 import { protectedProcedure, router } from "../trpc";
@@ -15,7 +15,69 @@ export const userRouter = router({
       .where(eq(users.id, ctx.user.id))
       .limit(1);
 
-    return user;
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Get user stats
+    const [stats] = await ctx.db
+      .select()
+      .from(userStats)
+      .where(eq(userStats.userId, ctx.user.id))
+      .limit(1);
+
+    // Get task counts by priority
+    const tasksHigh = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(tasks)
+      .where(and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, "high")));
+      
+    const tasksMedium = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(tasks)
+      .where(and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, "medium")));
+
+    const tasksLow = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(tasks)
+      .where(and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, "low")));
+
+    // Get total mood logs
+    const moodLogsResult = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(moodHistory)
+      .where(eq(moodHistory.userId, ctx.user.id));
+
+    // Get redeemed rewards
+    const rewardsResult = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(rewards)
+      .where(and(eq(rewards.userId, ctx.user.id), eq(rewards.claimed, true)));
+
+    // Get total meditation minutes
+    const meditationMinutesResult = await ctx.db
+      .select({ total: sum(meditationSessions.duration) })
+      .from(meditationSessions)
+      .where(eq(meditationSessions.userId, ctx.user.id));
+
+    return {
+      ...user,
+      stats: stats || {
+        totalTasks: 0,
+        completedTasks: 0,
+        totalMeditations: 0,
+        totalJournalEntries: 0,
+        longestStreak: 0,
+      },
+      extendedStats: {
+        completedTasksHigh: Number(tasksHigh[0]?.count || 0),
+        completedTasksMedium: Number(tasksMedium[0]?.count || 0),
+        completedTasksLow: Number(tasksLow[0]?.count || 0),
+        totalMoodLogs: Number(moodLogsResult[0]?.count || 0),
+        redeemedRewards: Number(rewardsResult[0]?.count || 0),
+        totalMeditationMinutes: Number(meditationMinutesResult[0]?.total || 0),
+      }
+    };
   }),
 
   getStats: protectedProcedure.query(async ({ ctx }) => {

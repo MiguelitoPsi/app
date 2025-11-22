@@ -513,7 +513,7 @@ export const MeditationView: React.FC = () => {
                 Recompensa
               </span>
               <p className="bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text font-black text-3xl text-transparent">
-                +{XP_REWARDS.meditation} XP & {COIN_REWARDS.meditation} Pts
+                +{XP_REWARDS.meditation} XP & Pts
               </p>
             </div>
           </div>

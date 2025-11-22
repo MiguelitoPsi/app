@@ -1,14 +1,14 @@
-import { eq, sum } from "drizzle-orm";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
+import { eq, sum, sql, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { BADGE_DEFINITIONS } from "@/lib/constants";
-import { badges, meditationSessions, userStats, users } from "@/lib/db/schema";
+import { badges, meditationSessions, userStats, users, tasks, moodHistory, rewards } from "@/lib/db/schema";
 import { protectedProcedure, router } from "../trpc";
 
 // Helper function to check and unlock badges
 export async function autoCheckBadges(
   userId: string,
-  db: DrizzleD1Database<any>
+  // biome-ignore lint/suspicious/noExplicitAny: generic db type
+  db: any
 ) {
   // Get user stats
   const [stats] = await db
@@ -34,6 +34,62 @@ export async function autoCheckBadges(
     .where(eq(meditationSessions.userId, userId));
 
   const totalMeditationMinutes = Number(meditationMinutesResult[0]?.total || 0);
+
+  // Get task counts by priority
+  // Note: This assumes we want to count ALL completed tasks by priority, not just the ones tracked in userStats (which might be a summary)
+  // But userStats doesn't have breakdown. So we query tasks table.
+  const tasksHigh = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), eq(tasks.completed, true), eq(tasks.priority, "high")));
+    
+  const tasksMedium = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), eq(tasks.completed, true), eq(tasks.priority, "medium")));
+
+  const tasksLow = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), eq(tasks.completed, true), eq(tasks.priority, "low")));
+
+  const completedTasksHigh = Number(tasksHigh[0]?.count || 0);
+  const completedTasksMedium = Number(tasksMedium[0]?.count || 0);
+  const completedTasksLow = Number(tasksLow[0]?.count || 0);
+
+  // Get total mood logs
+  const moodLogsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(moodHistory)
+    .where(eq(moodHistory.userId, userId));
+  
+  const totalMoodLogs = Number(moodLogsResult[0]?.count || 0);
+
+  // Get redeemed rewards
+  const rewardsResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(rewards)
+    .where(and(eq(rewards.userId, userId), eq(rewards.claimed, true)));
+
+  const redeemedRewards = Number(rewardsResult[0]?.count || 0);
+
+  // Check engagement (simple check: if they have done all 3 activities today)
+  // We can check the lastXpDate fields in user table
+  const now = new Date();
+  const isSameDay = (d1: Date | null, d2: Date) => {
+    if (!d1) return false;
+    return d1.getDate() === d2.getDate() && 
+           d1.getMonth() === d2.getMonth() && 
+           d1.getFullYear() === d2.getFullYear();
+  };
+
+  const hasTaskToday = isSameDay(user.lastTaskXpDate, now);
+  const hasJournalToday = isSameDay(user.lastJournalXpDate, now);
+  const hasMeditationToday = isSameDay(user.lastMeditationXpDate, now);
+  
+  const engagementScore = (hasTaskToday ? 1 : 0) + (hasJournalToday ? 1 : 0) + (hasMeditationToday ? 1 : 0);
+  const isEngagedToday = engagementScore >= 3;
+
 
   // Get existing badges
   const existingBadges = await db
@@ -65,6 +121,22 @@ export async function autoCheckBadges(
       shouldUnlock = stats.longestStreak >= badge.requirement;
     } else if (badge.metric === "totalMeditations") {
       shouldUnlock = stats.totalMeditations >= badge.requirement;
+    } else if (badge.metric === "level") {
+      shouldUnlock = user.level >= badge.requirement;
+    } else if (badge.metric === "completedTasksHigh") {
+      shouldUnlock = completedTasksHigh >= badge.requirement;
+    } else if (badge.metric === "completedTasksMedium") {
+      shouldUnlock = completedTasksMedium >= badge.requirement;
+    } else if (badge.metric === "completedTasksLow") {
+      shouldUnlock = completedTasksLow >= badge.requirement;
+    } else if (badge.metric === "totalMoodLogs") {
+      shouldUnlock = totalMoodLogs >= badge.requirement;
+    } else if (badge.metric === "redeemedRewards") {
+      shouldUnlock = redeemedRewards >= badge.requirement;
+    } else if (badge.metric === "engagement") {
+      shouldUnlock = isEngagedToday; // Only unlocks if they are engaged TODAY. This might be hard to get if they don't check exactly when they do it.
+      // Maybe we should allow it if they EVER did it? But we don't track that history easily.
+      // For now, let's stick to "today". If they do all 3, they get the badge.
     }
 
     if (shouldUnlock) {

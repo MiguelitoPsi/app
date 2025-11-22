@@ -133,6 +133,7 @@ export const rewards = sqliteTable("rewards", {
     .references(() => users.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description"),
+  category: text("category").notNull().default("lazer"),
   cost: integer("cost").notNull(),
   claimed: integer("claimed", { mode: "boolean" }).notNull().default(false),
   claimedAt: integer("claimed_at", { mode: "timestamp" }),

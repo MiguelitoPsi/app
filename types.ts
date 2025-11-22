@@ -49,6 +49,7 @@ export type UserStats = {
   level: number
   points: number // New Currency
   streak: number
+  longestStreak: number
   badges: BadgeUnlock[] // Stores ID and timestamp
   avatarConfig: AvatarConfig
   theme: 'light' | 'dark'
@@ -61,7 +62,27 @@ export type UserStats = {
   tutorialCompleted: boolean
   lastMoodXPTimestamp?: number // Timestamp for cooldown tracking
   rewards: Reward[] // User's custom rewards
+  
+  // New metrics for achievements
+  completedTasksHigh: number
+  completedTasksMedium: number
+  completedTasksLow: number
+  totalMoodLogs: number
+  redeemedRewards: number
+  engagement: number // 0 or 1 (boolean-like) or score
+
 }
+
+export type BadgeCategory = 
+  | "evolution"
+  | "tasks_general"
+  | "tasks_priority"
+  | "meditation"
+  | "journal"
+  | "mood"
+  | "consistency"
+  | "rewards"
+  | "engagement";
 
 export type BadgeDefinition = {
   id: string
@@ -69,6 +90,7 @@ export type BadgeDefinition = {
   description: string
   icon: string
   requirement: number
+  category: BadgeCategory
   metric:
     | keyof Pick<
         UserStats,
@@ -79,6 +101,13 @@ export type BadgeDefinition = {
         | 'tutorialCompleted'
       >
     | 'auto'
+    | 'level'
+    | 'completedTasksHigh'
+    | 'completedTasksMedium'
+    | 'completedTasksLow'
+    | 'totalMoodLogs'
+    | 'redeemedRewards'
+    | 'engagement'
 }
 
 export type GameContextType = {

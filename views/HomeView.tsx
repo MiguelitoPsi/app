@@ -10,7 +10,7 @@ import {
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { COIN_REWARDS, XP_REWARDS } from "@/lib/xp";
 import { Avatar } from "../components/Avatar";
 import { RANKS, useGame } from "../context/GameContext";
@@ -43,10 +43,36 @@ export const HomeView: React.FC = () => {
     amount: number;
   } | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  // Local state for immediate UI feedback
+  const [selectedMood, setSelectedMood] = useState<Mood>(currentMood);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Scroll detection
+  useEffect(() => {
+    const scrollContainer = scrollContainerRef.current;
+    if (!scrollContainer) return;
+
+    const handleScroll = () => {
+      if (scrollContainer.scrollTop > 50) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    scrollContainer.addEventListener('scroll', handleScroll);
+    return () => scrollContainer.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Sync local mood with context mood
+  useEffect(() => {
+    setSelectedMood(currentMood);
+  }, [currentMood]);
 
   useEffect(() => {
     const lastXP = stats.lastMoodXPTimestamp || 0;
@@ -65,10 +91,15 @@ export const HomeView: React.FC = () => {
   }, [stats.lastMoodXPTimestamp]);
 
   const handleMoodChange = (mood: Mood) => {
+    // Update local state immediately for instant UI feedback
+    setSelectedMood(mood);
+    
     if (isXPAvailable) {
-      setXpFeedback({ id: Date.now(), amount: 20 });
+      setXpFeedback({ id: Date.now(), amount: 10 });
       setTimeout(() => setXpFeedback(null), 2000);
     }
+    
+    // Update backend asynchronously
     setMood(mood);
   };
 
@@ -125,47 +156,60 @@ export const HomeView: React.FC = () => {
       )}
 
       {/* Header Section */}
-      <div className="z-10 rounded-b-[2rem] bg-white px-6 pt-8 pb-6 shadow-sm dark:bg-slate-900">
-        <div className="mb-6 flex items-center justify-between">
-          <div>
-            <h2 className="font-black text-2xl text-slate-800 tracking-tight dark:text-white">
-              Olá, {stats.name}
-            </h2>
-            <p className="font-medium text-slate-500 text-sm dark:text-slate-400">
-              Vamos cuidar de você hoje?
-            </p>
-          </div>
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xl dark:border-slate-700 dark:bg-slate-800">
-            👋
+      <div className="relative z-10 rounded-b-[2rem] bg-white shadow-sm dark:bg-slate-900">
+        {/* Greeting - Hidden on scroll */}
+        <div 
+          className={`overflow-hidden transition-all duration-300 ${
+            isScrolled ? 'max-h-0 opacity-0' : 'max-h-24 opacity-100'
+          }`}
+        >
+          <div className="px-6 pt-8 pb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="font-black text-2xl text-slate-800 tracking-tight dark:text-white">
+                  Olá, {stats.name}
+                </h2>
+                <p className="font-medium text-slate-500 text-sm dark:text-slate-400">
+                  Vamos cuidar de você hoje?
+                </p>
+              </div>
+              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-xl dark:border-slate-700 dark:bg-slate-800">
+                👋
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Rank/Stats Card */}
-        <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-6 text-white shadow-xl">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <p className="font-medium text-sm text-violet-100">Seu Nível</p>
-              <h2 className="font-bold text-2xl">{currentRank.name}</h2>
+        {/* Rank/Stats Card - Becomes sticky */}
+        <div className={`px-6 transition-all duration-300 ${
+          isScrolled ? 'pb-4 pt-4' : 'pb-6'
+        }`}>
+          <div className="rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-6 text-white shadow-xl">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <p className="font-medium text-sm text-violet-100">{stats.name}</p>
+                <h2 className="font-bold text-2xl">{currentRank.name}</h2>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-violet-100">Nível {stats.level}</p>
+                <p className="font-bold text-2xl">{stats.xp} XP</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="text-sm text-violet-100">Nível {stats.level}</p>
-              <p className="font-bold text-2xl">{stats.xp} XP</p>
+            <div className="h-3 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-500"
+                style={{ width: `${stats.xp % 100}%` }}
+              />
             </div>
+            <p className="mt-2 text-sm text-violet-100">
+              {100 - (stats.xp % 100)} XP para o próximo nível
+            </p>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm">
-            <div
-              className="h-full rounded-full bg-white transition-all duration-500"
-              style={{ width: `${stats.xp % 100}%` }}
-            />
-          </div>
-          <p className="mt-2 text-sm text-violet-100">
-            {100 - (stats.xp % 100)} XP para o próximo nível
-          </p>
         </div>
       </div>
 
       {/* Scrollable Content */}
-      <div className="flex-1 space-y-6 overflow-y-auto px-6 py-6 pb-24">
+      <div ref={scrollContainerRef} className="flex-1 space-y-6 overflow-y-auto px-6 py-6 pb-24">
         {/* Urgent Tasks Alert */}
         {urgentTasks.length > 0 && (
           <button
@@ -198,7 +242,7 @@ export const HomeView: React.FC = () => {
 
         {/* Avatar Section */}
         <div className="flex justify-center py-2">
-          <Avatar config={stats.avatarConfig} mood={currentMood} size="lg" />
+          <Avatar config={stats.avatarConfig} mood={selectedMood} size="lg" />
         </div>
 
         {/* Quick Mood Check-in */}
@@ -215,7 +259,7 @@ export const HomeView: React.FC = () => {
             {moods.map((m) => (
               <button
                 className={`flex flex-col items-center gap-1 rounded-2xl p-2 transition-all duration-300 ${
-                  currentMood === m.id
+                  selectedMood === m.id
                     ? "scale-110 bg-violet-50 shadow-sm ring-2 ring-violet-100 dark:bg-violet-900/20 dark:ring-violet-900/30"
                     : "hover:scale-105 hover:bg-slate-50 dark:hover:bg-slate-800"
                 }`}
@@ -268,7 +312,7 @@ export const HomeView: React.FC = () => {
                 Rápida
               </div>
               <div className="mt-1 inline-block rounded-full bg-slate-50 px-2 py-0.5 font-bold text-[10px] text-slate-400 dark:bg-slate-800">
-                +{XP_REWARDS.meditation} XP & {COIN_REWARDS.meditation} Pts
+                +{XP_REWARDS.meditation} XP & Pts
               </div>
             </div>
           </button>

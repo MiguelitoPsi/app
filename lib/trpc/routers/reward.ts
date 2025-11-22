@@ -34,6 +34,7 @@ export const rewardRouter = router({
       z.object({
         title: z.string(),
         description: z.string().optional(),
+        category: z.string().default("lazer"),
         cost: z.number().default(0),
       })
     )

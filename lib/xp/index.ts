@@ -19,13 +19,13 @@ import { isSameDay } from "@/lib/utils/timezone";
  */
 export const XP_REWARDS = {
   task: {
-    low: 10,
-    medium: 20,
+    low: 5,
+    medium: 10,
     high: 30,
   },
-  journal: 50,
-  meditation: 50,
-  mood: 20,
+  journal: 30,
+  meditation: 30,
+  mood: 10,
 } as const;
 
 /**
@@ -33,11 +33,11 @@ export const XP_REWARDS = {
  */
 export const COIN_REWARDS = {
   task: {
-    low: 10,
-    medium: 20,
-    high: 40,
+    low: 5,
+    medium: 10,
+    high: 30,
   },
-  journal: 50,
+  journal: 30,
   meditation: 30,
   mood: 0, // Mood não ganha coins, apenas XP
 } as const;
@@ -114,11 +114,12 @@ const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
 
 /**
  * Verifica se o usuário pode ganhar XP para uma ação específica
- * (Limite de 1 vez por dia por tipo de ação)
+ * - Mood: Limite de 1 vez por hora
+ * - Outras ações: Limite de 1 vez por dia
  *
  * @param user - Objeto do usuário do banco de dados
  * @param action - Tipo de ação
- * @returns true se pode ganhar XP, false se já ganhou hoje
+ * @returns true se pode ganhar XP, false se ainda está em cooldown
  */
 export function canAwardXP(
   user: InferSelectModel<typeof users>,
@@ -131,6 +132,15 @@ export function canAwardXP(
     return true;
   }
 
+  // Para mood, verificar se passou 1 hora (3600000 ms)
+  if (action === "mood") {
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const now = new Date();
+    const timeDiff = now.getTime() - new Date(lastDate).getTime();
+    return timeDiff >= ONE_HOUR_MS;
+  }
+
+  // Para outras ações, verificar se é o mesmo dia
   return !isSameDay(lastDate, new Date());
 }
 
