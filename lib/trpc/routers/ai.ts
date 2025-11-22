@@ -1,9 +1,9 @@
-import { GoogleGenAI } from '@google/genai'
-import { encode as encodeTOON } from '@toon-format/toon'
-import { z } from 'zod'
-import { protectedProcedure, router } from '../trpc'
+import { GoogleGenAI } from "@google/genai";
+import { encode as encodeTOON } from "@toon-format/toon";
+import { z } from "zod";
+import { protectedProcedure, router } from "../trpc";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || '' })
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
 
 export const aiRouter = router({
   analyzeThought: protectedProcedure
@@ -21,36 +21,42 @@ export const aiRouter = router({
             emotion: input.emotion,
             thought: input.thought,
           },
-        }
+        };
 
-        const toonContext = encodeTOON(contextData)
+        const toonContext = encodeTOON(contextData);
 
-        const prompt = `You are an empathetic and professional Cognitive Behavioral Therapy (CBT) assistant. 
+        const prompt = `Você é um assistente de Terapia Cognitivo-Comportamental (TCC) empático e profissional. 
 
-Context (TOON format):
+Contexto (formato TOON):
 \`\`\`toon
 ${toonContext}
 \`\`\`
 
-Please provide a brief, supportive analysis (max 3 sentences). 
-First, validate their feeling. 
-Second, gently suggest a cognitive reframing or an alternative perspective to challenge the automatic thought.
-Keep the tone encouraging and warm.`
+Por favor, forneça uma análise breve e acolhedora (máximo 3 frases). 
+Primeiro, valide o sentimento dele. 
+Segundo, sugira gentilmente uma reestruturação cognitiva ou uma perspectiva alternativa para desafiar o pensamento automático.
+Mantenha o tom encorajador e caloroso.
+
+IMPORTANTE: Responda SEMPRE em português brasileiro.`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-lite',
+          model: "gemini-2.5-flash-lite",
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        })
+        });
 
         return {
-          analysis: response.text || 'Unable to generate analysis at this time.',
-        }
+          analysis:
+            response.text ||
+            "Não foi possível gerar uma análise neste momento.",
+        };
       } catch (error) {
-        console.error('Error calling Gemini:', error)
-        throw new Error("Sorry, I couldn't analyze your thought right now. Please try again later.")
+        console.error("Error calling Gemini:", error);
+        throw new Error(
+          "Desculpe, não consegui analisar seu pensamento agora. Por favor, tente novamente mais tarde."
+        );
       }
     }),
 
@@ -66,47 +72,58 @@ Keep the tone encouraging and warm.`
         const contextData = {
           entry: {
             content: input.content,
-            mood: input.mood || 'not specified',
+            mood: input.mood || "not specified",
           },
-        }
+        };
 
-        const toonContext = encodeTOON(contextData)
+        const toonContext = encodeTOON(contextData);
 
-        const prompt = `You are a compassionate mental health assistant analyzing a journal entry.
+        const prompt = `Você é um assistente compassivo de saúde mental analisando uma entrada de diário.
 
-Context (TOON format):
+Contexto (formato TOON):
 \`\`\`toon
 ${toonContext}
 \`\`\`
 
-Provide:
-1. A brief emotional insight (1-2 sentences)
-2. One positive pattern or strength you notice
-3. A gentle suggestion for self-reflection
+Forneça:
+1. Uma breve análise emocional (1-2 frases)
+2. Um padrão positivo ou força que você percebe
+3. Uma sugestão gentil para auto-reflexão
 
-Keep it supportive and non-judgmental.`
+Mantenha um tom acolhedor e sem julgamentos.
+
+IMPORTANTE: Responda SEMPRE em português brasileiro.`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-lite',
+          model: "gemini-2.5-flash-lite",
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        })
+        });
 
         return {
-          analysis: response.text || 'Unable to generate analysis at this time.',
-        }
+          analysis:
+            response.text ||
+            "Não foi possível gerar uma análise neste momento.",
+        };
       } catch (error) {
-        console.error('Error calling Gemini:', error)
-        throw new Error('Could not analyze journal entry. Please try again.')
+        console.error("Error calling Gemini:", error);
+        throw new Error(
+          "Não foi possível analisar a entrada do diário. Por favor, tente novamente."
+        );
       }
     }),
 
   generateMeditationScript: protectedProcedure
     .input(
       z.object({
-        type: z.enum(['breathing', 'body-scan', 'mindfulness', 'loving-kindness']),
+        type: z.enum([
+          "breathing",
+          "body-scan",
+          "mindfulness",
+          "loving-kindness",
+        ]),
         duration: z.number(),
       })
     )
@@ -117,38 +134,43 @@ Keep it supportive and non-judgmental.`
             type: input.type,
             duration_minutes: input.duration,
           },
-        }
+        };
 
-        const toonContext = encodeTOON(contextData)
+        const toonContext = encodeTOON(contextData);
 
-        const prompt = `Generate a guided meditation script.
+        const prompt = `Gere um script de meditação guiada.
 
-Parameters (TOON format):
+Parâmetros (formato TOON):
 \`\`\`toon
 ${toonContext}
 \`\`\`
 
-Create a calming, professional script with:
-- Opening (30 seconds)
-- Main practice (aligned with duration)
-- Closing (30 seconds)
+Crie um script calmo e profissional com:
+- Abertura (30 segundos)
+- Prática principal (alinhada com a duração)
+- Fechamento (30 segundos)
 
-Use simple, soothing language. Include timing cues.`
+Use uma linguagem simples e tranquilizadora. Inclua indicações de tempo.
+
+IMPORTANTE: Responda SEMPRE em português brasileiro.`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-lite',
+          model: "gemini-2.5-flash-lite",
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        })
+        });
 
         return {
-          script: response.text || 'Unable to generate script at this time.',
-        }
+          script:
+            response.text || "Não foi possível gerar o script neste momento.",
+        };
       } catch (error) {
-        console.error('Error calling Gemini:', error)
-        throw new Error('Could not generate meditation script. Please try again.')
+        console.error("Error calling Gemini:", error);
+        throw new Error(
+          "Não foi possível gerar o script de meditação. Por favor, tente novamente."
+        );
       }
     }),
 
@@ -159,7 +181,7 @@ Use simple, soothing language. Include timing cues.`
         conversationHistory: z
           .array(
             z.object({
-              role: z.enum(['user', 'assistant']),
+              role: z.enum(["user", "assistant"]),
               content: z.string(),
             })
           )
@@ -172,35 +194,41 @@ Use simple, soothing language. Include timing cues.`
         const contextData = {
           conversation: input.conversationHistory || [],
           current_message: input.message,
-        }
+        };
 
-        const toonContext = encodeTOON(contextData)
+        const toonContext = encodeTOON(contextData);
 
-        const prompt = `You are a supportive AI therapist assistant trained in CBT and mindfulness techniques.
+        const prompt = `Você é um assistente de terapeuta de IA acolhedor, treinado em técnicas de TCC e mindfulness.
 
-Conversation Context (TOON format):
+Contexto da Conversa (formato TOON):
 \`\`\`toon
 ${toonContext}
 \`\`\`
 
-Respond with empathy and professionalism. Provide practical insights when appropriate. 
-If the user expresses crisis thoughts, gently suggest professional help.
-Keep responses concise (2-4 sentences).`
+Responda com empatia e profissionalismo. Forneça insights práticos quando apropriado. 
+Se o usuário expressar pensamentos de crise, sugira gentilmente ajuda profissional.
+Mantenha as respostas concisas (2-4 frases).
+
+IMPORTANTE: Responda SEMPRE em português brasileiro.`;
 
         const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash-lite',
+          model: "gemini-2.5-flash-lite",
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        })
+        });
 
         return {
-          response: response.text || 'I apologize, but I need a moment. Please try again.',
-        }
+          response:
+            response.text ||
+            "Me desculpe, mas preciso de um momento. Por favor, tente novamente.",
+        };
       } catch (error) {
-        console.error('Error calling Gemini:', error)
-        throw new Error('Could not process message. Please try again.')
+        console.error("Error calling Gemini:", error);
+        throw new Error(
+          "Não foi possível processar a mensagem. Por favor, tente novamente."
+        );
       }
     }),
-})
+});

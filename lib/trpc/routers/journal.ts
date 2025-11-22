@@ -1,28 +1,57 @@
-import { and, desc, eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
-import { z } from 'zod'
-import { journalEntries, userStats } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
+import { and, desc, eq, isNull } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { z } from "zod";
+import { journalEntries, userStats } from "@/lib/db/schema";
+import { awardXPAndCoins } from "@/lib/xp";
+import { protectedProcedure, router } from "../trpc";
+import { autoCheckBadges } from "./badge";
 
 export const journalRouter = router({
-  getAll: protectedProcedure.query(
-    async ({ ctx }) =>
-      await ctx.db
+  getAll: protectedProcedure
+    .input(
+      z
+        .object({
+          userId: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(({ ctx, input }) => {
+      const targetUserId = input?.userId || ctx.user.id;
+
+      // If querying another user, verify permission (for therapists)
+      if (targetUserId !== ctx.user.id && ctx.user.role !== "psychologist") {
+        throw new Error("Unauthorized");
+      }
+
+      return ctx.db
         .select()
         .from(journalEntries)
-        .where(eq(journalEntries.userId, ctx.user.id))
-        .orderBy(desc(journalEntries.createdAt))
-  ),
+        .where(
+          and(
+            eq(journalEntries.userId, targetUserId),
+            isNull(journalEntries.deletedAt)
+          )
+        )
+        .orderBy(desc(journalEntries.createdAt));
+    }),
 
-  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
-    const [entry] = await ctx.db
-      .select()
-      .from(journalEntries)
-      .where(and(eq(journalEntries.id, input.id), eq(journalEntries.userId, ctx.user.id)))
-      .limit(1)
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [entry] = await ctx.db
+        .select()
+        .from(journalEntries)
+        .where(
+          and(
+            eq(journalEntries.id, input.id),
+            eq(journalEntries.userId, ctx.user.id),
+            isNull(journalEntries.deletedAt)
+          )
+        )
+        .limit(1);
 
-    return entry
-  }),
+      return entry;
+    }),
 
   create: protectedProcedure
     .input(
@@ -30,30 +59,51 @@ export const journalRouter = router({
         content: z.string(),
         mood: z.string().optional(),
         tags: z.array(z.string()).optional(),
+        aiAnalysis: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const id = nanoid()
+      const id = nanoid();
+
+      // Award XP and Coins using centralized system
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, "journal");
+      const { xpAwarded, coinsAwarded, levelUp } = result;
+      const now = new Date();
+
+      // Create journal entry
       await ctx.db.insert(journalEntries).values({
         id,
         userId: ctx.user.id,
         ...input,
-      })
+      });
 
       // Update stats
-      const totalEntries = await ctx.db
-        .select({ count: journalEntries.id })
-        .from(journalEntries)
-        .where(eq(journalEntries.userId, ctx.user.id))
-
-      await ctx.db
-        .update(userStats)
-        .set({
-          totalJournalEntries: totalEntries.length,
-        })
+      const [stats] = await ctx.db
+        .select()
+        .from(userStats)
         .where(eq(userStats.userId, ctx.user.id))
+        .limit(1);
 
-      return { id }
+      if (stats) {
+        await ctx.db
+          .update(userStats)
+          .set({
+            totalJournalEntries: stats.totalJournalEntries + 1,
+            updatedAt: now,
+          })
+          .where(eq(userStats.userId, ctx.user.id));
+      }
+
+      // Check for new badges
+      const newBadges = await autoCheckBadges(ctx.user.id, ctx.db);
+
+      return {
+        id,
+        xp: xpAwarded,
+        coins: coinsAwarded,
+        levelUp,
+        newBadges,
+      };
     }),
 
   update: protectedProcedure
@@ -67,25 +117,41 @@ export const journalRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input
+      const { id, ...data } = input;
       await ctx.db
         .update(journalEntries)
         .set({
           ...data,
           updatedAt: new Date(),
         })
-        .where(and(eq(journalEntries.id, id), eq(journalEntries.userId, ctx.user.id)))
+        .where(
+          and(
+            eq(journalEntries.id, id),
+            eq(journalEntries.userId, ctx.user.id),
+            isNull(journalEntries.deletedAt)
+          )
+        );
 
-      return { success: true }
+      return { success: true };
     }),
 
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
+      // Soft delete
       await ctx.db
-        .delete(journalEntries)
-        .where(and(eq(journalEntries.id, input.id), eq(journalEntries.userId, ctx.user.id)))
+        .update(journalEntries)
+        .set({
+          deletedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(journalEntries.id, input.id),
+            eq(journalEntries.userId, ctx.user.id)
+          )
+        );
 
-      return { success: true }
+      return { success: true };
     }),
-})
+});

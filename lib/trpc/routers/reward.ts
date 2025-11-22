@@ -1,55 +1,153 @@
-import { and, eq } from 'drizzle-orm'
-import { nanoid } from 'nanoid'
-import { z } from 'zod'
-import { rewards } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
+import { and, eq, isNull } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { z } from "zod";
+import { rewards, users } from "@/lib/db/schema";
+import { protectedProcedure, router } from "../trpc";
 
 export const rewardRouter = router({
-  getAll: protectedProcedure.query(
-    async ({ ctx }) => await ctx.db.select().from(rewards).where(eq(rewards.userId, ctx.user.id))
-  ),
+  getAll: protectedProcedure
+    .input(
+      z
+        .object({
+          userId: z.string().optional(),
+        })
+        .optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const targetUserId = input?.userId || ctx.user.id;
+
+      // If querying another user, verify permission (for therapists)
+      if (targetUserId !== ctx.user.id && ctx.user.role !== "psychologist") {
+        throw new Error("Unauthorized");
+      }
+
+      return ctx.db
+        .select()
+        .from(rewards)
+        .where(
+          and(eq(rewards.userId, targetUserId), isNull(rewards.deletedAt))
+        );
+    }),
 
   create: protectedProcedure
     .input(
       z.object({
         title: z.string(),
         description: z.string().optional(),
-        cost: z.number(),
+        cost: z.number().default(0),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const id = nanoid()
+      const id = nanoid();
       await ctx.db.insert(rewards).values({
         id,
         userId: ctx.user.id,
         ...input,
-      })
+      });
 
-      return { id }
+      return { id };
     }),
 
-  claim: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
-    const [reward] = await ctx.db
-      .select()
-      .from(rewards)
-      .where(and(eq(rewards.id, input.id), eq(rewards.userId, ctx.user.id)))
-      .limit(1)
-
-    if (!reward) {
-      throw new Error('Reward not found')
-    }
-    if (reward.claimed) {
-      throw new Error('Reward already claimed')
-    }
-
-    await ctx.db
-      .update(rewards)
-      .set({
-        claimed: true,
-        claimedAt: new Date(),
+  updateCost: protectedProcedure
+    .input(
+      z.object({
+        rewardId: z.string(),
+        cost: z.number(),
+        patientId: z.string().optional(),
       })
-      .where(eq(rewards.id, input.id))
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Only psychologists can update costs
+      if (ctx.user.role !== "psychologist") {
+        throw new Error("Only psychologists can update reward costs");
+      }
 
-    return { success: true, cost: reward.cost }
-  }),
-})
+      const targetUserId = input.patientId || ctx.user.id;
+
+      await ctx.db
+        .update(rewards)
+        .set({
+          cost: input.cost,
+        })
+        .where(
+          and(eq(rewards.id, input.rewardId), eq(rewards.userId, targetUserId))
+        );
+
+      return { success: true };
+    }),
+
+  claim: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const [reward] = await ctx.db
+        .select()
+        .from(rewards)
+        .where(
+          and(
+            eq(rewards.id, input.id),
+            eq(rewards.userId, ctx.user.id),
+            isNull(rewards.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (!reward) {
+        throw new Error("Reward not found");
+      }
+
+      if (reward.claimed) {
+        throw new Error("Reward already claimed");
+      }
+
+      // Get user
+      const [user] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      // Check if user has enough coins
+      if (user.coins < reward.cost) {
+        throw new Error("Saldo insuficiente");
+      }
+
+      // Deduct coins and mark as claimed
+      const newBalance = user.coins - reward.cost;
+
+      await ctx.db
+        .update(users)
+        .set({
+          coins: newBalance,
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, ctx.user.id));
+
+      await ctx.db
+        .update(rewards)
+        .set({
+          claimed: true,
+          claimedAt: new Date(),
+        })
+        .where(eq(rewards.id, input.id));
+
+      return { success: true, cost: reward.cost, newBalance };
+    }),
+
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Soft delete
+      await ctx.db
+        .update(rewards)
+        .set({
+          deletedAt: new Date(),
+        })
+        .where(and(eq(rewards.id, input.id), eq(rewards.userId, ctx.user.id)));
+
+      return { success: true };
+    }),
+});

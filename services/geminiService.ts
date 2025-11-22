@@ -1,37 +1,28 @@
-import { GoogleGenAI } from '@google/genai'
-
-// Initialize the client with the API key from the environment
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY })
-
 /**
- * Analyzes a CBT thought record using Gemini.
+ * Analyzes a CBT thought record using Gemini via API route.
  */
-export const analyzeThought = async (emotion: string, thought: string): Promise<string> => {
+export const analyzeThought = async (
+  emotion: string,
+  thought: string
+): Promise<string> => {
   try {
-    const prompt = `
-      You are an empathetic and professional Cognitive Behavioral Therapy (CBT) assistant. 
-      A user has recorded the following log:
-      
-      - Automatic Thought: "${thought}"
-      - Emotion: "${emotion}"
-      
-      Please provide a brief, supportive analysis (max 3 sentences). 
-      First, validate their feeling. 
-      Second, gently suggest a cognitive reframing or an alternative perspective to challenge the automatic thought.
-      Keep the tone encouraging and warm.
-    `
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 0 }, // Disable thinking for faster response
+    const response = await fetch("/api/analyze-thought", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    })
+      body: JSON.stringify({ emotion, thought }),
+    });
 
-    return response.text || 'Unable to generate analysis at this time.'
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to analyze thought");
+    }
+
+    const data = await response.json();
+    return data.analysis || "Não foi possível gerar uma análise neste momento.";
   } catch (error) {
-    console.error('Error calling Gemini:', error)
-    return "Sorry, I couldn't analyze your thought right now. Please try again later."
+    console.error("Error calling analyze-thought API:", error);
+    return "Desculpe, não consegui analisar seu pensamento agora. Por favor, tente novamente mais tarde.";
   }
-}
+};

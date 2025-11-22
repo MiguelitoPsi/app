@@ -1,13 +1,21 @@
-import { eq } from 'drizzle-orm'
-import { z } from 'zod'
-import { userStats, users } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
+import { desc, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
+import { z } from "zod";
+import { MOOD_SCORE_MAP } from "@/lib/constants";
+import { moodHistory, userStats, users } from "@/lib/db/schema";
+import { formatDateSP } from "@/lib/utils/timezone";
+import { addCoins, addRawXP, awardXPAndCoins } from "@/lib/xp";
+import { protectedProcedure, router } from "../trpc";
 
 export const userRouter = router({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
-    const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
+    const [user] = await ctx.db
+      .select()
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1);
 
-    return user
+    return user;
   }),
 
   getStats: protectedProcedure.query(async ({ ctx }) => {
@@ -15,7 +23,7 @@ export const userRouter = router({
       .select()
       .from(userStats)
       .where(eq(userStats.userId, ctx.user.id))
-      .limit(1)
+      .limit(1);
 
     if (!stats) {
       // Create stats if they don't exist
@@ -26,12 +34,12 @@ export const userRouter = router({
         totalMeditations: 0,
         totalJournalEntries: 0,
         longestStreak: 0,
-      }
-      await ctx.db.insert(userStats).values(newStats)
-      return newStats
+      };
+      await ctx.db.insert(userStats).values(newStats);
+      return newStats;
     }
 
-    return stats
+    return stats;
   }),
 
   updateProfile: protectedProcedure
@@ -42,7 +50,7 @@ export const userRouter = router({
         preferences: z
           .object({
             notifications: z.boolean().optional(),
-            theme: z.enum(['light', 'dark']).optional(),
+            theme: z.enum(["light", "dark"]).optional(),
             language: z.string().optional(),
           })
           .optional(),
@@ -55,54 +63,137 @@ export const userRouter = router({
           ...input,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id))
+        .where(eq(users.id, ctx.user.id));
 
-      return { success: true }
+      return { success: true };
     }),
 
   addExperience: protectedProcedure
     .input(z.object({ amount: z.number() }))
-    .mutation(async ({ ctx, input }) => {
-      const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
-
-      if (!user) {
-        throw new Error('User not found')
-      }
-
-      const newExperience = user.experience + input.amount
-      const newLevel = Math.floor(newExperience / 100) + 1
-
-      await ctx.db
-        .update(users)
-        .set({
-          experience: newExperience,
-          level: newLevel,
-          updatedAt: new Date(),
-        })
-        .where(eq(users.id, ctx.user.id))
-
-      return { level: newLevel, experience: newExperience }
-    }),
+    .mutation(({ ctx, input }) => addRawXP(ctx.db, ctx.user.id, input.amount)),
 
   addCoins: protectedProcedure
     .input(z.object({ amount: z.number() }))
+    .mutation(({ ctx, input }) => addCoins(ctx.db, ctx.user.id, input.amount)),
+
+  updateAvatar: protectedProcedure
+    .input(
+      z.object({
+        accessory: z.string(),
+        shirtColor: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
-      const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
+      const [user] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1);
 
       if (!user) {
-        throw new Error('User not found')
+        throw new Error("User not found");
       }
 
-      const newCoins = user.coins + input.amount
+      const currentPreferences = user.preferences || {};
 
       await ctx.db
         .update(users)
         .set({
-          coins: newCoins,
+          preferences: {
+            ...currentPreferences,
+            avatar_config: input,
+          },
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id))
+        .where(eq(users.id, ctx.user.id));
 
-      return { coins: newCoins }
+      return { success: true };
     }),
-})
+
+  updateTheme: protectedProcedure
+    .input(z.object({ theme: z.enum(["light", "dark"]) }))
+    .mutation(async ({ ctx, input }) => {
+      const [user] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1);
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const currentPreferences = user.preferences || {};
+
+      await ctx.db
+        .update(users)
+        .set({
+          preferences: {
+            ...currentPreferences,
+            theme: input.theme,
+          },
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, ctx.user.id));
+
+      return { success: true };
+    }),
+
+  trackMood: protectedProcedure
+    .input(
+      z.object({
+        mood: z.enum(["happy", "calm", "neutral", "sad", "anxious", "angry"]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Award XP and Coins using centralized system
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, "mood");
+      const xpAwarded = result.xpAwarded;
+
+      // Always save mood
+      await ctx.db.insert(moodHistory).values({
+        id: nanoid(),
+        userId: ctx.user.id,
+        mood: input.mood,
+        xpAwarded,
+      });
+
+      return { xp: xpAwarded, saved: true };
+    }),
+
+  getMoodHistory: protectedProcedure
+    .input(z.object({ days: z.number().default(7) }))
+    .query(async ({ ctx, input }) => {
+      const moods = await ctx.db
+        .select()
+        .from(moodHistory)
+        .where(eq(moodHistory.userId, ctx.user.id))
+        .orderBy(desc(moodHistory.createdAt))
+        .limit(input.days * 5); // Get more to account for multiple entries per day
+
+      // Group by day and calculate average score
+      const moodsByDay = new Map<string, number[]>();
+
+      for (const mood of moods) {
+        const day = formatDateSP(mood.createdAt);
+        const score =
+          MOOD_SCORE_MAP[mood.mood as keyof typeof MOOD_SCORE_MAP] || 60;
+
+        if (!moodsByDay.has(day)) {
+          moodsByDay.set(day, []);
+        }
+        moodsByDay.get(day)?.push(score);
+      }
+
+      // Calculate averages
+      const result = Array.from(moodsByDay.entries())
+        .map(([day, scores]) => ({
+          date: day,
+          score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+        }))
+        .slice(0, input.days)
+        .reverse();
+
+      return result;
+    }),
+});
