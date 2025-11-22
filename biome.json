@@ -1,0 +1,81 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "vcs": {
+    "enabled": true,
+    "clientKind": "git",
+    "useIgnoreFile": true
+  },
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      "**/*.ts",
+      "**/*.tsx",
+      "**/*.js",
+      "**/*.jsx",
+      "!**/node_modules",
+      "!**/.next",
+      "!**/dist",
+      "!**/build"
+    ]
+  },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineWidth": 100,
+    "lineEnding": "lf"
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "recommended": true,
+      "suspicious": {
+        "noExplicitAny": "warn",
+        "noUnknownAtRules": "off",
+        "noArrayIndexKey": "off",
+        "noAlert": "off"
+      },
+      "style": {
+        "noUnusedTemplateLiteral": "warn",
+        "useFilenamingConvention": "off",
+        "noNestedTernary": "off",
+        "useDefaultSwitchClause": "off",
+        "noEnum": "error",
+        "useBlockStatements": "off"
+      },
+      "performance": {
+        "noNamespaceImport": "off"
+      },
+      "a11y": {
+        "useButtonType": "warn",
+        "noLabelWithoutControl": "off",
+        "noStaticElementInteractions": "off",
+        "useKeyWithClickEvents": "off",
+        "noNoninteractiveElementInteractions": "off"
+      },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off",
+        "noForEach": "off"
+      },
+      "nursery": {
+        "noIncrementDecrement": "off",
+        "noShadow": "warn",
+        "useSortedClasses": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn"
+      }
+    }
+  },
+  "javascript": {
+    "formatter": {
+      "quoteStyle": "single",
+      "jsxQuoteStyle": "single",
+      "trailingCommas": "es5",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "always"
+    }
+  },
+  "extends": ["ultracite/core", "ultracite/next"]
+}
