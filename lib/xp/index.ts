@@ -125,6 +125,11 @@ export function canAwardXP(
   user: InferSelectModel<typeof users>,
   action: XPAction
 ): boolean {
+  // Tasks sempre dão XP
+  if (action === "task") {
+    return true;
+  }
+
   const field = COOLDOWN_FIELDS[action];
   const lastDate = user[field] as Date | null;
 

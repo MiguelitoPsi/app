@@ -1,8 +1,8 @@
-import { TRPCError } from "@trpc/server";
-import { subDays } from "date-fns";
-import { and, desc, eq, gte, isNull } from "drizzle-orm";
-import { z } from "zod";
-import { db } from "@/lib/db";
+import { TRPCError } from '@trpc/server'
+import { subDays } from 'date-fns'
+import { and, desc, eq, gte, isNull } from 'drizzle-orm'
+import { z } from 'zod'
+import { db } from '@/lib/db'
 import {
   journalEntries,
   meditationSessions,
@@ -10,16 +10,16 @@ import {
   psychologistPatients,
   tasks,
   users,
-} from "@/lib/db/schema";
-import { protectedProcedure, router } from "../trpc";
+} from '@/lib/db/schema'
+import { protectedProcedure, router } from '../trpc'
 
 export const analyticsRouter = router({
   // Get patient overview (psychologist only)
   getPatientOverview: protectedProcedure
     .input(z.object({ patientId: z.string() }))
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
-        throw new TRPCError({ code: "FORBIDDEN" });
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       // Verify relationship
@@ -28,13 +28,13 @@ export const analyticsRouter = router({
           eq(psychologistPatients.psychologistId, ctx.user.id),
           eq(psychologistPatients.patientId, input.patientId)
         ),
-      });
+      })
 
       if (!relationship) {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Você não tem acesso a este paciente",
-        });
+          code: 'FORBIDDEN',
+          message: 'Você não tem acesso a este paciente',
+        })
       }
 
       // Get patient data
@@ -43,14 +43,14 @@ export const analyticsRouter = router({
         with: {
           stats: true,
         },
-      });
+      })
 
       if (!patient) {
-        throw new TRPCError({ code: "NOT_FOUND" });
+        throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
       // Get recent activity (last 30 days)
-      const thirtyDaysAgo = subDays(new Date(), 30);
+      const thirtyDaysAgo = subDays(new Date(), 30)
 
       const recentTasks = await db.query.tasks.findMany({
         where: and(
@@ -58,7 +58,7 @@ export const analyticsRouter = router({
           gte(tasks.createdAt, thirtyDaysAgo),
           isNull(tasks.deletedAt)
         ),
-      });
+      })
 
       const recentJournals = await db.query.journalEntries.findMany({
         where: and(
@@ -66,19 +66,19 @@ export const analyticsRouter = router({
           gte(journalEntries.createdAt, thirtyDaysAgo),
           isNull(journalEntries.deletedAt)
         ),
-      });
+      })
 
       const recentMeditations = await db.query.meditationSessions.findMany({
         where: and(
           eq(meditationSessions.userId, input.patientId),
           gte(meditationSessions.createdAt, thirtyDaysAgo)
         ),
-      });
+      })
 
       const totalMeditationMinutes = recentMeditations.reduce(
         (sum, session) => sum + session.duration / 60,
         0
-      );
+      )
 
       return {
         patient: {
@@ -98,15 +98,15 @@ export const analyticsRouter = router({
           meditationSessions: recentMeditations.length,
           meditationMinutes: Math.round(totalMeditationMinutes),
         },
-      };
+      }
     }),
 
   // Get patient mood trends
   getPatientMoodTrends: protectedProcedure
     .input(z.object({ patientId: z.string(), days: z.number().default(30) }))
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
-        throw new TRPCError({ code: "FORBIDDEN" });
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       // Verify relationship
@@ -115,31 +115,28 @@ export const analyticsRouter = router({
           eq(psychologistPatients.psychologistId, ctx.user.id),
           eq(psychologistPatients.patientId, input.patientId)
         ),
-      });
+      })
 
       if (!relationship) {
-        throw new TRPCError({ code: "FORBIDDEN" });
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      const cutoffDate = subDays(new Date(), input.days);
+      const cutoffDate = subDays(new Date(), input.days)
 
       const moods = await db.query.moodHistory.findMany({
-        where: and(
-          eq(moodHistory.userId, input.patientId),
-          gte(moodHistory.createdAt, cutoffDate)
-        ),
+        where: and(eq(moodHistory.userId, input.patientId), gte(moodHistory.createdAt, cutoffDate)),
         orderBy: [desc(moodHistory.createdAt)],
-      });
+      })
 
-      return moods;
+      return moods
     }),
 
   // Get patient journal entries (psychologist only)
   getPatientJournals: protectedProcedure
     .input(z.object({ patientId: z.string(), limit: z.number().default(20) }))
     .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
-        throw new TRPCError({ code: "FORBIDDEN" });
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       // Verify relationship
@@ -148,26 +145,88 @@ export const analyticsRouter = router({
           eq(psychologistPatients.psychologistId, ctx.user.id),
           eq(psychologistPatients.patientId, input.patientId)
         ),
-      });
+      })
 
       if (!relationship) {
-        throw new TRPCError({ code: "FORBIDDEN" });
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       return db.query.journalEntries.findMany({
-        where: and(
-          eq(journalEntries.userId, input.patientId),
-          isNull(journalEntries.deletedAt)
-        ),
+        where: and(eq(journalEntries.userId, input.patientId), isNull(journalEntries.deletedAt)),
         orderBy: [desc(journalEntries.createdAt)],
         limit: input.limit,
-      });
+      })
+    }),
+
+  // Get patient top emotions (from mood history and journal entries)
+  getPatientTopEmotions: protectedProcedure
+    .input(z.object({ patientId: z.string(), days: z.number().default(30) }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verify relationship
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.psychologistId, ctx.user.id),
+          eq(psychologistPatients.patientId, input.patientId)
+        ),
+      })
+
+      if (!relationship) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const cutoffDate = subDays(new Date(), input.days)
+
+      // Get moods from mood history
+      const moods = await db.query.moodHistory.findMany({
+        where: and(eq(moodHistory.userId, input.patientId), gte(moodHistory.createdAt, cutoffDate)),
+      })
+
+      // Get moods from journal entries
+      const journals = await db.query.journalEntries.findMany({
+        where: and(
+          eq(journalEntries.userId, input.patientId),
+          gte(journalEntries.createdAt, cutoffDate),
+          isNull(journalEntries.deletedAt)
+        ),
+      })
+
+      // Count emotions from mood history
+      const emotionCounts: Record<string, number> = {}
+
+      for (const mood of moods) {
+        if (mood.mood) {
+          emotionCounts[mood.mood] = (emotionCounts[mood.mood] || 0) + 1
+        }
+      }
+
+      // Count emotions from journal entries
+      for (const journal of journals) {
+        if (journal.mood) {
+          emotionCounts[journal.mood] = (emotionCounts[journal.mood] || 0) + 1
+        }
+      }
+
+      // Sort by count and get top emotions
+      const sortedEmotions = Object.entries(emotionCounts)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([emotion, count]) => ({ emotion, count }))
+
+      return {
+        topEmotions: sortedEmotions,
+        totalMoodEntries: moods.length,
+        totalJournalEntries: journals.length,
+      }
     }),
 
   // Get dashboard summary (psychologist only)
   getDashboardSummary: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "psychologist") {
-      throw new TRPCError({ code: "FORBIDDEN" });
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
     }
 
     // Get all patients
@@ -180,24 +239,21 @@ export const analyticsRouter = router({
           },
         },
       },
-    });
+    })
 
-    const totalPatients = relationships.length;
+    const totalPatients = relationships.length
 
     // Count active patients (activity in last 7 days)
-    const sevenDaysAgo = subDays(new Date(), 7);
-    let activePatients = 0;
+    const sevenDaysAgo = subDays(new Date(), 7)
+    let activePatients = 0
 
     for (const rel of relationships) {
       const hasActivity = await db.query.tasks.findFirst({
-        where: and(
-          eq(tasks.userId, rel.patientId),
-          gte(tasks.createdAt, sevenDaysAgo)
-        ),
-      });
+        where: and(eq(tasks.userId, rel.patientId), gte(tasks.createdAt, sevenDaysAgo)),
+      })
 
       if (hasActivity) {
-        activePatients++;
+        activePatients++
       }
     }
 
@@ -209,13 +265,13 @@ export const analyticsRouter = router({
         streak: rel.patient.streak,
       }))
       .sort((a, b) => b.streak - a.streak)
-      .slice(0, 5);
+      .slice(0, 5)
 
     return {
       totalPatients,
       activePatients,
       inactivePatients: totalPatients - activePatients,
       topStreaks,
-    };
+    }
   }),
-});
+})

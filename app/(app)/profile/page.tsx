@@ -1,24 +1,27 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import { Tab } from "@/types";
-import { ProfileView } from "@/views/ProfileView";
+import { useRouter } from 'next/navigation'
+import type { Tab } from '@/types'
+import { ProfileView } from '@/views/ProfileView'
 
 export default function ProfilePage() {
-  const router = useRouter();
+  const router = useRouter()
 
   const handleNavigate = (tab: Tab) => {
-    const routes: Record<Tab, string> = {
-      [Tab.HOME]: "/home",
-      [Tab.ROUTINE]: "/routine",
-      [Tab.ADD]: "/journal",
-      [Tab.REWARDS]: "/rewards",
-      [Tab.PROFILE]: "/profile",
-      [Tab.MEDITATION]: "/meditation",
-      [Tab.THERAPIST]: "/therapist",
-    };
-    router.push(routes[tab]);
-  };
+    const routes: Record<string, string> = {
+      home: '/home',
+      routine: '/routine',
+      add: '/journal',
+      rewards: '/rewards',
+      profile: '/profile',
+      meditation: '/meditation',
+      dashboard: '/dashboard',
+    }
+    const route = routes[tab]
+    if (route) {
+      router.push(route)
+    }
+  }
 
-  return <ProfileView onNavigate={handleNavigate} />;
+  return <ProfileView onNavigate={handleNavigate} />
 }

@@ -44,7 +44,9 @@ export type Reward = {
 }
 
 export type UserStats = {
+  id?: string
   name: string
+  role?: 'admin' | 'psychologist' | 'patient'
   xp: number
   level: number
   points: number // New Currency
@@ -62,7 +64,7 @@ export type UserStats = {
   tutorialCompleted: boolean
   lastMoodXPTimestamp?: number // Timestamp for cooldown tracking
   rewards: Reward[] // User's custom rewards
-  
+
   // New metrics for achievements
   completedTasksHigh: number
   completedTasksMedium: number
@@ -70,19 +72,21 @@ export type UserStats = {
   totalMoodLogs: number
   redeemedRewards: number
   engagement: number // 0 or 1 (boolean-like) or score
-
+  completedTasks: number
+  totalMeditations: number
+  totalJournalEntries: number
 }
 
-export type BadgeCategory = 
-  | "evolution"
-  | "tasks_general"
-  | "tasks_priority"
-  | "meditation"
-  | "journal"
-  | "mood"
-  | "consistency"
-  | "rewards"
-  | "engagement";
+export type BadgeCategory =
+  | 'evolution'
+  | 'tasks_general'
+  | 'tasks_priority'
+  | 'meditation'
+  | 'journal'
+  | 'mood'
+  | 'consistency'
+  | 'rewards'
+  | 'engagement'
 
 export type BadgeDefinition = {
   id: string
@@ -99,6 +103,10 @@ export type BadgeDefinition = {
         | 'totalJournals'
         | 'streak'
         | 'tutorialCompleted'
+        | 'completedTasks'
+        | 'totalMeditations'
+        | 'totalJournalEntries'
+        | 'longestStreak'
       >
     | 'auto'
     | 'level'
@@ -116,6 +124,8 @@ export type GameContextType = {
   journal: JournalEntry[]
   currentMood: Mood
   allBadges: BadgeDefinition[]
+  newBadges: BadgeDefinition[]
+  dismissNewBadge: () => void
   addXP: (amount: number) => void
   addPoints: (amount: number) => void
   toggleTask: (id: string) => void
@@ -140,6 +150,7 @@ export const Tab = {
   PROFILE: 'profile',
   THERAPIST: 'therapist',
   REWARDS: 'rewards',
+  DASHBOARD: 'dashboard',
 } as const
 
 export type Tab = (typeof Tab)[keyof typeof Tab]

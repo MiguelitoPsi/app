@@ -48,9 +48,9 @@ export default function LandingPage() {
                 <Brain className='h-8 w-8' />
               </div>
             </div>
-            <h3 className='font-semibold text-lg'>Terapeuta IA</h3>
+            <h3 className='font-semibold text-lg'>Assistente de Reflexão</h3>
             <p className='text-sm text-white/80'>
-              Converse sobre seus sentimentos com suporte 24/7
+              Organize seus pensamentos com apoio de IA, sem substituir profissionais
             </p>
           </div>
         </div>

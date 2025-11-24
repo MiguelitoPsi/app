@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { TASK_LIMITS } from "@/lib/constants";
-import { tasks, userStats } from "@/lib/db/schema";
+import { tasks, users, userStats } from "@/lib/db/schema";
 import { getStartOfDay } from "@/lib/utils/timezone";
 import { awardXPAndCoins, COIN_REWARDS, XP_REWARDS } from "@/lib/xp";
 import { protectedProcedure, router } from "../trpc";
@@ -143,10 +143,94 @@ export const taskRouter = router({
         throw new Error("Task not found");
       }
 
+      const now = new Date();
+
+      // If task is already completed, undo it (remove rewards)
       if (task.completed) {
-        throw new Error("Task already completed");
+        const [user] = await ctx.db
+          .select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+
+        if (!user) throw new Error("User not found");
+
+        const coinReward = COIN_REWARDS.task[task.priority];
+        let xpToDeduct = 0;
+        let shouldResetXpDate = false;
+
+        // Heuristic to check if this task awarded XP:
+        // If the user's lastTaskXpDate is close to this task's completedAt
+        if (user.lastTaskXpDate && task.completedAt) {
+          const xpDate = new Date(user.lastTaskXpDate).getTime();
+          const completedDate = new Date(task.completedAt).getTime();
+          // Allow a small time difference (e.g., 5 seconds) because updates happen sequentially
+          if (Math.abs(completedDate - xpDate) < 5000) {
+            xpToDeduct = XP_REWARDS.task[task.priority];
+            shouldResetXpDate = true;
+          }
+        }
+
+        // Update user stats (remove rewards)
+        const newCoins = Math.max(0, user.coins - coinReward);
+        const newExperience = Math.max(0, user.experience - xpToDeduct);
+        // Recalculate level based on new XP
+        const newLevel = Math.floor(newExperience / 100) + 1;
+
+        const updateData: any = {
+          coins: newCoins,
+          experience: newExperience,
+          level: newLevel,
+          updatedAt: now,
+        };
+
+        if (shouldResetXpDate) {
+          // Reset to null so they can earn again today if they complete another task
+          updateData.lastTaskXpDate = null;
+        }
+
+        await ctx.db
+          .update(users)
+          .set(updateData)
+          .where(eq(users.id, ctx.user.id));
+
+        // Mark task as incomplete
+        await ctx.db
+          .update(tasks)
+          .set({
+            completed: false,
+            completedAt: null,
+            updatedAt: now,
+          })
+          .where(eq(tasks.id, input.id));
+
+        // Update stats
+        const [stats] = await ctx.db
+          .select()
+          .from(userStats)
+          .where(eq(userStats.userId, ctx.user.id))
+          .limit(1);
+
+        if (stats) {
+          await ctx.db
+            .update(userStats)
+            .set({
+              completedTasks: Math.max(0, stats.completedTasks - 1),
+              updatedAt: now,
+            })
+            .where(eq(userStats.userId, ctx.user.id));
+        }
+
+        return {
+          xp: -xpToDeduct,
+          coins: -coinReward,
+          levelUp: false,
+          newBadges: [],
+          status: "uncompleted"
+        };
       }
 
+      // If task is not completed, complete it (award rewards)
       // Award XP and Coins using centralized system
       const result = await awardXPAndCoins(
         ctx.db,
@@ -156,7 +240,6 @@ export const taskRouter = router({
       );
 
       const { xpAwarded, coinsAwarded, levelUp } = result;
-      const now = new Date();
 
       // Mark task as complete
       await ctx.db
@@ -193,6 +276,7 @@ export const taskRouter = router({
         coins: coinsAwarded,
         levelUp,
         newBadges,
+        status: "completed"
       };
     }),
 

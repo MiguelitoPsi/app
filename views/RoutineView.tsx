@@ -1,5 +1,6 @@
 'use client'
 
+import confetti from 'canvas-confetti'
 import {
   Calendar as CalendarIcon,
   Check,
@@ -44,6 +45,12 @@ export const RoutineView: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false)
   const [alertMessage, setAlertMessage] = useState('')
   const [alertTitle, setAlertTitle] = useState('Atenção')
+
+  // Reward Animation State
+  const [rewardAnimations, setRewardAnimations] = useState<
+    { id: string; x: number; y: number; val: number; type: 'xp' | 'pts' }[]
+  >([])
+  const [ripples, setRipples] = useState<{ id: string; x: number; y: number }[]>([])
 
   // Helper to format date for display
   const formatDisplayDate = (date: Date) => {
@@ -167,16 +174,23 @@ export const RoutineView: React.FC = () => {
     // Validation: Check limits for the first date (to prevent creation)
     const firstTimestamp = datesToCreate[0]
     if (firstTimestamp) {
+      const targetDate = new Date(firstTimestamp)
+
       const tasksForDate = tasks.filter((t) => {
         const tDate = new Date(t.dueDate)
-        const targetDate = new Date(firstTimestamp)
-        return tDate.setHours(0, 0, 0, 0) === targetDate.setHours(0, 0, 0, 0)
+        return (
+          tDate.getDate() === targetDate.getDate() &&
+          tDate.getMonth() === targetDate.getMonth() &&
+          tDate.getFullYear() === targetDate.getFullYear()
+        )
       })
 
+      // Count ALL tasks regardless of completion status
+      // We explicitly filter to ensure we are counting everything
       if (newTaskPriority === 'high') {
         const highCount = tasksForDate.filter((t) => t.priority === 'high').length
         if (highCount >= 2) {
-          const dateStr = new Date(firstTimestamp).toLocaleDateString('pt-BR')
+          const dateStr = targetDate.toLocaleDateString('pt-BR')
           setAlertMessage(
             `⚠️ Limite atingido!\n\nVocê só pode adicionar 2 tarefas de prioridade ALTA por dia.\n\nData: ${dateStr}\nTarefas de alta prioridade: ${highCount}/2`
           )
@@ -189,7 +203,7 @@ export const RoutineView: React.FC = () => {
       if (newTaskPriority === 'medium') {
         const mediumCount = tasksForDate.filter((t) => t.priority === 'medium').length
         if (mediumCount >= 5) {
-          const dateStr = new Date(firstTimestamp).toLocaleDateString('pt-BR')
+          const dateStr = targetDate.toLocaleDateString('pt-BR')
           setAlertMessage(
             `⚠️ Limite atingido!\n\nVocê só pode adicionar 5 tarefas de prioridade MÉDIA por dia.\n\nData: ${dateStr}\nTarefas de média prioridade: ${mediumCount}/5`
           )
@@ -266,7 +280,10 @@ export const RoutineView: React.FC = () => {
   // Logic to hide progress bar when 100% complete
   const showProgressBar = displayTasks.length > 0 && dayProgress < 100
 
-  const handleToggleTask = (task: { id: string; dueDate: number; completed: boolean }) => {
+  const handleToggleTask = (
+    task: { id: string; dueDate: number; completed: boolean; priority: 'high' | 'medium' | 'low' },
+    e?: React.MouseEvent
+  ) => {
     if (!task.completed) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -281,6 +298,49 @@ export const RoutineView: React.FC = () => {
         setAlertTitle('Tarefa Futura')
         setShowAlert(true)
         return
+      }
+
+      // Trigger Reward Animation
+      if (e) {
+        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        const { xp, pts } = getRewardValues(task.priority)
+        const id = Math.random().toString(36).substr(2, 9)
+
+        // Add Ripple
+        setRipples((prev) => [...prev, { id, x: centerX, y: centerY }])
+
+        // Add Reward Text (Split XP and Pts)
+        setRewardAnimations((prev) => [
+          ...prev,
+          { id: id + '-xp', x: centerX, y: centerY, val: xp, type: 'xp' },
+          { id: id + '-pts', x: centerX, y: centerY, val: pts, type: 'pts' },
+        ])
+
+        // Trigger Fireworks
+        const x = e.clientX / window.innerWidth
+        const y = e.clientY / window.innerHeight
+
+        confetti({
+          particleCount: 50,
+          spread: 60,
+          origin: { x, y },
+          colors: ['#8b5cf6', '#d946ef', '#10b981', '#f59e0b'], // Violet, Fuchsia, Emerald, Amber
+          ticks: 200,
+          gravity: 1.2,
+          decay: 0.94,
+          startVelocity: 30,
+          shapes: ['circle'],
+          zIndex: 9999,
+          disableForReducedMotion: true,
+        })
+
+        // Remove animations after 1s
+        setTimeout(() => {
+          setRewardAnimations((prev) => prev.filter((anim) => !anim.id.startsWith(id)))
+          setRipples((prev) => prev.filter((r) => r.id !== id))
+        }, 1000)
       }
     }
     toggleTask(task.id)
@@ -330,15 +390,17 @@ export const RoutineView: React.FC = () => {
   }
 
   return (
-    <div className='h-full overflow-y-auto bg-slate-50 px-6 py-8 pb-24 dark:bg-slate-950'>
+    <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
       {/* Header */}
-      <div className='mb-6 flex items-end justify-between'>
+      <div className='mb-4 flex items-end justify-between sm:mb-6'>
         <div>
-          <h2 className='font-bold text-2xl text-slate-800 dark:text-white'>Rotina</h2>
-          <p className='text-slate-500 text-sm dark:text-slate-400'>Gerencie suas missões</p>
+          <h2 className='font-bold text-xl text-slate-800 sm:text-2xl dark:text-white'>Rotina</h2>
+          <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+            Gerencie suas missões
+          </p>
         </div>
         <button
-          className='group rounded-2xl bg-violet-600 p-3 text-white shadow-lg shadow-violet-200 transition-all hover:scale-105 hover:bg-violet-700 active:scale-95 dark:shadow-none'
+          className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
           onClick={() => {
             setIsAdding(!isAdding)
             const yyyy = selectedDate.getFullYear()
@@ -346,79 +408,96 @@ export const RoutineView: React.FC = () => {
             const dd = String(selectedDate.getDate()).padStart(2, '0')
             setNewTaskDate(`${yyyy}-${mm}-${dd}`)
           }}
+          type='button'
         >
-          {isAdding ? <X size={24} /> : <Plus size={24} />}
+          {isAdding ? (
+            <X className='sm:hidden' size={20} />
+          ) : (
+            <Plus className='sm:hidden' size={20} />
+          )}
+          {isAdding ? (
+            <X className='hidden sm:block' size={24} />
+          ) : (
+            <Plus className='hidden sm:block' size={24} />
+          )}
         </button>
       </div>
 
       {/* View Mode Selector */}
-      <div className='mb-4 flex rounded-xl border border-slate-100 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+      <div className='mb-3 flex rounded-lg border border-slate-100 bg-white p-1 shadow-sm sm:mb-4 sm:rounded-xl dark:border-slate-800 dark:bg-slate-900'>
         <button
-          className={`flex-1 rounded-lg py-2 font-bold text-xs transition-all ${viewMode === 'day' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'day' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
           onClick={() => setViewMode('day')}
+          type='button'
         >
           Hoje
         </button>
         <button
-          className={`flex-1 rounded-lg py-2 font-bold text-xs transition-all ${viewMode === 'week' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'week' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
           onClick={() => setViewMode('week')}
+          type='button'
         >
           Semana
         </button>
         <button
-          className={`flex-1 rounded-lg py-2 font-bold text-xs transition-all ${viewMode === 'month' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'month' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
           onClick={() => setViewMode('month')}
+          type='button'
         >
           Mês
         </button>
       </div>
 
       {/* Date Navigation Card */}
-      <div className='mb-6 flex items-center justify-between rounded-2xl border border-slate-100 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+      <div className='mb-4 flex items-center justify-between rounded-xl border border-slate-100 bg-white p-1 shadow-sm sm:mb-6 sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'>
         <button
-          className='rounded-xl p-3 text-slate-400 transition-colors hover:bg-slate-50 hover:text-violet-600 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+          className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
           onClick={() => changeDate(-1)}
+          type='button'
         >
-          <ChevronLeft size={20} />
+          <ChevronLeft className='sm:hidden' size={18} />
+          <ChevronLeft className='hidden sm:block' size={20} />
         </button>
         <div className='flex flex-col items-center'>
-          <span className='font-bold text-slate-400 text-xs uppercase tracking-wider'>
+          <span className='font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
             {viewMode === 'day' ? 'Dia' : viewMode === 'week' ? 'Semana' : 'Mês'}
           </span>
-          <div className='flex items-center gap-2 text-center font-bold text-lg text-slate-800 dark:text-white'>
+          <div className='flex items-center gap-2 text-center font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
             {formatDisplayDate(selectedDate)}
           </div>
         </div>
         <button
-          className='rounded-xl p-3 text-slate-400 transition-colors hover:bg-slate-50 hover:text-violet-600 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+          className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
           onClick={() => changeDate(1)}
+          type='button'
         >
-          <ChevronRight size={20} />
+          <ChevronRight className='sm:hidden' size={18} />
+          <ChevronRight className='hidden sm:block' size={20} />
         </button>
       </div>
 
       {/* Progress Card - Only visible if < 100% and has tasks */}
       {showProgressBar && (
-        <div className='fade-in slide-in-from-top-4 relative mb-8 animate-in overflow-hidden rounded-3xl bg-gradient-to-r from-violet-500 to-fuchsia-600 p-5 text-white shadow-lg shadow-violet-200 dark:shadow-none'>
-          <div className='-mr-10 -mt-10 absolute top-0 right-0 h-32 w-32 rounded-full bg-white opacity-10' />
+        <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 p-4 text-white shadow-lg shadow-violet-200 sm:mb-8 sm:rounded-3xl sm:p-5 dark:shadow-none'>
+          <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
 
           <div className='relative z-10 mb-2 flex items-end justify-between'>
             <div>
-              <p className='mb-1 font-bold text-violet-100 text-xs uppercase tracking-wider'>
+              <p className='mb-1 font-bold text-violet-100 text-[10px] uppercase tracking-wider sm:text-xs'>
                 {viewMode === 'day'
                   ? 'Progresso do Dia'
                   : viewMode === 'week'
                     ? 'Progresso da Semana'
                     : 'Progresso do Mês'}
               </p>
-              <h3 className='font-bold text-2xl'>{dayProgress}% Concluído</h3>
+              <h3 className='font-bold text-xl sm:text-2xl'>{dayProgress}% Concluído</h3>
             </div>
-            <div className='rounded-xl bg-white/20 p-2 backdrop-blur-sm'>
-              <Target className='text-white' size={24} />
+            <div className='rounded-lg bg-white/20 p-1.5 backdrop-blur-sm sm:rounded-xl sm:p-2'>
+              <Target className='text-white' size={20} />
             </div>
           </div>
 
-          <div className='relative z-10 h-2 w-full overflow-hidden rounded-full bg-black/20 backdrop-blur-sm'>
+          <div className='relative z-10 h-1.5 w-full overflow-hidden rounded-full bg-black/20 backdrop-blur-sm sm:h-2'>
             <div
               className='h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-1000 ease-out'
               style={{ width: `${dayProgress}%` }}
@@ -429,19 +508,19 @@ export const RoutineView: React.FC = () => {
 
       {/* Add Task Form */}
       {isAdding && (
-        <div className='mb-8'>
-          <div className='slide-in-from-top-2 zoom-in-95 relative animate-in overflow-hidden rounded-3xl border border-slate-100 bg-white p-6 shadow-xl transition-colors dark:border-slate-700 dark:bg-slate-800'>
+        <div className='mb-6 sm:mb-8'>
+          <div className='slide-in-from-top-2 zoom-in-95 relative animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-xl transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
             <div className='absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500' />
 
-            <h3 className='mb-4 flex items-center gap-2 font-bold text-lg text-slate-800 dark:text-white'>
-              <Plus className='text-violet-500' size={18} />
+            <h3 className='mb-3 flex items-center gap-2 font-bold text-base text-slate-800 sm:mb-4 sm:text-lg dark:text-white'>
+              <Plus className='text-violet-500' size={16} />
               Nova Missão
             </h3>
 
             <form onSubmit={handleAddTask}>
               <input
                 autoFocus
-                className='mb-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 font-medium text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/30'
+                className='mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 sm:mb-4 sm:rounded-xl sm:p-4 sm:text-base dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/30'
                 onChange={(e) => setNewTaskTitle(e.target.value)}
                 placeholder='Qual é o objetivo?'
                 type='text'
@@ -608,16 +687,17 @@ export const RoutineView: React.FC = () => {
       )}
 
       {/* Tasks List */}
-      <div className='space-y-3'>
+      <div className='space-y-2 sm:space-y-3'>
         {displayTasks.length === 0 && (
-          <div className='mt-12 flex flex-col items-center justify-center rounded-3xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-8 text-center dark:border-slate-800 dark:bg-slate-900/50'>
-            <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-300 dark:bg-slate-800 dark:text-slate-600'>
-              <Trophy size={32} />
+          <div className='mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-6 text-center sm:mt-12 sm:rounded-3xl sm:p-8 dark:border-slate-800 dark:bg-slate-900/50'>
+            <div className='mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-300 sm:mb-4 sm:h-16 sm:w-16 dark:bg-slate-800 dark:text-slate-600'>
+              <Trophy className='sm:hidden' size={28} />
+              <Trophy className='hidden sm:block' size={32} />
             </div>
-            <h4 className='mb-1 font-bold text-slate-700 dark:text-slate-300'>
+            <h4 className='mb-1 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-300'>
               Nenhuma missão encontrada
             </h4>
-            <p className='max-w-[200px] text-slate-400 text-xs dark:text-slate-500'>
+            <p className='max-w-[200px] text-slate-400 text-[11px] sm:text-xs dark:text-slate-500'>
               {viewMode === 'day' ? 'Seu dia está livre!' : 'Nenhuma tarefa neste período.'}{' '}
               Aproveite para adicionar novos objetivos.
             </p>
@@ -635,26 +715,32 @@ export const RoutineView: React.FC = () => {
 
           return (
             <div
-              className={`group slide-in-from-bottom-2 relative flex animate-in items-center justify-between rounded-2xl border-t border-r border-b border-l-[6px] bg-white fill-mode-backwards p-4 transition-all duration-300 dark:bg-slate-800 ${
+              className={`group slide-in-from-bottom-2 relative flex animate-in items-center justify-between rounded-xl border-t border-r border-b border-l-4 bg-white fill-mode-backwards p-3 transition-all duration-300 sm:rounded-2xl sm:border-l-[6px] sm:p-4 dark:bg-slate-800 ${
                 task.completed
                   ? 'border-slate-200 border-l-slate-300 opacity-60 grayscale-[0.5] dark:border-slate-700 dark:border-l-slate-600'
-                  : `${styles.border} border-slate-100 shadow-sm hover:translate-x-1 hover:shadow-md dark:border-slate-700`
+                  : `${styles.border} border-slate-100 shadow-sm sm:hover:translate-x-1 sm:hover:shadow-md dark:border-slate-700`
               }
                 `}
               key={task.id}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className='flex flex-1 items-center gap-4'>
+              <div className='flex flex-1 items-center gap-3 sm:gap-4'>
                 <button
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 ${
+                  className={`touch-target flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-8 sm:w-8 ${
                     task.completed
-                      ? 'scale-90 border-violet-500 bg-violet-500'
+                      ? 'scale-110 border-violet-500 bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]'
                       : 'border-slate-300 hover:border-violet-400 hover:bg-violet-50 dark:border-slate-600 dark:hover:bg-violet-900/20'
                   }
                     `}
-                  onClick={() => handleToggleTask(task)}
+                  onClick={(e) => handleToggleTask(task, e)}
+                  type='button'
                 >
-                  {task.completed && <Check className='stroke-[3] text-white' size={16} />}
+                  {task.completed && (
+                    <Check
+                      className='animate-in zoom-in duration-300 stroke-[3] text-white'
+                      size={14}
+                    />
+                  )}
                 </button>
 
                 <div className='flex flex-col'>
@@ -713,8 +799,23 @@ export const RoutineView: React.FC = () => {
                   </div>
                 )}
                 <button
-                  className='rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-red-900/20'
-                  onClick={() => deleteTask(task.id)}
+                  className={`rounded-lg p-2 transition-all focus:opacity-100 group-hover:opacity-100 ${
+                    task.completed
+                      ? 'cursor-not-allowed text-slate-300 opacity-0 hover:bg-slate-100 hover:text-slate-400 dark:hover:bg-slate-800'
+                      : 'text-slate-300 opacity-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20'
+                  }`}
+                  onClick={() => {
+                    if (task.completed) {
+                      setAlertTitle('Ação Bloqueada')
+                      setAlertMessage(
+                        'Você não pode excluir uma tarefa concluída.\nDesmarque-a primeiro se precisar excluí-la.'
+                      )
+                      setShowAlert(true)
+                      return
+                    }
+                    deleteTask(task.id)
+                  }}
+                  type='button'
                 >
                   <Trash2 size={16} />
                 </button>
@@ -745,6 +846,7 @@ export const RoutineView: React.FC = () => {
               <button
                 className='w-full rounded-xl bg-slate-900 py-3 font-bold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
                 onClick={() => setShowAlert(false)}
+                type='button'
               >
                 Entendi
               </button>
@@ -752,6 +854,59 @@ export const RoutineView: React.FC = () => {
           </div>
         </div>
       )}
+      {/* Custom Styles for Animations */}
+      <style>{`
+        @keyframes float-up-left {
+          0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+          20% { transform: translate(-15px, -25px) scale(1.2); opacity: 1; }
+          100% { transform: translate(-30px, -80px) scale(1); opacity: 0; }
+        }
+        @keyframes float-up-right {
+          0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
+          20% { transform: translate(15px, -25px) scale(1.2); opacity: 1; }
+          100% { transform: translate(30px, -80px) scale(1); opacity: 0; }
+        }
+      `}</style>
+
+      {/* Ripples */}
+      {ripples.map((r) => (
+        <div
+          className='pointer-events-none fixed z-40 h-12 w-12 animate-ping rounded-full border-2 border-violet-500 opacity-75'
+          key={r.id}
+          style={{
+            left: r.x - 24,
+            top: r.y - 24,
+            animationDuration: '0.8s',
+          }}
+        />
+      ))}
+
+      {/* Reward Animations */}
+      {rewardAnimations.map((anim) => (
+        <div
+          className='pointer-events-none fixed z-50 flex flex-col items-center gap-1 font-black text-sm'
+          key={anim.id}
+          style={{
+            left: anim.x,
+            top: anim.y,
+            animation:
+              anim.type === 'xp'
+                ? 'float-up-left 1s ease-out forwards'
+                : 'float-up-right 1s ease-out forwards',
+          }}
+        >
+          {anim.type === 'xp' ? (
+            <div className='flex items-center gap-1 rounded-full bg-violet-600 px-3 py-1 text-white shadow-lg shadow-violet-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
+              <span>+{anim.val} XP</span>
+            </div>
+          ) : (
+            <div className='flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
+              <Gem size={12} />
+              <span>+{anim.val}</span>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

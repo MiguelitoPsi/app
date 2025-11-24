@@ -11,7 +11,6 @@ import { MeditationView } from './views/MeditationView'
 import { ProfileView } from './views/ProfileView'
 import { RewardsView } from './views/RewardsView'
 import { RoutineView } from './views/RoutineView'
-import { TherapistView } from './views/TherapistView'
 
 const AppContent = () => {
   const [currentTab, setCurrentTab] = useState<Tab>(Tab.HOME)
@@ -20,7 +19,7 @@ const AppContent = () => {
   const renderView = () => {
     switch (currentTab) {
       case Tab.HOME:
-        return <HomeView changeTab={setCurrentTab} />
+        return <HomeView />
       case Tab.MEDITATION:
         return <MeditationView />
       case Tab.ADD:
@@ -32,14 +31,10 @@ const AppContent = () => {
         return <RewardsView />
       case Tab.PROFILE:
         return <ProfileView onNavigate={setCurrentTab} />
-      case Tab.THERAPIST:
-        return <TherapistView goBack={() => setCurrentTab(Tab.HOME)} />
       default:
-        return <HomeView changeTab={setCurrentTab} />
+        return <HomeView />
     }
   }
-
-  const showBottomNav = currentTab !== Tab.THERAPIST
 
   return (
     <div
@@ -49,8 +44,8 @@ const AppContent = () => {
       <div className='relative flex h-full w-full max-w-md flex-col overflow-hidden bg-slate-50 shadow-2xl transition-colors duration-300 dark:bg-slate-950'>
         <main className='relative h-full flex-1 overflow-hidden'>{renderView()}</main>
 
-        {/* Conditional rendering of bottom nav */}
-        {showBottomNav && <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />}
+        {/* Bottom nav always visible for patients */}
+        <BottomNav />
       </div>
     </div>
   )

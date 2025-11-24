@@ -1,11 +1,11 @@
-import { TRPCError } from "@trpc/server";
-import { and, eq } from "drizzle-orm";
-import { nanoid } from "nanoid";
-import { z } from "zod";
-import { db } from "@/lib/db";
-import { patientInvites, psychologistPatients, users } from "@/lib/db/schema";
-import { sendInviteEmail } from "@/lib/email";
-import { protectedProcedure, router } from "../trpc";
+import { TRPCError } from '@trpc/server'
+import { and, eq } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import { db } from '@/lib/db'
+import { patientInvites, psychologistPatients, users } from '@/lib/db/schema'
+import { sendInviteEmail } from '@/lib/email'
+import { protectedProcedure, publicProcedure, router } from '../trpc'
 
 export const patientRouter = router({
   // Send invite (psychologist only)
@@ -16,9 +16,7 @@ export const patientRouter = router({
         name: z.string().min(1),
         phone: z.string().optional(),
         birthdate: z.string().optional(),
-        gender: z
-          .enum(["male", "female", "other", "prefer_not_to_say"])
-          .optional(),
+        gender: z.enum(['male', 'female', 'other', 'prefer_not_to_say']).optional(),
         address: z
           .object({
             street: z.string().optional(),
@@ -31,42 +29,39 @@ export const patientRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
+      if (ctx.user.role !== 'psychologist') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Apenas psicólogos podem enviar convites",
-        });
+          code: 'FORBIDDEN',
+          message: 'Apenas psicólogos podem enviar convites',
+        })
       }
 
       // Check if email already registered
       const existingUser = await db.query.users.findFirst({
         where: eq(users.email, input.email),
-      });
+      })
 
       if (existingUser) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Este email já está cadastrado",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Este email já está cadastrado',
+        })
       }
 
       // Check if there's already a pending invite
       const existingInvite = await db.query.patientInvites.findFirst({
-        where: and(
-          eq(patientInvites.email, input.email),
-          eq(patientInvites.status, "pending")
-        ),
-      });
+        where: and(eq(patientInvites.email, input.email), eq(patientInvites.status, 'pending')),
+      })
 
       if (existingInvite) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Já existe um convite pendente para este email",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Já existe um convite pendente para este email',
+        })
       }
 
-      const token = nanoid(32);
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+      const token = nanoid(32)
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
       const [invite] = await db
         .insert(patientInvites)
@@ -80,45 +75,40 @@ export const patientRouter = router({
           gender: input.gender,
           address: input.address,
           token,
-          status: "pending",
+          status: 'pending',
           expiresAt,
         })
-        .returning();
+        .returning()
 
       // Send email
       try {
-        await sendInviteEmail(
-          input.email,
-          input.name,
-          ctx.user.name || "Seu psicólogo",
-          token
-        );
+        await sendInviteEmail(input.email, input.name, ctx.user.name || 'Seu psicólogo', token)
       } catch (error) {
-        console.error("Failed to send invite email:", error);
+        console.error('Failed to send invite email:', error)
         // Don't throw - invite is still created
       }
 
-      return { success: true, inviteId: invite.id };
+      return { success: true, inviteId: invite.id }
     }),
 
   // Get all invites (psychologist only)
   getInvites: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "psychologist") {
-      throw new TRPCError({ code: "FORBIDDEN" });
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
     }
 
     return db.query.patientInvites.findMany({
       where: eq(patientInvites.psychologistId, ctx.user.id),
       orderBy: (invites, { desc }) => [desc(invites.createdAt)],
-    });
+    })
   }),
 
   // Resend invite
   resendInvite: protectedProcedure
     .input(z.object({ inviteId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
-        throw new TRPCError({ code: "FORBIDDEN" });
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       const invite = await db.query.patientInvites.findFirst({
@@ -126,54 +116,49 @@ export const patientRouter = router({
           eq(patientInvites.id, input.inviteId),
           eq(patientInvites.psychologistId, ctx.user.id)
         ),
-      });
+      })
 
       if (!invite) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Convite não encontrado",
-        });
+          code: 'NOT_FOUND',
+          message: 'Convite não encontrado',
+        })
       }
 
-      if (invite.status !== "pending" && invite.status !== "expired") {
+      if (invite.status !== 'pending' && invite.status !== 'expired') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Convite não pode ser reenviado",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Convite não pode ser reenviado',
+        })
       }
 
-      const newToken = nanoid(32);
-      const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      const newToken = nanoid(32)
+      const newExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
 
       await db
         .update(patientInvites)
         .set({
           token: newToken,
-          status: "pending",
+          status: 'pending',
           expiresAt: newExpiresAt,
         })
-        .where(eq(patientInvites.id, input.inviteId));
+        .where(eq(patientInvites.id, input.inviteId))
 
       try {
-        await sendInviteEmail(
-          invite.email,
-          invite.name,
-          ctx.user.name || "Seu psicólogo",
-          newToken
-        );
+        await sendInviteEmail(invite.email, invite.name, ctx.user.name || 'Seu psicólogo', newToken)
       } catch (error) {
-        console.error("Failed to resend invite email:", error);
+        console.error('Failed to resend invite email:', error)
       }
 
-      return { success: true };
+      return { success: true }
     }),
 
   // Cancel invite
   cancelInvite: protectedProcedure
     .input(z.object({ inviteId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== "psychologist") {
-        throw new TRPCError({ code: "FORBIDDEN" });
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
       const invite = await db.query.patientInvites.findFirst({
@@ -181,22 +166,22 @@ export const patientRouter = router({
           eq(patientInvites.id, input.inviteId),
           eq(patientInvites.psychologistId, ctx.user.id)
         ),
-      });
+      })
 
       if (!invite) {
-        throw new TRPCError({ code: "NOT_FOUND" });
+        throw new TRPCError({ code: 'NOT_FOUND' })
       }
 
       await db
         .update(patientInvites)
-        .set({ status: "cancelled" })
-        .where(eq(patientInvites.id, input.inviteId));
+        .set({ status: 'cancelled' })
+        .where(eq(patientInvites.id, input.inviteId))
 
-      return { success: true };
+      return { success: true }
     }),
 
   // Accept invite (public - no auth required)
-  getInviteByToken: protectedProcedure
+  getInviteByToken: publicProcedure
     .input(z.object({ token: z.string() }))
     .query(async ({ input }) => {
       const invite = await db.query.patientInvites.findFirst({
@@ -209,47 +194,47 @@ export const patientRouter = router({
             },
           },
         },
-      });
+      })
 
       if (!invite) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Convite não encontrado",
-        });
+          code: 'NOT_FOUND',
+          message: 'Convite não encontrado',
+        })
       }
 
-      if (invite.status === "accepted") {
+      if (invite.status === 'accepted') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Este convite já foi aceito",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Este convite já foi aceito',
+        })
       }
 
-      if (invite.status === "cancelled") {
+      if (invite.status === 'cancelled') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Este convite foi cancelado",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Este convite foi cancelado',
+        })
       }
 
       if (new Date() > invite.expiresAt) {
         await db
           .update(patientInvites)
-          .set({ status: "expired" })
-          .where(eq(patientInvites.id, invite.id));
+          .set({ status: 'expired' })
+          .where(eq(patientInvites.id, invite.id))
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Este convite expirou",
-        });
+          code: 'BAD_REQUEST',
+          message: 'Este convite expirou',
+        })
       }
 
-      return invite;
+      return invite
     }),
 
   // Get my patients (psychologist only)
   getMyPatients: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "psychologist") {
-      throw new TRPCError({ code: "FORBIDDEN" });
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
     }
 
     const relationships = await db.query.psychologistPatients.findMany({
@@ -261,19 +246,43 @@ export const patientRouter = router({
           },
         },
       },
-    });
+    })
 
-    return relationships.map((rel) => ({
-      ...rel.patient,
-      isPrimary: rel.isPrimary,
-      relationshipId: rel.id,
-    }));
+    // Fetch accepted invites to get additional patient info (phone, address, etc.)
+    const acceptedInvites = await db.query.patientInvites.findMany({
+      where: and(
+        eq(patientInvites.psychologistId, ctx.user.id),
+        eq(patientInvites.status, 'accepted')
+      ),
+    })
+
+    // Create a map of email to invite data for quick lookup
+    const inviteByEmail = new Map(acceptedInvites.map((invite) => [invite.email, invite]))
+
+    return relationships
+      .filter((rel) => rel.patient)
+      .map((rel) => {
+        const patient = rel.patient
+        if (!patient) return null
+        const invite = inviteByEmail.get(patient.email)
+        return {
+          ...patient,
+          isPrimary: rel.isPrimary,
+          relationshipId: rel.id,
+          // Additional info from invite
+          phone: invite?.phone || null,
+          birthdate: invite?.birthdate || null,
+          gender: invite?.gender || null,
+          address: invite?.address || null,
+        }
+      })
+      .filter((p): p is NonNullable<typeof p> => p !== null)
   }),
 
   // Get my psychologists (patient only)
   getMyPsychologists: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== "patient") {
-      throw new TRPCError({ code: "FORBIDDEN" });
+    if (ctx.user.role !== 'patient') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
     }
 
     const relationships = await db.query.psychologistPatients.findMany({
@@ -281,12 +290,41 @@ export const patientRouter = router({
       with: {
         psychologist: true,
       },
-    });
+    })
 
-    return relationships.map((rel) => ({
-      ...rel.psychologist,
-      isPrimary: rel.isPrimary,
-      relationshipId: rel.id,
-    }));
+    return relationships
+      .filter((rel) => rel.psychologist)
+      .map((rel) => ({
+        ...rel.psychologist!,
+        isPrimary: rel.isPrimary,
+        relationshipId: rel.id,
+      }))
   }),
-});
+
+  // Remove patient (psychologist only)
+  removePatient: protectedProcedure
+    .input(z.object({ relationshipId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.id, input.relationshipId),
+          eq(psychologistPatients.psychologistId, ctx.user.id)
+        ),
+      })
+
+      if (!relationship) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vínculo não encontrado',
+        })
+      }
+
+      await db.delete(psychologistPatients).where(eq(psychologistPatients.id, input.relationshipId))
+
+      return { success: true }
+    }),
+})

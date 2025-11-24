@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import { integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -231,7 +231,7 @@ export const patientInvites = sqliteTable("patient_invites", {
     zip?: string;
   }>(),
   token: text("token").notNull().unique(),
-  status: text("status", { enum: ["pending", "accepted", "expired"] })
+  status: text("status", { enum: ["pending", "accepted", "expired", "cancelled"] })
     .notNull()
     .default("pending"),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -276,3 +276,40 @@ export type PatientInvite = typeof patientInvites.$inferSelect;
 export type NewPatientInvite = typeof patientInvites.$inferInsert;
 export type Notification = typeof notifications.$inferSelect;
 export type NewNotification = typeof notifications.$inferInsert;
+
+// Relations
+export const usersRelations = relations(users, ({ many, one }) => ({
+  stats: one(userStats, {
+    fields: [users.id],
+    references: [userStats.userId],
+  }),
+  patientsAsTherapist: many(psychologistPatients, {
+    relationName: "psychologist",
+  }),
+  therapistsAsPatient: many(psychologistPatients, {
+    relationName: "patient",
+  }),
+}));
+
+export const psychologistPatientsRelations = relations(
+  psychologistPatients,
+  ({ one }) => ({
+    psychologist: one(users, {
+      fields: [psychologistPatients.psychologistId],
+      references: [users.id],
+      relationName: "psychologist",
+    }),
+    patient: one(users, {
+      fields: [psychologistPatients.patientId],
+      references: [users.id],
+      relationName: "patient",
+    }),
+  })
+);
+
+export const userStatsRelations = relations(userStats, ({ one }) => ({
+  user: one(users, {
+    fields: [userStats.userId],
+    references: [users.id],
+  }),
+}));
