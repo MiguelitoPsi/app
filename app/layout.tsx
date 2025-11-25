@@ -17,10 +17,10 @@ export const viewport: Viewport = {
 }
 
 export const metadata: Metadata = {
-  title: 'Guerreiro da Mente - TCC Gamificada',
+  title: 'Nepsis - TCC Gamificada',
   description: 'Aplicativo de bem-estar psicológico gamificado para acompanhamento terapêutico',
-  applicationName: 'Guerreiro da Mente',
-  authors: [{ name: 'App PSI' }],
+  applicationName: 'Nepsis',
+  authors: [{ name: 'Nepsis' }],
 }
 
 export default function RootLayout({

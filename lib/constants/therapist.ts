@@ -756,56 +756,125 @@ export const GOAL_SUGGESTIONS: Array<{
 
 export type FinancialCategory =
   | 'session'
+  | 'plan'
+  | 'workshop'
+  | 'supervision'
+  | 'consultation'
   | 'subscription'
   | 'rent'
   | 'equipment'
   | 'marketing'
   | 'training'
   | 'taxes'
+  | 'utilities'
+  | 'insurance'
+  | 'software'
+  | 'material'
   | 'other'
 
 export const FINANCIAL_CATEGORIES: Record<
   FinancialCategory,
-  { label: string; icon: string; type: 'income' | 'expense' | 'both' }
+  { label: string; icon: string; type: 'income' | 'expense' | 'both'; description?: string }
 > = {
+  // Receitas
   session: {
     label: 'Sessões',
     icon: '💼',
     type: 'income',
+    description: 'Sessões de terapia individuais',
   },
+  plan: {
+    label: 'Pacotes/Planos',
+    icon: '📦',
+    type: 'income',
+    description: 'Pacotes mensais ou semanais de sessões',
+  },
+  workshop: {
+    label: 'Workshops/Cursos',
+    icon: '🎓',
+    type: 'income',
+    description: 'Workshops, palestras e cursos ministrados',
+  },
+  supervision: {
+    label: 'Supervisão',
+    icon: '👥',
+    type: 'income',
+    description: 'Supervisão clínica para outros profissionais',
+  },
+  consultation: {
+    label: 'Consultoria',
+    icon: '💡',
+    type: 'income',
+    description: 'Consultoria para empresas ou instituições',
+  },
+
+  // Despesas
   subscription: {
     label: 'Assinaturas',
     icon: '📱',
     type: 'expense',
+    description: 'Softwares, plataformas e serviços por assinatura',
   },
   rent: {
     label: 'Aluguel',
     icon: '🏠',
     type: 'expense',
+    description: 'Aluguel do consultório ou coworking',
+  },
+  utilities: {
+    label: 'Contas',
+    icon: '💡',
+    type: 'expense',
+    description: 'Água, luz, internet, telefone',
   },
   equipment: {
     label: 'Equipamentos',
     icon: '🖥️',
     type: 'expense',
+    description: 'Computador, móveis, decoração',
+  },
+  software: {
+    label: 'Software',
+    icon: '💻',
+    type: 'expense',
+    description: 'Licenças de software, sistemas de gestão',
   },
   marketing: {
     label: 'Marketing',
     icon: '📣',
     type: 'expense',
+    description: 'Publicidade, site, redes sociais',
   },
   training: {
     label: 'Capacitação',
     icon: '📚',
     type: 'expense',
+    description: 'Cursos, especializações, congressos',
+  },
+  material: {
+    label: 'Materiais',
+    icon: '🎨',
+    type: 'expense',
+    description: 'Materiais de escritório, testes psicológicos',
+  },
+  insurance: {
+    label: 'Seguros',
+    icon: '🛡️',
+    type: 'expense',
+    description: 'Seguro profissional, plano de saúde',
   },
   taxes: {
     label: 'Impostos',
     icon: '📋',
     type: 'expense',
+    description: 'ISS, IR, contribuições obrigatórias',
   },
+
+  // Ambos
   other: {
     label: 'Outros',
-    icon: '📦',
+    icon: '📌',
     type: 'both',
+    description: 'Outras receitas ou despesas não categorizadas',
   },
 }

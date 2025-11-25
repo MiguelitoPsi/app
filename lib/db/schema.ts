@@ -344,12 +344,20 @@ export const therapistFinancial = sqliteTable('therapist_financial', {
   category: text('category', {
     enum: [
       'session',
+      'plan',
+      'workshop',
+      'supervision',
+      'consultation',
       'subscription',
       'rent',
       'equipment',
       'marketing',
       'training',
       'taxes',
+      'utilities',
+      'insurance',
+      'software',
+      'material',
       'other',
     ],
   }).notNull(),
@@ -509,6 +517,55 @@ export const sessionDocuments = sqliteTable('session_documents', {
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
+// Cognitive Conceptualization Diagram (D. Hernandes model)
+export const cognitiveConceptualization = sqliteTable('cognitive_conceptualization', {
+  id: text('id').primaryKey(),
+  therapistId: text('therapist_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  patientId: text('patient_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  // Header data
+  name: text('name'),
+  date: integer('date', { mode: 'timestamp' }),
+  // Main sections
+  childhoodData: text('childhood_data'), // Dados Relevantes de Infância
+  coreBelief: text('core_belief'), // Crença Central
+  conditionalAssumptions: text('conditional_assumptions'), // Suposições Condicionais - Regras
+  compensatoryStrategies: text('compensatory_strategies'), // Estratégia(s) Compensatória(s)
+  // Situations (up to 3)
+  situations: text('situations', { mode: 'json' }).$type<{
+    situation1?: {
+      situation: string
+      automaticThought: string
+      meaningOfAT: string // Significado do PA (Pensamento Automático)
+      emotion: string
+      behavior: string
+    }
+    situation2?: {
+      situation: string
+      automaticThought: string
+      meaningOfAT: string
+      emotion: string
+      behavior: string
+    }
+    situation3?: {
+      situation: string
+      automaticThought: string
+      meaningOfAT: string
+      emotion: string
+      behavior: string
+    }
+  }>(),
+  notes: text('notes'),
+  // Approval fields
+  isApproved: integer('is_approved', { mode: 'boolean' }).notNull().default(false),
+  approvedAt: integer('approved_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Task = typeof tasks.$inferSelect
@@ -552,6 +609,8 @@ export type TherapySession = typeof therapySessions.$inferSelect
 export type NewTherapySession = typeof therapySessions.$inferInsert
 export type SessionDocument = typeof sessionDocuments.$inferSelect
 export type NewSessionDocument = typeof sessionDocuments.$inferInsert
+export type CognitiveConceptualization = typeof cognitiveConceptualization.$inferSelect
+export type NewCognitiveConceptualization = typeof cognitiveConceptualization.$inferInsert
 
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -693,3 +752,17 @@ export const sessionDocumentsRelations = relations(sessionDocuments, ({ one }) =
     references: [users.id],
   }),
 }))
+
+export const cognitiveConceptualizationRelations = relations(
+  cognitiveConceptualization,
+  ({ one }) => ({
+    therapist: one(users, {
+      fields: [cognitiveConceptualization.therapistId],
+      references: [users.id],
+    }),
+    patient: one(users, {
+      fields: [cognitiveConceptualization.patientId],
+      references: [users.id],
+    }),
+  })
+)

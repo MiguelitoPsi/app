@@ -8,6 +8,7 @@ import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import {
+  cognitiveConceptualization,
   journalEntries,
   moodHistory,
   patientTasksFromTherapist,
@@ -868,5 +869,259 @@ export const therapistReportsRouter = router({
       await db.delete(sessionDocuments).where(eq(sessionDocuments.id, input.documentId))
 
       return { success: true }
+    }),
+
+  // ==========================================
+  // COGNITIVE CONCEPTUALIZATION
+  // ==========================================
+
+  // Get cognitive conceptualization for a patient
+  getCognitiveConceptualization: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verify access
+      const relationship = await db
+        .select()
+        .from(psychologistPatients)
+        .where(
+          and(
+            eq(psychologistPatients.psychologistId, ctx.user.id),
+            eq(psychologistPatients.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (relationship.length === 0) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [conceptualization] = await db
+        .select()
+        .from(cognitiveConceptualization)
+        .where(
+          and(
+            eq(cognitiveConceptualization.therapistId, ctx.user.id),
+            eq(cognitiveConceptualization.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      return conceptualization ?? null
+    }),
+
+  // Save or update cognitive conceptualization
+  saveCognitiveConceptualization: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.string(),
+        name: z.string().optional(),
+        date: z.date().optional(),
+        childhoodData: z.string().optional(),
+        coreBelief: z.string().optional(),
+        conditionalAssumptions: z.string().optional(),
+        compensatoryStrategies: z.string().optional(),
+        situations: z
+          .object({
+            situation1: z
+              .object({
+                situation: z.string(),
+                automaticThought: z.string(),
+                meaningOfAT: z.string(),
+                emotion: z.string(),
+                behavior: z.string(),
+              })
+              .optional(),
+            situation2: z
+              .object({
+                situation: z.string(),
+                automaticThought: z.string(),
+                meaningOfAT: z.string(),
+                emotion: z.string(),
+                behavior: z.string(),
+              })
+              .optional(),
+            situation3: z
+              .object({
+                situation: z.string(),
+                automaticThought: z.string(),
+                meaningOfAT: z.string(),
+                emotion: z.string(),
+                behavior: z.string(),
+              })
+              .optional(),
+          })
+          .optional(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verify access
+      const relationship = await db
+        .select()
+        .from(psychologistPatients)
+        .where(
+          and(
+            eq(psychologistPatients.psychologistId, ctx.user.id),
+            eq(psychologistPatients.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (relationship.length === 0) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Check if already exists
+      const [existing] = await db
+        .select()
+        .from(cognitiveConceptualization)
+        .where(
+          and(
+            eq(cognitiveConceptualization.therapistId, ctx.user.id),
+            eq(cognitiveConceptualization.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (existing) {
+        // Update existing
+        const [updated] = await db
+          .update(cognitiveConceptualization)
+          .set({
+            name: input.name,
+            date: input.date,
+            childhoodData: input.childhoodData,
+            coreBelief: input.coreBelief,
+            conditionalAssumptions: input.conditionalAssumptions,
+            compensatoryStrategies: input.compensatoryStrategies,
+            situations: input.situations,
+            notes: input.notes,
+            updatedAt: new Date(),
+          })
+          .where(eq(cognitiveConceptualization.id, existing.id))
+          .returning()
+
+        return updated
+      }
+
+      // Create new
+      const [created] = await db
+        .insert(cognitiveConceptualization)
+        .values({
+          id: nanoid(),
+          therapistId: ctx.user.id,
+          patientId: input.patientId,
+          name: input.name,
+          date: input.date,
+          childhoodData: input.childhoodData,
+          coreBelief: input.coreBelief,
+          conditionalAssumptions: input.conditionalAssumptions,
+          compensatoryStrategies: input.compensatoryStrategies,
+          situations: input.situations,
+          notes: input.notes,
+        })
+        .returning()
+
+      return created
+    }),
+
+  // Delete cognitive conceptualization
+  deleteCognitiveConceptualization: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [conceptualization] = await db
+        .select()
+        .from(cognitiveConceptualization)
+        .where(
+          and(
+            eq(cognitiveConceptualization.therapistId, ctx.user.id),
+            eq(cognitiveConceptualization.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (!conceptualization) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      await db
+        .delete(cognitiveConceptualization)
+        .where(eq(cognitiveConceptualization.id, conceptualization.id))
+
+      return { success: true }
+    }),
+
+  // Approve cognitive conceptualization
+  approveCognitiveConceptualization: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verify access
+      const relationship = await db
+        .select()
+        .from(psychologistPatients)
+        .where(
+          and(
+            eq(psychologistPatients.psychologistId, ctx.user.id),
+            eq(psychologistPatients.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (relationship.length === 0) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [conceptualization] = await db
+        .select()
+        .from(cognitiveConceptualization)
+        .where(
+          and(
+            eq(cognitiveConceptualization.therapistId, ctx.user.id),
+            eq(cognitiveConceptualization.patientId, input.patientId)
+          )
+        )
+        .limit(1)
+
+      if (!conceptualization) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Conceituação cognitiva não encontrada' })
+      }
+
+      // Check if there's enough data to approve
+      const hasRequiredData = conceptualization.coreBelief && conceptualization.childhoodData
+      if (!hasRequiredData) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'A conceituação precisa ter pelo menos a crença central e dados de infância preenchidos para ser aprovada',
+        })
+      }
+
+      const [updated] = await db
+        .update(cognitiveConceptualization)
+        .set({
+          isApproved: true,
+          approvedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(cognitiveConceptualization.id, conceptualization.id))
+        .returning()
+
+      return updated
     }),
 })

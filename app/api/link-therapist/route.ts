@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { headers } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -21,6 +21,28 @@ export async function POST(request: Request) {
 
     if (!therapistId) {
       return NextResponse.json({ error: 'Therapist ID is required' }, { status: 400 })
+    }
+
+    // Verify the therapist exists and is a psychologist
+    const therapist = await db.query.users.findFirst({
+      where: and(eq(users.id, therapistId), eq(users.role, 'psychologist')),
+    })
+
+    if (!therapist) {
+      return NextResponse.json({ error: 'Therapist not found' }, { status: 404 })
+    }
+
+    // Check if relationship already exists
+    const existingRelationship = await db.query.psychologistPatients.findFirst({
+      where: and(
+        eq(psychologistPatients.psychologistId, therapistId),
+        eq(psychologistPatients.patientId, session.user.id)
+      ),
+    })
+
+    if (existingRelationship) {
+      // Relationship already exists, return success
+      return NextResponse.json({ success: true, message: 'Already linked' })
     }
 
     // Create the relationship

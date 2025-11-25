@@ -104,8 +104,6 @@ export const TherapistDashboardView: React.FC = () => {
     )
 
   const stats = statsData?.stats
-  const xpInfo = statsData?.xpInfo
-  const rank = statsData?.rank
   const selectedPatient = patients?.find((p) => p.id === selectedPatientId)
 
   const weeklyActivity = useMemo(() => {
@@ -152,14 +150,10 @@ export const TherapistDashboardView: React.FC = () => {
             <div className='flex items-center gap-4'>
               <div className='relative'>
                 <Avatar mood='happy' size='lg' />
-                <div className='absolute -right-1 -bottom-1 flex h-6 w-6 items-center justify-center rounded-full bg-amber-400 font-bold text-amber-900 text-xs shadow-lg'>
-                  {xpInfo?.currentLevel || 1}
-                </div>
               </div>
               <div>
                 <p className='text-sm text-white/80'>Bem-vindo(a) de volta!</p>
                 <h1 className='font-bold text-xl'>Área do Terapeuta</h1>
-                <p className='text-sm text-white/90'>{rank?.name || 'Terapeuta Iniciante'}</p>
               </div>
             </div>
             <button
@@ -170,22 +164,6 @@ export const TherapistDashboardView: React.FC = () => {
             >
               <Settings className='h-6 w-6' />
             </button>
-          </div>
-
-          <div className='mt-6'>
-            <div className='mb-2 flex items-center justify-between text-sm'>
-              <span className='text-white/80'>Nível {xpInfo?.currentLevel || 1}</span>
-              <span className='text-white/80'>
-                {xpInfo?.xpInCurrentLevel || 0} /{' '}
-                {xpInfo?.xpForNextLevel ? xpInfo.xpForNextLevel - xpInfo.xpForCurrentLevel : 150} XP
-              </span>
-            </div>
-            <div className='h-3 overflow-hidden rounded-full bg-white/20'>
-              <div
-                className='h-full rounded-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-500'
-                style={{ width: `${xpInfo?.progressPercent || 0}%` }}
-              />
-            </div>
           </div>
 
           <div className='mt-6 grid grid-cols-4 gap-2 text-center'>
@@ -433,31 +411,6 @@ export const TherapistDashboardView: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </section>
-
-            <section className='rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 p-4 text-white shadow-sm'>
-              <div className='flex items-center justify-between'>
-                <div>
-                  <p className='text-white/80 text-sm'>Seu Rank Atual</p>
-                  <h3 className='font-bold text-xl'>{rank?.name || 'Terapeuta Iniciante'}</h3>
-                  <p className='mt-1 text-white/70 text-sm'>{rank?.description}</p>
-                </div>
-                <div className='text-4xl'>{rank?.icon || '🌱'}</div>
-              </div>
-              {statsData?.nextRank && statsData.nextRank.level > (xpInfo?.currentLevel || 1) && (
-                <div className='mt-4'>
-                  <div className='flex items-center justify-between text-sm'>
-                    <span className='text-white/80'>Próximo: {statsData.nextRank.name}</span>
-                    <span className='text-white/80'>{xpInfo?.xpToNextLevel || 0} XP restantes</span>
-                  </div>
-                  <div className='mt-2 h-2 overflow-hidden rounded-full bg-white/20'>
-                    <div
-                      className='h-full rounded-full bg-white/60'
-                      style={{ width: `${xpInfo?.progressPercent || 0}%` }}
-                    />
-                  </div>
-                </div>
-              )}
             </section>
           </div>
         )}
@@ -833,12 +786,6 @@ export const TherapistDashboardView: React.FC = () => {
                     <p className='text-slate-500 text-sm dark:text-slate-400'>Completados</p>
                   </div>
                   <div className='text-center'>
-                    <p className='font-bold text-2xl text-amber-600 dark:text-amber-400'>
-                      {challengeStats.totalXpEarned}
-                    </p>
-                    <p className='text-slate-500 text-sm dark:text-slate-400'>XP Total</p>
-                  </div>
-                  <div className='text-center'>
                     <p className='font-bold text-2xl text-green-600 dark:text-green-400'>
                       {challengeStats.completionRate}%
                     </p>
@@ -898,37 +845,6 @@ export const TherapistDashboardView: React.FC = () => {
               Ver Todas as Conquistas
               <ChevronRight className='h-4 w-4' />
             </button>
-            <section className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800'>
-              <h3 className='mb-4 font-semibold text-slate-800 dark:text-slate-200'>
-                XP por Categoria
-              </h3>
-              <div className='space-y-3'>
-                {[
-                  { name: 'Produtividade Clínica', icon: '📊' },
-                  { name: 'Cuidado Contínuo', icon: '💚' },
-                  { name: 'Engajamento', icon: '🤝' },
-                  { name: 'Desafios', icon: '🏆' },
-                ].map((cat) => {
-                  const catAchievements = achievementProgress?.filter(
-                    (a) => a.isUnlocked && a.category.includes(cat.name.toLowerCase().split(' ')[0])
-                  )
-                  const totalXp = catAchievements?.reduce((sum, a) => sum + a.xpReward, 0) || 0
-                  return (
-                    <div className='flex items-center justify-between' key={cat.name}>
-                      <div className='flex items-center gap-2'>
-                        <span>{cat.icon}</span>
-                        <span className='text-slate-600 text-sm dark:text-slate-300'>
-                          {cat.name}
-                        </span>
-                      </div>
-                      <span className='font-medium text-slate-800 dark:text-slate-200'>
-                        +{totalXp} XP
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </section>
           </div>
         )}
       </main>

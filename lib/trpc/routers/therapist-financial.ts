@@ -70,12 +70,20 @@ export const therapistFinancialRouter = router({
         type: z.enum(['income', 'expense']),
         category: z.enum([
           'session',
+          'plan',
+          'workshop',
+          'supervision',
+          'consultation',
           'subscription',
           'rent',
           'equipment',
           'marketing',
           'training',
           'taxes',
+          'utilities',
+          'insurance',
+          'software',
+          'material',
           'other',
         ]),
         amount: z.number().min(0),
@@ -261,7 +269,7 @@ export const therapistFinancialRouter = router({
 
   // Obter fluxo de caixa mensal
   getMonthlyCashflow: protectedProcedure
-    .input(z.object({ months: z.number().min(1).max(12).default(6) }))
+    .input(z.object({ months: z.number().min(1).max(24).default(12) }))
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== 'psychologist') {
         throw new TRPCError({ code: 'FORBIDDEN' })
@@ -301,6 +309,252 @@ export const therapistFinancialRouter = router({
       )
 
       return Object.values(monthly).sort((a, b) => a.month.localeCompare(b.month))
+    }),
+
+  // Obter resumo anual completo
+  getYearlySummary: protectedProcedure
+    .input(z.object({ year: z.number().optional() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const year = input.year ?? new Date().getFullYear()
+      const startDate = new Date(year, 0, 1)
+      const endDate = new Date(year, 11, 31)
+
+      const records = await db
+        .select()
+        .from(therapistFinancial)
+        .where(
+          and(
+            eq(therapistFinancial.therapistId, ctx.user.id),
+            gte(therapistFinancial.date, startDate),
+            lte(therapistFinancial.date, endDate)
+          )
+        )
+
+      // Totais
+      const totalIncome = records
+        .filter((r) => r.type === 'income')
+        .reduce((acc, r) => acc + r.amount, 0)
+      const totalExpenses = records
+        .filter((r) => r.type === 'expense')
+        .reduce((acc, r) => acc + r.amount, 0)
+
+      // Por mês
+      const byMonth: Record<string, { income: number; expense: number; balance: number }> = {}
+      for (let month = 0; month < 12; month++) {
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
+        byMonth[monthKey] = { income: 0, expense: 0, balance: 0 }
+      }
+
+      for (const r of records) {
+        const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`
+        if (r.type === 'income') {
+          byMonth[monthKey].income += r.amount
+        } else {
+          byMonth[monthKey].expense += r.amount
+        }
+        byMonth[monthKey].balance = byMonth[monthKey].income - byMonth[monthKey].expense
+      }
+
+      // Por categoria
+      const byCategory = records.reduce(
+        (acc, r) => {
+          if (!acc[r.category]) {
+            acc[r.category] = { income: 0, expense: 0 }
+          }
+          if (r.type === 'income') {
+            acc[r.category].income += r.amount
+          } else {
+            acc[r.category].expense += r.amount
+          }
+          return acc
+        },
+        {} as Record<string, { income: number; expense: number }>
+      )
+
+      // Sessões do ano
+      const sessions = await db
+        .select()
+        .from(therapySessions)
+        .where(
+          and(
+            eq(therapySessions.therapistId, ctx.user.id),
+            gte(therapySessions.scheduledAt, startDate),
+            lte(therapySessions.scheduledAt, endDate)
+          )
+        )
+
+      const completedSessions = sessions.filter((s) => s.status === 'completed')
+
+      // Melhores meses
+      const monthlyArray = Object.entries(byMonth)
+        .map(([month, data]) => ({ month, ...data }))
+        .sort((a, b) => b.income - a.income)
+      const bestMonth = monthlyArray[0]
+      const worstMonth = monthlyArray.at(-1)
+
+      // Média mensal
+      const monthsWithData = Object.values(byMonth).filter(
+        (m) => m.income > 0 || m.expense > 0
+      ).length
+      const avgMonthlyIncome = monthsWithData > 0 ? totalIncome / monthsWithData : 0
+      const avgMonthlyExpense = monthsWithData > 0 ? totalExpenses / monthsWithData : 0
+
+      return {
+        year,
+        totalIncome,
+        totalExpenses,
+        balance: totalIncome - totalExpenses,
+        byMonth,
+        byCategory,
+        sessionsCount: completedSessions.length,
+        bestMonth,
+        worstMonth,
+        avgMonthlyIncome,
+        avgMonthlyExpense,
+        profitMargin: totalIncome > 0 ? ((totalIncome - totalExpenses) / totalIncome) * 100 : 0,
+      }
+    }),
+
+  // Comparação entre dois períodos
+  comparePeriods: protectedProcedure
+    .input(
+      z.object({
+        current: z.object({ startDate: z.date(), endDate: z.date() }),
+        previous: z.object({ startDate: z.date(), endDate: z.date() }),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Buscar dados do período atual
+      const currentRecords = await db
+        .select()
+        .from(therapistFinancial)
+        .where(
+          and(
+            eq(therapistFinancial.therapistId, ctx.user.id),
+            gte(therapistFinancial.date, input.current.startDate),
+            lte(therapistFinancial.date, input.current.endDate)
+          )
+        )
+
+      // Buscar dados do período anterior
+      const previousRecords = await db
+        .select()
+        .from(therapistFinancial)
+        .where(
+          and(
+            eq(therapistFinancial.therapistId, ctx.user.id),
+            gte(therapistFinancial.date, input.previous.startDate),
+            lte(therapistFinancial.date, input.previous.endDate)
+          )
+        )
+
+      const calculateTotals = (recs: typeof currentRecords) => ({
+        income: recs.filter((r) => r.type === 'income').reduce((acc, r) => acc + r.amount, 0),
+        expenses: recs.filter((r) => r.type === 'expense').reduce((acc, r) => acc + r.amount, 0),
+        recordCount: recs.length,
+      })
+
+      const current = calculateTotals(currentRecords)
+      const previous = calculateTotals(previousRecords)
+
+      const calcChange = (curr: number, prev: number) =>
+        prev === 0 ? (curr > 0 ? 100 : 0) : ((curr - prev) / prev) * 100
+
+      return {
+        current: {
+          ...current,
+          balance: current.income - current.expenses,
+        },
+        previous: {
+          ...previous,
+          balance: previous.income - previous.expenses,
+        },
+        changes: {
+          income: calcChange(current.income, previous.income),
+          expenses: calcChange(current.expenses, previous.expenses),
+          balance: calcChange(
+            current.income - current.expenses,
+            previous.income - previous.expenses
+          ),
+        },
+      }
+    }),
+
+  // Projeção financeira para o período
+  getProjection: protectedProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const now = new Date()
+      const records = await db
+        .select()
+        .from(therapistFinancial)
+        .where(
+          and(
+            eq(therapistFinancial.therapistId, ctx.user.id),
+            gte(therapistFinancial.date, input.startDate),
+            lte(therapistFinancial.date, now)
+          )
+        )
+
+      const currentIncome = records
+        .filter((r) => r.type === 'income')
+        .reduce((acc, r) => acc + r.amount, 0)
+      const currentExpenses = records
+        .filter((r) => r.type === 'expense')
+        .reduce((acc, r) => acc + r.amount, 0)
+
+      const totalDays =
+        Math.ceil((input.endDate.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+      const daysPassed = Math.max(
+        1,
+        Math.ceil((now.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24))
+      )
+      const daysRemaining = Math.max(0, totalDays - daysPassed)
+
+      const dailyIncomeAvg = currentIncome / daysPassed
+      const dailyExpenseAvg = currentExpenses / daysPassed
+
+      const projectedIncome = currentIncome + dailyIncomeAvg * daysRemaining
+      const projectedExpenses = currentExpenses + dailyExpenseAvg * daysRemaining
+
+      // Confiança baseada na quantidade de dados
+      let confidence: 'low' | 'medium' | 'high' = 'low'
+      if (daysPassed >= totalDays * 0.7) {
+        confidence = 'high'
+      } else if (daysPassed >= totalDays * 0.4) {
+        confidence = 'medium'
+      }
+
+      return {
+        currentIncome,
+        currentExpenses,
+        currentBalance: currentIncome - currentExpenses,
+        projectedIncome: Math.round(projectedIncome),
+        projectedExpenses: Math.round(projectedExpenses),
+        projectedBalance: Math.round(projectedIncome - projectedExpenses),
+        dailyIncomeAvg: Math.round(dailyIncomeAvg * 100) / 100,
+        dailyExpenseAvg: Math.round(dailyExpenseAvg * 100) / 100,
+        daysRemaining,
+        percentComplete: Math.round((daysPassed / totalDays) * 100),
+        confidence,
+      }
     }),
 
   // ==========================================
@@ -516,29 +770,56 @@ export const therapistFinancialRouter = router({
       message: string
     }> = []
 
-    // Verificar despesas recorrentes pendentes
+    // Verificar despesas recorrentes
     const now = new Date()
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1)
     const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0)
 
-    const recurringExpenses = await db
+    const recurringRecords = await db
       .select()
       .from(therapistFinancial)
       .where(
         and(
           eq(therapistFinancial.therapistId, ctx.user.id),
-          eq(therapistFinancial.type, 'expense'),
           eq(therapistFinancial.isRecurring, true)
         )
       )
 
+    const recurringExpenses = recurringRecords.filter((r) => r.type === 'expense')
+    const recurringIncome = recurringRecords.filter((r) => r.type === 'income')
+
     if (recurringExpenses.length > 0) {
-      const totalRecurring = recurringExpenses.reduce((total, e) => total + e.amount, 0)
+      const monthlyExpenses = recurringExpenses.filter((e) => e.frequency === 'monthly')
+      const weeklyExpenses = recurringExpenses.filter((e) => e.frequency === 'weekly')
+
+      let message = `Você tem ${recurringExpenses.length} despesa(s) recorrente(s)`
+      if (monthlyExpenses.length > 0) {
+        const monthlyTotal = monthlyExpenses.reduce((t, e) => t + e.amount, 0)
+        message += ` (R$${monthlyTotal.toFixed(2)}/mês)`
+      }
+      if (weeklyExpenses.length > 0) {
+        const weeklyTotal = weeklyExpenses.reduce((t, e) => t + e.amount, 0)
+        message += ` + R$${(weeklyTotal * 4).toFixed(2)}/mês em despesas semanais`
+      }
+
       alerts.push({
         type: 'info',
-        title: 'Despesas Recorrentes',
-        message: `Você tem R$${totalRecurring.toFixed(2)} em despesas recorrentes cadastradas.`,
+        title: '💸 Despesas Recorrentes',
+        message,
       })
+    }
+
+    if (recurringIncome.length > 0) {
+      const monthlyIncome = recurringIncome.filter((e) => e.frequency === 'monthly')
+
+      if (monthlyIncome.length > 0) {
+        const monthlyTotal = monthlyIncome.reduce((t, e) => t + e.amount, 0)
+        alerts.push({
+          type: 'success',
+          title: '💰 Receitas Recorrentes',
+          message: `Você tem R$${monthlyTotal.toFixed(2)} em receitas mensais garantidas de ${monthlyIncome.length} fonte(s).`,
+        })
+      }
     }
 
     // Verificar metas próximas do prazo

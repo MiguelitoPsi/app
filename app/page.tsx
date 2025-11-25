@@ -1,74 +1,90 @@
-import { ArrowRight, Brain, Heart, Sparkles } from 'lucide-react'
+import { ArrowRight, Brain, Heart, Shield, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LandingPage() {
   return (
-    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4'>
-      <div className='w-full max-w-2xl space-y-8 text-center text-white'>
-        <div className='space-y-4'>
-          <div className='flex justify-center'>
-            <div className='rounded-3xl bg-white/10 p-6 backdrop-blur-sm'>
-              <Brain className='h-20 w-20' />
-            </div>
-          </div>
-          <h1 className='font-bold text-5xl md:text-6xl'>Guerreiro da Mente</h1>
-          <p className='text-white/90 text-xl md:text-2xl'>
-            Sua jornada gamificada de bem-estar psicológico
-          </p>
-        </div>
-
-        <div className='grid gap-6 py-8 md:grid-cols-3'>
-          <div className='space-y-3 rounded-2xl bg-white/10 p-6 backdrop-blur-sm'>
+    <div className='flex min-h-screen flex-col bg-slate-950'>
+      {/* Hero Section */}
+      <div className='flex flex-1 flex-col items-center justify-center px-6 py-12'>
+        <div className='w-full max-w-md space-y-8'>
+          {/* Logo & Title */}
+          <div className='space-y-6 text-center'>
             <div className='flex justify-center'>
-              <div className='rounded-2xl bg-white/20 p-4'>
-                <Heart className='h-8 w-8' />
+              <div className='rounded-2xl border border-slate-800 bg-slate-900/50 p-5'>
+                <Brain className='h-14 w-14 text-violet-400' />
               </div>
             </div>
-            <h3 className='font-semibold text-lg'>Diário Emocional</h3>
-            <p className='text-sm text-white/80'>
-              Registre seus pensamentos e receba análises com IA
-            </p>
+            <div className='space-y-2'>
+              <h1 className='font-bold text-3xl text-white tracking-tight'>Nepsis</h1>
+              <p className='text-slate-400 text-base'>
+                Sua jornada gamificada de bem-estar psicológico
+              </p>
+            </div>
           </div>
 
-          <div className='space-y-3 rounded-2xl bg-white/10 p-6 backdrop-blur-sm'>
-            <div className='flex justify-center'>
-              <div className='rounded-2xl bg-white/20 p-4'>
-                <Sparkles className='h-8 w-8' />
-              </div>
-            </div>
-            <h3 className='font-semibold text-lg'>Gamificação</h3>
-            <p className='text-sm text-white/80'>
-              Evolua, ganhe recompensas e desbloqueie conquistas
-            </p>
+          {/* Features */}
+          <div className='space-y-3 pt-4'>
+            <FeatureCard
+              description='Registre seus pensamentos e receba análises com IA'
+              icon={<Heart className='h-5 w-5 text-rose-400' />}
+              title='Diário Emocional'
+            />
+            <FeatureCard
+              description='Evolua, ganhe recompensas e desbloqueie conquistas'
+              icon={<Sparkles className='h-5 w-5 text-amber-400' />}
+              title='Gamificação'
+            />
+            <FeatureCard
+              description='Organize seus pensamentos com apoio de IA'
+              icon={<Shield className='h-5 w-5 text-emerald-400' />}
+              title='Assistente de Reflexão'
+            />
           </div>
 
-          <div className='space-y-3 rounded-2xl bg-white/10 p-6 backdrop-blur-sm'>
-            <div className='flex justify-center'>
-              <div className='rounded-2xl bg-white/20 p-4'>
-                <Brain className='h-8 w-8' />
-              </div>
-            </div>
-            <h3 className='font-semibold text-lg'>Assistente de Reflexão</h3>
-            <p className='text-sm text-white/80'>
-              Organize seus pensamentos com apoio de IA, sem substituir profissionais
-            </p>
+          {/* CTA Buttons */}
+          <div className='space-y-3 pt-6'>
+            <Link
+              className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98]'
+              href='/auth/signup'
+            >
+              Começar Agora
+              <ArrowRight className='h-5 w-5' />
+            </Link>
+            <Link
+              className='flex w-full items-center justify-center rounded-xl border border-slate-800 bg-slate-900/50 px-6 py-4 font-medium text-slate-300 transition-all hover:bg-slate-800 active:scale-[0.98]'
+              href='/auth/signin'
+            >
+              Já tenho conta
+            </Link>
           </div>
         </div>
+      </div>
 
-        <div className='flex flex-col justify-center gap-4 sm:flex-row'>
-          <Link
-            className='inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-semibold text-lg text-purple-600 shadow-xl transition-all hover:scale-105 hover:bg-white/90 hover:shadow-2xl'
-            href='/auth/signup'
-          >
-            Começar Agora <ArrowRight className='h-5 w-5' />
-          </Link>
-          <Link
-            className='inline-flex items-center justify-center gap-2 rounded-xl border-2 border-white/20 bg-white/10 px-8 py-4 font-semibold text-lg text-white backdrop-blur-sm transition-all hover:bg-white/20'
-            href='/auth/signin'
-          >
-            Já tenho conta
-          </Link>
-        </div>
+      {/* Footer */}
+      <div className='border-slate-800 border-t px-6 py-4'>
+        <p className='text-center text-slate-500 text-xs'>
+          Feito com 💜 para o seu bem-estar mental
+        </p>
+      </div>
+    </div>
+  )
+}
+
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode
+  title: string
+  description: string
+}) {
+  return (
+    <div className='flex items-start gap-4 rounded-xl border border-slate-800 bg-slate-900/30 p-4 transition-colors hover:bg-slate-900/50'>
+      <div className='rounded-lg bg-slate-800/50 p-2.5'>{icon}</div>
+      <div className='flex-1'>
+        <h3 className='font-medium text-sm text-white'>{title}</h3>
+        <p className='mt-0.5 text-slate-400 text-sm'>{description}</p>
       </div>
     </div>
   )

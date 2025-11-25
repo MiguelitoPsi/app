@@ -8,6 +8,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Clock,
   Flag,
   MessageSquare,
@@ -16,14 +17,12 @@ import {
   Repeat,
   Send,
   Sparkles,
-  Star,
   Target,
   Trash2,
   Trophy,
   User,
   Users,
   X,
-  Zap,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { trpc } from '../lib/trpc/client'
@@ -62,13 +61,7 @@ export default function TherapistRoutineView() {
     d.setHours(0, 0, 0, 0)
     return d
   })
-
-  // Reward animation state
-  const [rewardAnimation, setRewardAnimation] = useState<{
-    show: boolean
-    xp: number
-    levelUp: boolean
-  } | null>(null)
+  const [showAiSuggestions, setShowAiSuggestions] = useState(true)
 
   // tRPC queries
   const { data: patients } = trpc.patient.getAll.useQuery()
@@ -87,7 +80,6 @@ export default function TherapistRoutineView() {
     undefined,
     { enabled: mainView === 'my-routine' }
   )
-  const { data: therapistStats } = trpc.therapistXp.getStats.useQuery()
 
   const utils = trpc.useUtils()
 
@@ -127,17 +119,9 @@ export default function TherapistRoutineView() {
   })
 
   const completeMyTaskMutation = trpc.therapistTasks.complete.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       refetchMyTasks()
       utils.therapistXp.getStats.invalidate()
-      if (data.xpAwarded > 0) {
-        setRewardAnimation({
-          show: true,
-          xp: data.xpAwarded,
-          levelUp: data.levelUp,
-        })
-        setTimeout(() => setRewardAnimation(null), 2000)
-      }
     },
   })
 
@@ -405,20 +389,7 @@ export default function TherapistRoutineView() {
 
   return (
     <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
-      {/* XP Reward Animation */}
-      {rewardAnimation?.show && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center pointer-events-none'>
-          <div className='animate-bounce-in flex flex-col items-center gap-2 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 p-6 text-white shadow-2xl'>
-            <Zap className='h-12 w-12' />
-            <span className='font-bold text-2xl'>+{rewardAnimation.xp} XP</span>
-            {rewardAnimation.levelUp && (
-              <span className='font-semibold text-emerald-100'>Subiu de Nível! 🎉</span>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Header with XP Stats */}
+      {/* Header */}
       <div className='mb-4 flex items-end justify-between sm:mb-6'>
         <div>
           <h2 className='font-bold text-xl text-slate-800 sm:text-2xl dark:text-white'>
@@ -426,18 +397,11 @@ export default function TherapistRoutineView() {
           </h2>
           <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
             {mainView === 'my-routine'
-              ? 'Gerencie suas tarefas e ganhe XP'
+              ? 'Gerencie suas tarefas'
               : 'Gerencie as tarefas dos seus pacientes'}
           </p>
         </div>
         <div className='flex items-center gap-2'>
-          {/* XP Badge */}
-          {mainView === 'my-routine' && therapistStats && (
-            <div className='flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-1.5 text-white shadow-lg'>
-              <Star className='h-4 w-4' />
-              <span className='font-bold text-sm'>Nv. {therapistStats.xpInfo.currentLevel}</span>
-            </div>
-          )}
           {(mainView === 'my-routine' || selectedPatientId) && (
             <button
               className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
@@ -561,36 +525,6 @@ export default function TherapistRoutineView() {
       {/* MY ROUTINE VIEW - Therapist's own tasks */}
       {mainView === 'my-routine' && (
         <>
-          {/* XP Progress Card */}
-          {therapistStats && (
-            <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 p-4 text-white shadow-lg shadow-emerald-200 sm:mb-8 sm:rounded-3xl sm:p-5 dark:shadow-none'>
-              <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
-              <div className='relative z-10 mb-2 flex items-end justify-between'>
-                <div>
-                  <p className='mb-1 font-bold text-emerald-100 text-[10px] uppercase tracking-wider sm:text-xs'>
-                    Progresso de XP
-                  </p>
-                  <h3 className='font-bold text-xl sm:text-2xl'>
-                    {therapistStats.xpInfo.currentXP} XP
-                  </h3>
-                </div>
-                <div className='rounded-lg bg-white/20 p-1.5 backdrop-blur-sm sm:rounded-xl sm:p-2'>
-                  <Zap className='text-white' size={20} />
-                </div>
-              </div>
-              <div className='relative z-10 h-1.5 w-full overflow-hidden rounded-full bg-black/20 backdrop-blur-sm sm:h-2'>
-                <div
-                  className='h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-1000 ease-out'
-                  style={{ width: `${therapistStats.xpInfo.progressPercent}%` }}
-                />
-              </div>
-              <p className='mt-2 text-emerald-100 text-xs'>
-                {therapistStats.xpInfo.xpToNextLevel} XP para o nível{' '}
-                {therapistStats.xpInfo.currentLevel + 1}
-              </p>
-            </div>
-          )}
-
           {/* View Mode Selector */}
           <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
             <button
@@ -783,12 +717,6 @@ export default function TherapistRoutineView() {
                                   : 'Mensal'}
                             </span>
                           )}
-                          {/* XP Badge */}
-                          {task.status !== 'completed' && (
-                            <span className='flex items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 font-bold text-[10px] text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'>
-                              <Zap size={10} />+{task.xpReward} XP
-                            </span>
-                          )}
                         </div>
 
                         {task.description && (
@@ -932,36 +860,49 @@ export default function TherapistRoutineView() {
           {/* AI Suggestions */}
           {aiSuggestions && aiSuggestions.length > 0 && (
             <div className='mb-6 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 p-4 dark:from-purple-900/20 dark:to-indigo-900/20'>
-              <div className='mb-3 flex items-center gap-2'>
-                <Sparkles className='h-5 w-5 text-purple-500' />
-                <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
-                  Sugestões da IA
-                </h3>
-              </div>
-              <div className='space-y-2'>
-                {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
-                  <div
-                    className='flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800'
-                    key={idx}
-                  >
-                    <div className='flex-1'>
-                      <p className='font-medium text-slate-800 dark:text-slate-200'>
-                        {suggestion.title}
-                      </p>
-                      <p className='text-slate-500 text-sm dark:text-slate-400'>
-                        {suggestion.description}
-                      </p>
-                    </div>
-                    <button
-                      className='ml-3 rounded-lg bg-purple-100 p-2 text-purple-600 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
-                      onClick={() => handleUseSuggestion(suggestion)}
-                      type='button'
+              <button
+                className='flex w-full items-center justify-between'
+                onClick={() => setShowAiSuggestions(!showAiSuggestions)}
+                type='button'
+              >
+                <div className='flex items-center gap-2'>
+                  <Sparkles className='h-5 w-5 text-purple-500' />
+                  <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
+                    Sugestões da IA
+                  </h3>
+                </div>
+                {showAiSuggestions ? (
+                  <ChevronUp className='h-5 w-5 text-slate-500 transition-transform dark:text-slate-400' />
+                ) : (
+                  <ChevronDown className='h-5 w-5 text-slate-500 transition-transform dark:text-slate-400' />
+                )}
+              </button>
+              {showAiSuggestions && (
+                <div className='mt-3 space-y-2'>
+                  {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
+                    <div
+                      className='flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800'
+                      key={idx}
                     >
-                      <Plus className='h-4 w-4' />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                      <div className='flex-1'>
+                        <p className='font-medium text-slate-800 dark:text-slate-200'>
+                          {suggestion.title}
+                        </p>
+                        <p className='text-slate-500 text-sm dark:text-slate-400'>
+                          {suggestion.description}
+                        </p>
+                      </div>
+                      <button
+                        className='ml-3 rounded-lg bg-purple-100 p-2 text-purple-600 transition-colors hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
+                        onClick={() => handleUseSuggestion(suggestion)}
+                        type='button'
+                      >
+                        <Plus className='h-4 w-4' />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -1412,12 +1353,12 @@ export default function TherapistRoutineView() {
                   <div className='grid grid-cols-3 gap-2'>
                     {(
                       [
-                        { key: 'custom', label: 'Geral', xp: 15 },
-                        { key: 'feedback', label: 'Feedback', xp: 30 },
-                        { key: 'session', label: 'Sessão', xp: 35 },
-                        { key: 'review_records', label: 'Revisão', xp: 15 },
-                        { key: 'create_plan', label: 'Plano', xp: 50 },
-                        { key: 'approve_reward', label: 'Recompensa', xp: 25 },
+                        { key: 'custom', label: 'Geral' },
+                        { key: 'feedback', label: 'Feedback' },
+                        { key: 'session', label: 'Sessão' },
+                        { key: 'review_records', label: 'Revisão' },
+                        { key: 'create_plan', label: 'Plano' },
+                        { key: 'approve_reward', label: 'Recompensa' },
                       ] as const
                     ).map((t) => (
                       <button
@@ -1431,7 +1372,6 @@ export default function TherapistRoutineView() {
                         type='button'
                       >
                         <span>{t.label}</span>
-                        <span className='text-[8px] text-amber-500'>+{t.xp} XP</span>
                       </button>
                     ))}
                   </div>
@@ -1503,15 +1443,6 @@ export default function TherapistRoutineView() {
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* XP Info */}
-                <div className='flex items-start gap-2 rounded-xl bg-emerald-50 p-3 dark:bg-emerald-900/20'>
-                  <Zap className='mt-0.5 h-4 w-4 flex-shrink-0 text-emerald-500' />
-                  <p className='text-emerald-700 text-xs dark:text-emerald-400'>
-                    Ao completar esta tarefa você ganhará <strong>XP</strong> baseado no tipo de
-                    tarefa selecionado.
-                  </p>
                 </div>
               </div>
 

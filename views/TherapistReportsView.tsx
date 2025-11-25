@@ -5,19 +5,64 @@ import {
   CheckCircle2,
   ChevronDown,
   ClipboardList,
+  Edit3,
   FileImage,
   FileText,
   Plus,
+  Save,
+  Send,
   Trash2,
   Upload,
   User,
   X,
 } from 'lucide-react'
 import type React from 'react'
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 type ReportSection = 'documents' | 'cognitive' | 'therapeutic'
+
+type SituationData = {
+  situation: string
+  automaticThought: string
+  meaningOfAT: string
+  emotion: string
+  behavior: string
+}
+
+type CognitiveFormData = {
+  name: string
+  date: string
+  childhoodData: string
+  coreBelief: string
+  conditionalAssumptions: string
+  compensatoryStrategies: string
+  situation1: SituationData
+  situation2: SituationData
+  situation3: SituationData
+  notes: string
+}
+
+const emptySituation: SituationData = {
+  situation: '',
+  automaticThought: '',
+  meaningOfAT: '',
+  emotion: '',
+  behavior: '',
+}
+
+const initialFormData: CognitiveFormData = {
+  name: '',
+  date: '',
+  childhoodData: '',
+  coreBelief: '',
+  conditionalAssumptions: '',
+  compensatoryStrategies: '',
+  situation1: { ...emptySituation },
+  situation2: { ...emptySituation },
+  situation3: { ...emptySituation },
+  notes: '',
+}
 
 export default function TherapistReportsView(): React.ReactElement {
   const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null)
@@ -29,6 +74,12 @@ export default function TherapistReportsView(): React.ReactElement {
   const [isUploading, setIsUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Cognitive Conceptualization state
+  const [isEditingCognitive, setIsEditingCognitive] = useState(false)
+  const [cognitiveForm, setCognitiveForm] = useState<CognitiveFormData>(initialFormData)
+  const [isSavingCognitive, setIsSavingCognitive] = useState(false)
+  const [isApprovingCognitive, setIsApprovingCognitive] = useState(false)
+
   const utils = trpc.useUtils()
   const { data: patients } = trpc.patient.getAll.useQuery()
 
@@ -37,6 +88,118 @@ export default function TherapistReportsView(): React.ReactElement {
       { patientId: selectedPatientId ?? '', limit: 20 },
       { enabled: Boolean(selectedPatientId) }
     )
+
+  // Cognitive Conceptualization data
+  const { data: cognitiveData, isLoading: isLoadingCognitive } =
+    trpc.therapistReports.getCognitiveConceptualization.useQuery(
+      { patientId: selectedPatientId ?? '' },
+      { enabled: Boolean(selectedPatientId) }
+    )
+
+  const saveCognitiveMutation = trpc.therapistReports.saveCognitiveConceptualization.useMutation({
+    onSuccess: () => {
+      utils.therapistReports.getCognitiveConceptualization.invalidate()
+      setIsEditingCognitive(false)
+      setIsSavingCognitive(false)
+    },
+    onError: () => {
+      setIsSavingCognitive(false)
+    },
+  })
+
+  const deleteCognitiveMutation =
+    trpc.therapistReports.deleteCognitiveConceptualization.useMutation({
+      onSuccess: () => {
+        utils.therapistReports.getCognitiveConceptualization.invalidate()
+        setCognitiveForm(initialFormData)
+      },
+    })
+
+  const approveCognitiveMutation =
+    trpc.therapistReports.approveCognitiveConceptualization.useMutation({
+      onSuccess: () => {
+        utils.therapistReports.getCognitiveConceptualization.invalidate()
+        setIsApprovingCognitive(false)
+      },
+      onError: (error) => {
+        setIsApprovingCognitive(false)
+        alert(error.message)
+      },
+    })
+
+  // Load cognitive data into form when data changes
+  useEffect(() => {
+    if (cognitiveData) {
+      setCognitiveForm({
+        name: cognitiveData.name ?? '',
+        date: cognitiveData.date ? new Date(cognitiveData.date).toISOString().split('T')[0] : '',
+        childhoodData: cognitiveData.childhoodData ?? '',
+        coreBelief: cognitiveData.coreBelief ?? '',
+        conditionalAssumptions: cognitiveData.conditionalAssumptions ?? '',
+        compensatoryStrategies: cognitiveData.compensatoryStrategies ?? '',
+        situation1: cognitiveData.situations?.situation1 ?? { ...emptySituation },
+        situation2: cognitiveData.situations?.situation2 ?? { ...emptySituation },
+        situation3: cognitiveData.situations?.situation3 ?? { ...emptySituation },
+        notes: cognitiveData.notes ?? '',
+      })
+    } else {
+      setCognitiveForm(initialFormData)
+    }
+  }, [cognitiveData])
+
+  const handleSaveCognitive = () => {
+    if (!selectedPatientId) return
+    setIsSavingCognitive(true)
+
+    saveCognitiveMutation.mutate({
+      patientId: selectedPatientId,
+      name: cognitiveForm.name || undefined,
+      date: cognitiveForm.date ? new Date(cognitiveForm.date) : undefined,
+      childhoodData: cognitiveForm.childhoodData || undefined,
+      coreBelief: cognitiveForm.coreBelief || undefined,
+      conditionalAssumptions: cognitiveForm.conditionalAssumptions || undefined,
+      compensatoryStrategies: cognitiveForm.compensatoryStrategies || undefined,
+      situations: {
+        situation1: cognitiveForm.situation1.situation ? cognitiveForm.situation1 : undefined,
+        situation2: cognitiveForm.situation2.situation ? cognitiveForm.situation2 : undefined,
+        situation3: cognitiveForm.situation3.situation ? cognitiveForm.situation3 : undefined,
+      },
+      notes: cognitiveForm.notes || undefined,
+    })
+  }
+
+  const handleDeleteCognitive = () => {
+    if (!selectedPatientId) return
+    if (confirm('Tem certeza que deseja excluir esta conceituação cognitiva?')) {
+      deleteCognitiveMutation.mutate({ patientId: selectedPatientId })
+    }
+  }
+
+  const handleApproveCognitive = () => {
+    if (!selectedPatientId) return
+    if (
+      confirm(
+        'Ao aprovar esta conceituação cognitiva, ela será enviada para o plano terapêutico com sugestões de intervenções e técnicas. Deseja continuar?'
+      )
+    ) {
+      setIsApprovingCognitive(true)
+      approveCognitiveMutation.mutate({ patientId: selectedPatientId })
+    }
+  }
+
+  const updateSituation = (
+    situationKey: 'situation1' | 'situation2' | 'situation3',
+    field: keyof SituationData,
+    value: string
+  ) => {
+    setCognitiveForm((prev) => ({
+      ...prev,
+      [situationKey]: {
+        ...prev[situationKey],
+        [field]: value,
+      },
+    }))
+  }
 
   const uploadMutation = trpc.therapistReports.uploadSessionDocument.useMutation({
     onSuccess: () => {
@@ -320,22 +483,631 @@ export default function TherapistReportsView(): React.ReactElement {
 
             {/* Cognitive Conceptualization Section */}
             {activeSection === 'cognitive' && (
-              <div className='rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900'>
-                <div className='flex flex-col items-center justify-center py-8 text-center'>
-                  <div className='mb-4 rounded-2xl bg-rose-100 p-4 dark:bg-rose-900/30'>
-                    <Brain className='h-12 w-12 text-rose-500' />
-                  </div>
-                  <h3 className='mb-2 font-semibold text-lg text-slate-800 dark:text-slate-200'>
-                    Conceituação Cognitiva
+              <div className='space-y-4'>
+                {/* Header with actions */}
+                <div className='flex items-center justify-between'>
+                  <h3 className='font-semibold text-lg text-slate-800 dark:text-slate-200'>
+                    Diagrama de Conceituação Cognitiva
                   </h3>
-                  <p className='mb-4 max-w-sm text-slate-500 text-sm'>
-                    Em breve você poderá criar e gerenciar conceituações cognitivas para seus
-                    pacientes.
-                  </p>
-                  <span className='rounded-full bg-rose-100 px-3 py-1 font-medium text-rose-600 text-xs dark:bg-rose-900/30 dark:text-rose-400'>
-                    Em desenvolvimento
-                  </span>
+                  <div className='flex gap-2'>
+                    {isEditingCognitive ? (
+                      <>
+                        <button
+                          className='flex items-center gap-1 rounded-lg bg-slate-100 px-3 py-2 font-medium text-slate-600 text-sm transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                          onClick={() => {
+                            setIsEditingCognitive(false)
+                            // Reset form to original data
+                            if (cognitiveData) {
+                              setCognitiveForm({
+                                name: cognitiveData.name ?? '',
+                                date: cognitiveData.date
+                                  ? new Date(cognitiveData.date).toISOString().split('T')[0]
+                                  : '',
+                                childhoodData: cognitiveData.childhoodData ?? '',
+                                coreBelief: cognitiveData.coreBelief ?? '',
+                                conditionalAssumptions: cognitiveData.conditionalAssumptions ?? '',
+                                compensatoryStrategies: cognitiveData.compensatoryStrategies ?? '',
+                                situation1: cognitiveData.situations?.situation1 ?? {
+                                  ...emptySituation,
+                                },
+                                situation2: cognitiveData.situations?.situation2 ?? {
+                                  ...emptySituation,
+                                },
+                                situation3: cognitiveData.situations?.situation3 ?? {
+                                  ...emptySituation,
+                                },
+                                notes: cognitiveData.notes ?? '',
+                              })
+                            } else {
+                              setCognitiveForm(initialFormData)
+                            }
+                          }}
+                          type='button'
+                        >
+                          <X className='h-4 w-4' />
+                          Cancelar
+                        </button>
+                        <button
+                          className='flex items-center gap-1 rounded-lg bg-rose-500 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-rose-600 disabled:opacity-50'
+                          disabled={isSavingCognitive}
+                          onClick={handleSaveCognitive}
+                          type='button'
+                        >
+                          <Save className='h-4 w-4' />
+                          {isSavingCognitive ? 'Salvando...' : 'Salvar'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        {cognitiveData && (
+                          <button
+                            className='flex items-center gap-1 rounded-lg bg-red-100 px-3 py-2 font-medium text-red-600 text-sm transition-colors hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50'
+                            onClick={handleDeleteCognitive}
+                            type='button'
+                          >
+                            <Trash2 className='h-4 w-4' />
+                          </button>
+                        )}
+                        {cognitiveData && !cognitiveData.isApproved && (
+                          <button
+                            className='flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-emerald-600 disabled:opacity-50'
+                            disabled={isApprovingCognitive}
+                            onClick={handleApproveCognitive}
+                            title='Aprovar e enviar para o plano terapêutico'
+                            type='button'
+                          >
+                            <Send className='h-4 w-4' />
+                            {isApprovingCognitive ? 'Aprovando...' : 'Aprovar'}
+                          </button>
+                        )}
+                        {cognitiveData?.isApproved && (
+                          <span className='flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-2 font-medium text-emerald-700 text-sm dark:bg-emerald-900/30 dark:text-emerald-400'>
+                            <CheckCircle2 className='h-4 w-4' />
+                            Aprovado
+                          </span>
+                        )}
+                        <button
+                          className='flex items-center gap-1 rounded-lg bg-rose-500 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-rose-600'
+                          onClick={() => setIsEditingCognitive(true)}
+                          type='button'
+                        >
+                          <Edit3 className='h-4 w-4' />
+                          {cognitiveData ? 'Editar' : 'Criar'}
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </div>
+
+                {isLoadingCognitive ? (
+                  <div className='flex h-40 items-center justify-center'>
+                    <div className='h-8 w-8 animate-spin rounded-full border-4 border-rose-200 border-t-rose-600' />
+                  </div>
+                ) : (
+                  /* Cognitive Conceptualization Diagram */
+                  <div className='overflow-x-auto rounded-2xl bg-white p-4 shadow-sm dark:bg-slate-900 sm:p-6'>
+                    {/* Title and Header */}
+                    <div className='mb-6 text-center'>
+                      <h2 className='mb-4 font-bold text-lg text-slate-800 dark:text-slate-200 sm:text-xl'>
+                        DIAGRAMA DE CONCEITUAÇÃO COGNITIVA
+                      </h2>
+                      <div className='flex flex-col gap-4 sm:flex-row sm:justify-between'>
+                        <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2'>
+                          <span className='text-slate-600 text-sm dark:text-slate-400'>NOME:</span>
+                          {isEditingCognitive ? (
+                            <input
+                              className='rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800'
+                              onChange={(e) =>
+                                setCognitiveForm((prev) => ({ ...prev, name: e.target.value }))
+                              }
+                              placeholder={selectedPatient?.name ?? 'Nome do paciente'}
+                              type='text'
+                              value={cognitiveForm.name}
+                            />
+                          ) : (
+                            <span className='font-medium text-slate-800 dark:text-slate-200'>
+                              {cognitiveForm.name || selectedPatient?.name || '-'}
+                            </span>
+                          )}
+                        </div>
+                        <div className='flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2'>
+                          <span className='text-slate-600 text-sm dark:text-slate-400'>DATA:</span>
+                          {isEditingCognitive ? (
+                            <input
+                              className='rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800'
+                              onChange={(e) =>
+                                setCognitiveForm((prev) => ({ ...prev, date: e.target.value }))
+                              }
+                              type='date'
+                              value={cognitiveForm.date}
+                            />
+                          ) : (
+                            <span className='font-medium text-slate-800 dark:text-slate-200'>
+                              {cognitiveForm.date
+                                ? new Date(cognitiveForm.date).toLocaleDateString('pt-BR')
+                                : '-'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Main Diagram Structure */}
+                    <div className='space-y-4'>
+                      {/* DADOS RELEVANTES DE INFÂNCIA */}
+                      <div className='rounded-lg border-2 border-slate-300 p-3 dark:border-slate-600'>
+                        <h4 className='mb-2 text-center font-semibold text-sm text-slate-700 dark:text-slate-300'>
+                          DADOS RELEVANTES DE INFÂNCIA
+                        </h4>
+                        {isEditingCognitive ? (
+                          <textarea
+                            className='min-h-[60px] w-full resize-y rounded border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
+                            onChange={(e) =>
+                              setCognitiveForm((prev) => ({
+                                ...prev,
+                                childhoodData: e.target.value,
+                              }))
+                            }
+                            placeholder='Descreva dados relevantes da infância do paciente...'
+                            value={cognitiveForm.childhoodData}
+                          />
+                        ) : (
+                          <p className='min-h-[40px] text-center text-slate-600 text-sm dark:text-slate-400'>
+                            {cognitiveForm.childhoodData || 'Não preenchido'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Arrow down */}
+                      <div className='flex justify-center'>
+                        <div className='h-6 w-0.5 bg-slate-400 dark:bg-slate-500' />
+                      </div>
+
+                      {/* CRENÇA CENTRAL */}
+                      <div className='rounded-lg border-2 border-slate-300 p-3 dark:border-slate-600'>
+                        <h4 className='mb-2 text-center font-semibold text-sm text-slate-700 dark:text-slate-300'>
+                          CRENÇA CENTRAL
+                        </h4>
+                        {isEditingCognitive ? (
+                          <textarea
+                            className='min-h-[60px] w-full resize-y rounded border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
+                            onChange={(e) =>
+                              setCognitiveForm((prev) => ({ ...prev, coreBelief: e.target.value }))
+                            }
+                            placeholder='Descreva a crença central do paciente...'
+                            value={cognitiveForm.coreBelief}
+                          />
+                        ) : (
+                          <p className='min-h-[40px] text-center text-slate-600 text-sm dark:text-slate-400'>
+                            {cognitiveForm.coreBelief || 'Não preenchido'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Arrow down */}
+                      <div className='flex justify-center'>
+                        <div className='h-6 w-0.5 bg-slate-400 dark:bg-slate-500' />
+                      </div>
+
+                      {/* SUPOSIÇÕES CONDICIONAIS - REGRAS */}
+                      <div className='rounded-lg border-2 border-slate-300 p-3 dark:border-slate-600'>
+                        <h4 className='mb-2 text-center font-semibold text-sm text-slate-700 dark:text-slate-300'>
+                          SUPOSIÇÕES CONDICIONAIS - REGRAS
+                        </h4>
+                        {isEditingCognitive ? (
+                          <textarea
+                            className='min-h-[60px] w-full resize-y rounded border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
+                            onChange={(e) =>
+                              setCognitiveForm((prev) => ({
+                                ...prev,
+                                conditionalAssumptions: e.target.value,
+                              }))
+                            }
+                            placeholder='Descreva as suposições condicionais e regras...'
+                            value={cognitiveForm.conditionalAssumptions}
+                          />
+                        ) : (
+                          <p className='min-h-[40px] text-center text-slate-600 text-sm dark:text-slate-400'>
+                            {cognitiveForm.conditionalAssumptions || 'Não preenchido'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Arrow down */}
+                      <div className='flex justify-center'>
+                        <div className='h-6 w-0.5 bg-slate-400 dark:bg-slate-500' />
+                      </div>
+
+                      {/* ESTRATÉGIA(S) COMPENSATÓRIA(S) */}
+                      <div className='rounded-lg border-2 border-slate-300 p-3 dark:border-slate-600'>
+                        <h4 className='mb-2 text-center font-semibold text-sm text-slate-700 dark:text-slate-300'>
+                          ESTRATÉGIA(S) COMPENSATÓRIA(S)
+                        </h4>
+                        {isEditingCognitive ? (
+                          <textarea
+                            className='min-h-[60px] w-full resize-y rounded border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
+                            onChange={(e) =>
+                              setCognitiveForm((prev) => ({
+                                ...prev,
+                                compensatoryStrategies: e.target.value,
+                              }))
+                            }
+                            placeholder='Descreva as estratégias compensatórias...'
+                            value={cognitiveForm.compensatoryStrategies}
+                          />
+                        ) : (
+                          <p className='min-h-[40px] text-center text-slate-600 text-sm dark:text-slate-400'>
+                            {cognitiveForm.compensatoryStrategies || 'Não preenchido'}
+                          </p>
+                        )}
+                      </div>
+
+                      {/* Arrow down to situations */}
+                      <div className='flex justify-center'>
+                        <div className='h-6 w-0.5 bg-slate-400 dark:bg-slate-500' />
+                      </div>
+
+                      {/* Three Situations Grid */}
+                      <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
+                        {/* Situation 1 */}
+                        <div className='space-y-2'>
+                          <div className='rounded-lg border-2 border-rose-200 bg-rose-50 p-2 dark:border-rose-800 dark:bg-rose-900/20'>
+                            <h5 className='mb-1 text-center font-semibold text-xs text-rose-700 dark:text-rose-400'>
+                              Situação 1
+                            </h5>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-rose-200 p-1 text-xs dark:border-rose-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation1', 'situation', e.target.value)
+                                }
+                                placeholder='Descreva a situação...'
+                                value={cognitiveForm.situation1.situation}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation1.situation || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Pensamento automático
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation1', 'automaticThought', e.target.value)
+                                }
+                                placeholder='Pensamento...'
+                                value={cognitiveForm.situation1.automaticThought}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation1.automaticThought || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Significado do PA
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation1', 'meaningOfAT', e.target.value)
+                                }
+                                placeholder='Significado...'
+                                value={cognitiveForm.situation1.meaningOfAT}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation1.meaningOfAT || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Emoção
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation1', 'emotion', e.target.value)
+                                }
+                                placeholder='Emoção...'
+                                value={cognitiveForm.situation1.emotion}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation1.emotion || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Comportamento
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation1', 'behavior', e.target.value)
+                                }
+                                placeholder='Comportamento...'
+                                value={cognitiveForm.situation1.behavior}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation1.behavior || '-'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Situation 2 */}
+                        <div className='space-y-2'>
+                          <div className='rounded-lg border-2 border-amber-200 bg-amber-50 p-2 dark:border-amber-800 dark:bg-amber-900/20'>
+                            <h5 className='mb-1 text-center font-semibold text-xs text-amber-700 dark:text-amber-400'>
+                              Situação 2
+                            </h5>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-amber-200 p-1 text-xs dark:border-amber-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation2', 'situation', e.target.value)
+                                }
+                                placeholder='Descreva a situação...'
+                                value={cognitiveForm.situation2.situation}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation2.situation || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Pensamento automático
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation2', 'automaticThought', e.target.value)
+                                }
+                                placeholder='Pensamento...'
+                                value={cognitiveForm.situation2.automaticThought}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation2.automaticThought || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Significado do PA
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation2', 'meaningOfAT', e.target.value)
+                                }
+                                placeholder='Significado...'
+                                value={cognitiveForm.situation2.meaningOfAT}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation2.meaningOfAT || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Emoção
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation2', 'emotion', e.target.value)
+                                }
+                                placeholder='Emoção...'
+                                value={cognitiveForm.situation2.emotion}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation2.emotion || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Comportamento
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation2', 'behavior', e.target.value)
+                                }
+                                placeholder='Comportamento...'
+                                value={cognitiveForm.situation2.behavior}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation2.behavior || '-'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Situation 3 */}
+                        <div className='space-y-2'>
+                          <div className='rounded-lg border-2 border-emerald-200 bg-emerald-50 p-2 dark:border-emerald-800 dark:bg-emerald-900/20'>
+                            <h5 className='mb-1 text-center font-semibold text-xs text-emerald-700 dark:text-emerald-400'>
+                              Situação 3
+                            </h5>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-emerald-200 p-1 text-xs dark:border-emerald-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation3', 'situation', e.target.value)
+                                }
+                                placeholder='Descreva a situação...'
+                                value={cognitiveForm.situation3.situation}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation3.situation || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Pensamento automático
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation3', 'automaticThought', e.target.value)
+                                }
+                                placeholder='Pensamento...'
+                                value={cognitiveForm.situation3.automaticThought}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation3.automaticThought || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Significado do PA
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation3', 'meaningOfAT', e.target.value)
+                                }
+                                placeholder='Significado...'
+                                value={cognitiveForm.situation3.meaningOfAT}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation3.meaningOfAT || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Emoção
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation3', 'emotion', e.target.value)
+                                }
+                                placeholder='Emoção...'
+                                value={cognitiveForm.situation3.emotion}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation3.emotion || '-'}
+                              </p>
+                            )}
+                          </div>
+                          <div className='flex justify-center'>
+                            <div className='h-4 w-0.5 bg-slate-300 dark:bg-slate-600' />
+                          </div>
+                          <div className='rounded-lg border border-slate-200 p-2 dark:border-slate-700'>
+                            <h6 className='mb-1 text-center font-medium text-[10px] text-slate-500 dark:text-slate-400'>
+                              Comportamento
+                            </h6>
+                            {isEditingCognitive ? (
+                              <input
+                                className='w-full rounded border border-slate-200 p-1 text-xs dark:border-slate-700 dark:bg-slate-800'
+                                onChange={(e) =>
+                                  updateSituation('situation3', 'behavior', e.target.value)
+                                }
+                                placeholder='Comportamento...'
+                                value={cognitiveForm.situation3.behavior}
+                              />
+                            ) : (
+                              <p className='min-h-[24px] text-center text-xs text-slate-600 dark:text-slate-400'>
+                                {cognitiveForm.situation3.behavior || '-'}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Notes section */}
+                      {(isEditingCognitive || cognitiveForm.notes) && (
+                        <div className='mt-4 rounded-lg border border-slate-200 p-3 dark:border-slate-700'>
+                          <h4 className='mb-2 font-medium text-slate-600 text-sm dark:text-slate-400'>
+                            Observações
+                          </h4>
+                          {isEditingCognitive ? (
+                            <textarea
+                              className='min-h-[60px] w-full resize-y rounded border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
+                              onChange={(e) =>
+                                setCognitiveForm((prev) => ({ ...prev, notes: e.target.value }))
+                              }
+                              placeholder='Adicione observações...'
+                              value={cognitiveForm.notes}
+                            />
+                          ) : (
+                            <p className='text-slate-600 text-sm dark:text-slate-400'>
+                              {cognitiveForm.notes}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

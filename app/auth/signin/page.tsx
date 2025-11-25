@@ -1,14 +1,19 @@
 'use client'
 
+import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useId, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { Suspense, useId, useState } from 'react'
 import { getHomeRouteForRole, type UserRole } from '@/lib/auth/roles'
 
-export default function SignInPage() {
+function SignInForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const therapistId = searchParams.get('therapistId')
+  const inviteToken = searchParams.get('invite')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -54,6 +59,34 @@ export default function SignInPage() {
         redirectPath = getHomeRouteForRole(role)
       }
 
+      // Se therapistId está presente, criar o vínculo
+      if (therapistId) {
+        try {
+          await fetch('/api/link-therapist', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ therapistId }),
+          })
+        } catch (linkError) {
+          console.error('Failed to link therapist:', linkError)
+          // Não falhar o login se o vínculo falhar
+        }
+      }
+
+      // Se invite token está presente, aceitar o convite
+      if (inviteToken) {
+        try {
+          await fetch('/api/accept-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: inviteToken }),
+          })
+        } catch (linkError) {
+          console.error('Failed to accept invite:', linkError)
+          // Não falhar o login se aceitar o convite falhar
+        }
+      }
+
       router.push(redirectPath)
       router.refresh()
     } catch (err) {
@@ -64,107 +97,158 @@ export default function SignInPage() {
   }
 
   return (
-    <div className='flex min-h-screen items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4'>
-      <main className='w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl'>
-        <div className='mb-8 text-center'>
-          <h1 className='font-bold text-3xl text-gray-900'>App PSI</h1>
-          <p className='mt-2 text-gray-600'>Entre para continuar sua jornada</p>
-        </div>
+    <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
+      {/* Subtle gradient orbs */}
+      <div className='pointer-events-none absolute inset-0'>
+        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
+        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
+        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+      </div>
 
-        <form
-          aria-describedby={error ? errorId : undefined}
-          className='space-y-6'
-          onSubmit={handleSubmit}
-        >
-          {/* Live region for error announcements */}
-          <div aria-atomic='true' aria-live='assertive' className='sr-only'>
-            {error && `Erro: ${error}`}
-          </div>
-
-          {error && (
-            <div
-              className='rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-red-700'
-              id={errorId}
-              role='alert'
-            >
-              <span className='sr-only'>Erro: </span>
-              {error}
+      <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>
+        <div className='w-full max-w-md'>
+          {/* Login Form Card */}
+          <main className='rounded-3xl border border-slate-800/50 bg-slate-900/50 p-8 shadow-xl backdrop-blur-sm'>
+            {/* Title */}
+            <div className='mb-8 text-center'>
+              <h1 className='font-bold text-3xl text-white'>Nepsis</h1>
+              <p className='mt-2 text-violet-400'>
+                {therapistId || inviteToken
+                  ? 'Entre para vincular-se ao seu terapeuta'
+                  : 'Entre para continuar sua jornada'}
+              </p>
+              {(therapistId || inviteToken) && (
+                <div className='mt-4 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-400 text-sm'>
+                  ✓ Você será vinculado ao seu terapeuta após o login
+                </div>
+              )}
             </div>
-          )}
 
-          <div>
-            <label className='mb-2 block font-medium text-gray-700 text-sm' htmlFor={emailId}>
-              Email
-            </label>
-            <input
-              autoComplete='email'
-              className='w-full rounded-lg border border-gray-300 px-4 py-3 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
-              id={emailId}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder='seu@email.com'
-              required
-              type='email'
-              value={email}
-            />
-          </div>
-
-          <div>
-            <label className='mb-2 block font-medium text-gray-700 text-sm' htmlFor={passwordId}>
-              Senha
-            </label>
-            <input
-              autoComplete='current-password'
-              className='w-full rounded-lg border border-gray-300 px-4 py-3 transition-shadow focus:border-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500'
-              id={passwordId}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder='••••••••'
-              required
-              type='password'
-              value={password}
-            />
-          </div>
-
-          <button
-            aria-busy={loading}
-            className='w-full rounded-lg bg-indigo-600 py-3 font-semibold text-white transition-colors hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2'
-            disabled={loading}
-            type='submit'
-          >
-            {loading ? (
-              <>
-                <span className='sr-only'>Carregando...</span>
-                <span aria-hidden='true'>Entrando...</span>
-              </>
-            ) : (
-              'Entrar'
-            )}
-          </button>
-        </form>
-
-        <div className='mt-6 text-center'>
-          <p className='text-gray-600 text-sm'>
-            Não tem uma conta?{' '}
-            <Link
-              className='font-medium text-indigo-600 underline-offset-2 hover:text-indigo-700 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 rounded'
-              href='/auth/signup'
+            <form
+              aria-describedby={error ? errorId : undefined}
+              className='space-y-5'
+              onSubmit={handleSubmit}
             >
-              Cadastre-se
-            </Link>
-          </p>
-        </div>
+              {/* Live region for error announcements */}
+              <div aria-atomic='true' aria-live='assertive' className='sr-only'>
+                {error && `Erro: ${error}`}
+              </div>
 
-        <div className='mt-8 border-gray-200 border-t pt-6'>
-          <p className='text-center text-gray-500 text-xs'>
-            <strong>Credenciais de teste:</strong>
-            <br />
-            Admin: psijmrodrigues@gmail.com | Senha: Mig123@el!
-            <br />
-            Terapeuta: miguelito123@gmail.com | Senha: Mig123@el!
-            <br />
-            Paciente: miguel310rodrigues@gmail.com | Senha: Mig123@el!
-          </p>
+              {error && (
+                <div
+                  className='rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-400'
+                  id={errorId}
+                  role='alert'
+                >
+                  <span className='sr-only'>Erro: </span>
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className='mb-2 block font-medium text-slate-300 text-sm' htmlFor={emailId}>
+                  Email
+                </label>
+                <input
+                  autoComplete='email'
+                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                  id={emailId}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder='seu@email.com'
+                  required
+                  type='email'
+                  value={email}
+                />
+              </div>
+
+              <div>
+                <label
+                  className='mb-2 block font-medium text-slate-300 text-sm'
+                  htmlFor={passwordId}
+                >
+                  Senha
+                </label>
+                <div className='relative'>
+                  <input
+                    autoComplete='current-password'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    id={passwordId}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder='••••••••'
+                    required
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                  />
+                  <button
+                    aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    onClick={() => setShowPassword(!showPassword)}
+                    type='button'
+                  >
+                    {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+                  </button>
+                </div>
+              </div>
+
+              <button
+                aria-busy={loading}
+                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                disabled={loading}
+                type='submit'
+              >
+                {loading ? (
+                  <>
+                    <span className='sr-only'>Carregando...</span>
+                    <span aria-hidden='true'>Entrando...</span>
+                  </>
+                ) : (
+                  'Entrar'
+                )}
+              </button>
+            </form>
+
+            {/* Sign Up Link */}
+            <div className='mt-6 text-center'>
+              <p className='text-slate-400 text-sm'>
+                Não tem uma conta?{' '}
+                <Link
+                  className='rounded font-semibold text-violet-400 underline-offset-2 hover:text-violet-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                  href='/auth/signup'
+                >
+                  Cadastre-se
+                </Link>
+              </p>
+            </div>
+
+            {/* Test Credentials */}
+            <div className='mt-8 border-slate-700/50 border-t pt-6'>
+              <p className='text-center text-slate-500 text-xs'>
+                <strong className='text-slate-400'>Credenciais de teste:</strong>
+                <br />
+                Admin: psijmrodrigues@gmail.com | Senha: Mig123@el!
+                <br />
+                Terapeuta: miguelito123@gmail.com | Senha: Mig123@el!
+                <br />
+                Paciente: miguel310rodrigues@gmail.com | Senha: Mig123@el!
+              </p>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
     </div>
+  )
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='min-h-screen bg-slate-950 flex items-center justify-center'>
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500' />
+        </div>
+      }
+    >
+      <SignInForm />
+    </Suspense>
   )
 }
