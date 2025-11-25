@@ -12,9 +12,53 @@ import {
   Wind,
 } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { XP_REWARDS } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
+
+// Breathing timing configuration (in milliseconds)
+const BREATH_CONFIG = {
+  inhale: 4000, // 4 seconds inhale
+  holdIn: 4000, // 4 seconds hold after inhale
+  exhale: 6000, // 6 seconds exhale (longer for relaxation)
+  holdOut: 2000, // 2 seconds hold after exhale
+}
+
+const TOTAL_CYCLE =
+  BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale + BREATH_CONFIG.holdOut
+
+// Easing function for natural breathing curve (ease-in-out with custom bezier feel)
+const easeBreathing = (t: number): number => {
+  // Custom easing that mimics natural lung expansion
+  // Slow start, faster middle, slow end - like real breathing
+  return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
+}
+
+// Calculate breath progress (0 to 1 for expansion, 1 to 0 for contraction)
+const getBreathValue = (elapsed: number): number => {
+  const cyclePosition = elapsed % TOTAL_CYCLE
+
+  if (cyclePosition < BREATH_CONFIG.inhale) {
+    // Inhaling: 0 -> 1
+    const progress = cyclePosition / BREATH_CONFIG.inhale
+    return easeBreathing(progress)
+  }
+
+  if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn) {
+    // Holding after inhale: stay at 1
+    return 1
+  }
+
+  if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale) {
+    // Exhaling: 1 -> 0
+    const exhaleStart = BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn
+    const progress = (cyclePosition - exhaleStart) / BREATH_CONFIG.exhale
+    return 1 - easeBreathing(progress)
+  }
+
+  // Holding after exhale: stay at 0
+  return 0
+}
 
 type MeditationType = {
   id: string
@@ -76,6 +120,10 @@ export const MeditationView: React.FC = () => {
   const [duration, setDuration] = useState(60)
   const [phase, setPhase] = useState<'Inspirar' | 'Segurar' | 'Expirar'>('Inspirar')
   const [completed, setCompleted] = useState(false)
+  const [breathProgress, setBreathProgress] = useState(0) // 0 to 1 continuous value
+
+  const animationRef = useRef<number | null>(null)
+  const startTimeRef = useRef<number>(0)
 
   // Timer Logic
   useEffect(() => {
@@ -93,34 +141,48 @@ export const MeditationView: React.FC = () => {
     return () => clearInterval(interval)
   }, [isActive, timeLeft, completeMeditation, duration])
 
-  // Breathing Phase Logic
-  useEffect(() => {
-    if (!isActive) {
-      return
+  // Smooth breathing animation using requestAnimationFrame
+  const animateBreathing = useCallback((timestamp: number) => {
+    if (!startTimeRef.current) {
+      startTimeRef.current = timestamp
     }
 
-    const cycleLength = 12_000 // 12 seconds total cycle
-    setPhase('Inspirar')
-    const startTimestamp = Date.now()
+    const elapsed = timestamp - startTimeRef.current
+    const progress = getBreathValue(elapsed)
+    setBreathProgress(progress)
 
-    const breathInterval = setInterval(() => {
-      const elapsed = (Date.now() - startTimestamp) % cycleLength
-      // Inspirar: 5s (Larger expansion)
-      if (elapsed < 5000) {
-        setPhase('Inspirar')
-      }
-      // Segurar: 3s (Hold)
-      else if (elapsed < 8000) {
-        setPhase('Segurar')
-      }
-      // Expirar: 4s (Release - slightly shorter than inhale)
-      else {
-        setPhase('Expirar')
-      }
-    }, 100)
+    // Update phase text based on cycle position
+    const cyclePosition = elapsed % TOTAL_CYCLE
+    if (cyclePosition < BREATH_CONFIG.inhale) {
+      setPhase('Inspirar')
+    } else if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn) {
+      setPhase('Segurar')
+    } else if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale) {
+      setPhase('Expirar')
+    } else {
+      setPhase('Segurar')
+    }
 
-    return () => clearInterval(breathInterval)
-  }, [isActive])
+    animationRef.current = requestAnimationFrame(animateBreathing)
+  }, [])
+
+  useEffect(() => {
+    if (isActive) {
+      startTimeRef.current = 0
+      animationRef.current = requestAnimationFrame(animateBreathing)
+    } else {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+      setBreathProgress(0)
+    }
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current)
+      }
+    }
+  }, [isActive, animateBreathing])
 
   const toggleTimer = () => {
     setIsActive(!isActive)
@@ -228,59 +290,42 @@ export const MeditationView: React.FC = () => {
 
   // --- Render Active Meditation Screen ---
 
-  // Dynamic styling helpers
-  const getCircleScale = () => {
-    if (!isActive) {
-      return 'scale-90 opacity-50'
-    }
-    switch (phase) {
-      case 'Inspirar':
-        return 'scale-[1.75]'
-      case 'Segurar':
-        return 'scale-[1.75]'
-      case 'Expirar':
-        return 'scale-90'
-    }
+  // Dynamic styling helpers using continuous breathProgress
+  // Scale from 0.9 (exhaled) to 1.75 (inhaled) based on breathProgress
+  const getBreathScale = (delay = 0): number => {
+    const delayedProgress = Math.max(0, Math.min(1, breathProgress - delay))
+    const minScale = 0.9
+    const maxScale = 1.75
+    return minScale + delayedProgress * (maxScale - minScale)
+  }
+
+  // Get opacity based on breath progress
+  const getBreathOpacity = (base: number, delay = 0): number => {
+    const delayedProgress = Math.max(0, Math.min(1, breathProgress - delay))
+    return base + delayedProgress * (1 - base) * 0.5
   }
 
   const getCircleColor = () => {
     if (!isActive) {
       return 'bg-slate-200 dark:bg-slate-700'
     }
-    switch (phase) {
-      case 'Inspirar':
-        return `bg-gradient-to-br ${selectedType.colorFrom} ${selectedType.colorTo} shadow-lg opacity-90`
-      case 'Segurar':
-        return `bg-gradient-to-br ${selectedType.colorFrom} ${selectedType.colorTo} shadow-xl saturate-150`
-      case 'Expirar':
-        return `bg-gradient-to-br ${selectedType.colorFrom} to-slate-300 dark:to-slate-700 opacity-80`
-    }
+    // Smooth color transition based on breathProgress
+    const saturation = 100 + breathProgress * 50
+    return (
+      `bg-gradient-to-br ${selectedType.colorFrom} ${selectedType.colorTo} shadow-lg` +
+      ` saturate-[${saturation}%]`
+    )
   }
 
-  const getDurationClass = () => {
-    if (!isActive) {
-      return 'duration-1000'
-    }
-    if (phase === 'Inspirar') {
-      return 'duration-[5000ms] ease-out'
-    }
-    if (phase === 'Segurar') {
-      return 'duration-[3000ms] linear'
-    }
-    return 'duration-[4000ms] ease-in-out'
-  }
+  // Check if currently in hold phase
+  const isHoldPhase = phase === 'Segurar'
 
   return (
     <div className='relative flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
-      {/* Background Ambiance */}
+      {/* Background Ambiance - smooth opacity transition */}
       <div
-        className={`absolute inset-0 z-0 transition-colors duration-[4000ms] ease-in-out ${
-          phase === 'Inspirar' && isActive
-            ? `${selectedType.bgActive}/80`
-            : 'bg-slate-50 dark:bg-slate-950'
-        }
-        ${phase === 'Segurar' && isActive ? selectedType.bgActive : ''}
-      `}
+        className={`absolute inset-0 z-0 transition-opacity duration-500 ease-out ${selectedType.bgActive}`}
+        style={{ opacity: isActive ? breathProgress * 0.3 : 0 }}
       />
 
       {/* Header & Back Button */}
@@ -316,138 +361,113 @@ export const MeditationView: React.FC = () => {
 
       {/* Breathing Animation Container */}
       <div className='relative z-10 flex flex-1 flex-col items-center justify-center pb-16 sm:pb-20'>
-        {/* Text Guide */}
+        {/* Text Guide with smooth fade */}
         <div
-          className={`absolute top-0 z-50 font-black text-2xl tracking-tight transition-all duration-500 sm:text-3xl ${
-            isActive
-              ? `${selectedType.textColor} translate-y-0 opacity-100`
-              : 'translate-y-4 text-slate-300 opacity-0 dark:text-slate-600'
-          }
-        `}
+          className={`absolute top-0 z-50 font-black text-2xl tracking-tight sm:text-3xl ${selectedType.textColor}`}
+          style={{
+            opacity: isActive ? 1 : 0,
+            transform: isActive ? 'translateY(0)' : 'translateY(16px)',
+            transition: 'opacity 500ms ease, transform 500ms ease',
+          }}
         >
           {phase}
         </div>
 
         <div className='relative flex h-56 w-56 items-center justify-center sm:h-72 sm:w-72'>
-          {/* Dynamic Visuals based on Type */}
-          {selectedType.id === 'relax' && (
-            <>
-              <div
-                className={`absolute inset-0 rounded-full border opacity-30 transition-all delay-300 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-200 dark:border-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-800 bg-${selectedType.colorFrom.split('-')[1]}-50 dark:bg-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-900/20`}
-              />
-              <div
-                className={`absolute inset-4 rounded-full border opacity-40 transition-all delay-150 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-300 dark:border-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-700 bg-${selectedType.colorFrom.split('-')[1]}-100 dark:bg-${
-                    selectedType.colorFrom.split('-')[1]
-                  }-800/20`}
-              />
-            </>
-          )}
-
-          {selectedType.id === 'focus' && (
-            <>
-              <div
-                className={`absolute inset-8 rounded-3xl border-2 opacity-30 transition-all delay-300 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${selectedType.colorFrom.split('-')[1]}-400 rotate-12`}
-              />
-              <div
-                className={`absolute inset-8 rounded-3xl border-2 opacity-40 transition-all delay-150 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${selectedType.colorFrom.split('-')[1]}-500 -rotate-12`}
-              />
-            </>
-          )}
-
-          {selectedType.id === 'anxiety' && (
-            <>
-              <div
-                className={`absolute inset-12 rounded-xl border-4 opacity-30 transition-all delay-300 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${selectedType.colorFrom.split('-')[1]}-300 rotate-45`}
-              />
-              <div
-                className={`absolute inset-12 rounded-xl border-4 opacity-40 transition-all delay-150 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}border-${selectedType.colorFrom.split('-')[1]}-400 rotate-45`}
-              />
-            </>
-          )}
-
-          {selectedType.id === 'sleep' && (
-            <>
-              <div
-                className={`absolute inset-0 rounded-full opacity-20 blur-xl transition-all delay-300 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}bg-${selectedType.colorFrom.split('-')[1]}-400`}
-              />
-              <div
-                className={`absolute inset-4 rounded-full opacity-30 blur-lg transition-all delay-150 ${
-                  isActive ? getDurationClass() : 'duration-1000'
-                }
-                  ${getCircleScale()}bg-${selectedType.colorFrom.split('-')[1]}-500`}
-              />
-            </>
-          )}
-
-          {/* Main Core Shape */}
+          {/* Outer breathing ring - slowest response for organic wave effect */}
           <div
-            className={`z-10 flex h-32 w-32 items-center justify-center shadow-2xl transition-all ${
-              isActive ? getDurationClass() : 'duration-1000'
-            }
-            ${getCircleScale()}
-            ${getCircleColor()}
-            ${selectedType.id === 'relax' ? 'rounded-full' : ''}
-            ${selectedType.id === 'focus' ? 'rotate-0 rounded-3xl' : ''}
-            ${selectedType.id === 'anxiety' ? 'rotate-45 rounded-2xl' : ''}
-            ${selectedType.id === 'sleep' ? 'rounded-full blur-[1px]' : ''}
-            ${
-              phase === 'Segurar' && isActive
-                ? `ring-4 ${selectedType.ringColor} animate-pulse ring-opacity-50`
-                : ''
-            }
+            className={`absolute inset-0 rounded-full border-2 ${
+              selectedType.colorFrom.includes('violet')
+                ? 'border-violet-200 bg-violet-50/30 dark:border-violet-800 dark:bg-violet-900/20'
+                : selectedType.colorFrom.includes('teal')
+                  ? 'border-teal-200 bg-teal-50/30 dark:border-teal-800 dark:bg-teal-900/20'
+                  : 'border-indigo-200 bg-indigo-50/30 dark:border-indigo-800 dark:bg-indigo-900/20'
+            }`}
+            style={{
+              transform: `scale(${isActive ? getBreathScale(-0.1) : 0.9})`,
+              opacity: isActive ? getBreathOpacity(0.2, -0.1) : 0.5,
+              transition: isActive ? 'none' : 'all 1000ms ease',
+            }}
+          />
+
+          {/* Middle breathing ring - medium response */}
+          <div
+            className={`absolute inset-4 rounded-full border ${
+              selectedType.colorFrom.includes('violet')
+                ? 'border-violet-300 bg-violet-100/40 dark:border-violet-700 dark:bg-violet-800/30'
+                : selectedType.colorFrom.includes('teal')
+                  ? 'border-teal-300 bg-teal-100/40 dark:border-teal-700 dark:bg-teal-800/30'
+                  : 'border-indigo-300 bg-indigo-100/40 dark:border-indigo-700 dark:bg-indigo-800/30'
+            }`}
+            style={{
+              transform: `scale(${isActive ? getBreathScale(-0.05) : 0.9})`,
+              opacity: isActive ? getBreathOpacity(0.3, -0.05) : 0.5,
+              transition: isActive ? 'none' : 'all 1000ms ease',
+            }}
+          />
+
+          {/* Inner glow ring - fastest response */}
+          <div
+            className={`absolute inset-8 rounded-full ${
+              selectedType.colorFrom.includes('violet')
+                ? 'bg-violet-200/50 dark:bg-violet-700/40'
+                : selectedType.colorFrom.includes('teal')
+                  ? 'bg-teal-200/50 dark:bg-teal-700/40'
+                  : 'bg-indigo-200/50 dark:bg-indigo-700/40'
+            }`}
+            style={{
+              transform: `scale(${isActive ? getBreathScale(0) : 0.9})`,
+              opacity: isActive ? getBreathOpacity(0.4, 0) : 0.5,
+              filter: `blur(${isActive ? 8 + breathProgress * 8 : 4}px)`,
+              transition: isActive ? 'none' : 'all 1000ms ease',
+            }}
+          />
+
+          {/* Main Core Shape - primary breathing element */}
+          <div
+            className={`z-10 flex h-32 w-32 items-center justify-center shadow-2xl ${getCircleColor()}
+              ${selectedType.id === 'relax' ? 'rounded-full' : ''}
+              ${selectedType.id === 'focus' ? 'rounded-3xl' : ''}
+              ${selectedType.id === 'sleep' ? 'rounded-full' : ''}
             `}
+            style={{
+              transform: `scale(${isActive ? getBreathScale(0) : 0.9})`,
+              boxShadow:
+                isActive && isHoldPhase
+                  ? `0 0 ${20 + breathProgress * 20}px ${selectedType.colorFrom.includes('violet') ? 'rgba(167, 139, 250, 0.5)' : selectedType.colorFrom.includes('teal') ? 'rgba(94, 234, 212, 0.5)' : 'rgba(129, 140, 248, 0.5)'}`
+                  : undefined,
+              filter: selectedType.id === 'sleep' ? 'blur(1px)' : undefined,
+              transition: isActive ? 'box-shadow 300ms ease' : 'all 1000ms ease',
+            }}
           >
+            {/* Timer display */}
             <span
-              className={`font-light text-2xl text-white tracking-widest transition-opacity duration-300 ${
-                isActive ? 'opacity-100' : 'opacity-0'
-              }
-                    ${selectedType.id === 'anxiety' ? '-rotate-45' : ''}
-                `}
+              className='font-light text-2xl text-white tracking-widest'
+              style={{
+                opacity: isActive ? 1 : 0,
+                transition: 'opacity 300ms ease',
+              }}
             >
               {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
             </span>
 
             {!isActive && (
-              <span
-                className={`absolute font-bold text-slate-400 text-sm uppercase tracking-wider dark:text-slate-500 ${
-                  selectedType.id === 'anxiety' ? '-rotate-45' : ''
-                }`}
-              >
+              <span className='absolute font-bold text-slate-400 text-sm uppercase tracking-wider dark:text-slate-500'>
                 Iniciar
               </span>
             )}
           </div>
+
+          {/* Subtle pulse indicator during hold phase */}
+          {isActive && isHoldPhase && (
+            <div
+              className={`absolute inset-0 rounded-full ${selectedType.ringColor} ring-4 ring-opacity-30`}
+              style={{
+                transform: `scale(${getBreathScale(0)})`,
+                animation: 'pulse 2s ease-in-out infinite',
+              }}
+            />
+          )}
         </div>
 
         {/* Controls */}
