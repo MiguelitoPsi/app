@@ -30,8 +30,8 @@ export const RewardsView: React.FC = () => {
 
   const categories: { id: RewardCategory; label: string; color: string; icon: string }[] = [
     { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: '🎮' },
-    { id: 'autocuidado', label: 'Autocuidado', color: 'from-pink-500 to-rose-400', icon: '🧖‍♀️' },
-    { id: 'descanso', label: 'Descanso', color: 'from-indigo-500 to-violet-400', icon: '😴' },
+    { id: 'autocuidado', label: 'Cuidado', color: 'from-pink-500 to-rose-400', icon: '🧖‍♀️' },
+    { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-violet-400', icon: '😴' },
     { id: 'social', label: 'Social', color: 'from-emerald-500 to-teal-400', icon: '👥' },
   ]
 
@@ -79,34 +79,47 @@ export const RewardsView: React.FC = () => {
   return (
     <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
       {/* Header Section with Balance */}
-      <div className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
+      <header className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
         <div className='mb-4 flex items-center justify-between sm:mb-6'>
           <div>
-            <h2 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
+            <h1 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
               Loja de Prêmios
-            </h2>
+            </h1>
             <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
               Recompense suas conquistas
             </p>
           </div>
           <button
-            className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-violet-100 hover:text-violet-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300'
+            aria-expanded={isAdding}
+            aria-label={
+              isAdding ? 'Fechar formulário de nova recompensa' : 'Adicionar nova recompensa'
+            }
+            className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-violet-100 hover:text-violet-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
             onClick={() => setIsAdding(!isAdding)}
             type='button'
           >
-            {isAdding ? <X size={18} /> : <Plus size={18} />}
+            {isAdding ? <X aria-hidden='true' size={18} /> : <Plus aria-hidden='true' size={18} />}
           </button>
         </div>
 
         {/* Premium Balance Card */}
-        <div className='relative overflow-hidden rounded-2xl bg-slate-900 p-4 text-white shadow-slate-200 shadow-xl sm:rounded-3xl sm:p-6 dark:bg-black dark:shadow-none'>
-          <div className='-mt-4 -mr-4 absolute top-0 right-0 h-24 w-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 opacity-50 blur-3xl sm:h-32 sm:w-32' />
-          <div className='-mb-4 -ml-4 absolute bottom-0 left-0 h-20 w-20 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 opacity-40 blur-2xl sm:h-24 sm:w-24' />
+        <section
+          aria-label='Seu saldo de pontos'
+          className='relative overflow-hidden rounded-2xl bg-slate-900 p-4 text-white shadow-slate-200 shadow-xl sm:rounded-3xl sm:p-6 dark:bg-black dark:shadow-none'
+        >
+          <div
+            aria-hidden='true'
+            className='-mt-4 -mr-4 absolute top-0 right-0 h-24 w-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 opacity-50 blur-3xl sm:h-32 sm:w-32'
+          />
+          <div
+            aria-hidden='true'
+            className='-mb-4 -ml-4 absolute bottom-0 left-0 h-20 w-20 rounded-full bg-gradient-to-tr from-cyan-500 to-blue-500 opacity-40 blur-2xl sm:h-24 sm:w-24'
+          />
 
           <div className='relative z-10 flex items-center justify-between'>
             <div>
               <div className='mb-1 flex items-center gap-2 opacity-80'>
-                <Sparkles className='text-yellow-300' size={12} />
+                <Sparkles aria-hidden='true' className='text-yellow-300' size={12} />
                 <span className='font-bold text-[10px] uppercase tracking-wider sm:text-xs'>
                   Saldo Disponível
                 </span>
@@ -118,18 +131,24 @@ export const RewardsView: React.FC = () => {
                 <span className='ml-1 font-bold text-base opacity-60 sm:text-lg'>Pontos</span>
               </div>
             </div>
-            <div className='flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-inner backdrop-blur-md sm:h-12 sm:w-12 sm:rounded-2xl'>
+            <div
+              aria-hidden='true'
+              className='flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/10 shadow-inner backdrop-blur-md sm:h-12 sm:w-12 sm:rounded-2xl'
+            >
               <Gem
                 className='text-cyan-300 drop-shadow-[0_0_8px_rgba(103,232,249,0.5)]'
                 size={20}
               />
             </div>
           </div>
-        </div>
-      </div>
+        </section>
+      </header>
 
       {/* Main Content Area */}
-      <div className='flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6'>
+      <main
+        className='flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6'
+        id='main-content'
+      >
         {/* Add Reward Form */}
         {isAdding && (
           <div className='slide-in-from-top-4 fade-in animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-slate-200/50 shadow-xl duration-300 sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'>
@@ -193,35 +212,46 @@ export const RewardsView: React.FC = () => {
         )}
 
         {/* Category Filter */}
-        <div className='-mx-4 no-scrollbar flex snap-x gap-2 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6'>
+        <div className='grid grid-cols-5 gap-2 sm:gap-3'>
           <button
-            className={`touch-target flex-shrink-0 snap-start whitespace-nowrap rounded-full border px-4 py-2 font-bold text-[11px] transition-all sm:px-5 sm:py-2.5 sm:text-xs ${
-              activeCategory === 'all'
-                ? 'scale-105 transform border-slate-800 bg-slate-800 text-white shadow-md dark:border-white dark:bg-white dark:text-slate-900'
-                : 'border-slate-200 bg-white text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
-            }
-                `}
+            className={`group relative aspect-square overflow-hidden rounded-xl p-2 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeCategory === 'all' ? 'ring-2 ring-slate-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
             onClick={() => setActiveCategory('all')}
             type='button'
           >
-            Todas
+            <div className='absolute inset-0 bg-gradient-to-br from-slate-400 to-slate-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
+              <Gift className='h-5 w-5 sm:h-7 sm:w-7' />
+              <span className='text-center font-semibold text-[8px] leading-tight sm:text-xs'>
+                Todas
+              </span>
+            </div>
           </button>
-          {categories.map((cat) => (
-            <button
-              className={`touch-target flex flex-shrink-0 snap-start items-center gap-2 whitespace-nowrap rounded-full border px-4 py-2 font-bold text-[11px] transition-all sm:px-5 sm:py-2.5 sm:text-xs ${
-                activeCategory === cat.id
-                  ? 'scale-105 transform border-slate-800 bg-slate-800 text-white shadow-md dark:border-white dark:bg-white dark:text-slate-900'
-                  : 'border-slate-200 bg-white text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400'
-              }
-                    `}
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              type='button'
-            >
-              <span>{cat.icon}</span>
-              {cat.label}
-            </button>
-          ))}
+          {categories.map((cat) => {
+            const ringColor =
+              cat.id === 'lazer'
+                ? 'ring-cyan-400'
+                : cat.id === 'autocuidado'
+                  ? 'ring-pink-400'
+                  : cat.id === 'descanso'
+                    ? 'ring-violet-400'
+                    : 'ring-emerald-400'
+            return (
+              <button
+                className={`group relative aspect-square overflow-hidden rounded-xl p-2 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeCategory === cat.id ? `ring-2 ${ringColor} ring-offset-2 dark:ring-offset-slate-900` : 'hover:scale-[1.02]'}`}
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                type='button'
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${cat.color}`} />
+                <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
+                  <span className='text-lg sm:text-2xl'>{cat.icon}</span>
+                  <span className='text-center font-semibold text-[8px] leading-tight sm:text-xs'>
+                    {cat.label}
+                  </span>
+                </div>
+              </button>
+            )
+          })}
         </div>
 
         {/* Rewards List */}
@@ -358,11 +388,12 @@ export const RewardsView: React.FC = () => {
                     )}
 
                     <button
-                      className='touch-target flex w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 transition-colors active:scale-95 hover:bg-red-50 hover:text-red-500 sm:w-10 sm:rounded-2xl dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-red-900/20'
+                      aria-label={`Excluir recompensa ${reward.title}`}
+                      className='touch-target flex w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-400 transition-colors active:scale-95 hover:bg-red-50 hover:text-red-500 sm:w-10 sm:rounded-2xl dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-red-900/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
                       onClick={() => deleteReward(reward.id)}
                       type='button'
                     >
-                      <Trash2 size={14} />
+                      <Trash2 aria-hidden='true' size={14} />
                     </button>
                   </div>
                 </div>
@@ -370,7 +401,7 @@ export const RewardsView: React.FC = () => {
             })
           )}
         </div>
-      </div>
+      </main>
     </div>
   )
 }

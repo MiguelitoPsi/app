@@ -1,9 +1,11 @@
-import Database from 'better-sqlite3'
-import { drizzle } from 'drizzle-orm/better-sqlite3'
+import { createClient } from '@libsql/client'
+import { drizzle } from 'drizzle-orm/libsql'
 import * as relations from './relations'
 import * as schema from './schema'
 
-const sqlite = new Database(process.env.DATABASE_URL || './sqlite.db')
-sqlite.pragma('journal_mode = WAL')
+const client = createClient({
+  url: process.env.TURSO_DATABASE_URL ?? '',
+  authToken: process.env.TURSO_AUTH_TOKEN,
+})
 
-export const db = drizzle(sqlite, { schema: { ...schema, ...relations } })
+export const db = drizzle(client, { schema: { ...schema, ...relations } })

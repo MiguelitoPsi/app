@@ -18,22 +18,33 @@ export const BottomNav: React.FC = () => {
         : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
     }
     transition-all duration-300 group
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 rounded-lg
   `
 
   const activeIndicator = (
-    <span className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-violet-600 shadow-[0_2px_8px_rgba(139,92,246,0.5)] duration-300 dark:bg-violet-400 dark:shadow-[0_2px_8px_rgba(167,139,250,0.3)]' />
+    <span
+      aria-hidden='true'
+      className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-violet-600 shadow-[0_2px_8px_rgba(139,92,246,0.5)] duration-300 dark:bg-violet-400 dark:shadow-[0_2px_8px_rgba(167,139,250,0.3)]'
+    />
   )
 
   return (
-    <div className='fixed right-0 bottom-0 left-0 z-50 mx-auto h-[calc(5.5rem+env(safe-area-inset-bottom,0px))] max-w-md rounded-t-[2rem] border-slate-100 border-t bg-white/95 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-300 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95'>
+    <nav
+      aria-label='Navegação principal'
+      className='fixed right-0 bottom-0 left-0 z-50 mx-auto h-[calc(5.5rem+env(safe-area-inset-bottom,0px))] max-w-md rounded-t-[2rem] border-slate-100 border-t bg-white/95 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-300 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95'
+    >
       <div className='relative flex h-full items-center justify-between'>
+        {/* Home */}
         <button
+          aria-current={isActive('/home') ? 'page' : undefined}
+          aria-label='Ir para página inicial'
           className={navItemClass('/home')}
           onClick={() => router.push('/home')}
           type='button'
         >
           {isActive('/home') && activeIndicator}
           <div
+            aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
               isActive('/home') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
             }`}
@@ -53,13 +64,17 @@ export const BottomNav: React.FC = () => {
           </span>
         </button>
 
+        {/* Routine */}
         <button
+          aria-current={isActive('/routine') ? 'page' : undefined}
+          aria-label='Ir para rotina de tarefas'
           className={navItemClass('/routine')}
           onClick={() => router.push('/routine')}
           type='button'
         >
           {isActive('/routine') && activeIndicator}
           <div
+            aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
               isActive('/routine') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
             }`}
@@ -81,24 +96,33 @@ export const BottomNav: React.FC = () => {
 
         {/* Central Floating Action Button */}
         <div className='-top-6 group relative sm:-top-8'>
-          <div className='absolute inset-0 rounded-full bg-violet-600 opacity-40 blur-lg transition-opacity duration-300 group-hover:opacity-60' />
+          <div
+            aria-hidden='true'
+            className='absolute inset-0 rounded-full bg-violet-600 opacity-40 blur-lg transition-opacity duration-300 group-hover:opacity-60'
+          />
           <button
-            className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-violet-300/50 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none'
+            aria-label='Abrir diário de pensamentos'
+            className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-violet-300/50 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4'
             onClick={() => router.push('/journal')}
             type='button'
           >
-            <Plus className='sm:hidden' size={28} strokeWidth={2.5} />
-            <Plus className='hidden sm:block' size={32} strokeWidth={2.5} />
+            <Plus aria-hidden='true' className='sm:hidden' size={28} strokeWidth={2.5} />
+            <Plus aria-hidden='true' className='hidden sm:block' size={32} strokeWidth={2.5} />
+            <span className='sr-only'>Novo registro no diário</span>
           </button>
         </div>
 
+        {/* Rewards */}
         <button
+          aria-current={isActive('/rewards') ? 'page' : undefined}
+          aria-label='Ir para loja de prêmios'
           className={navItemClass('/rewards')}
           onClick={() => router.push('/rewards')}
           type='button'
         >
           {isActive('/rewards') && activeIndicator}
           <div
+            aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
               isActive('/rewards') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
             }`}
@@ -118,13 +142,17 @@ export const BottomNav: React.FC = () => {
           </span>
         </button>
 
+        {/* Profile */}
         <button
+          aria-current={isActive('/profile') ? 'page' : undefined}
+          aria-label='Ir para seu perfil'
           className={navItemClass('/profile')}
           onClick={() => router.push('/profile')}
           type='button'
         >
           {isActive('/profile') && activeIndicator}
           <div
+            aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
               isActive('/profile') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
             }`}
@@ -144,6 +172,6 @@ export const BottomNav: React.FC = () => {
           </span>
         </button>
       </div>
-    </div>
+    </nav>
   )
 }

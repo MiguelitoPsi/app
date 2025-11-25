@@ -2,7 +2,7 @@
 
 import { ArrowLeft, BookOpen, Brain, Save, Sparkles } from 'lucide-react'
 import type React from 'react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { XP_REWARDS } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
 import { analyzeThought } from '../services/geminiService'
@@ -14,6 +14,9 @@ type JournalViewProps = {
 
 export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const { addJournalEntry } = useGame()
+  const thoughtId = useId()
+  const emotionId = useId()
+  const intensityId = useId()
 
   const [step, setStep] = useState(1)
   const [emotion, setEmotion] = useState<Mood>('neutral')
@@ -53,59 +56,96 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
 
   return (
     <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+      {/* Live region for status announcements */}
+      <div aria-atomic='true' aria-live='polite' className='sr-only'>
+        {isAnalyzing && 'Analisando seu pensamento com inteligência artificial...'}
+        {step === 2 && aiResult && 'Análise concluída. Insight terapêutico disponível.'}
+      </div>
+
       {/* Header Section */}
-      <div className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
+      <header className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
         <div className='mb-2 flex items-center justify-between'>
           <div className='flex items-center gap-2 sm:gap-3'>
             <button
-              className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700'
+              aria-label='Voltar para página inicial'
+              className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
               onClick={goHome}
               type='button'
             >
-              <ArrowLeft className='text-slate-600 dark:text-slate-300' size={18} />
+              <ArrowLeft
+                aria-hidden='true'
+                className='text-slate-600 dark:text-slate-300'
+                size={18}
+              />
             </button>
             <div>
-              <h2 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
+              <h1 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
                 Diário
-              </h2>
+              </h1>
               <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
                 Registre seus pensamentos
               </p>
             </div>
           </div>
-          <div className='flex h-9 w-9 items-center justify-center rounded-full border border-violet-100 bg-violet-50 text-violet-600 sm:h-10 sm:w-10 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400'>
+          <div
+            aria-hidden='true'
+            className='flex h-9 w-9 items-center justify-center rounded-full border border-violet-100 bg-violet-50 text-violet-600 sm:h-10 sm:w-10 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400'
+          >
             <BookOpen className='sm:hidden' size={18} />
             <BookOpen className='hidden sm:block' size={20} />
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className='flex-1 overflow-y-auto px-4 py-4 pb-28 sm:px-6 sm:py-6 sm:pb-32'>
+      <main
+        className='flex-1 overflow-y-auto px-4 py-4 pb-28 sm:px-6 sm:py-6 sm:pb-32'
+        id='main-content'
+      >
         {step === 1 && (
-          <div className='slide-in-from-bottom-4 animate-in space-y-4 duration-500 sm:space-y-6'>
+          <form
+            className='slide-in-from-bottom-4 animate-in space-y-4 duration-500 sm:space-y-6'
+            onSubmit={(e) => {
+              e.preventDefault()
+              handleAnalyze()
+            }}
+          >
             {/* Automatic Thought (Now First) */}
             <div className='space-y-2'>
-              <label className='ml-1 font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
+              <label
+                className='ml-1 font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'
+                htmlFor={thoughtId}
+              >
                 Pensamento Automático
               </label>
               <textarea
+                aria-describedby={`${thoughtId}-hint`}
                 className='w-full rounded-2xl border border-slate-100 bg-white p-4 text-sm text-slate-800 leading-relaxed shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:rounded-3xl sm:p-5 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/20'
+                id={thoughtId}
                 onChange={(e) => setThought(e.target.value)}
                 placeholder='O que está passando pela sua cabeça agora?'
+                required
                 rows={5}
                 value={thought}
               />
+              <p className='sr-only' id={`${thoughtId}-hint`}>
+                Descreva o pensamento que está tendo. Quanto mais detalhes, melhor será a análise.
+              </p>
             </div>
 
             {/* Emotion */}
-            <div className='space-y-2 sm:space-y-3'>
-              <label className='ml-1 font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
+            <fieldset className='space-y-2 sm:space-y-3'>
+              <legend
+                className='ml-1 font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'
+                id={emotionId}
+              >
                 Como você se sente?
-              </label>
+              </legend>
               <div className='grid grid-cols-3 gap-2 sm:gap-3'>
                 {moods.map((m) => (
                   <button
-                    className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 ${
+                    aria-label={`${m.label}${emotion === m.id ? ' (selecionado)' : ''}`}
+                    aria-pressed={emotion === m.id}
+                    className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
                       emotion === m.id
                         ? 'scale-105 border-violet-500 bg-violet-50 text-violet-700 shadow-md dark:bg-violet-900/20 dark:text-violet-300'
                         : 'border-transparent bg-white text-slate-400 active:scale-95 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-500 dark:hover:bg-slate-800'
@@ -115,7 +155,9 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                     onClick={() => setEmotion(m.id)}
                     type='button'
                   >
-                    <span className='text-2xl drop-shadow-sm filter sm:text-3xl'>{m.emoji}</span>
+                    <span aria-hidden='true' className='text-2xl drop-shadow-sm filter sm:text-3xl'>
+                      {m.emoji}
+                    </span>
                     <span className='font-bold text-[10px] sm:text-xs'>{m.label}</span>
                   </button>
                 ))}
@@ -123,13 +165,22 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
 
               <div className='mt-3 rounded-xl border border-slate-100 bg-white p-3 sm:mt-4 sm:rounded-2xl sm:p-4 dark:border-slate-800 dark:bg-slate-900'>
                 <div className='mb-2 flex justify-between font-bold text-slate-500 text-[10px] sm:mb-3 sm:text-xs dark:text-slate-400'>
-                  <span>Intensidade</span>
-                  <span className='rounded-md bg-violet-50 px-2 py-0.5 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <label htmlFor={intensityId}>Intensidade</label>
+                  <output
+                    aria-live='polite'
+                    className='rounded-md bg-violet-50 px-2 py-0.5 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                    htmlFor={intensityId}
+                  >
                     {intensity}
-                  </span>
+                  </output>
                 </div>
                 <input
+                  aria-label={`Intensidade do sentimento: ${intensity} de 10`}
+                  aria-valuemax={10}
+                  aria-valuemin={1}
+                  aria-valuenow={intensity}
                   className='h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-violet-600 dark:bg-slate-800'
+                  id={intensityId}
                   max='10'
                   min='1'
                   onChange={(e) => setIntensity(Number(e.target.value))}
@@ -137,52 +188,67 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                   value={intensity}
                 />
               </div>
-            </div>
+            </fieldset>
 
             {/* Actions */}
             <div className='space-y-2 pt-2 sm:space-y-3 sm:pt-4'>
               <button
-                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-violet-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none'
+                aria-describedby='analyze-hint'
+                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-violet-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
                 disabled={!thought || isAnalyzing}
-                onClick={handleAnalyze}
-                type='button'
+                type='submit'
               >
                 {isAnalyzing ? (
                   <>
-                    <Sparkles className='animate-spin' size={18} />
-                    Analisando...
+                    <Sparkles aria-hidden='true' className='animate-spin' size={18} />
+                    <span>Analisando...</span>
                   </>
                 ) : (
                   <>
-                    <Brain size={18} />
-                    Analisar com IA
+                    <Brain aria-hidden='true' size={18} />
+                    <span>Analisar com IA</span>
                   </>
                 )}
               </button>
+              <p className='sr-only' id='analyze-hint'>
+                A inteligência artificial irá analisar seu pensamento e fornecer insights
+                terapêuticos.
+              </p>
 
               <button
-                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-sm text-slate-600 transition-all active:scale-[0.98] hover:bg-slate-50 sm:rounded-2xl sm:py-4 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
+                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-sm text-slate-600 transition-all active:scale-[0.98] hover:bg-slate-50 sm:rounded-2xl sm:py-4 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
                 onClick={handleSave}
                 type='button'
               >
-                <Save size={16} />
-                Salvar sem análise (+{XP_REWARDS.journal} XP)
+                <Save aria-hidden='true' size={16} />
+                <span>Salvar sem análise (+{XP_REWARDS.journal} XP)</span>
               </button>
             </div>
-          </div>
+          </form>
         )}
 
         {step === 2 && aiResult && (
           <div className='fade-in zoom-in animate-in space-y-4 duration-300 sm:space-y-6'>
-            <div className='relative overflow-hidden rounded-2xl border border-violet-100 bg-white p-4 shadow-violet-100/50 shadow-xl sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'>
-              <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-violet-500/10 blur-3xl sm:h-32 sm:w-32' />
+            <article
+              aria-labelledby='insight-heading'
+              className='relative overflow-hidden rounded-2xl border border-violet-100 bg-white p-4 shadow-violet-100/50 shadow-xl sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'
+            >
+              <div
+                aria-hidden='true'
+                className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-violet-500/10 blur-3xl sm:h-32 sm:w-32'
+              />
 
               <div className='relative z-10'>
                 <div className='mb-3 flex items-center gap-2 text-violet-600 sm:mb-4 sm:gap-3 dark:text-violet-400'>
-                  <div className='rounded-lg bg-violet-100 p-1.5 sm:rounded-xl sm:p-2 dark:bg-violet-900/30'>
+                  <div
+                    aria-hidden='true'
+                    className='rounded-lg bg-violet-100 p-1.5 sm:rounded-xl sm:p-2 dark:bg-violet-900/30'
+                  >
                     <Sparkles size={18} />
                   </div>
-                  <h3 className='font-bold text-base sm:text-lg'>Insight Terapêutico</h3>
+                  <h2 className='font-bold text-base sm:text-lg' id='insight-heading'>
+                    Insight Terapêutico
+                  </h2>
                 </div>
                 <div className='space-y-2 font-medium text-slate-700 text-xs leading-relaxed sm:text-sm dark:text-slate-300'>
                   {aiResult.split('\n').map((line, i) => (
@@ -190,19 +256,19 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                   ))}
                 </div>
               </div>
-            </div>
+            </article>
 
             <button
-              className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 font-bold text-sm text-white shadow-lg transition-transform active:scale-[0.98] hover:scale-[1.02] sm:rounded-2xl sm:py-4 sm:text-base dark:bg-white dark:text-slate-900'
+              className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 font-bold text-sm text-white shadow-lg transition-transform active:scale-[0.98] hover:scale-[1.02] sm:rounded-2xl sm:py-4 sm:text-base dark:bg-white dark:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
               onClick={handleSave}
               type='button'
             >
-              <Save size={18} />
-              Salvar Insight (+{XP_REWARDS.journal} XP)
+              <Save aria-hidden='true' size={18} />
+              <span>Salvar Insight (+{XP_REWARDS.journal} XP)</span>
             </button>
           </div>
         )}
-      </div>
+      </main>
     </div>
   )
 }

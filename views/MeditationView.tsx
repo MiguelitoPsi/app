@@ -10,7 +10,6 @@ import {
   Sparkles,
   Sun,
   Wind,
-  Zap,
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
@@ -54,18 +53,6 @@ const MEDITATION_TYPES: MeditationType[] = [
     ringColor: 'ring-teal-300',
     textColor: 'text-teal-600 dark:text-teal-400',
     bgActive: 'bg-teal-50 dark:bg-teal-900/20',
-  },
-  {
-    id: 'anxiety',
-    title: 'Calma (SOS)',
-    description: 'Reduza a ansiedade rapidamente.',
-    icon: Zap,
-    colorFrom: 'from-rose-400',
-    colorTo: 'to-orange-400',
-    shadowColor: 'shadow-rose-300',
-    ringColor: 'ring-rose-300',
-    textColor: 'text-rose-600 dark:text-rose-400',
-    bgActive: 'bg-rose-50 dark:bg-rose-900/20',
   },
   {
     id: 'sleep',

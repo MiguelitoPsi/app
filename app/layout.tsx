@@ -1,13 +1,26 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
+  ],
+}
+
 export const metadata: Metadata = {
   title: 'Guerreiro da Mente - TCC Gamificada',
-  description: 'Aplicativo de bem-estar psicológico gamificado',
+  description: 'Aplicativo de bem-estar psicológico gamificado para acompanhamento terapêutico',
+  applicationName: 'Guerreiro da Mente',
+  authors: [{ name: 'App PSI' }],
 }
 
 export default function RootLayout({

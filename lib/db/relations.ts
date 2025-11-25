@@ -1,10 +1,28 @@
 import { relations } from 'drizzle-orm'
-import { patientInvites, psychologistPatients, userStats, users } from './schema'
+import {
+  patientInvites,
+  patientTasksFromTherapist,
+  psychologistPatients,
+  therapistAchievements,
+  therapistChallenges,
+  therapistFinancial,
+  therapistGoals,
+  therapistStats,
+  therapistTasks,
+  therapySessions,
+  userStats,
+  users,
+  weeklyReports,
+} from './schema'
 
 export const usersRelations = relations(users, ({ many, one }) => ({
   stats: one(userStats, {
     fields: [users.id],
     references: [userStats.userId],
+  }),
+  therapistStats: one(therapistStats, {
+    fields: [users.id],
+    references: [therapistStats.therapistId],
   }),
   patientsAsTherapist: many(psychologistPatients, {
     relationName: 'psychologist',
@@ -13,6 +31,11 @@ export const usersRelations = relations(users, ({ many, one }) => ({
     relationName: 'patient',
   }),
   invitesSent: many(patientInvites),
+  therapistAchievements: many(therapistAchievements),
+  therapistTasks: many(therapistTasks),
+  therapistChallenges: many(therapistChallenges),
+  therapistFinancial: many(therapistFinancial),
+  therapistGoals: many(therapistGoals),
 }))
 
 export const psychologistPatientsRelations = relations(psychologistPatients, ({ one }) => ({
@@ -38,6 +61,93 @@ export const userStatsRelations = relations(userStats, ({ one }) => ({
 export const patientInvitesRelations = relations(patientInvites, ({ one }) => ({
   psychologist: one(users, {
     fields: [patientInvites.psychologistId],
+    references: [users.id],
+  }),
+}))
+
+// Therapist relations
+export const therapistStatsRelations = relations(therapistStats, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistStats.therapistId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistAchievementsRelations = relations(therapistAchievements, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistAchievements.therapistId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistTasksRelations = relations(therapistTasks, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistTasks.therapistId],
+    references: [users.id],
+  }),
+  patient: one(users, {
+    fields: [therapistTasks.patientId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistChallengesRelations = relations(therapistChallenges, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistChallenges.therapistId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistFinancialRelations = relations(therapistFinancial, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistFinancial.therapistId],
+    references: [users.id],
+  }),
+  patient: one(users, {
+    fields: [therapistFinancial.patientId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistGoalsRelations = relations(therapistGoals, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistGoals.therapistId],
+    references: [users.id],
+  }),
+}))
+
+export const weeklyReportsRelations = relations(weeklyReports, ({ one }) => ({
+  therapist: one(users, {
+    fields: [weeklyReports.therapistId],
+    references: [users.id],
+  }),
+  patient: one(users, {
+    fields: [weeklyReports.patientId],
+    references: [users.id],
+  }),
+}))
+
+export const patientTasksFromTherapistRelations = relations(
+  patientTasksFromTherapist,
+  ({ one }) => ({
+    therapist: one(users, {
+      fields: [patientTasksFromTherapist.therapistId],
+      references: [users.id],
+    }),
+    patient: one(users, {
+      fields: [patientTasksFromTherapist.patientId],
+      references: [users.id],
+    }),
+  })
+)
+
+export const therapySessionsRelations = relations(therapySessions, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapySessions.therapistId],
+    references: [users.id],
+  }),
+  patient: one(users, {
+    fields: [therapySessions.patientId],
     references: [users.id],
   }),
 }))

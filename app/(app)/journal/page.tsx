@@ -1,10 +1,10 @@
-"use client";
+'use client'
 
-import { useRouter } from "next/navigation";
-import { JournalView } from "@/views/JournalView";
+import { useRouter } from 'next/navigation'
+import { JournalView } from '@/views/JournalView'
 
 export default function JournalPage() {
-  const router = useRouter();
+  const router = useRouter()
 
-  return <JournalView goHome={() => router.push("/home")} />;
+  return <JournalView goHome={() => router.push('/home')} />
 }

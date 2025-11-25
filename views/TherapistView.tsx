@@ -2,7 +2,6 @@
 
 import {
   Activity,
-  ArrowLeft,
   BarChart2,
   Brain,
   Calendar,
@@ -15,9 +14,12 @@ import {
   LogOut,
   Mail,
   MapPin,
+  Moon,
   Phone,
   Save,
   Search,
+  Settings,
+  Sun,
   User,
   UserPlus,
   Users,
@@ -29,11 +31,7 @@ import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } f
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import { useGame } from '../context/GameContext'
-import type { Mood, Reward } from '../types'
-
-type TherapistViewProps = {
-  goBack: () => void
-}
+import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
 
 // Mock data for demo purposes
 const DEMO_PATIENT = {
@@ -68,12 +66,13 @@ const DEMO_PATIENT = {
   ],
 }
 
-export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
-  const { stats: realStats, journal: realJournal, updateReward } = useGame()
+export const TherapistView: React.FC = () => {
+  const { stats: realStats, journal: realJournal, updateReward, toggleTheme } = useGame()
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
   const [activeSection, setActiveSection] = useState<
     'overview' | 'journal' | 'rewards' | 'profile'
   >('overview')
+  const [showSettings, setShowSettings] = useState(false)
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -115,6 +114,19 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
     { enabled: !!selectedPatientId }
   )
 
+  // Fetch patient journal entries
+  const { data: patientJournalData = [] } = trpc.journal.getAll.useQuery(
+    { userId: selectedPatientId },
+    { enabled: !!selectedPatientId }
+  )
+
+  // Fetch patient rewards
+  const { data: patientRewardsData = [], refetch: refetchPatientRewards } =
+    trpc.reward.getAll.useQuery({ userId: selectedPatientId }, { enabled: !!selectedPatientId })
+
+  // Update reward cost mutation
+  const updateRewardCostMutation = trpc.reward.updateCost.useMutation()
+
   // Remove patient mutation
   const removePatientMutation = trpc.patient.removePatient.useMutation({
     onSuccess: () => {
@@ -133,13 +145,18 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
   const [rewardCost, setRewardCost] = useState<string>('')
   const [isCostModalOpen, setIsCostModalOpen] = useState(false)
 
+  // Invite Modal State
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
+  const [inviteLink, setInviteLink] = useState<string>('')
+  const [isLinkCopied, setIsLinkCopied] = useState(false)
+
   const openCostModal = (reward: Reward) => {
     setEditingReward(reward)
     setRewardCost(reward.cost > 0 ? reward.cost.toString() : '')
     setIsCostModalOpen(true)
   }
 
-  const saveRewardCost = () => {
+  const saveRewardCost = async () => {
     if (!editingReward) {
       return
     }
@@ -148,10 +165,21 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
       return
     }
 
-    updateReward(editingReward.id, {
-      cost,
-      status: 'approved',
-    })
+    // If viewing patient data, use the tRPC mutation
+    if (selectedPatientId) {
+      await updateRewardCostMutation.mutateAsync({
+        rewardId: editingReward.id,
+        cost,
+        patientId: selectedPatientId,
+      })
+      refetchPatientRewards()
+    } else {
+      // For own rewards, use the local state update
+      updateReward(editingReward.id, {
+        cost,
+        status: 'approved',
+      })
+    }
 
     setIsCostModalOpen(false)
     setEditingReward(null)
@@ -185,8 +213,29 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
   const _patientName = selectedPatient?.name || realStats.name
   const stats = normalizePatientStats(selectedPatient)
 
-  const journalDataRaw = realJournal // TODO: Fetch patient-specific journal when implemented
-  const rewardsData = realStats.rewards // TODO: Fetch patient-specific rewards when implemented
+  // Transform patient journal data from DB format to component format
+  const transformedJournalData: JournalEntry[] = patientJournalData.map((entry) => ({
+    id: entry.id,
+    timestamp: entry.createdAt ? new Date(entry.createdAt).getTime() : Date.now(),
+    emotion: (entry.mood || 'neutral') as Mood,
+    intensity: 5, // Default intensity since DB doesn't have this field
+    thought: entry.content,
+    aiAnalysis: entry.aiAnalysis || undefined,
+  }))
+
+  // Transform patient rewards data from DB format to component format
+  const transformedRewardsData: Reward[] = patientRewardsData.map((reward) => ({
+    id: reward.id,
+    title: reward.title,
+    category: (reward.category || 'lazer') as RewardCategory,
+    cost: reward.cost,
+    status: reward.claimed ? 'redeemed' : reward.cost > 0 ? 'approved' : 'pending',
+    createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
+  }))
+
+  // Use patient data when a patient is selected
+  const journalDataRaw = selectedPatientId ? transformedJournalData : realJournal
+  const rewardsData = selectedPatientId ? transformedRewardsData : realStats.rewards
 
   // Filter journal data based on filters
   const journalData = journalDataRaw.filter((entry) => {
@@ -262,17 +311,20 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
     return map[mood] || '😐'
   }
 
-  const handleInvite = async () => {
+  const handleInvite = () => {
+    const link = `${window.location.origin}/therapist-invite/${realStats.id || 'unknown'}`
+    setInviteLink(link)
+    setIsLinkCopied(false)
+    setIsInviteModalOpen(true)
+  }
+
+  const copyInviteLink = async () => {
     try {
-      // For now, we'll create a simple invite link
-      // In a full implementation, this would call the sendInvite mutation
-      const inviteLink = `${window.location.origin}/therapist-invite/${realStats.id || 'unknown'}`
       await navigator.clipboard.writeText(inviteLink)
-      alert(
-        'Link de convite copiado!\n\nCompartilhe este link com seu cliente para que ele possa se cadastrar vinculado ao seu perfil.'
-      )
+      setIsLinkCopied(true)
+      setTimeout(() => setIsLinkCopied(false), 3000)
     } catch (error) {
-      alert('Erro ao copiar link. Por favor, tente novamente.')
+      console.error('Failed to copy link:', error)
     }
   }
 
@@ -295,9 +347,9 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
               </p>
             </div>
           </div>
-          <div className='flex items-center gap-1.5 sm:gap-2'>
+          <div className='flex items-center gap-1'>
             <button
-              className='touch-target rounded-lg bg-indigo-600 p-2 text-white transition-all hover:bg-indigo-700 shadow-lg shadow-indigo-200 sm:rounded-xl dark:shadow-none'
+              className='touch-target p-2 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300'
               onClick={handleInvite}
               title='Convidar Cliente'
               type='button'
@@ -306,30 +358,12 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
               <UserPlus className='hidden sm:block' size={20} />
             </button>
             <button
-              className='touch-target rounded-lg bg-slate-100 p-2 text-slate-500 transition-all hover:bg-slate-200 sm:rounded-xl dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
-              onClick={goBack}
-              title='Voltar ao App'
+              className='touch-target p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+              onClick={() => setShowSettings(true)}
               type='button'
             >
-              <ArrowLeft className='sm:hidden' size={18} />
-              <ArrowLeft className='hidden sm:block' size={20} />
-            </button>
-            <button
-              className='touch-target rounded-lg bg-slate-100 p-2 text-slate-500 transition-all hover:bg-red-50 hover:text-red-500 sm:rounded-xl dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400'
-              onClick={async () => {
-                await authClient.signOut({
-                  fetchOptions: {
-                    onSuccess: () => {
-                      window.location.href = '/auth/signin'
-                    },
-                  },
-                })
-              }}
-              title='Sair'
-              type='button'
-            >
-              <LogOut className='sm:hidden' size={18} />
-              <LogOut className='hidden sm:block' size={20} />
+              <Settings className='sm:hidden' size={18} />
+              <Settings className='hidden sm:block' size={20} />
             </button>
           </div>
         </div>
@@ -440,34 +474,52 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
         {selectedPatientId ? (
           <>
             {/* Navigation Tabs - Only shown when patient is selected */}
-            <div className='flex rounded-lg border border-slate-100 bg-white p-1 shadow-sm sm:rounded-xl dark:border-slate-800 dark:bg-slate-900'>
+            <div className='grid grid-cols-4 gap-2 sm:gap-3'>
               <button
-                className={`touch-target flex-1 rounded-md py-2 font-bold text-[10px] transition-all duration-300 sm:rounded-lg sm:py-3 sm:text-sm ${activeSection === 'overview' ? 'bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'overview' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
                 onClick={() => setActiveSection('overview')}
                 type='button'
               >
-                Visão Geral
+                <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <BarChart2 className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>Visão Geral</span>
+                </div>
               </button>
               <button
-                className={`touch-target flex-1 rounded-md py-2 font-bold text-[10px] transition-all duration-300 sm:rounded-lg sm:py-3 sm:text-sm ${activeSection === 'journal' ? 'bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'journal' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
                 onClick={() => setActiveSection('journal')}
                 type='button'
               >
-                Diário ({journalData.length})
+                <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <FileText className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>
+                    Diário ({journalData.length})
+                  </span>
+                </div>
               </button>
               <button
-                className={`touch-target flex-1 rounded-md py-2 font-bold text-[10px] transition-all duration-300 sm:rounded-lg sm:py-3 sm:text-sm ${activeSection === 'rewards' ? 'bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'rewards' ? 'ring-2 ring-cyan-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
                 onClick={() => setActiveSection('rewards')}
                 type='button'
               >
-                Recompensas
+                <div className='absolute inset-0 bg-gradient-to-br from-cyan-400 to-cyan-600' />
+                <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
+                  <Gift className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='truncate font-semibold text-[8px] sm:text-xs'>Prêmios</span>
+                </div>
               </button>
               <button
-                className={`touch-target flex-1 rounded-md py-2 font-bold text-[10px] transition-all duration-300 sm:rounded-lg sm:py-3 sm:text-sm ${activeSection === 'profile' ? 'bg-indigo-50 text-indigo-600 shadow-sm dark:bg-indigo-900/30 dark:text-indigo-400' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'profile' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
                 onClick={() => setActiveSection('profile')}
                 type='button'
               >
-                Perfil
+                <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <User className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>Perfil</span>
+                </div>
               </button>
             </div>
           </>
@@ -1244,6 +1296,173 @@ export const TherapistView: React.FC<TherapistViewProps> = ({ goBack }) => {
           </div>
         )}
       </div>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='mb-4 flex items-center justify-between sm:mb-6'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <Settings className='text-slate-400' size={18} /> Configurações
+              </h3>
+              <button
+                className='touch-target rounded-full bg-slate-50 p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:hover:text-slate-200'
+                onClick={() => setShowSettings(false)}
+                type='button'
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className='space-y-3 sm:space-y-4'>
+              {/* Modo Escuro */}
+              <div className='flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                  </div>
+                  <div>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Modo Escuro
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Ajustar aparência do app
+                    </p>
+                  </div>
+                </div>
+                <button
+                  aria-label={
+                    realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
+                  }
+                  className={`touch-target relative h-7 w-12 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${
+                    realStats.theme === 'dark'
+                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/30'
+                      : 'bg-slate-200'
+                  }`}
+                  onClick={toggleTheme}
+                  type='button'
+                >
+                  <span
+                    className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 ${
+                      realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                    }`}
+                  >
+                    {realStats.theme === 'dark' ? (
+                      <Moon className='text-violet-600' size={14} />
+                    ) : (
+                      <Sun className='text-amber-500' size={14} />
+                    )}
+                  </span>
+                </button>
+              </div>
+            </div>
+            <div className='mt-6 border-slate-100 border-t pt-4 sm:mt-8 sm:pt-6 dark:border-slate-800'>
+              <button
+                className='touch-target flex w-full items-center justify-center gap-2 py-2.5 font-medium text-slate-400 text-xs transition-colors hover:text-red-500 sm:py-3 sm:text-sm dark:text-slate-500'
+                onClick={async () => {
+                  await authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: async () => {
+                        await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+                        window.location.href = '/auth/signin'
+                      },
+                    },
+                  })
+                }}
+                type='button'
+              >
+                <LogOut size={16} /> Sair da conta
+              </button>
+            </div>
+          </div>
+          <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
+        </div>
+      )}
+
+      {/* Invite Modal */}
+      {isInviteModalOpen && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-md animate-in rounded-2xl border border-slate-100 bg-white p-6 shadow-2xl duration-300 sm:rounded-3xl sm:p-8 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              className='absolute top-4 right-4 rounded-full bg-slate-50 p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+              onClick={() => setIsInviteModalOpen(false)}
+              type='button'
+            >
+              <X size={18} />
+            </button>
+
+            {/* Icon */}
+            <div className='mb-6 flex justify-center'>
+              <div className='rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 p-4 shadow-lg shadow-indigo-200 dark:shadow-none'>
+                <UserPlus className='h-10 w-10 text-white' />
+              </div>
+            </div>
+
+            {/* Title */}
+            <div className='mb-6 text-center'>
+              <h3 className='mb-2 font-black text-xl text-slate-800 dark:text-white'>
+                Convidar Paciente
+              </h3>
+              <p className='text-slate-500 text-sm dark:text-slate-400'>
+                Compartilhe este link com seu paciente para que ele possa se cadastrar vinculado ao
+                seu perfil.
+              </p>
+            </div>
+
+            {/* Link Box */}
+            <div className='mb-6'>
+              <label className='mb-2 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                Link de Convite
+              </label>
+              <div className='flex items-center gap-2'>
+                <div className='flex-1 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800'>
+                  <p className='truncate font-mono text-xs text-slate-600 dark:text-slate-300'>
+                    {inviteLink}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Copy Button */}
+            <button
+              className={`flex w-full items-center justify-center gap-2 rounded-xl py-4 font-bold text-sm shadow-lg transition-all duration-300 active:scale-[0.98] ${
+                isLinkCopied
+                  ? 'bg-emerald-500 text-white shadow-emerald-200 dark:shadow-none'
+                  : 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-indigo-200 hover:from-indigo-700 hover:to-purple-700 dark:shadow-none'
+              }`}
+              onClick={copyInviteLink}
+              type='button'
+            >
+              {isLinkCopied ? (
+                <>
+                  <CheckCircle2 size={18} />
+                  Link Copiado!
+                </>
+              ) : (
+                <>
+                  <Mail size={18} />
+                  Copiar Link de Convite
+                </>
+              )}
+            </button>
+
+            {/* Info */}
+            <div className='mt-6 rounded-xl bg-amber-50 p-4 dark:bg-amber-900/20'>
+              <p className='text-center text-amber-700 text-xs dark:text-amber-300'>
+                <strong>Dica:</strong> O paciente poderá criar uma conta ou fazer login através
+                deste link e será automaticamente vinculado ao seu perfil.
+              </p>
+            </div>
+          </div>
+          <div className='-z-10 absolute inset-0' onClick={() => setIsInviteModalOpen(false)} />
+        </div>
+      )}
     </div>
   )
 }

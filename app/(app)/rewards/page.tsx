@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { RewardsView } from "@/views/RewardsView";
+import { RewardsView } from '@/views/RewardsView'
 
 export default function RewardsPage() {
-  return <RewardsView />;
+  return <RewardsView />
 }

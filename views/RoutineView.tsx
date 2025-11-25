@@ -424,27 +424,39 @@ export const RoutineView: React.FC = () => {
       </div>
 
       {/* View Mode Selector */}
-      <div className='mb-3 flex rounded-lg border border-slate-100 bg-white p-1 shadow-sm sm:mb-4 sm:rounded-xl dark:border-slate-800 dark:bg-slate-900'>
+      <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
         <button
-          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'day' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'day' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
           onClick={() => setViewMode('day')}
           type='button'
         >
-          Hoje
+          <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
+          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+            <CalendarIcon className='h-5 w-5 sm:h-7 sm:w-7' />
+            <span className='font-semibold text-[9px] sm:text-xs'>Hoje</span>
+          </div>
         </button>
         <button
-          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'week' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'week' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
           onClick={() => setViewMode('week')}
           type='button'
         >
-          Semana
+          <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
+          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+            <Repeat className='h-5 w-5 sm:h-7 sm:w-7' />
+            <span className='font-semibold text-[9px] sm:text-xs'>Semana</span>
+          </div>
         </button>
         <button
-          className={`touch-target flex-1 rounded-md py-2 font-bold text-[11px] transition-all sm:rounded-lg sm:text-xs ${viewMode === 'month' ? 'bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400' : 'text-slate-400 dark:text-slate-500'}`}
+          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'month' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
           onClick={() => setViewMode('month')}
           type='button'
         >
-          Mês
+          <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+            <Target className='h-5 w-5 sm:h-7 sm:w-7' />
+            <span className='font-semibold text-[9px] sm:text-xs'>Mês</span>
+          </div>
         </button>
       </div>
 

@@ -279,6 +279,34 @@ export const patientRouter = router({
       .filter((p): p is NonNullable<typeof p> => p !== null)
   }),
 
+  // Get all patients linked to this psychologist
+  getAll: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+
+    const relationships = await db.query.psychologistPatients.findMany({
+      where: eq(psychologistPatients.psychologistId, ctx.user.id),
+      with: {
+        patient: true,
+      },
+    })
+
+    return relationships
+      .filter(
+        (rel): rel is typeof rel & { patient: NonNullable<typeof rel.patient> } =>
+          rel.patient !== null && rel.patient !== undefined
+      )
+      .map((rel) => ({
+        id: rel.patient.id,
+        name: rel.patient.name,
+        email: rel.patient.email,
+        image: rel.patient.image,
+        isPrimary: rel.isPrimary,
+        relationshipId: rel.id,
+      }))
+  }),
+
   // Get my psychologists (patient only)
   getMyPsychologists: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user.role !== 'patient') {
@@ -293,9 +321,12 @@ export const patientRouter = router({
     })
 
     return relationships
-      .filter((rel) => rel.psychologist)
+      .filter(
+        (rel): rel is typeof rel & { psychologist: NonNullable<typeof rel.psychologist> } =>
+          rel.psychologist !== null && rel.psychologist !== undefined
+      )
       .map((rel) => ({
-        ...rel.psychologist!,
+        ...rel.psychologist,
         isPrimary: rel.isPrimary,
         relationshipId: rel.id,
       }))

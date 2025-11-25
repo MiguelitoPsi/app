@@ -167,9 +167,15 @@ export const HomeView: React.FC = () => {
 
   return (
     <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+      {/* Live region for screen reader announcements */}
+      <div aria-atomic='true' aria-live='polite' className='sr-only'>
+        {xpFeedback && `Você ganhou ${xpFeedback.amount} pontos de experiência!`}
+      </div>
+
       {/* Floating XP Feedback Animation */}
       {xpFeedback && (
         <div
+          aria-hidden='true'
           className='-translate-x-1/2 -translate-y-1/2 fade-out slide-out-to-top-10 pointer-events-none fixed top-1/2 left-1/2 z-[100] flex transform animate-out flex-col items-center justify-center fill-mode-forwards duration-1000'
           key={xpFeedback.id}
         >
@@ -183,9 +189,10 @@ export const HomeView: React.FC = () => {
       )}
 
       {/* Header Section */}
-      <div className='relative z-10 rounded-b-[1.5rem] bg-white pt-safe shadow-sm sm:rounded-b-[2rem] dark:bg-slate-900'>
+      <header className='relative z-10 rounded-b-[1.5rem] bg-white pt-safe shadow-sm sm:rounded-b-[2rem] dark:bg-slate-900'>
         {/* Greeting - Hidden on scroll */}
         <div
+          aria-hidden={isScrolled}
           className={`overflow-hidden transition-all duration-300 ${
             isScrolled ? 'max-h-0 opacity-0' : 'max-h-24 opacity-100'
           }`}
@@ -193,14 +200,18 @@ export const HomeView: React.FC = () => {
           <div className='px-4 pt-6 pb-4 sm:px-6 sm:pt-8 sm:pb-6'>
             <div className='flex items-center justify-between'>
               <div>
-                <h2 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
+                <h1 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
                   Olá, {stats.name}
-                </h2>
+                </h1>
                 <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
                   Vamos cuidar de você hoje?
                 </p>
               </div>
-              <div className='flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-lg sm:h-10 sm:w-10 sm:text-xl dark:border-slate-700 dark:bg-slate-800'>
+              <div
+                aria-label='Acenando'
+                className='flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 text-lg sm:h-10 sm:w-10 sm:text-xl dark:border-slate-700 dark:bg-slate-800'
+                role='img'
+              >
                 👋
               </div>
             </div>
@@ -213,7 +224,10 @@ export const HomeView: React.FC = () => {
             isScrolled ? 'pb-3 pt-3 sm:pb-4 sm:pt-4' : 'pb-4 sm:pb-6'
           }`}
         >
-          <div className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-4 text-white shadow-xl sm:rounded-2xl sm:p-6'>
+          <section
+            aria-label='Seu progresso'
+            className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-4 text-white shadow-xl sm:rounded-2xl sm:p-6'
+          >
             <div className='mb-3 flex items-center justify-between sm:mb-4'>
               <div>
                 <p className='font-medium text-xs text-violet-100 sm:text-sm'>{stats.name}</p>
@@ -221,10 +235,20 @@ export const HomeView: React.FC = () => {
               </div>
               <div className='text-right'>
                 <p className='text-xs text-violet-100 sm:text-sm'>Nível {stats.level}</p>
-                <p className='font-bold text-xl sm:text-2xl'>{stats.xp} XP</p>
+                <p className='font-bold text-xl sm:text-2xl'>
+                  {stats.xp} XP
+                  <span className='sr-only'> pontos de experiência</span>
+                </p>
               </div>
             </div>
-            <div className='h-2.5 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm sm:h-3'>
+            <div
+              aria-label='Progresso para o próximo nível'
+              aria-valuemax={100}
+              aria-valuemin={0}
+              aria-valuenow={stats.xp % 100}
+              className='h-2.5 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm sm:h-3'
+              role='progressbar'
+            >
               <div
                 className='h-full rounded-full bg-white transition-all duration-500'
                 style={{ width: `${stats.xp % 100}%` }}
@@ -233,19 +257,21 @@ export const HomeView: React.FC = () => {
             <p className='mt-2 text-sm text-violet-100'>
               {100 - (stats.xp % 100)} XP para o próximo nível
             </p>
-          </div>
+          </section>
         </div>
-      </div>
+      </header>
 
-      {/* Scrollable Content */}
-      <div
+      {/* Scrollable Content - Main area */}
+      <main
         className='flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-28 sm:space-y-6 sm:px-6 sm:py-6 sm:pb-32'
+        id='main-content'
         ref={scrollContainerRef}
       >
         {/* Urgent Tasks Alert */}
         {urgentTasks.length > 0 && (
           <button
-            className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-red-100 bg-red-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-red-900/30 dark:bg-red-900/10'
+            aria-label={`Atenção: ${urgentTasks.length} tarefa${urgentTasks.length > 1 ? 's' : ''} de alta prioridade hoje. Clique para ver.`}
+            className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-red-100 bg-red-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-red-900/30 dark:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
             onClick={() => router.push('/routine')}
             type='button'
           >
@@ -276,19 +302,26 @@ export const HomeView: React.FC = () => {
         </div>
 
         {/* Quick Mood Check-in */}
-        <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
-          <h3 className='mb-3 flex items-center gap-2 font-bold text-slate-800 text-xs sm:mb-4 sm:text-sm dark:text-white'>
+        <fieldset className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
+          <legend className='sr-only'>Selecione como você está se sentindo</legend>
+          <h3
+            className='mb-3 flex items-center gap-2 font-bold text-slate-800 text-xs sm:mb-4 sm:text-sm dark:text-white'
+            id='mood-heading'
+          >
             Como você se sente?
             {isXPAvailable && (
               <span className='animate-pulse rounded-full bg-violet-100 px-2 py-0.5 font-bold text-[9px] text-violet-600 sm:text-[10px] dark:bg-violet-900/30 dark:text-violet-300'>
                 +{XP_REWARDS.mood} XP
+                <span className='sr-only'> disponível ao registrar seu humor</span>
               </span>
             )}
           </h3>
           <div className='flex justify-between gap-1'>
             {moods.map((m) => (
               <button
-                className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 ${
+                aria-label={`${m.label}${selectedMood === m.id ? ' (selecionado)' : ''}`}
+                aria-pressed={selectedMood === m.id}
+                className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
                   selectedMood === m.id
                     ? 'scale-105 bg-violet-50 shadow-sm ring-2 ring-violet-100 sm:scale-110 dark:bg-violet-900/20 dark:ring-violet-900/30'
                     : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
@@ -297,65 +330,81 @@ export const HomeView: React.FC = () => {
                 onClick={() => handleMoodChange(m.id)}
                 type='button'
               >
-                <span className='text-2xl drop-shadow-sm filter sm:text-3xl'>{m.emoji}</span>
+                <span aria-hidden='true' className='text-2xl drop-shadow-sm filter sm:text-3xl'>
+                  {m.emoji}
+                </span>
               </button>
             ))}
           </div>
-        </div>
+        </fieldset>
 
         {/* Quick Actions */}
-        <div className='grid grid-cols-2 gap-3 sm:gap-4'>
+        <section aria-label='Ações rápidas' className='grid grid-cols-2 gap-3 sm:gap-4'>
           <button
-            className='group flex flex-col items-start gap-2 rounded-2xl bg-violet-600 p-4 text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] hover:bg-violet-700 sm:gap-3 sm:rounded-3xl sm:p-5 dark:shadow-none'
+            aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
+            className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
             onClick={() => router.push('/journal')}
             type='button'
           >
-            <div className='rounded-xl bg-white/20 p-2 transition-transform group-hover:scale-110 sm:rounded-2xl sm:p-2.5'>
-              <BookOpen className='sm:hidden' size={18} />
-              <BookOpen className='hidden sm:block' size={20} />
-            </div>
-            <div className='text-left'>
-              <div className='font-bold text-xs leading-tight sm:text-sm'>
-                Diário de
-                <br />
-                Pensamento
-              </div>
-              <div className='mt-1 inline-block rounded-full bg-white/10 px-2 py-0.5 font-bold text-[9px] opacity-70 sm:text-[10px]'>
-                +{XP_REWARDS.journal} XP & Pts
+            <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-2 text-white sm:gap-3'>
+              <BookOpen className='h-8 w-8 sm:h-10 sm:w-10' />
+              <div className='text-center'>
+                <div className='font-bold text-sm leading-tight sm:text-base'>
+                  Diário de
+                  <br />
+                  Pensamento
+                </div>
+                <div
+                  aria-hidden='true'
+                  className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
+                >
+                  +{XP_REWARDS.journal} XP & Pts
+                </div>
               </div>
             </div>
           </button>
 
           <button
-            className='group flex flex-col items-start gap-2 rounded-2xl border border-slate-100 bg-white p-4 text-slate-800 shadow-sm transition-all active:scale-[0.98] hover:border-teal-200 sm:gap-3 sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:border-teal-900/50'
+            aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
+            className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
             onClick={() => router.push('/meditation')}
             type='button'
           >
-            <div className='rounded-xl bg-teal-50 p-2 text-teal-600 transition-transform group-hover:scale-110 sm:rounded-2xl sm:p-2.5 dark:bg-teal-900/20 dark:text-teal-400'>
-              <Heart className='sm:hidden' size={18} />
-              <Heart className='hidden sm:block' size={20} />
-            </div>
-            <div className='text-left'>
-              <div className='font-bold text-xs leading-tight sm:text-sm'>
-                Meditação
-                <br />
-                Rápida
-              </div>
-              <div className='mt-1 inline-block rounded-full bg-slate-50 px-2 py-0.5 font-bold text-[9px] text-slate-400 sm:text-[10px] dark:bg-slate-800'>
-                +{XP_REWARDS.meditation} XP & Pts
+            <div className='absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-2 text-white sm:gap-3'>
+              <Heart className='h-8 w-8 sm:h-10 sm:w-10' />
+              <div className='text-center'>
+                <div className='font-bold text-sm leading-tight sm:text-base'>
+                  Meditação
+                  <br />
+                  Rápida
+                </div>
+                <div
+                  aria-hidden='true'
+                  className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
+                >
+                  +{XP_REWARDS.meditation} XP & Pts
+                </div>
               </div>
             </div>
           </button>
-        </div>
+        </section>
 
         {/* Weekly Mood Chart */}
-        <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'>
+        <section
+          aria-label='Gráfico de humor semanal'
+          className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+        >
           <div className='mb-4 flex items-center gap-2 sm:mb-6 sm:gap-3'>
-            <div className='rounded-lg bg-violet-50 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/20 dark:text-violet-400'>
+            <div
+              aria-hidden='true'
+              className='rounded-lg bg-violet-50 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/20 dark:text-violet-400'
+            >
               <BarChart2 className='sm:hidden' size={16} />
               <BarChart2 className='hidden sm:block' size={18} />
             </div>
-            <h3 className='font-bold text-sm text-slate-800 dark:text-white'>Humor Semanal</h3>
+            <h2 className='font-bold text-sm text-slate-800 dark:text-white'>Humor Semanal</h2>
           </div>
           {isMounted && (
             <div className='h-32 w-full sm:h-40'>
@@ -388,8 +437,8 @@ export const HomeView: React.FC = () => {
               </ResponsiveContainer>
             </div>
           )}
-        </div>
-      </div>
+        </section>
+      </main>
     </div>
   )
 }

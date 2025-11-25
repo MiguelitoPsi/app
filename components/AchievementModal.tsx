@@ -1,88 +1,133 @@
-import { Sparkles, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Sparkles } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 type AchievementModalProps = {
   badge: {
-    name: string;
-    description: string;
-    icon: string;
-  };
-  onClose: () => void;
-};
+    name: string
+    description: string
+    icon: string
+  }
+  onClose: () => void
+}
 
 const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
-  const [show, setShow] = useState(false);
+  const [show, setShow] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
 
+  const handleClose = useCallback(() => {
+    setShow(false)
+    setTimeout(onClose, 300) // Wait for exit animation
+  }, [onClose])
+
+  // Handle escape key
   useEffect(() => {
-    setShow(true);
-  }, []);
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose()
+      }
+    }
 
-  const handleClose = () => {
-    setShow(false);
-    setTimeout(onClose, 300); // Wait for exit animation
-  };
+    setShow(true)
+    // Focus the close button when modal opens
+    setTimeout(() => closeButtonRef.current?.focus(), 100)
 
-  if (!badge) return null;
+    // Add escape key listener
+    document.addEventListener('keydown', handleKeyDown)
+
+    // Prevent body scroll
+    document.body.style.overflow = 'hidden'
+
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [handleClose])
+
+  if (!badge) return null
 
   return (
     <div
+      aria-describedby='achievement-description'
+      aria-labelledby='achievement-title'
+      aria-modal='true'
       className={`fixed inset-0 z-50 flex items-center justify-center p-4 transition-opacity duration-300 ${
-        show ? "opacity-100" : "opacity-0 pointer-events-none"
+        show ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
+      role='dialog'
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        aria-hidden='true'
+        className='absolute inset-0 bg-black/80 backdrop-blur-sm'
         onClick={handleClose}
-        onKeyDown={(e) => e.key === "Enter" && handleClose()}
       />
 
       {/* Modal Content */}
       <div
         className={`relative w-full max-w-sm transform transition-all duration-500 ${
-          show ? "scale-100 translate-y-0" : "scale-90 translate-y-4"
+          show ? 'scale-100 translate-y-0' : 'scale-90 translate-y-4'
         }`}
+        ref={modalRef}
       >
-        <div className="relative overflow-hidden rounded-2xl bg-slate-900 border border-violet-500/30 shadow-2xl shadow-violet-500/20 p-8 text-center">
+        <div className='relative overflow-hidden rounded-2xl bg-slate-900 border border-violet-500/30 shadow-2xl shadow-violet-500/20 p-8 text-center'>
           {/* Background Effects */}
-          <div className="absolute inset-0 bg-gradient-to-b from-violet-500/10 to-transparent pointer-events-none" />
-          <div className="absolute -top-24 -left-24 w-48 h-48 bg-violet-500/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-fuchsia-500/20 rounded-full blur-3xl animate-pulse" />
+          <div
+            aria-hidden='true'
+            className='absolute inset-0 bg-gradient-to-b from-violet-500/10 to-transparent pointer-events-none'
+          />
+          <div
+            aria-hidden='true'
+            className='absolute -top-24 -left-24 w-48 h-48 bg-violet-500/20 rounded-full blur-3xl animate-pulse'
+          />
+          <div
+            aria-hidden='true'
+            className='absolute -bottom-24 -right-24 w-48 h-48 bg-fuchsia-500/20 rounded-full blur-3xl animate-pulse'
+          />
 
           {/* Icon */}
-          <div className="relative mb-6 inline-block">
-            <div className="absolute inset-0 bg-violet-500 blur-xl opacity-50 animate-pulse" />
-            <div className="relative bg-gradient-to-br from-violet-400 to-violet-600 p-4 rounded-full shadow-lg animate-float flex items-center justify-center w-20 h-20 text-4xl">
+          <div className='relative mb-6 inline-block'>
+            <div
+              aria-hidden='true'
+              className='absolute inset-0 bg-violet-500 blur-xl opacity-50 animate-pulse'
+            />
+            <div
+              aria-label={`Ícone da conquista: ${badge.name}`}
+              className='relative bg-gradient-to-br from-violet-400 to-violet-600 p-4 rounded-full shadow-lg animate-float flex items-center justify-center w-20 h-20 text-4xl'
+              role='img'
+            >
               {badge.icon}
             </div>
-            <div className="absolute -top-2 -right-2">
-              <Sparkles className="w-6 h-6 text-violet-200 animate-bounce" />
+            <div aria-hidden='true' className='absolute -top-2 -right-2'>
+              <Sparkles className='w-6 h-6 text-violet-200 animate-bounce' />
             </div>
           </div>
 
           {/* Text */}
-          <h2 className="text-2xl font-bold text-white mb-2 animate-scale-up">
+          <h2
+            className='text-2xl font-bold text-white mb-2 animate-scale-up'
+            id='achievement-title'
+          >
             Conquista Desbloqueada!
           </h2>
-          <h3 className="text-xl font-bold text-violet-400 mb-4">
-            {badge.name}
-          </h3>
-          <p className="text-slate-300 mb-8 text-sm">
+          <h3 className='text-xl font-bold text-violet-400 mb-4'>{badge.name}</h3>
+          <p className='text-slate-300 mb-8 text-sm' id='achievement-description'>
             {badge.description}
           </p>
 
           {/* Button */}
           <button
-            className="w-full py-3 px-6 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-400 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg shadow-violet-500/25 transform transition-all hover:scale-105 active:scale-95"
+            className='w-full py-3 px-6 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-400 hover:to-violet-500 text-white font-bold rounded-xl shadow-lg shadow-violet-500/25 transform transition-all hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
             onClick={handleClose}
-            type="button"
+            ref={closeButtonRef}
+            type='button'
           >
             Incrível!
           </button>
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default AchievementModal;
+export default AchievementModal

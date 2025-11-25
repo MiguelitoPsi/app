@@ -1,9 +1,9 @@
-import { and, desc, eq } from "drizzle-orm";
-import type { DrizzleD1Database } from "drizzle-orm/d1";
-import { nanoid } from "nanoid";
-import { z } from "zod";
-import { notifications } from "@/lib/db/schema";
-import { protectedProcedure, router } from "../trpc";
+import { and, desc, eq } from 'drizzle-orm'
+import type { DrizzleD1Database } from 'drizzle-orm/d1'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import { notifications } from '@/lib/db/schema'
+import { protectedProcedure, router } from '../trpc'
 
 // Helper function to create notification
 export async function createNotification(
@@ -14,7 +14,7 @@ export async function createNotification(
   metadata: Record<string, unknown> | undefined,
   db: DrizzleD1Database<any>
 ) {
-  const id = nanoid();
+  const id = nanoid()
   await db.insert(notifications).values({
     id,
     userId,
@@ -22,8 +22,8 @@ export async function createNotification(
     title,
     message,
     metadata,
-  });
-  return id;
+  })
+  return id
 }
 
 export const notificationRouter = router({
@@ -39,14 +39,9 @@ export const notificationRouter = router({
     const result = await ctx.db
       .select()
       .from(notifications)
-      .where(
-        and(
-          eq(notifications.userId, ctx.user.id),
-          eq(notifications.isRead, false)
-        )
-      );
+      .where(and(eq(notifications.userId, ctx.user.id), eq(notifications.isRead, false)))
 
-    return result.length;
+    return result.length
   }),
 
   markAsRead: protectedProcedure
@@ -55,22 +50,17 @@ export const notificationRouter = router({
       await ctx.db
         .update(notifications)
         .set({ isRead: true })
-        .where(
-          and(
-            eq(notifications.id, input.id),
-            eq(notifications.userId, ctx.user.id)
-          )
-        );
+        .where(and(eq(notifications.id, input.id), eq(notifications.userId, ctx.user.id)))
 
-      return { success: true };
+      return { success: true }
     }),
 
   markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
     await ctx.db
       .update(notifications)
       .set({ isRead: true })
-      .where(eq(notifications.userId, ctx.user.id));
+      .where(eq(notifications.userId, ctx.user.id))
 
-    return { success: true };
+    return { success: true }
   }),
-});
+})

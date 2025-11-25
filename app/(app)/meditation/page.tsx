@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { MeditationView } from "@/views/MeditationView";
+import { MeditationView } from '@/views/MeditationView'
 
 export default function MeditationPage() {
-  return <MeditationView />;
+  return <MeditationView />
 }

@@ -1,9 +1,9 @@
-import { desc, eq, sum } from "drizzle-orm";
-import { nanoid } from "nanoid";
-import { z } from "zod";
-import { meditationSessions, userStats } from "@/lib/db/schema";
-import { awardXPAndCoins } from "@/lib/xp";
-import { protectedProcedure, router } from "../trpc";
+import { desc, eq, sum } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import { meditationSessions, userStats } from '@/lib/db/schema'
+import { awardXPAndCoins } from '@/lib/xp'
+import { protectedProcedure, router } from '../trpc'
 
 export const meditationRouter = router({
   create: protectedProcedure
@@ -15,12 +15,12 @@ export const meditationRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const id = nanoid();
+      const id = nanoid()
 
       // Award XP and Coins using centralized system
-      const result = await awardXPAndCoins(ctx.db, ctx.user.id, "meditation");
-      const { xpAwarded, coinsAwarded, levelUp } = result;
-      const now = new Date();
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'meditation')
+      const { xpAwarded, coinsAwarded, levelUp } = result
+      const now = new Date()
 
       // Create meditation session
       await ctx.db.insert(meditationSessions).values({
@@ -29,14 +29,14 @@ export const meditationRouter = router({
         duration: input.duration,
         type: input.type,
         completed: input.completed,
-      });
+      })
 
       // Update stats
       const [stats] = await ctx.db
         .select()
         .from(userStats)
         .where(eq(userStats.userId, ctx.user.id))
-        .limit(1);
+        .limit(1)
 
       if (stats) {
         await ctx.db
@@ -45,7 +45,7 @@ export const meditationRouter = router({
             totalMeditations: stats.totalMeditations + 1,
             updatedAt: now,
           })
-          .where(eq(userStats.userId, ctx.user.id));
+          .where(eq(userStats.userId, ctx.user.id))
       }
 
       return {
@@ -53,7 +53,7 @@ export const meditationRouter = router({
         xp: xpAwarded,
         coins: coinsAwarded,
         levelUp,
-      };
+      }
     }),
 
   getHistory: protectedProcedure.query(
@@ -69,8 +69,8 @@ export const meditationRouter = router({
     const result = await ctx.db
       .select({ total: sum(meditationSessions.duration) })
       .from(meditationSessions)
-      .where(eq(meditationSessions.userId, ctx.user.id));
+      .where(eq(meditationSessions.userId, ctx.user.id))
 
-    return result[0]?.total || 0;
+    return result[0]?.total || 0
   }),
-});
+})

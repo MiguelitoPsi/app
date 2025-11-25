@@ -1,408 +1,408 @@
-import type { UserStats } from "./db/schema";
+import type { UserStats } from './db/schema'
 
-export const TIMEZONE = "America/Sao_Paulo";
+export const TIMEZONE = 'America/Sao_Paulo'
 
-export type BadgeCategory = 
-  | "evolution"
-  | "tasks_general"
-  | "tasks_priority"
-  | "meditation"
-  | "journal"
-  | "mood"
-  | "consistency"
-  | "rewards"
-  | "engagement";
+export type BadgeCategory =
+  | 'evolution'
+  | 'tasks_general'
+  | 'tasks_priority'
+  | 'meditation'
+  | 'journal'
+  | 'mood'
+  | 'consistency'
+  | 'rewards'
+  | 'engagement'
 
-export const BADGE_CATEGORIES: Record<BadgeCategory, { label: string; icon: string; color: string }> = {
-  evolution: { label: "Evolução de Nível", icon: "👑", color: "text-amber-500" },
-  tasks_general: { label: "Tarefas Concluídas", icon: "✅", color: "text-emerald-500" },
-  tasks_priority: { label: "Tarefas por Prioridade", icon: "🎯", color: "text-blue-500" },
-  meditation: { label: "Meditação", icon: "🧘", color: "text-violet-500" },
-  journal: { label: "Diário de Pensamento", icon: "📝", color: "text-pink-500" },
-  mood: { label: "Registro de Humor", icon: "🎭", color: "text-orange-500" },
-  consistency: { label: "Consistência", icon: "🔥", color: "text-red-500" },
-  rewards: { label: "Recompensas", icon: "🎁", color: "text-purple-500" },
-  engagement: { label: "Engajamento Geral", icon: "🌟", color: "text-indigo-500" },
-};
+export const BADGE_CATEGORIES: Record<
+  BadgeCategory,
+  { label: string; icon: string; color: string }
+> = {
+  evolution: { label: 'Evolução de Nível', icon: '👑', color: 'text-amber-500' },
+  tasks_general: { label: 'Tarefas Concluídas', icon: '✅', color: 'text-emerald-500' },
+  tasks_priority: { label: 'Tarefas por Prioridade', icon: '🎯', color: 'text-blue-500' },
+  meditation: { label: 'Meditação', icon: '🧘', color: 'text-violet-500' },
+  journal: { label: 'Diário de Pensamento', icon: '📝', color: 'text-pink-500' },
+  mood: { label: 'Registro de Humor', icon: '🎭', color: 'text-orange-500' },
+  consistency: { label: 'Consistência', icon: '🔥', color: 'text-red-500' },
+  rewards: { label: 'Recompensas', icon: '🎁', color: 'text-purple-500' },
+  engagement: { label: 'Engajamento Geral', icon: '🌟', color: 'text-indigo-500' },
+}
 
 export type BadgeDefinition = {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: number;
-  category: BadgeCategory;
+  id: string
+  name: string
+  description: string
+  icon: string
+  requirement: number
+  category: BadgeCategory
   metric:
     | keyof Pick<
         UserStats,
-        | "totalMeditations"
-        | "completedTasks"
-        | "totalJournalEntries"
-        | "longestStreak"
+        'totalMeditations' | 'completedTasks' | 'totalJournalEntries' | 'longestStreak'
       >
-    | "totalMeditationMinutes"
-    | "level"
-    | "completedTasksHigh"
-    | "completedTasksMedium"
-    | "completedTasksLow"
-    | "totalMoodLogs"
-    | "redeemedRewards"
-    | "engagement"
-    | "auto";
-};
+    | 'totalMeditationMinutes'
+    | 'level'
+    | 'completedTasksHigh'
+    | 'completedTasksMedium'
+    | 'completedTasksLow'
+    | 'totalMoodLogs'
+    | 'redeemedRewards'
+    | 'engagement'
+    | 'auto'
+}
 
 export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   // Evolução de Nível
   {
-    id: "level_2",
-    name: "Aprendiz",
-    description: "Alcançou o nível 2",
-    icon: "🌱",
+    id: 'level_2',
+    name: 'Aprendiz',
+    description: 'Alcançou o nível 2',
+    icon: '🌱',
     requirement: 2,
-    category: "evolution",
-    metric: "level",
+    category: 'evolution',
+    metric: 'level',
   },
   {
-    id: "level_5",
-    name: "Veterano",
-    description: "Alcançou o nível 5",
-    icon: "⭐",
+    id: 'level_5',
+    name: 'Veterano',
+    description: 'Alcançou o nível 5',
+    icon: '⭐',
     requirement: 5,
-    category: "evolution",
-    metric: "level",
+    category: 'evolution',
+    metric: 'level',
   },
   {
-    id: "level_10",
-    name: "Mestre",
-    description: "Alcançou o nível 10",
-    icon: "👑",
+    id: 'level_10',
+    name: 'Mestre',
+    description: 'Alcançou o nível 10',
+    icon: '👑',
     requirement: 10,
-    category: "evolution",
-    metric: "level",
+    category: 'evolution',
+    metric: 'level',
   },
 
   // Tarefas Gerais
   {
-    id: "tasks_1",
-    name: "Primeiro Passo",
-    description: "Concluiu 1 tarefa",
-    icon: "🦶",
+    id: 'tasks_1',
+    name: 'Primeiro Passo',
+    description: 'Concluiu 1 tarefa',
+    icon: '🦶',
     requirement: 1,
-    category: "tasks_general",
-    metric: "completedTasks",
+    category: 'tasks_general',
+    metric: 'completedTasks',
   },
   {
-    id: "tasks_10",
-    name: "Realizador",
-    description: "Concluiu 10 tarefas",
-    icon: "🚀",
+    id: 'tasks_10',
+    name: 'Realizador',
+    description: 'Concluiu 10 tarefas',
+    icon: '🚀',
     requirement: 10,
-    category: "tasks_general",
-    metric: "completedTasks",
+    category: 'tasks_general',
+    metric: 'completedTasks',
   },
   {
-    id: "tasks_50",
-    name: "Produtivo",
-    description: "Concluiu 50 tarefas",
-    icon: "🔥",
+    id: 'tasks_50',
+    name: 'Produtivo',
+    description: 'Concluiu 50 tarefas',
+    icon: '🔥',
     requirement: 50,
-    category: "tasks_general",
-    metric: "completedTasks",
+    category: 'tasks_general',
+    metric: 'completedTasks',
   },
   {
-    id: "tasks_100",
-    name: "Implacável",
-    description: "Concluiu 100 tarefas",
-    icon: "💯",
+    id: 'tasks_100',
+    name: 'Implacável',
+    description: 'Concluiu 100 tarefas',
+    icon: '💯',
     requirement: 100,
-    category: "tasks_general",
-    metric: "completedTasks",
+    category: 'tasks_general',
+    metric: 'completedTasks',
   },
   {
-    id: "tasks_500",
-    name: "Lendário",
-    description: "Concluiu 500 tarefas",
-    icon: "🏆",
+    id: 'tasks_500',
+    name: 'Lendário',
+    description: 'Concluiu 500 tarefas',
+    icon: '🏆',
     requirement: 500,
-    category: "tasks_general",
-    metric: "completedTasks",
+    category: 'tasks_general',
+    metric: 'completedTasks',
   },
 
   // Tarefas por Prioridade
   {
-    id: "priority_high_10",
-    name: "Prioridade Máxima",
-    description: "10 tarefas de alta prioridade",
-    icon: "🚨",
+    id: 'priority_high_10',
+    name: 'Prioridade Máxima',
+    description: '10 tarefas de alta prioridade',
+    icon: '🚨',
     requirement: 10,
-    category: "tasks_priority",
-    metric: "completedTasksHigh",
+    category: 'tasks_priority',
+    metric: 'completedTasksHigh',
   },
   {
-    id: "priority_medium_20",
-    name: "Equilíbrio",
-    description: "20 tarefas de média prioridade",
-    icon: "⚖️",
+    id: 'priority_medium_20',
+    name: 'Equilíbrio',
+    description: '20 tarefas de média prioridade',
+    icon: '⚖️',
     requirement: 20,
-    category: "tasks_priority",
-    metric: "completedTasksMedium",
+    category: 'tasks_priority',
+    metric: 'completedTasksMedium',
   },
   {
-    id: "priority_low_30",
-    name: "Organizado",
-    description: "30 tarefas de baixa prioridade",
-    icon: "📋",
+    id: 'priority_low_30',
+    name: 'Organizado',
+    description: '30 tarefas de baixa prioridade',
+    icon: '📋',
     requirement: 30,
-    category: "tasks_priority",
-    metric: "completedTasksLow",
+    category: 'tasks_priority',
+    metric: 'completedTasksLow',
   },
 
   // Meditação
   {
-    id: "meditation_sessions_10",
-    name: "Iniciado Zen",
-    description: "10 sessões de meditação",
-    icon: "🧘",
+    id: 'meditation_sessions_10',
+    name: 'Iniciado Zen',
+    description: '10 sessões de meditação',
+    icon: '🧘',
     requirement: 10,
-    category: "meditation",
-    metric: "totalMeditations",
+    category: 'meditation',
+    metric: 'totalMeditations',
   },
   {
-    id: "meditation_minutes_100",
-    name: "Mente Serena",
-    description: "100 minutos de meditação",
-    icon: "🕊️",
+    id: 'meditation_minutes_100',
+    name: 'Mente Serena',
+    description: '100 minutos de meditação',
+    icon: '🕊️',
     requirement: 100,
-    category: "meditation",
-    metric: "totalMeditationMinutes",
+    category: 'meditation',
+    metric: 'totalMeditationMinutes',
   },
 
   // Diário
   {
-    id: "journal_1",
-    name: "Querido Diário",
-    description: "Primeiro registro no diário",
-    icon: "📔",
+    id: 'journal_1',
+    name: 'Querido Diário',
+    description: 'Primeiro registro no diário',
+    icon: '📔',
     requirement: 1,
-    category: "journal",
-    metric: "totalJournalEntries",
+    category: 'journal',
+    metric: 'totalJournalEntries',
   },
   {
-    id: "journal_10",
-    name: "Escritor",
-    description: "10 registros no diário",
-    icon: "✍️",
+    id: 'journal_10',
+    name: 'Escritor',
+    description: '10 registros no diário',
+    icon: '✍️',
     requirement: 10,
-    category: "journal",
-    metric: "totalJournalEntries",
+    category: 'journal',
+    metric: 'totalJournalEntries',
   },
   {
-    id: "journal_30",
-    name: "Reflexivo",
-    description: "30 registros no diário",
-    icon: "🧠",
+    id: 'journal_30',
+    name: 'Reflexivo',
+    description: '30 registros no diário',
+    icon: '🧠',
     requirement: 30,
-    category: "journal",
-    metric: "totalJournalEntries",
+    category: 'journal',
+    metric: 'totalJournalEntries',
   },
   {
-    id: "journal_100",
-    name: "Biógrafo",
-    description: "100 registros no diário",
-    icon: "📚",
+    id: 'journal_100',
+    name: 'Biógrafo',
+    description: '100 registros no diário',
+    icon: '📚',
     requirement: 100,
-    category: "journal",
-    metric: "totalJournalEntries",
+    category: 'journal',
+    metric: 'totalJournalEntries',
   },
 
   // Humor
   {
-    id: "mood_1",
-    name: "Autoconhecimento",
-    description: "Primeiro registro de humor",
-    icon: "🎭",
+    id: 'mood_1',
+    name: 'Autoconhecimento',
+    description: 'Primeiro registro de humor',
+    icon: '🎭',
     requirement: 1,
-    category: "mood",
-    metric: "totalMoodLogs",
+    category: 'mood',
+    metric: 'totalMoodLogs',
   },
   {
-    id: "mood_7",
-    name: "Semana Emocional",
-    description: "7 registros de humor",
-    icon: "📅",
+    id: 'mood_7',
+    name: 'Semana Emocional',
+    description: '7 registros de humor',
+    icon: '📅',
     requirement: 7,
-    category: "mood",
-    metric: "totalMoodLogs",
+    category: 'mood',
+    metric: 'totalMoodLogs',
   },
   {
-    id: "mood_30",
-    name: "Mês Consciente",
-    description: "30 registros de humor",
-    icon: "🌙",
+    id: 'mood_30',
+    name: 'Mês Consciente',
+    description: '30 registros de humor',
+    icon: '🌙',
     requirement: 30,
-    category: "mood",
-    metric: "totalMoodLogs",
+    category: 'mood',
+    metric: 'totalMoodLogs',
   },
   {
-    id: "mood_100",
-    name: "Mestre das Emoções",
-    description: "100 registros de humor",
-    icon: "🎭",
+    id: 'mood_100',
+    name: 'Mestre das Emoções',
+    description: '100 registros de humor',
+    icon: '🎭',
     requirement: 100,
-    category: "mood",
-    metric: "totalMoodLogs",
+    category: 'mood',
+    metric: 'totalMoodLogs',
   },
 
   // Consistência
   {
-    id: "streak_3",
-    name: "Aquecendo",
-    description: "3 dias seguidos",
-    icon: "🔥",
+    id: 'streak_3',
+    name: 'Aquecendo',
+    description: '3 dias seguidos',
+    icon: '🔥',
     requirement: 3,
-    category: "consistency",
-    metric: "longestStreak",
+    category: 'consistency',
+    metric: 'longestStreak',
   },
   {
-    id: "streak_7",
-    name: "Focado",
-    description: "7 dias seguidos",
-    icon: "🗓️",
+    id: 'streak_7',
+    name: 'Focado',
+    description: '7 dias seguidos',
+    icon: '🗓️',
     requirement: 7,
-    category: "consistency",
-    metric: "longestStreak",
+    category: 'consistency',
+    metric: 'longestStreak',
   },
   {
-    id: "streak_21",
-    name: "Hábito Formado",
-    description: "21 dias seguidos",
-    icon: "💪",
+    id: 'streak_21',
+    name: 'Hábito Formado',
+    description: '21 dias seguidos',
+    icon: '💪',
     requirement: 21,
-    category: "consistency",
-    metric: "longestStreak",
+    category: 'consistency',
+    metric: 'longestStreak',
   },
   {
-    id: "streak_30",
-    name: "Mensalista",
-    description: "30 dias seguidos",
-    icon: "📅",
+    id: 'streak_30',
+    name: 'Mensalista',
+    description: '30 dias seguidos',
+    icon: '📅',
     requirement: 30,
-    category: "consistency",
-    metric: "longestStreak",
+    category: 'consistency',
+    metric: 'longestStreak',
   },
   {
-    id: "streak_100",
-    name: "Centenário",
-    description: "100 dias seguidos",
-    icon: "💯",
+    id: 'streak_100',
+    name: 'Centenário',
+    description: '100 dias seguidos',
+    icon: '💯',
     requirement: 100,
-    category: "consistency",
-    metric: "longestStreak",
+    category: 'consistency',
+    metric: 'longestStreak',
   },
 
   // Recompensas
   {
-    id: "rewards_1",
-    name: "Merecido",
-    description: "1 recompensa resgatada",
-    icon: "🎁",
+    id: 'rewards_1',
+    name: 'Merecido',
+    description: '1 recompensa resgatada',
+    icon: '🎁',
     requirement: 1,
-    category: "rewards",
-    metric: "redeemedRewards",
+    category: 'rewards',
+    metric: 'redeemedRewards',
   },
   {
-    id: "rewards_5",
-    name: "Celebrando",
-    description: "5 recompensas resgatadas",
-    icon: "🎉",
+    id: 'rewards_5',
+    name: 'Celebrando',
+    description: '5 recompensas resgatadas',
+    icon: '🎉',
     requirement: 5,
-    category: "rewards",
-    metric: "redeemedRewards",
+    category: 'rewards',
+    metric: 'redeemedRewards',
   },
   {
-    id: "rewards_10",
-    name: "Conquistador",
-    description: "10 recompensas resgatadas",
-    icon: "💎",
+    id: 'rewards_10',
+    name: 'Conquistador',
+    description: '10 recompensas resgatadas',
+    icon: '💎',
     requirement: 10,
-    category: "rewards",
-    metric: "redeemedRewards",
+    category: 'rewards',
+    metric: 'redeemedRewards',
   },
   {
-    id: "rewards_20",
-    name: "Colecionador",
-    description: "20 recompensas resgatadas",
-    icon: "👑",
+    id: 'rewards_20',
+    name: 'Colecionador',
+    description: '20 recompensas resgatadas',
+    icon: '👑',
     requirement: 20,
-    category: "rewards",
-    metric: "redeemedRewards",
+    category: 'rewards',
+    metric: 'redeemedRewards',
   },
 
   // Engajamento
   {
-    id: "engagement_combo",
-    name: "Super Dia",
-    description: "Usou 3 funcionalidades no mesmo dia",
-    icon: "🌟",
+    id: 'engagement_combo',
+    name: 'Super Dia',
+    description: 'Usou 3 funcionalidades no mesmo dia',
+    icon: '🌟',
     requirement: 1,
-    category: "engagement",
-    metric: "engagement",
+    category: 'engagement',
+    metric: 'engagement',
   },
-];
+]
 
 export type RankDefinition = {
-  level: number;
-  name: string;
-  minXp: number;
-  description: string;
-};
+  level: number
+  name: string
+  minXp: number
+  description: string
+}
 
 export const RANKS: RankDefinition[] = [
   {
     level: 1,
-    name: "Iniciado",
+    name: 'Iniciado',
     minXp: 0,
-    description: "O começo da jornada de autoconhecimento.",
+    description: 'O começo da jornada de autoconhecimento.',
   },
   {
     level: 2,
-    name: "Guerreiro da Mente",
+    name: 'Guerreiro da Mente',
     minXp: 100,
-    description: "Enfrentando os primeiros desafios emocionais.",
+    description: 'Enfrentando os primeiros desafios emocionais.',
   },
   {
     level: 3,
-    name: "Aprendiz da Calma",
+    name: 'Aprendiz da Calma',
     minXp: 200,
-    description: "Descobrindo o poder da respiração consciente.",
+    description: 'Descobrindo o poder da respiração consciente.',
   },
   {
     level: 4,
-    name: "Guardião do Foco",
+    name: 'Guardião do Foco',
     minXp: 300,
-    description: "Mantendo a atenção no momento presente.",
+    description: 'Mantendo a atenção no momento presente.',
   },
   {
     level: 5,
-    name: "Mestre das Emoções",
+    name: 'Mestre das Emoções',
     minXp: 400,
-    description: "Navegando com sabedoria pelas ondas dos sentimentos.",
+    description: 'Navegando com sabedoria pelas ondas dos sentimentos.',
   },
   {
     level: 6,
-    name: "Sábio Interior",
+    name: 'Sábio Interior',
     minXp: 500,
-    description: "Conexão profunda com o eu verdadeiro.",
+    description: 'Conexão profunda com o eu verdadeiro.',
   },
   {
     level: 7,
-    name: "Iluminado",
+    name: 'Iluminado',
     minXp: 600,
-    description: "Estado de fluxo e aceitação plena da realidade.",
+    description: 'Estado de fluxo e aceitação plena da realidade.',
   },
-];
+]
 
-export type Mood = "happy" | "calm" | "neutral" | "sad" | "anxious" | "angry";
+export type Mood = 'happy' | 'calm' | 'neutral' | 'sad' | 'anxious' | 'angry'
 
 export const MOOD_SCORE_MAP: Record<Mood, number> = {
   happy: 100,
@@ -411,25 +411,25 @@ export const MOOD_SCORE_MAP: Record<Mood, number> = {
   anxious: 40,
   sad: 30,
   angry: 20,
-};
+}
 
 export const TASK_LIMITS = {
   high: 2,
   medium: 5,
-} as const;
+} as const
 
 /**
  * Helper function to calculate level from XP
  * Re-exported from lib/xp for backwards compatibility
  */
-export { getLevelFromXP } from "./xp";
+export { getLevelFromXP } from './xp'
 
 // Helper function to get rank definition for a level
 export function getRankForLevel(level: number): RankDefinition {
   for (let i = RANKS.length - 1; i >= 0; i--) {
     if (level >= RANKS[i].level) {
-      return RANKS[i];
+      return RANKS[i]
     }
   }
-  return RANKS[0];
+  return RANKS[0]
 }

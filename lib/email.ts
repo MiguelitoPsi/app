@@ -1,6 +1,6 @@
-import { Resend } from "resend";
+import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function sendInviteEmail(
   to: string,
@@ -10,13 +10,13 @@ export async function sendInviteEmail(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const inviteUrl = `${
-      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-    }/invite/${inviteToken}`;
+      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    }/invite/${inviteToken}`
 
     await resend.emails.send({
-      from: "MiguelitoPsi <noreply@miguelitopsi.com>",
+      from: 'MiguelitoPsi <noreply@miguelitopsi.com>',
       to,
-      subject: "Convite MiguelitoPsi - Inicie sua jornada de bem-estar",
+      subject: 'Convite MiguelitoPsi - Inicie sua jornada de bem-estar',
       html: `
         <!DOCTYPE html>
         <html>
@@ -103,14 +103,14 @@ export async function sendInviteEmail(
           </body>
         </html>
       `,
-    });
+    })
 
-    return { success: true };
+    return { success: true }
   } catch (error) {
-    console.error("Error sending invite email:", error);
+    console.error('Error sending invite email:', error)
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Failed to send email",
-    };
+      error: error instanceof Error ? error.message : 'Failed to send email',
+    }
   }
 }
