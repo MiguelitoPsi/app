@@ -157,9 +157,11 @@ export default function SignInPage() {
           <p className='text-center text-gray-500 text-xs'>
             <strong>Credenciais de teste:</strong>
             <br />
-            Admin: admin@app-psi.com / admin123
+            Admin: psijmrodrigues@gmail.com | Senha: Mig123@el!
             <br />
-            Paciente: miguel@app-psi.com / miguel123
+            Terapeuta: miguelito123@gmail.com | Senha: Mig123@el!
+            <br />
+            Paciente: miguel310rodrigues@gmail.com | Senha: Mig123@el!
           </p>
         </div>
       </main>
