@@ -1,3 +1,4 @@
+import { adminRouter } from "./routers/admin";
 import { aiRouter } from "./routers/ai";
 import { analyticsRouter } from "./routers/analytics";
 import { badgeRouter } from "./routers/badge";
@@ -11,6 +12,7 @@ import { userRouter } from "./routers/user";
 import { router } from "./trpc";
 
 export const appRouter = router({
+  admin: adminRouter,
   user: userRouter,
   task: taskRouter,
   journal: journalRouter,
