@@ -14,7 +14,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import AvatarOficial from "@/components/Avatar-oficial";
 import { trpc } from "@/lib/trpc/client";
 import { XP_REWARDS } from "@/lib/xp";
-import { Avatar } from "../components/Avatar";
 import { useGame } from "../context/GameContext";
 import type { Mood } from "../types";
 
@@ -47,7 +46,7 @@ export const HomeView: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
   // Local state for immediate UI feedback
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood);
-  const [isScrolled, setIsScrolled] = useState(false);
+  const [_, setIsScrolled] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Fetch mood history from backend
@@ -162,13 +161,18 @@ export const HomeView: React.FC = () => {
     });
   }, [moodHistoryData]);
 
-  const moods: { id: Mood; label: string; emoji: string }[] = [
-    { id: "happy", label: "Feliz", emoji: "😄" },
-    { id: "calm", label: "Calmo", emoji: "😌" },
-    { id: "neutral", label: "Neutro", emoji: "😐" },
-    { id: "sad", label: "Triste", emoji: "😔" },
-    { id: "anxious", label: "Ansioso", emoji: "😰" },
-    { id: "angry", label: "Bravo", emoji: "😡" },
+  const moods: { id: Mood; label: string; image: string; emoji?: string }[] = [
+    { id: "happy", label: "Feliz", image: "/mascote/feliz.png", emoji: "😄" },
+    { id: "calm", label: "Calmo", image: "/mascote/calmo.png", emoji: "😌" },
+
+    { id: "sad", label: "Triste", image: "/mascote/triste.png", emoji: "😢" },
+    {
+      id: "anxious",
+      label: "Ansioso",
+      image: "/mascote/ansioso.png",
+      emoji: "😰",
+    },
+    { id: "angry", label: "Bravo", image: "/mascote/raiva.png", emoji: "😠" },
   ];
 
   return (
@@ -239,9 +243,9 @@ export const HomeView: React.FC = () => {
 
         {/* Avatar Section */}
         <div className="flex justify-center py-2">
-          <Avatar config={stats.avatarConfig} mood={selectedMood} size="lg" />
+          <AvatarOficial mood={selectedMood} size="lg" />
         </div>
-        <AvatarOficial mood={selectedMood} />
+
         {/* Quick Mood Check-in */}
         <fieldset className="rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900">
           <legend className="sr-only">
@@ -279,8 +283,10 @@ export const HomeView: React.FC = () => {
                 type="button"
               >
                 <span
-                  aria-hidden="true"
-                  className="text-2xl drop-shadow-sm filter sm:text-3xl"
+                  className="
+                  h-7 w-7 sm:h-10 sm:w-10 text-3xl 
+                  flex items-center justify-center
+                "
                 >
                   {m.emoji}
                 </span>
