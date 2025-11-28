@@ -96,16 +96,35 @@ getXPInfo(currentXP)
 | 5 min | 1.5x | 45 | 45 |
 | 10 min | 2x | 60 | 60 |
 
+### Penalidade para Tarefas Transferidas/Atrasadas
+
+Quando uma tarefa é transferida para outro dia (atraso), o ganho de XP e coins é penalizado:
+
+| Prioridade | 1º dia de atraso | 2+ dias de atraso |
+|------------|------------------|-------------------|
+| Baixa | 0% (zero XP/coins) | 0% |
+| Média | 50% | 0% |
+| Alta | 50% | 0% |
+
+**Exemplo:**
+- Tarefa **alta** prioridade (30 XP/coins) transferida 1 dia → 15 XP/coins
+- Tarefa **alta** prioridade (30 XP/coins) transferida 2+ dias → 0 XP/coins
+- Tarefa **baixa** prioridade (5 XP/coins) transferida 1+ dias → 0 XP/coins
+
 ## 🔧 Como Usar
 
 ### No Backend (routers tRPC)
 
 ```typescript
-import { awardXPAndCoins, getMeditationRewards } from "@/lib/xp";
+import { awardXPAndCoins, getMeditationRewards, getOverduePenaltyMultiplier } from "@/lib/xp";
 
 // Conceder XP por completar tarefa
 const result = await awardXPAndCoins(ctx.db, userId, "task", { priority: "high" });
 // result = { xpAwarded: 30, coinsAwarded: 40, levelUp: false, ... }
+
+// Conceder XP por tarefa atrasada (1 dia de atraso, prioridade alta = 50% de penalidade)
+const result = await awardXPAndCoins(ctx.db, userId, "task", { priority: "high", daysOverdue: 1 });
+// result = { xpAwarded: 15, coinsAwarded: 20, ... }
 
 // Conceder XP por meditação com duração
 const result = await awardXPAndCoins(ctx.db, userId, "meditation", { meditationDuration: 300 });

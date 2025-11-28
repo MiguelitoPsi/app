@@ -1,6 +1,6 @@
 'use client'
 
-import { AlertCircle, ArrowRight, BarChart2, BookOpen, Heart } from 'lucide-react'
+import { AlertCircle, ArrowRight, BarChart2, BookOpen, Heart, Sparkles } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
@@ -47,6 +47,9 @@ export const HomeView: React.FC = () => {
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
     days: 7,
   })
+
+  // Check if user has recent anxiety
+  const { data: anxietyData } = trpc.user.hasRecentAnxiety.useQuery()
 
   useEffect(() => {
     setIsMounted(true)
@@ -234,6 +237,34 @@ export const HomeView: React.FC = () => {
             </div>
             <div className='flex h-7 w-7 items-center justify-center rounded-full bg-red-100 sm:h-8 sm:w-8 dark:bg-red-900/30'>
               <ArrowRight className='text-red-500 dark:text-red-400' size={14} />
+            </div>
+          </button>
+        )}
+
+        {/* Meditation Suggestion Alert for Anxiety */}
+        {selectedMood === 'anxious' && (
+          <button
+            aria-label='Sugestão: Que tal uma meditação para aliviar a ansiedade? Clique para meditar.'
+            className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-teal-100 bg-teal-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-teal-900/30 dark:bg-teal-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2'
+            onClick={() => router.push('/meditation')}
+            type='button'
+          >
+            <div className='flex items-center gap-2 sm:gap-3'>
+              <div className='animate-pulse rounded-xl bg-teal-100 p-2 text-teal-500 sm:rounded-2xl sm:p-2.5 dark:bg-teal-900/40'>
+                <Sparkles className='sm:hidden' size={18} />
+                <Sparkles className='hidden sm:block' size={20} />
+              </div>
+              <div className='text-left'>
+                <h3 className='font-bold text-teal-700 text-xs sm:text-sm dark:text-teal-300'>
+                  Momento de Cuidar de Você
+                </h3>
+                <p className='font-medium text-teal-600/80 text-[10px] sm:text-xs dark:text-teal-400/80'>
+                  Que tal uma meditação para aliviar a ansiedade?
+                </p>
+              </div>
+            </div>
+            <div className='flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 sm:h-8 sm:w-8 dark:bg-teal-900/30'>
+              <ArrowRight className='text-teal-500 dark:text-teal-400' size={14} />
             </div>
           </button>
         )}

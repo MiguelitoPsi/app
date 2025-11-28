@@ -1,8 +1,16 @@
-import { and, desc, eq, sql, sum } from 'drizzle-orm'
+import { and, desc, eq, gte, sql, sum } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { MOOD_SCORE_MAP } from '@/lib/constants'
-import { meditationSessions, moodHistory, rewards, tasks, userStats, users } from '@/lib/db/schema'
+import {
+  journalEntries,
+  meditationSessions,
+  moodHistory,
+  rewards,
+  tasks,
+  userStats,
+  users,
+} from '@/lib/db/schema'
 import { formatDateSP } from '@/lib/utils/timezone'
 import { addCoins, addRawXP, awardXPAndCoins } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
@@ -251,4 +259,50 @@ export const userRouter = router({
 
       return result
     }),
+
+  getLatestMood: protectedProcedure.query(async ({ ctx }) => {
+    const [latestMood] = await ctx.db
+      .select()
+      .from(moodHistory)
+      .where(eq(moodHistory.userId, ctx.user.id))
+      .orderBy(desc(moodHistory.createdAt))
+      .limit(1)
+
+    return latestMood?.mood ?? null
+  }),
+
+  hasRecentAnxiety: protectedProcedure.query(async ({ ctx }) => {
+    // Check if the LATEST mood is anxious (not just any recent anxious mood)
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+    // Get the most recent mood entry
+    const [latestMood] = await ctx.db
+      .select()
+      .from(moodHistory)
+      .where(eq(moodHistory.userId, ctx.user.id))
+      .orderBy(desc(moodHistory.createdAt))
+      .limit(1)
+
+    // Check if latest mood is anxious and within last 24 hours
+    const hasAnxiousMood =
+      latestMood && latestMood.mood === 'anxious' && latestMood.createdAt >= oneDayAgo
+
+    // Check journal entries for anxious mood in last 24 hours
+    const [anxiousJournal] = await ctx.db
+      .select()
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, ctx.user.id),
+          eq(journalEntries.mood, 'anxious'),
+          gte(journalEntries.createdAt, oneDayAgo)
+        )
+      )
+      .limit(1)
+
+    return {
+      hasAnxiety: Boolean(hasAnxiousMood || anxiousJournal),
+      source: hasAnxiousMood ? 'mood' : anxiousJournal ? 'journal' : null,
+    }
+  }),
 })

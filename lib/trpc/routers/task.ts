@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from 'drizzle-orm'
+import { and, desc, eq, isNull, lt } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { TASK_LIMITS } from '@/lib/constants'
@@ -10,7 +10,7 @@ import {
   users,
 } from '@/lib/db/schema'
 import { getStartOfDay } from '@/lib/utils/timezone'
-import { awardXPAndCoins, COIN_REWARDS, XP_REWARDS } from '@/lib/xp'
+import { awardXPAndCoins, COIN_REWARDS, getOverduePenaltyMultiplier, XP_REWARDS } from '@/lib/xp'
 import { awardTherapistXP } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
@@ -145,7 +145,26 @@ export const taskRouter = router({
 
         if (!user) throw new Error('User not found')
 
-        const coinReward = COIN_REWARDS.task[task.priority]
+        // Calculate days overdue for penalty calculation (same logic as when completing)
+        let daysOverdueForUndo = 0
+        const originalDateForUndo = task.originalDueDate || task.dueDate
+        if (originalDateForUndo && task.completedAt) {
+          // Use completedAt date to calculate overdue days at the time of completion
+          const completedDate = new Date(task.completedAt)
+          completedDate.setHours(0, 0, 0, 0)
+          const originalDueDateForUndo = new Date(originalDateForUndo)
+          originalDueDateForUndo.setHours(0, 0, 0, 0)
+          daysOverdueForUndo = Math.max(
+            0,
+            Math.floor(
+              (completedDate.getTime() - originalDueDateForUndo.getTime()) / (1000 * 60 * 60 * 24)
+            )
+          )
+        }
+
+        // Apply penalty multiplier to calculate actual rewards that were given
+        const penaltyMultiplier = getOverduePenaltyMultiplier(daysOverdueForUndo, task.priority)
+        const coinReward = Math.round(COIN_REWARDS.task[task.priority] * penaltyMultiplier)
         let xpToDeduct = 0
         let shouldResetXpDate = false
 
@@ -156,7 +175,8 @@ export const taskRouter = router({
           const completedDate = new Date(task.completedAt).getTime()
           // Allow a small time difference (e.g., 5 seconds) because updates happen sequentially
           if (Math.abs(completedDate - xpDate) < 5000) {
-            xpToDeduct = XP_REWARDS.task[task.priority]
+            // Apply the same penalty that was applied when task was completed
+            xpToDeduct = Math.round(XP_REWARDS.task[task.priority] * penaltyMultiplier)
             shouldResetXpDate = true
           }
         }
@@ -218,9 +238,24 @@ export const taskRouter = router({
       }
 
       // If task is not completed, complete it (award rewards)
+      // Calculate days overdue for transferred tasks
+      let daysOverdue = 0
+      const originalDate = task.originalDueDate || task.dueDate
+      if (originalDate) {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const originalDueDate = new Date(originalDate)
+        originalDueDate.setHours(0, 0, 0, 0)
+        daysOverdue = Math.max(
+          0,
+          Math.floor((today.getTime() - originalDueDate.getTime()) / (1000 * 60 * 60 * 24))
+        )
+      }
+
       // Award XP and Coins using centralized system
       const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'task', {
         priority: task.priority,
+        daysOverdue,
       })
 
       const { xpAwarded, coinsAwarded, levelUp } = result
@@ -478,4 +513,135 @@ export const taskRouter = router({
 
       return suggestions
     }),
+
+  // ================== OVERDUE TASK MANAGEMENT ==================
+
+  // Transfer overdue tasks to today and return tasks that need urgent attention (2+ days overdue)
+  transferOverdueTasks: protectedProcedure.mutation(async ({ ctx }) => {
+    const now = new Date()
+    const today = new Date(now)
+    today.setHours(0, 0, 0, 0)
+
+    // Calculate 2 days ago for urgent alerts
+    const twoDaysAgo = new Date(today)
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+
+    // Get all incomplete tasks that are overdue (due date before today)
+    const overdueTasks = await ctx.db
+      .select()
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.userId, ctx.user.id),
+          isNull(tasks.deletedAt),
+          eq(tasks.completed, false),
+          lt(tasks.dueDate, today)
+        )
+      )
+
+    const transferredTasks: string[] = []
+    const urgentTasks: {
+      id: string
+      title: string
+      priority: string
+      originalDueDate: Date | null
+      daysOverdue: number
+    }[] = []
+
+    for (const task of overdueTasks) {
+      if (!task.dueDate) continue
+
+      const taskDueDate = new Date(task.dueDate)
+      const originalDate = task.originalDueDate || task.dueDate
+
+      // Calculate days overdue based on original due date
+      const originalDueDate = new Date(originalDate)
+      originalDueDate.setHours(0, 0, 0, 0)
+      const daysOverdue = Math.floor(
+        (today.getTime() - originalDueDate.getTime()) / (1000 * 60 * 60 * 24)
+      )
+
+      // Transfer task to today
+      await ctx.db
+        .update(tasks)
+        .set({
+          dueDate: today,
+          // Only set originalDueDate if not already set
+          originalDueDate: task.originalDueDate || taskDueDate,
+          updatedAt: now,
+        })
+        .where(eq(tasks.id, task.id))
+
+      transferredTasks.push(task.id)
+
+      // Check if task is 2+ days overdue (based on original due date)
+      if (daysOverdue >= 2) {
+        urgentTasks.push({
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          originalDueDate: task.originalDueDate || taskDueDate,
+          daysOverdue,
+        })
+      }
+    }
+
+    return {
+      transferredCount: transferredTasks.length,
+      transferredTaskIds: transferredTasks,
+      urgentTasks,
+    }
+  }),
+
+  // Get overdue tasks that are 2+ days past their original due date
+  getUrgentOverdueTasks: protectedProcedure.query(async ({ ctx }) => {
+    const now = new Date()
+    const today = new Date(now)
+    today.setHours(0, 0, 0, 0)
+
+    const twoDaysAgo = new Date(today)
+    twoDaysAgo.setDate(twoDaysAgo.getDate() - 2)
+
+    // Get all incomplete tasks
+    const incompleteTasks = await ctx.db
+      .select()
+      .from(tasks)
+      .where(
+        and(eq(tasks.userId, ctx.user.id), isNull(tasks.deletedAt), eq(tasks.completed, false))
+      )
+
+    const urgentTasks = incompleteTasks
+      .filter((task) => {
+        // Use originalDueDate if set, otherwise use dueDate
+        const originalDate = task.originalDueDate || task.dueDate
+        if (!originalDate) return false
+
+        const originalDueDate = new Date(originalDate)
+        originalDueDate.setHours(0, 0, 0, 0)
+
+        // Check if 2+ days overdue
+        const daysOverdue = Math.floor(
+          (today.getTime() - originalDueDate.getTime()) / (1000 * 60 * 60 * 24)
+        )
+        return daysOverdue >= 2
+      })
+      .map((task) => {
+        const originalDate = task.originalDueDate || task.dueDate
+        const originalDueDate = new Date(originalDate as Date)
+        originalDueDate.setHours(0, 0, 0, 0)
+        const daysOverdue = Math.floor(
+          (today.getTime() - originalDueDate.getTime()) / (1000 * 60 * 60 * 24)
+        )
+
+        return {
+          id: task.id,
+          title: task.title,
+          priority: task.priority,
+          originalDueDate: originalDate,
+          daysOverdue,
+        }
+      })
+
+    return urgentTasks
+  }),
 })

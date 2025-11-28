@@ -4,7 +4,7 @@ import type React from 'react'
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import { BADGE_DEFINITIONS } from '@/lib/constants'
 import { trpc } from '@/lib/trpc/client'
-import type { AvatarConfig, GameContextType, Mood, UserStats } from '../types'
+import type { AvatarConfig, GameContextType, Mood, UrgentTask, UserStats } from '../types'
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
 
@@ -28,14 +28,57 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   })
 
   // Fetch tasks - can change frequently
-  const { data: tasksData = [] } = trpc.task.getAll.useQuery(undefined, {
+  const { data: tasksData = [], refetch: refetchTasks } = trpc.task.getAll.useQuery(undefined, {
     staleTime: 30 * 1000, // 30 seconds
     refetchOnMount: false,
   })
 
+  // Transfer overdue tasks mutation
+  const transferOverdueMutation = trpc.task.transferOverdueTasks.useMutation({
+    onSuccess: (result) => {
+      if (result.transferredCount > 0) {
+        // Refresh tasks after transfer
+        refetchTasks()
+      }
+      // Update urgent tasks from the result
+      if (result.urgentTasks.length > 0) {
+        setUrgentOverdueTasks(
+          result.urgentTasks.map((t) => ({
+            ...t,
+            originalDueDate: t.originalDueDate ? new Date(t.originalDueDate) : null,
+          }))
+        )
+      }
+    },
+  })
+
+  // State for urgent overdue tasks (2+ days)
+  const [urgentOverdueTasks, setUrgentOverdueTasks] = useState<UrgentTask[]>([])
+  const [hasTransferredToday, setHasTransferredToday] = useState(false)
+
+  // Transfer overdue tasks on mount (once per day)
+  useEffect(() => {
+    if (!hasTransferredToday && tasksData.length > 0) {
+      const lastTransferDate = localStorage.getItem('lastTaskTransferDate')
+      const today = new Date().toDateString()
+
+      if (lastTransferDate !== today) {
+        transferOverdueMutation.mutate()
+        localStorage.setItem('lastTaskTransferDate', today)
+        setHasTransferredToday(true)
+      }
+    }
+  }, [hasTransferredToday, tasksData.length, transferOverdueMutation])
+
   // Fetch journal entries - rarely changes
   const { data: journalData = [] } = trpc.journal.getAll.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: false,
+  })
+
+  // Fetch latest mood from moodHistory - used for currentMood
+  const { data: latestMood } = trpc.user.getLatestMood.useQuery(undefined, {
+    staleTime: 1 * 60 * 1000, // 1 minute
     refetchOnMount: false,
   })
 
@@ -191,6 +234,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
         completed: Boolean(task.completed),
         dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
+        originalDueDate: task.originalDueDate
+          ? new Date(task.originalDueDate).getTime()
+          : undefined,
         frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
         weekDays: task.weekDays as number[] | undefined,
         monthDays: task.monthDays as number[] | undefined,
@@ -212,11 +258,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     [journalData]
   )
 
-  // Get current mood (most recent from journal)
+  // Get current mood from moodHistory (or fallback to journal)
   const currentMood: Mood = useMemo(() => {
-    if (journal.length === 0) return 'neutral'
-    return journal[0]?.emotion || 'neutral'
-  }, [journal])
+    // Priority: moodHistory > journal
+    if (latestMood) return latestMood as Mood
+    if (journal.length > 0) return journal[0]?.emotion || 'neutral'
+    return 'neutral'
+  }, [latestMood, journal])
 
   // Use BADGE_DEFINITIONS directly
   const allBadges = BADGE_DEFINITIONS
@@ -257,6 +305,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const dismissNewBadge = () => {
     setNewBadges((prev) => prev.slice(1))
+  }
+
+  const dismissUrgentTask = (id: string) => {
+    setUrgentOverdueTasks((prev) => prev.filter((t) => t.id !== id))
   }
 
   // Helper to optimistically update user profile XP and coins
@@ -404,6 +456,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       await utils.client.user.trackMood.mutate({ mood })
       // Background invalidation
       utils.user.getProfile.invalidate()
+      utils.user.getLatestMood.invalidate()
+      utils.user.hasRecentAnxiety.invalidate()
       checkBadges()
     } catch (error) {
       // Revert on error
@@ -572,7 +626,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         currentMood,
         allBadges,
         newBadges,
+        urgentOverdueTasks,
         dismissNewBadge,
+        dismissUrgentTask,
         addXP,
         addPoints,
         toggleTask,

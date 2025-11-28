@@ -15,9 +15,18 @@ export type Task = {
   priority: 'high' | 'medium' | 'low'
   completed: boolean
   dueDate: number // Timestamp (start of day)
+  originalDueDate?: number // Timestamp da data original (se a tarefa foi transferida)
   frequency?: 'once' | 'daily' | 'weekly' | 'monthly'
   weekDays?: number[] // 0-6 (Sunday-Saturday) for weekly tasks
   monthDays?: number[] // 1-31 for monthly tasks
+}
+
+export type UrgentTask = {
+  id: string
+  title: string
+  priority: string
+  originalDueDate: Date | null
+  daysOverdue: number
 }
 
 export type BadgeUnlock = {
@@ -126,7 +135,9 @@ export type GameContextType = {
   currentMood: Mood
   allBadges: BadgeDefinition[]
   newBadges: BadgeDefinition[]
+  urgentOverdueTasks: UrgentTask[]
   dismissNewBadge: () => void
+  dismissUrgentTask: (id: string) => void
   addXP: (amount: number) => void
   addPoints: (amount: number) => void
   toggleTask: (id: string) => void

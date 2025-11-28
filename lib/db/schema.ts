@@ -74,6 +74,7 @@ export const tasks = sqliteTable('tasks', {
     .notNull()
     .default('medium'),
   dueDate: integer('due_date', { mode: 'timestamp' }),
+  originalDueDate: integer('original_due_date', { mode: 'timestamp' }),
   completedAt: integer('completed_at', { mode: 'timestamp' }),
   experience: integer('experience').notNull().default(10),
   coins: integer('coins').notNull().default(5),

@@ -63,6 +63,12 @@ const result = await awardXPAndCoins(ctx.db, userId, 'meditation', { meditationD
 | Meditation (10 min) | 60 | 60 |
 | Mood | 10 | 0 |
 
+**Penalidade para tarefas transferidas/atrasadas:**
+| Prioridade | 1º dia de atraso | 2+ dias de atraso |
+|------------|------------------|-------------------|
+| Baixa | 0% (zero XP/coins) | 0% |
+| Média/Alta | 50% | 0% |
+
 Cooldown: 1x/dia por tipo (exceto tasks = sempre).
 
 ## Padrões tRPC

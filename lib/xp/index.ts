@@ -78,6 +78,39 @@ export function getMeditationRewards(durationSeconds: number): { xp: number; coi
   }
 }
 
+/**
+ * Calcula o multiplicador de penalidade para tarefas transferidas/atrasadas
+ * - Prioridade baixa: 0 XP/coins no primeiro dia de atraso
+ * - Prioridade média/alta: 50% no primeiro dia, 0% a partir do segundo dia
+ *
+ * @param daysOverdue - Número de dias de atraso da tarefa
+ * @param priority - Prioridade da tarefa
+ * @returns Multiplicador de penalidade (0 a 1)
+ */
+export function getOverduePenaltyMultiplier(
+  daysOverdue: number,
+  priority: 'low' | 'medium' | 'high'
+): number {
+  // Tarefa não está atrasada
+  if (daysOverdue <= 0) {
+    return 1
+  }
+
+  // Prioridade baixa: zero XP/coins já no primeiro dia de atraso
+  if (priority === 'low') {
+    return 0
+  }
+
+  // Prioridade média/alta:
+  // - Primeiro dia de atraso: 50%
+  // - Segundo dia ou mais: 0%
+  if (daysOverdue === 1) {
+    return 0.5
+  }
+
+  return 0
+}
+
 /* ============================================
  * CONSTANTES DE SISTEMA
  * ============================================ */
@@ -278,10 +311,12 @@ export async function awardXPAndCoins(
   options?: {
     priority?: 'low' | 'medium' | 'high'
     meditationDuration?: number // duração em segundos
+    daysOverdue?: number // dias de atraso para tarefas transferidas
   }
 ): Promise<XPResult> {
   const priority = options?.priority
   const meditationDuration = options?.meditationDuration
+  const daysOverdue = options?.daysOverdue ?? 0
 
   // Buscar usuário
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
@@ -302,8 +337,10 @@ export async function awardXPAndCoins(
   let coinReward = 0
 
   if (action === 'task' && priority) {
-    xpReward = XP_REWARDS.task[priority]
-    coinReward = COIN_REWARDS.task[priority]
+    // Aplicar penalidade para tarefas atrasadas/transferidas
+    const penaltyMultiplier = getOverduePenaltyMultiplier(daysOverdue, priority)
+    xpReward = Math.round(XP_REWARDS.task[priority] * penaltyMultiplier)
+    coinReward = Math.round(COIN_REWARDS.task[priority] * penaltyMultiplier)
   } else if (action === 'journal') {
     xpReward = XP_REWARDS.journal
     coinReward = COIN_REWARDS.journal

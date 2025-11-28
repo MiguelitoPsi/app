@@ -2,10 +2,12 @@
 
 import confetti from 'canvas-confetti'
 import {
+  AlertTriangle,
   Calendar as CalendarIcon,
   Check,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Flag,
   Gem,
   Plus,
@@ -16,11 +18,12 @@ import {
   X,
 } from 'lucide-react'
 import type React from 'react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useGame } from '../context/GameContext'
 
 export const RoutineView: React.FC = () => {
-  const { tasks, toggleTask, addTask, deleteTask } = useGame()
+  const { tasks, toggleTask, addTask, deleteTask, urgentOverdueTasks, dismissUrgentTask } =
+    useGame()
   const [isAdding, setIsAdding] = useState(false)
   const [viewMode, setViewMode] = useState<'day' | 'week' | 'month'>('day')
 
@@ -45,6 +48,20 @@ export const RoutineView: React.FC = () => {
   const [showAlert, setShowAlert] = useState(false)
   const [alertMessage, setAlertMessage] = useState('')
   const [alertTitle, setAlertTitle] = useState('Atenção')
+
+  // Overdue Alert Modal State
+  const [showOverdueAlert, setShowOverdueAlert] = useState(false)
+
+  // Show overdue alert when there are urgent tasks
+  useEffect(() => {
+    if (urgentOverdueTasks.length > 0) {
+      // Small delay to allow page to render first
+      const timer = setTimeout(() => {
+        setShowOverdueAlert(true)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [urgentOverdueTasks.length])
 
   // Reward Animation State
   const [rewardAnimations, setRewardAnimations] = useState<
@@ -850,6 +867,15 @@ export const RoutineView: React.FC = () => {
                         {displayDate}
                       </span>
                     )}
+                    {task.originalDueDate && !task.completed && (
+                      <span
+                        className='flex shrink-0 items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 font-bold text-[10px] text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                        title={`Originalmente agendada para ${new Date(task.originalDueDate).toLocaleDateString('pt-BR')}`}
+                      >
+                        <Clock size={10} />
+                        Transferida
+                      </span>
+                    )}
                     {task.frequency && task.frequency !== 'once' && (
                       <span className='flex shrink-0 items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
                         <Repeat size={10} />
@@ -949,6 +975,82 @@ export const RoutineView: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Overdue Tasks Alert Modal */}
+      {showOverdueAlert && urgentOverdueTasks.length > 0 && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-2xl dark:border-amber-700 dark:bg-slate-800'>
+            <div className='bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white'>
+              <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
+                <AlertTriangle className='text-white' size={24} />
+              </div>
+              <h3 className='font-bold text-xl'>Tarefas Pendentes!</h3>
+              <p className='mt-1 text-white/80 text-sm'>
+                Você tem {urgentOverdueTasks.length} tarefa
+                {urgentOverdueTasks.length > 1 ? 's' : ''} aguardando há mais de 2 dias
+              </p>
+            </div>
+
+            <div className='max-h-64 overflow-y-auto p-4'>
+              {urgentOverdueTasks.map((task) => (
+                <div
+                  className='mb-3 rounded-xl border border-amber-100 bg-amber-50 p-3 last:mb-0 dark:border-amber-900/30 dark:bg-amber-900/20'
+                  key={task.id}
+                >
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1'>
+                      <p className='font-semibold text-slate-800 dark:text-slate-200'>
+                        {task.title}
+                      </p>
+                      <div className='mt-1 flex items-center gap-2 text-xs'>
+                        <span
+                          className={`rounded-full px-2 py-0.5 font-bold ${
+                            task.priority === 'high'
+                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                              : task.priority === 'medium'
+                                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                                : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}
+                        >
+                          {task.priority === 'high'
+                            ? 'Urgente'
+                            : task.priority === 'medium'
+                              ? 'Normal'
+                              : 'Baixa'}
+                        </span>
+                        <span className='flex items-center gap-1 text-amber-600 dark:text-amber-400'>
+                          <Clock size={12} />
+                          {task.daysOverdue} dias de atraso
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className='border-amber-100 border-t p-4 dark:border-amber-900/30'>
+              <p className='mb-3 text-center text-slate-500 text-xs dark:text-slate-400'>
+                Complete essas tarefas hoje para manter sua rotina em dia! 💪
+              </p>
+              <button
+                className='w-full rounded-xl bg-amber-500 py-3 font-bold text-white transition-opacity hover:bg-amber-600 hover:opacity-90'
+                onClick={() => {
+                  setShowOverdueAlert(false)
+                  // Dismiss all urgent tasks after viewing
+                  for (const t of urgentOverdueTasks) {
+                    dismissUrgentTask(t.id)
+                  }
+                }}
+                type='button'
+              >
+                Vou completar agora!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Custom Styles for Animations */}
       <style>{`
         @keyframes float-up-left {
