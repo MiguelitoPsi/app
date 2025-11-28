@@ -34,6 +34,11 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
               ? '/api/trpc'
               : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
           transformer: superjson,
+          fetch: (url, options) =>
+            fetch(url, {
+              ...options,
+              credentials: 'include',
+            }),
           headers() {
             return {
               'Content-Type': 'application/json',

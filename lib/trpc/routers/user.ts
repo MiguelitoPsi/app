@@ -305,4 +305,75 @@ export const userRouter = router({
       source: hasAnxiousMood ? 'mood' : anxiousJournal ? 'journal' : null,
     }
   }),
+
+  checkTermsAccepted: protectedProcedure.query(async ({ ctx }) => {
+    const [user] = await ctx.db
+      .select({ termsAcceptedAt: users.termsAcceptedAt, role: users.role })
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    // Only psychologists need to accept terms
+    if (user.role !== 'psychologist') {
+      return { needsToAcceptTerms: false }
+    }
+
+    return {
+      needsToAcceptTerms: !user.termsAcceptedAt,
+    }
+  }),
+
+  acceptTerms: protectedProcedure.mutation(async ({ ctx }) => {
+    const [user] = await ctx.db
+      .select({ role: users.role })
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    if (user.role !== 'psychologist') {
+      throw new Error('Only psychologists need to accept terms')
+    }
+
+    await ctx.db
+      .update(users)
+      .set({
+        termsAcceptedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, ctx.user.id))
+
+    return { success: true }
+  }),
+
+  // Verificar se a conta está suspensa
+  checkSuspension: protectedProcedure.query(async ({ ctx }) => {
+    const [user] = await ctx.db
+      .select({
+        bannedAt: users.bannedAt,
+        banReason: users.banReason,
+        role: users.role,
+      })
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (!user) {
+      return { isSuspended: false }
+    }
+
+    return {
+      isSuspended: Boolean(user.bannedAt),
+      bannedAt: user.bannedAt,
+      banReason: user.banReason,
+      role: user.role,
+    }
+  }),
 })

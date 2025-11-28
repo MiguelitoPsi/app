@@ -79,6 +79,10 @@ const DEFAULT_BREATH_VALUES: Record<string, { inhale: number; exhale: number }> 
   sleep: { inhale: 4, exhale: 8 },
 }
 
+type MeditationViewProps = {
+  goHome: () => void
+}
+
 const MEDITATION_TYPES: MeditationType[] = [
   {
     id: 'relax',
@@ -121,7 +125,7 @@ const MEDITATION_TYPES: MeditationType[] = [
   },
 ]
 
-export const MeditationView: React.FC = () => {
+export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   const { completeMeditation, stats } = useGame()
   const [selectedType, setSelectedType] = useState<MeditationType | null>(null)
   const [isActive, setIsActive] = useState(false)
@@ -255,13 +259,27 @@ export const MeditationView: React.FC = () => {
         {/* Header Section */}
         <div className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
           <div className='mb-2 flex items-center justify-between'>
-            <div>
-              <h2 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
-                Momento de Paz
-              </h2>
-              <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
-                Escolha sua prática de hoje
-              </p>
+            <div className='flex items-center gap-2 sm:gap-3'>
+              <button
+                aria-label='Voltar para página inicial'
+                className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+                onClick={goHome}
+                type='button'
+              >
+                <ArrowLeft
+                  aria-hidden='true'
+                  className='text-slate-600 dark:text-slate-300'
+                  size={18}
+                />
+              </button>
+              <div>
+                <h2 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
+                  Momento de Paz
+                </h2>
+                <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+                  Escolha sua prática de hoje
+                </p>
+              </div>
             </div>
             <div className='flex h-9 w-9 items-center justify-center rounded-full border border-teal-100 bg-teal-50 text-teal-600 sm:h-10 sm:w-10 dark:border-teal-800 dark:bg-teal-900/30 dark:text-teal-400'>
               <Wind className='sm:hidden' size={18} />

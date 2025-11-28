@@ -8,14 +8,33 @@ type CreateContextOptions = {
 }
 
 export async function createContext(opts: CreateContextOptions) {
-  const session = await auth.api.getSession({
-    headers: opts.headers,
-  })
+  try {
+    // Debug: log cookies
+    const cookieHeader = opts.headers.get('cookie')
+    console.log('[tRPC Context] Cookie header:', cookieHeader ? 'present' : 'missing')
+    if (cookieHeader) {
+      const hasSessionToken = cookieHeader.includes('better-auth.session_token')
+      console.log('[tRPC Context] Has session token cookie:', hasSessionToken)
+    }
 
-  return {
-    db,
-    session: session?.session || null,
-    user: session?.user || null,
+    const session = await auth.api.getSession({
+      headers: opts.headers,
+    })
+
+    console.log('[tRPC Context] Session result:', session ? 'found' : 'null')
+
+    return {
+      db,
+      session: session?.session || null,
+      user: session?.user || null,
+    }
+  } catch (error) {
+    console.error('[tRPC Context] Error getting session:', error)
+    return {
+      db,
+      session: null,
+      user: null,
+    }
   }
 }
 

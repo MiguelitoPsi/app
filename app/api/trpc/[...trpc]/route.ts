@@ -7,6 +7,13 @@ export const dynamic = 'force-dynamic'
 const handler = async (req: Request, props: { params: Promise<any> }) => {
   await props.params
 
+  // Debug: log request cookies
+  const cookieHeader = req.headers.get('cookie')
+  console.log(
+    '[tRPC API] Request cookies:',
+    cookieHeader ? cookieHeader.substring(0, 100) + '...' : 'NONE'
+  )
+
   try {
     const response = await fetchRequestHandler({
       endpoint: '/api/trpc',

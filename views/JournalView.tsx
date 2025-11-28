@@ -16,10 +16,12 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const { addJournalEntry } = useGame()
   const thoughtId = useId()
   const emotionId = useId()
+  const customEmotionId = useId()
   const intensityId = useId()
 
   const [step, setStep] = useState(1)
   const [emotion, setEmotion] = useState<Mood>('neutral')
+  const [customEmotion, setCustomEmotion] = useState('')
   const [intensity, setIntensity] = useState(5)
   const [thought, setThought] = useState('')
 
@@ -48,7 +50,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const moods: { id: Mood; emoji: string; label: string }[] = [
     { id: 'happy', emoji: '😄', label: 'Feliz' },
     { id: 'calm', emoji: '😌', label: 'Calmo' },
-    { id: 'neutral', emoji: '😐', label: 'Neutro' },
+    { id: 'neutral', emoji: '😕', label: 'Confuso' },
     { id: 'sad', emoji: '😔', label: 'Triste' },
     { id: 'anxious', emoji: '😰', label: 'Ansioso' },
     { id: 'angry', emoji: '😡', label: 'Bravo' },
@@ -141,26 +143,59 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                 Como você se sente?
               </legend>
               <div className='grid grid-cols-3 gap-2 sm:gap-3'>
-                {moods.map((m) => (
-                  <button
-                    aria-label={`${m.label}${emotion === m.id ? ' (selecionado)' : ''}`}
-                    aria-pressed={emotion === m.id}
-                    className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
-                      emotion === m.id
-                        ? 'scale-105 border-violet-500 bg-violet-50 text-violet-700 shadow-md dark:bg-violet-900/20 dark:text-violet-300'
-                        : 'border-transparent bg-white text-slate-400 active:scale-95 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-500 dark:hover:bg-slate-800'
+                {moods.map((m) => {
+                  const isSelected = emotion === m.id && !customEmotion.trim()
+                  return (
+                    <button
+                      aria-label={`${m.label}${isSelected ? ' (selecionado)' : ''}`}
+                      aria-pressed={isSelected}
+                      className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
+                        isSelected
+                          ? 'scale-105 border-violet-500 bg-violet-50 text-violet-700 shadow-md dark:bg-violet-900/20 dark:text-violet-300'
+                          : 'border-transparent bg-white text-slate-400 active:scale-95 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-500 dark:hover:bg-slate-800'
+                      }
+                      `}
+                      key={m.id}
+                      onClick={() => {
+                        setEmotion(m.id)
+                        setCustomEmotion('')
+                      }}
+                      type='button'
+                    >
+                      <span
+                        aria-hidden='true'
+                        className='text-2xl drop-shadow-sm filter sm:text-3xl'
+                      >
+                        {m.emoji}
+                      </span>
+                      <span className='font-bold text-[10px] sm:text-xs'>{m.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
+
+              {/* Custom Emotion Name */}
+              <div className='mt-3 sm:mt-4'>
+                <label
+                  className='ml-1 mb-1.5 block font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:mb-2 sm:text-xs'
+                  htmlFor={customEmotionId}
+                >
+                  Ou descreva sua emoção (opcional)
+                </label>
+                <input
+                  className='w-full rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/20'
+                  id={customEmotionId}
+                  maxLength={50}
+                  onChange={(e) => {
+                    setCustomEmotion(e.target.value)
+                    if (e.target.value.trim()) {
+                      setEmotion('neutral')
                     }
-                    `}
-                    key={m.id}
-                    onClick={() => setEmotion(m.id)}
-                    type='button'
-                  >
-                    <span aria-hidden='true' className='text-2xl drop-shadow-sm filter sm:text-3xl'>
-                      {m.emoji}
-                    </span>
-                    <span className='font-bold text-[10px] sm:text-xs'>{m.label}</span>
-                  </button>
-                ))}
+                  }}
+                  placeholder='Ex: frustrado, esperançoso, confuso...'
+                  type='text'
+                  value={customEmotion}
+                />
               </div>
 
               <div className='mt-3 rounded-xl border border-slate-100 bg-white p-3 sm:mt-4 sm:rounded-2xl sm:p-4 dark:border-slate-800 dark:bg-slate-900'>

@@ -1,9 +1,15 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { eq } from 'drizzle-orm'
 import { db } from './db'
 import * as schema from './db/schema'
 
 export const auth = betterAuth({
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    process.env.NEXT_PUBLIC_APP_URL || '',
+  ].filter(Boolean),
   database: drizzleAdapter(db, {
     provider: 'sqlite',
     schema: {
@@ -19,6 +25,26 @@ export const auth = betterAuth({
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        before: async (session) => {
+          // Verificar se o usuário está suspenso antes de criar a sessão
+          const [user] = await db
+            .select({ bannedAt: schema.users.bannedAt })
+            .from(schema.users)
+            .where(eq(schema.users.id, session.userId))
+            .limit(1)
+
+          if (user?.bannedAt) {
+            throw new Error('Sua conta foi suspensa. Entre em contato com o suporte.')
+          }
+
+          return { data: session }
+        },
+      },
+    },
   },
   user: {
     additionalFields: {

@@ -29,6 +29,9 @@ export const users = sqliteTable('users', {
       shirtColor: string
     }
   }>(),
+  termsAcceptedAt: integer('terms_accepted_at', { mode: 'timestamp' }),
+  bannedAt: integer('banned_at', { mode: 'timestamp' }),
+  banReason: text('ban_reason'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
@@ -603,6 +606,25 @@ export const psychologistSubscriptions = sqliteTable('psychologist_subscriptions
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
 
+// Therapist profile - professional data
+export const therapistProfiles = sqliteTable('therapist_profiles', {
+  therapistId: text('therapist_id')
+    .primaryKey()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  fullName: text('full_name').notNull(),
+  username: text('username').notNull().unique(),
+  cpf: text('cpf').notNull(),
+  birthDate: integer('birth_date', { mode: 'timestamp' }).notNull(),
+  crp: text('crp').notNull(),
+  education: text('education').notNull(),
+  city: text('city').notNull(),
+  attendanceType: text('attendance_type', { enum: ['online', 'presential', 'both'] }).notNull(),
+  clinicAddress: text('clinic_address'),
+  phone: text('phone').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
 export type User = typeof users.$inferSelect
 export type NewUser = typeof users.$inferInsert
 export type Task = typeof tasks.$inferSelect
@@ -638,6 +660,8 @@ export type TherapistFinancialRecord = typeof therapistFinancial.$inferSelect
 export type NewTherapistFinancialRecord = typeof therapistFinancial.$inferInsert
 export type TherapistGoal = typeof therapistGoals.$inferSelect
 export type NewTherapistGoal = typeof therapistGoals.$inferInsert
+export type TherapistProfile = typeof therapistProfiles.$inferSelect
+export type NewTherapistProfile = typeof therapistProfiles.$inferInsert
 export type WeeklyReport = typeof weeklyReports.$inferSelect
 export type NewWeeklyReport = typeof weeklyReports.$inferInsert
 export type PatientTaskFromTherapist = typeof patientTasksFromTherapist.$inferSelect

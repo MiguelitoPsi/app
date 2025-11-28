@@ -3,7 +3,10 @@
 import {
   CheckCircle2,
   Crown,
+  Eye,
+  EyeOff,
   Flame,
+  Key,
   LayoutGrid,
   Lock,
   LogOut,
@@ -37,7 +40,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   const [selectedBadge, setSelectedBadge] = useState<BadgeDefinition | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'rank' | 'achievements'>('stats')
   const [showSettings, setShowSettings] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [scrollY, setScrollY] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -98,6 +111,80 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
       console.error('Error during logout:', error)
       setIsLoggingOut(false)
     }
+  }
+
+  // Change password handler
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    setPasswordSuccess(false)
+
+    // Validations
+    const allFieldsFilled = currentPassword && newPassword && confirmPassword
+    if (!allFieldsFilled) {
+      setPasswordError('Preencha todos os campos')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('A nova senha deve ter pelo menos 8 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('As senhas não coincidem')
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordError('A nova senha deve ser diferente da atual')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      })
+
+      if (error) {
+        if (error.message?.includes('Invalid password') || error.message?.includes('incorrect')) {
+          setPasswordError('Senha atual incorreta')
+        } else {
+          setPasswordError(error.message || 'Erro ao alterar senha')
+        }
+        return
+      }
+
+      setPasswordSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+
+      // Close modal after success
+      setTimeout(() => {
+        setShowChangePassword(false)
+        setPasswordSuccess(false)
+      }, 2000)
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setPasswordError('Erro ao alterar senha. Tente novamente.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  // Reset password form state
+  const resetPasswordForm = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess(false)
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
   }
 
   // Helper to format unlock date
@@ -533,6 +620,30 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                   />
                 </div>
               </div>
+              {/* Change Password Button */}
+              <button
+                className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                onClick={() => {
+                  setShowSettings(false)
+                  resetPasswordForm()
+                  setShowChangePassword(true)
+                }}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <Key size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Alterar Senha
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Atualizar sua senha de acesso
+                    </p>
+                  </div>
+                </div>
+              </button>
               {onNavigate && stats.role === 'psychologist' && (
                 <button
                   className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
@@ -569,6 +680,169 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
+        </div>
+      )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='mb-4 flex items-center justify-between sm:mb-6'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <Key className='text-violet-500' size={18} /> Alterar Senha
+              </h3>
+              <button
+                aria-label='Fechar modal'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+                onClick={() => {
+                  setShowChangePassword(false)
+                  resetPasswordForm()
+                }}
+                type='button'
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {passwordSuccess ? (
+              <div className='flex flex-col items-center py-6 text-center'>
+                <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                  <CheckCircle2 className='h-8 w-8 text-green-600 dark:text-green-400' />
+                </div>
+                <h4 className='mb-2 font-bold text-lg text-slate-800 dark:text-white'>
+                  Senha alterada!
+                </h4>
+                <p className='text-slate-500 text-sm dark:text-slate-400'>
+                  Sua senha foi atualizada com sucesso.
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleChangePassword()
+                }}
+              >
+                <div className='space-y-4'>
+                  {/* Current Password */}
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='currentPassword'
+                    >
+                      Senha atual
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='current-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='currentPassword'
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={currentPassword}
+                      />
+                      <button
+                        aria-label={showCurrentPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        type='button'
+                      >
+                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* New Password */}
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='newPassword'
+                    >
+                      Nova senha
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='new-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='newPassword'
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                      />
+                      <button
+                        aria-label={showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        type='button'
+                      >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <p className='mt-1 text-slate-400 text-[10px] sm:text-xs dark:text-slate-500'>
+                      Mínimo de 8 caracteres
+                    </p>
+                  </div>
+
+                  {/* Confirm Password */}
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='confirmPassword'
+                    >
+                      Confirmar nova senha
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='new-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='confirmPassword'
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                      />
+                      <button
+                        aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        type='button'
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Error Message */}
+                  {passwordError && (
+                    <div className='rounded-lg bg-red-50 p-3 text-center text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400'>
+                      {passwordError}
+                    </div>
+                  )}
+
+                  {/* Submit Button */}
+                  <button
+                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    disabled={isChangingPassword}
+                    type='submit'
+                  >
+                    {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+          <div
+            className='-z-10 absolute inset-0'
+            onClick={() => {
+              setShowChangePassword(false)
+              resetPasswordForm()
+            }}
+          />
         </div>
       )}
 

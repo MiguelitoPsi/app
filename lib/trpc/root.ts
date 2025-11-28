@@ -11,6 +11,7 @@ import { taskRouter } from './routers/task'
 import { therapistAchievementsRouter } from './routers/therapist-achievements'
 import { therapistChallengesRouter } from './routers/therapist-challenges'
 import { therapistFinancialRouter } from './routers/therapist-financial'
+import { therapistProfileRouter } from './routers/therapist-profile'
 import { therapistReportsRouter } from './routers/therapist-reports'
 import { therapistTasksRouter } from './routers/therapist-tasks'
 import { therapistXpRouter } from './routers/therapist-xp'
@@ -34,6 +35,7 @@ export const appRouter = router({
   therapistAchievements: therapistAchievementsRouter,
   therapistChallenges: therapistChallengesRouter,
   therapistFinancial: therapistFinancialRouter,
+  therapistProfile: therapistProfileRouter,
   therapistReports: therapistReportsRouter,
   therapistTasks: therapistTasksRouter,
 })

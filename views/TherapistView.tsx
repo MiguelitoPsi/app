@@ -8,9 +8,12 @@ import {
   CheckCircle2,
   ChevronDown,
   Clock,
+  Eye,
+  EyeOff,
   FileText,
   Filter,
   Gift,
+  Key,
   LogOut,
   Mail,
   MapPin,
@@ -21,6 +24,7 @@ import {
   Settings,
   Sun,
   User,
+  UserCircle,
   UserPlus,
   Users,
   X,
@@ -28,6 +32,8 @@ import {
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+import { TherapistProfileModal } from '@/components/TherapistProfileModal'
+import { TherapistTermsModal } from '@/components/TherapistTermsModal'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import { useGame } from '../context/GameContext'
@@ -73,6 +79,18 @@ export const TherapistView: React.FC = () => {
     'overview' | 'journal' | 'rewards' | 'profile'
   >('overview')
   const [showSettings, setShowSettings] = useState(false)
+  const [showTermsModal, setShowTermsModal] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -306,9 +324,9 @@ export const TherapistView: React.FC = () => {
       anxious: '😰',
       angry: '😡',
       calm: '😌',
-      neutral: '😐',
+      neutral: '😕',
     }
-    return map[mood] || '😐'
+    return map[mood] || '😕'
   }
 
   const handleInvite = () => {
@@ -325,6 +343,78 @@ export const TherapistView: React.FC = () => {
       setTimeout(() => setIsLinkCopied(false), 3000)
     } catch (error) {
       console.error('Failed to copy link:', error)
+    }
+  }
+
+  // Reset password form state
+  const resetPasswordForm = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess(false)
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+  }
+
+  // Change password handler
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    setPasswordSuccess(false)
+
+    const allFieldsFilled = currentPassword && newPassword && confirmPassword
+    if (!allFieldsFilled) {
+      setPasswordError('Preencha todos os campos')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('A nova senha deve ter pelo menos 8 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('As senhas não coincidem')
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordError('A nova senha deve ser diferente da atual')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      })
+
+      if (error) {
+        if (error.message?.includes('Invalid password') || error.message?.includes('incorrect')) {
+          setPasswordError('Senha atual incorreta')
+        } else {
+          setPasswordError(error.message || 'Erro ao alterar senha')
+        }
+        return
+      }
+
+      setPasswordSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+
+      setTimeout(() => {
+        setShowChangePassword(false)
+        setPasswordSuccess(false)
+      }, 2000)
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setPasswordError('Erro ao alterar senha. Tente novamente.')
+    } finally {
+      setIsChangingPassword(false)
     }
   }
 
@@ -755,7 +845,7 @@ export const TherapistView: React.FC = () => {
                       {[
                         { id: 'happy', emoji: '😊', label: 'Feliz' },
                         { id: 'calm', emoji: '😌', label: 'Calmo' },
-                        { id: 'neutral', emoji: '😐', label: 'Neutro' },
+                        { id: 'neutral', emoji: '😕', label: 'Confuso' },
                         { id: 'sad', emoji: '😢', label: 'Triste' },
                         { id: 'anxious', emoji: '😰', label: 'Ansioso' },
                         { id: 'angry', emoji: '😠', label: 'Raiva' },
@@ -1318,12 +1408,12 @@ export const TherapistView: React.FC = () => {
             </div>
             <div className='space-y-3 sm:space-y-4'>
               {/* Modo Escuro */}
-              <div className='flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
-                <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+              <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
                     {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
-                  <div>
+                  <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
                       Modo Escuro
                     </h4>
@@ -1332,31 +1422,99 @@ export const TherapistView: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                <button
+                <div
+                  aria-checked={realStats.theme === 'dark'}
                   aria-label={
                     realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
                   }
-                  className={`touch-target relative h-7 w-12 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${
-                    realStats.theme === 'dark'
-                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/30'
-                      : 'bg-slate-200'
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    realStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
-                  type='button'
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+                  role='switch'
+                  tabIndex={0}
                 >
-                  <span
-                    className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 ${
+                  <div
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                       realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
-                  >
-                    {realStats.theme === 'dark' ? (
-                      <Moon className='text-violet-600' size={14} />
-                    ) : (
-                      <Sun className='text-amber-500' size={14} />
-                    )}
-                  </span>
-                </button>
+                  />
+                </div>
               </div>
+
+              {/* Perfil Profissional */}
+              <button
+                className='flex w-full items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-3 transition-colors hover:bg-indigo-100 sm:p-4 dark:border-indigo-900/30 dark:bg-indigo-900/20 dark:hover:bg-indigo-900/30'
+                onClick={() => {
+                  setShowSettings(false)
+                  setShowProfileModal(true)
+                }}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-indigo-100 p-1.5 text-indigo-600 sm:p-2 dark:bg-indigo-900/30 dark:text-indigo-400'>
+                    <UserCircle size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Perfil Profissional
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Editar dados profissionais
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Alterar Senha */}
+              <button
+                className='flex w-full items-center justify-between rounded-xl border border-amber-100 bg-amber-50 p-3 transition-colors hover:bg-amber-100 sm:p-4 dark:border-amber-900/30 dark:bg-amber-900/20 dark:hover:bg-amber-900/30'
+                onClick={() => {
+                  setShowSettings(false)
+                  resetPasswordForm()
+                  setShowChangePassword(true)
+                }}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-amber-100 p-1.5 text-amber-600 sm:p-2 dark:bg-amber-900/30 dark:text-amber-400'>
+                    <Key size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Alterar Senha
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Atualizar sua senha de acesso
+                    </p>
+                  </div>
+                </div>
+              </button>
+
+              {/* Termo de Responsabilidade */}
+              <button
+                className='flex w-full items-center justify-between rounded-xl border border-violet-100 bg-violet-50 p-3 transition-colors hover:bg-violet-100 sm:p-4 dark:border-violet-900/30 dark:bg-violet-900/20 dark:hover:bg-violet-900/30'
+                onClick={() => {
+                  setShowSettings(false)
+                  setShowTermsModal(true)
+                }}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <FileText size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Termo de Responsabilidade
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Visualizar termos de uso
+                    </p>
+                  </div>
+                </div>
+              </button>
             </div>
             <div className='mt-6 border-slate-100 border-t pt-4 sm:mt-8 sm:pt-6 dark:border-slate-800'>
               <button
@@ -1380,6 +1538,179 @@ export const TherapistView: React.FC = () => {
           <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
         </div>
       )}
+
+      {/* Change Password Modal */}
+      {showChangePassword && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='mb-4 flex items-center justify-between sm:mb-6'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <Key className='text-violet-500' size={18} /> Alterar Senha
+              </h3>
+              <button
+                aria-label='Fechar modal'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+                onClick={() => {
+                  setShowChangePassword(false)
+                  resetPasswordForm()
+                }}
+                type='button'
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {passwordSuccess ? (
+              <div className='flex flex-col items-center py-6 text-center'>
+                <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                  <CheckCircle2 className='h-8 w-8 text-green-600 dark:text-green-400' />
+                </div>
+                <h4 className='mb-2 font-bold text-lg text-slate-800 dark:text-white'>
+                  Senha alterada!
+                </h4>
+                <p className='text-slate-500 text-sm dark:text-slate-400'>
+                  Sua senha foi atualizada com sucesso.
+                </p>
+              </div>
+            ) : (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  handleChangePassword()
+                }}
+              >
+                <div className='space-y-4'>
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='currentPassword'
+                    >
+                      Senha atual
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='current-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='currentPassword'
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={currentPassword}
+                      />
+                      <button
+                        aria-label={showCurrentPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        type='button'
+                      >
+                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='newPassword'
+                    >
+                      Nova senha
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='new-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='newPassword'
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                      />
+                      <button
+                        aria-label={showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        type='button'
+                      >
+                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                    <p className='mt-1 text-slate-400 text-[10px] sm:text-xs dark:text-slate-500'>
+                      Mínimo de 8 caracteres
+                    </p>
+                  </div>
+
+                  <div>
+                    <label
+                      className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                      htmlFor='confirmPassword'
+                    >
+                      Confirmar nova senha
+                    </label>
+                    <div className='relative'>
+                      <input
+                        autoComplete='new-password'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        id='confirmPassword'
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder='••••••••'
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                      />
+                      <button
+                        aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                        className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        type='button'
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  {passwordError && (
+                    <div className='rounded-lg bg-red-50 p-3 text-center text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400'>
+                      {passwordError}
+                    </div>
+                  )}
+
+                  <button
+                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    disabled={isChangingPassword}
+                    type='submit'
+                  >
+                    {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+          <div
+            className='-z-10 absolute inset-0'
+            onClick={() => {
+              setShowChangePassword(false)
+              resetPasswordForm()
+            }}
+          />
+        </div>
+      )}
+
+      {/* Terms Modal */}
+      <TherapistTermsModal
+        isOpen={showTermsModal}
+        mode='view'
+        onClose={() => setShowTermsModal(false)}
+      />
+
+      {/* Profile Modal */}
+      <TherapistProfileModal
+        isOpen={showProfileModal}
+        mode='edit'
+        onClose={() => setShowProfileModal(false)}
+        onComplete={() => setShowProfileModal(false)}
+      />
 
       {/* Invite Modal */}
       {isInviteModalOpen && (

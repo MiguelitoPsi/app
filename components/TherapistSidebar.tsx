@@ -1,139 +1,78 @@
 'use client'
 
-import {
-  BarChart3,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  DollarSign,
-  Home,
-  LogOut,
-  Menu,
-  Moon,
-  Sun,
-} from 'lucide-react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import type React from 'react'
-import { memo, useState } from 'react'
-import { useSidebar } from '@/context/SidebarContext'
+import { memo } from 'react'
 import { authClient } from '@/lib/auth-client'
 
 const navItems = [
-  { path: '/dashboard', label: 'Início', icon: Home, description: 'Painel principal' },
-  { path: '/therapist-routine', label: 'Rotina', icon: Calendar, description: 'Gerenciar tarefas' },
-  { path: '/reports', label: 'Relatórios', icon: BarChart3, description: 'Documentos e análises' },
-  { path: '/financial', label: 'Financeiro', icon: DollarSign, description: 'Gestão financeira' },
+  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { path: '/therapist-routine', label: 'Rotina', icon: '📅' },
+  { path: '/reports', label: 'Relatórios', icon: '📈' },
+  { path: '/financial', label: 'Financeiro', icon: '💰' },
 ] as const
 
 export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponent() {
   const pathname = usePathname()
   const router = useRouter()
-  const [isDark, setIsDark] = useState(false)
-  const { isOpen, setIsOpen } = useSidebar()
-
-  const isActive = (path: string): boolean => pathname === path
 
   const handleLogout = async () => {
-    await authClient.signOut()
-    router.push('/auth/signin')
-  }
-
-  const toggleTheme = () => {
-    setIsDark(!isDark)
-    document.documentElement.classList.toggle('dark')
+    try {
+      await authClient.signOut()
+      // Limpar o cookie de role via API
+      await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+      router.push('/auth/signin')
+      router.refresh()
+    } catch (error) {
+      console.error('Erro ao fazer logout:', error)
+    }
   }
 
   return (
-    <>
-      {/* Botão para abrir sidebar quando fechada */}
-      {!isOpen && (
-        <button
-          aria-label='Abrir menu'
-          className='hidden lg:flex fixed top-4 left-4 z-50 p-3 bg-gradient-to-r from-violet-600 to-purple-600 text-white rounded-xl shadow-lg hover:shadow-violet-600/30 transition-all'
-          onClick={() => setIsOpen(true)}
-          type='button'
-        >
-          <Menu className='h-5 w-5' />
-        </button>
-      )}
-
-      <aside
-        className={`hidden lg:flex lg:flex-col lg:fixed lg:inset-y-0 lg:z-50 bg-gradient-to-b from-slate-900 to-slate-950 text-white shadow-2xl transition-all duration-300 ${isOpen ? 'lg:w-72' : 'lg:w-0 lg:overflow-hidden'}`}
-      >
-        {/* Botão para fechar */}
-        <div className='flex justify-end p-4'>
-          <button
-            aria-label='Fechar menu'
-            className='p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors'
-            onClick={() => setIsOpen(false)}
-            type='button'
-          >
-            <ChevronLeft className='h-5 w-5' />
-          </button>
+    <aside className='fixed left-0 top-0 z-40 hidden h-screen w-48 border-r border-slate-700 bg-slate-900/95 backdrop-blur lg:block'>
+      <div className='flex h-full flex-col'>
+        {/* Logo */}
+        <div className='flex h-12 items-center gap-2 border-b border-slate-700 px-3'>
+          <div className='flex h-7 w-7 items-center justify-center rounded-md bg-violet-600'>
+            <span className='text-sm'>🧠</span>
+          </div>
+          <span className='text-sm font-bold text-white'>Terapeuta</span>
         </div>
 
         {/* Navigation */}
-        <nav className='flex-1 px-3 py-2 space-y-1'>
-          <p className='px-4 mb-3 text-xs font-semibold text-slate-400 uppercase tracking-wider'>
-            Menu Principal
-          </p>
-          {navItems.map((item) => (
-            <Link
-              className={`group flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 ${
-                isActive(item.path)
-                  ? 'bg-gradient-to-r from-violet-600 to-purple-600 shadow-lg shadow-violet-600/30'
-                  : 'hover:bg-white/5'
-              }`}
-              href={item.path}
-              key={item.path}
-              prefetch={true}
-            >
-              <div
-                className={`p-2 rounded-lg ${isActive(item.path) ? 'bg-white/20' : 'bg-slate-800 group-hover:bg-slate-700'}`}
+        <nav className='flex-1 space-y-0.5 p-2'>
+          {navItems.map((item) => {
+            const isActive = pathname === item.path
+            return (
+              <Link
+                className={`flex items-center gap-2 rounded px-2 py-1.5 text-xs font-medium transition-colors ${
+                  isActive
+                    ? 'bg-violet-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white'
+                }`}
+                href={item.path}
+                key={item.path}
               >
-                <item.icon aria-hidden='true' className='h-5 w-5' />
-              </div>
-              <div className='flex-1'>
-                <span className='font-medium block'>{item.label}</span>
-                <span
-                  className={`text-xs ${isActive(item.path) ? 'text-white/70' : 'text-slate-500'}`}
-                >
-                  {item.description}
-                </span>
-              </div>
-              <ChevronRight
-                className={`h-4 w-4 transition-transform ${isActive(item.path) ? 'opacity-100' : 'opacity-0 group-hover:opacity-50'}`}
-              />
-            </Link>
-          ))}
+                <span className='text-sm'>{item.icon}</span>
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
 
-        {/* Bottom Actions */}
-        <div className='border-t border-white/10 p-4 space-y-2'>
+        {/* Footer */}
+        <div className='border-t border-slate-700 p-2'>
           <button
-            className='flex w-full items-center gap-3 px-4 py-3 rounded-xl text-slate-300 hover:bg-white/5 transition-colors'
-            onClick={toggleTheme}
-            type='button'
-          >
-            {isDark ? (
-              <Sun aria-hidden='true' className='h-5 w-5' />
-            ) : (
-              <Moon aria-hidden='true' className='h-5 w-5' />
-            )}
-            <span className='font-medium'>{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
-          </button>
-
-          <button
-            className='flex w-full items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/10 transition-colors'
+            className='flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs font-medium text-slate-400 transition-colors hover:bg-slate-800 hover:text-white'
             onClick={handleLogout}
             type='button'
           >
-            <LogOut aria-hidden='true' className='h-5 w-5' />
-            <span className='font-medium'>Sair</span>
+            <span className='text-sm'>🚪</span>
+            Sair
           </button>
         </div>
-      </aside>
-    </>
+      </div>
+    </aside>
   )
 })

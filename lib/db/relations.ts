@@ -7,6 +7,7 @@ import {
   therapistChallenges,
   therapistFinancial,
   therapistGoals,
+  therapistProfiles,
   therapistStats,
   therapistTasks,
   therapySessions,
@@ -23,6 +24,10 @@ export const usersRelations = relations(users, ({ many, one }) => ({
   therapistStats: one(therapistStats, {
     fields: [users.id],
     references: [therapistStats.therapistId],
+  }),
+  therapistProfile: one(therapistProfiles, {
+    fields: [users.id],
+    references: [therapistProfiles.therapistId],
   }),
   patientsAsTherapist: many(psychologistPatients, {
     relationName: 'psychologist',
@@ -148,6 +153,13 @@ export const therapySessionsRelations = relations(therapySessions, ({ one }) => 
   }),
   patient: one(users, {
     fields: [therapySessions.patientId],
+    references: [users.id],
+  }),
+}))
+
+export const therapistProfilesRelations = relations(therapistProfiles, ({ one }) => ({
+  therapist: one(users, {
+    fields: [therapistProfiles.therapistId],
     references: [users.id],
   }),
 }))

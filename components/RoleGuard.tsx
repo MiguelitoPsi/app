@@ -23,12 +23,22 @@ export function RoleGuard({ children, allowedRoles, fallbackPath }: RoleGuardPro
   } = trpc.user.getProfile.useQuery(undefined, {
     staleTime: 10 * 60 * 1000, // 10 minutes - role doesn't change often
     gcTime: 30 * 60 * 1000, // 30 minutes cache
+    retry: false, // Não retry em caso de erro de autenticação
   })
 
   useEffect(() => {
+    // Se ainda está carregando, aguardar
     if (isLoading) return
 
-    if (error || !profile) {
+    // Se há erro (incluindo UNAUTHORIZED), redirecionar para login
+    if (error) {
+      console.log('[RoleGuard] Error:', error.message)
+      router.push('/auth/signin')
+      return
+    }
+
+    // Se não há profile, redirecionar para login
+    if (!profile) {
       router.push('/auth/signin')
       return
     }
@@ -45,6 +55,11 @@ export function RoleGuard({ children, allowedRoles, fallbackPath }: RoleGuardPro
       router.push(redirectTo)
     }
   }, [profile, isLoading, error, allowedRoles, fallbackPath, router])
+
+  // Se há erro, não mostrar loading - o useEffect vai redirecionar
+  if (error) {
+    return null
+  }
 
   if (isLoading || isAuthorized === null) {
     return (
