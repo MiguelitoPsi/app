@@ -102,8 +102,33 @@ export const therapistTasksRouter = router({
         })
       }
 
+      // Validate that the date is not in the past
+      if (input.dueDate) {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        // Parse date as local time (YYYY-MM-DD) to avoid timezone issues
+        const [year, month, day] = input.dueDate.split('-').map(Number)
+        const taskDate = new Date(year, month - 1, day)
+        taskDate.setHours(0, 0, 0, 0)
+
+        if (taskDate < today) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Não é possível criar tarefas para datas que já passaram',
+          })
+        }
+      }
+
       const id = nanoid()
       const xpReward = THERAPIST_TASK_XP[input.priority] || 20
+
+      // Parse date as local time to avoid timezone issues
+      let parsedDueDate: Date | null = null
+      if (input.dueDate) {
+        const [year, month, day] = input.dueDate.split('-').map(Number)
+        parsedDueDate = new Date(year, month - 1, day)
+        parsedDueDate.setHours(12, 0, 0, 0) // Set to noon to avoid timezone edge cases
+      }
 
       await ctx.db.insert(therapistTasks).values({
         id,
@@ -114,7 +139,7 @@ export const therapistTasksRouter = router({
         type: input.type,
         priority: input.priority,
         status: 'pending',
-        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        dueDate: parsedDueDate,
         xpReward,
         isRecurring: input.isRecurring,
         frequency: input.frequency,

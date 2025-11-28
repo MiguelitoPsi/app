@@ -375,7 +375,10 @@ export const RewardsView: React.FC = () => {
                       <div className='flex-1 bg-transparent py-2.5 text-center sm:py-3'>
                         <p className='flex items-center justify-center gap-1.5 font-bold text-slate-500 text-[11px] sm:text-xs'>
                           <CheckCircle2 className='text-emerald-500' size={14} />
-                          Resgatado
+                          Resgatado hoje
+                        </p>
+                        <p className='mt-0.5 text-[10px] text-slate-400 dark:text-slate-500'>
+                          Disponível amanhã
                         </p>
                       </div>
                     ) : (

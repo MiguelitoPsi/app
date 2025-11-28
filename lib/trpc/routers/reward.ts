@@ -2,6 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { psychologistPatients, rewards, users } from '@/lib/db/schema'
+import { isSameDay } from '@/lib/utils/timezone'
 import { protectedProcedure, router } from '../trpc'
 
 export const rewardRouter = router({
@@ -111,8 +112,9 @@ export const rewardRouter = router({
       throw new Error('Reward not found')
     }
 
-    if (reward.claimed) {
-      throw new Error('Reward already claimed')
+    // Verificar cooldown diário - pode resgatar 1x ao dia
+    if (reward.claimedAt && isSameDay(reward.claimedAt, new Date())) {
+      throw new Error('Você já resgatou esta recompensa hoje. Tente novamente amanhã!')
     }
 
     // Get user
@@ -141,7 +143,6 @@ export const rewardRouter = router({
     await ctx.db
       .update(rewards)
       .set({
-        claimed: true,
         claimedAt: new Date(),
       })
       .where(eq(rewards.id, input.id))

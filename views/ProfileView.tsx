@@ -20,10 +20,10 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import AvatarOficial from '@/components/Avatar-oficial'
 import { authClient } from '@/lib/auth-client'
 import { BADGE_CATEGORIES } from '@/lib/constants'
 import { getXPForLevel, getXPInfo } from '@/lib/xp'
-import { Avatar } from '../components/Avatar'
 import { RANKS, useGame } from '../context/GameContext'
 import type { BadgeDefinition, Tab, UserStats } from '../types'
 
@@ -167,8 +167,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
 
       {/* Avatar and user info */}
       <div className='mb-6 flex flex-col items-center sm:mb-8'>
-        <div className='mb-3 scale-[0.65] sm:mb-4 sm:scale-75'>
-          <Avatar config={stats.avatarConfig} mood={currentMood} size='lg' />
+        <div className='mb-3 sm:mb-4'>
+          <AvatarOficial mood={currentMood} size='lg' />
         </div>
         <div className='mb-3 space-y-1 text-center sm:mb-4'>
           <h1 className='font-bold text-xl text-slate-900 sm:text-2xl dark:text-white'>
@@ -490,20 +490,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 <Settings className='text-slate-400' size={18} /> Configurações
               </h3>
               <button
-                className='touch-target rounded-full bg-slate-50 p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:hover:text-slate-200'
+                aria-label='Fechar modal'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
                 onClick={() => setShowSettings(false)}
                 type='button'
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
             <div className='space-y-3 sm:space-y-4'>
-              <div className='flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
-                <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+              <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
                     {stats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
-                  <div>
+                  <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
                       Modo Escuro
                     </h4>
@@ -512,30 +513,25 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     </p>
                   </div>
                 </div>
-                <button
+                <div
+                  aria-checked={stats.theme === 'dark'}
                   aria-label={
                     stats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
                   }
-                  className={`touch-target relative h-7 w-12 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 ${
-                    stats.theme === 'dark'
-                      ? 'bg-gradient-to-r from-violet-600 to-indigo-600 shadow-lg shadow-violet-500/30'
-                      : 'bg-slate-200'
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    stats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
-                  type='button'
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+                  role='switch'
+                  tabIndex={0}
                 >
-                  <span
-                    className={`absolute top-0.5 flex h-6 w-6 items-center justify-center rounded-full bg-white shadow-md transition-all duration-300 ${
+                  <div
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                       stats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
-                  >
-                    {stats.theme === 'dark' ? (
-                      <Moon className='text-violet-600' size={14} />
-                    ) : (
-                      <Sun className='text-amber-500' size={14} />
-                    )}
-                  </span>
-                </button>
+                  />
+                </div>
               </div>
               {onNavigate && stats.role === 'psychologist' && (
                 <button
@@ -584,11 +580,13 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              className='touch-target absolute top-3 right-3 rounded-full bg-slate-50 p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 sm:top-4 sm:right-4 sm:p-2 dark:bg-slate-800 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+              aria-label='Fechar modal'
+              className='touch-target absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 sm:top-4 sm:right-4 sm:h-8 sm:w-8 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
               onClick={() => setSelectedBadge(null)}
               type='button'
             >
-              <X size={18} />
+              <X className='sm:hidden' size={14} />
+              <X className='hidden sm:block' size={16} />
             </button>
             <div className='mt-2 flex flex-col items-center text-center'>
               <div
@@ -653,13 +651,6 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                   </div>
                 )}
               </div>
-              <button
-                className='touch-target mt-4 w-full rounded-lg border border-slate-200 bg-white py-2.5 font-bold text-slate-600 text-xs transition-colors hover:bg-slate-50 sm:mt-6 sm:rounded-xl sm:py-3 sm:text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                onClick={() => setSelectedBadge(null)}
-                type='button'
-              >
-                Fechar
-              </button>
             </div>
           </div>
         </div>

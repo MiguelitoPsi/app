@@ -61,6 +61,18 @@ export default function AdminPage() {
               <p className='text-sm text-slate-400'>Ver, criar e editar usuários</p>
             </div>
           </Link>
+          <Link
+            className='flex items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-6 transition-colors hover:border-emerald-500 hover:bg-slate-800'
+            href='/admin/subscriptions'
+          >
+            <div className='flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-600/20'>
+              <span className='text-2xl'>💳</span>
+            </div>
+            <div>
+              <h3 className='font-semibold text-white'>Assinaturas</h3>
+              <p className='text-sm text-slate-400'>Gerenciar assinaturas dos psicólogos</p>
+            </div>
+          </Link>
         </div>
       </div>
     </div>

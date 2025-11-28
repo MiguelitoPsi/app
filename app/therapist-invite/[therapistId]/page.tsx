@@ -2,14 +2,12 @@
 
 import { AlertCircle, CheckCircle2, UserPlus } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 export default function TherapistInvitePage() {
   const params = useParams()
   const router = useRouter()
   const therapistId = params.therapistId as string
-
-  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     if (!therapistId || therapistId === 'unknown') {
@@ -28,87 +26,90 @@ export default function TherapistInvitePage() {
   }
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-100 dark:from-slate-950 dark:via-indigo-950 dark:to-slate-900 flex items-center justify-center p-4'>
-      <div className='bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 max-w-lg w-full border border-slate-100 dark:border-slate-800'>
-        {/* Icon */}
-        <div className='flex justify-center mb-6'>
-          <div className='bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full p-4 shadow-lg'>
-            <UserPlus className='h-12 w-12 text-white' />
-          </div>
-        </div>
+    <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
+      {/* Subtle gradient orbs */}
+      <div className='pointer-events-none absolute inset-0'>
+        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
+        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
+        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+      </div>
 
-        {/* Title */}
-        <div className='text-center mb-8'>
-          <h1 className='text-3xl font-black text-slate-900 dark:text-white mb-3'>
-            Convite de Terapeuta
-          </h1>
-          <p className='text-slate-600 dark:text-slate-400 text-lg'>
-            Você foi convidado para participar do programa de acompanhamento psicológico
-          </p>
-        </div>
+      <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>
+        <div className='w-full max-w-md'>
+          {/* Invite Card */}
+          <main className='rounded-3xl border border-slate-800/50 bg-slate-900/50 p-8 shadow-xl backdrop-blur-sm'>
+            {/* Icon */}
+            <div className='mb-6 flex justify-center'>
+              <div className='rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 p-4 shadow-lg'>
+                <UserPlus className='h-10 w-10 text-white' />
+              </div>
+            </div>
 
-        {/* Info Card */}
-        <div className='bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-950/30 dark:to-purple-950/30 rounded-2xl p-6 mb-8 border border-indigo-100 dark:border-indigo-900/50'>
-          <div className='flex items-start gap-3 mb-4'>
-            <CheckCircle2 className='h-6 w-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5' />
-            <div>
-              <h3 className='font-bold text-slate-900 dark:text-white mb-1'>
-                Acompanhamento Personalizado
-              </h3>
-              <p className='text-sm text-slate-600 dark:text-slate-400'>
-                Seu terapeuta poderá acompanhar seu progresso e oferecer suporte personalizado
+            {/* Title */}
+            <div className='mb-8 text-center'>
+              <h1 className='font-bold text-3xl text-white'>Convite de Terapeuta</h1>
+              <p className='mt-2 text-violet-400'>
+                Você foi convidado para participar do programa de acompanhamento psicológico
               </p>
             </div>
-          </div>
-          <div className='flex items-start gap-3 mb-4'>
-            <CheckCircle2 className='h-6 w-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5' />
-            <div>
-              <h3 className='font-bold text-slate-900 dark:text-white mb-1'>
-                Privacidade Garantida
-              </h3>
-              <p className='text-sm text-slate-600 dark:text-slate-400'>
-                Apenas seu terapeuta vinculado terá acesso aos seus dados
+
+            {/* Info Card */}
+            <div className='mb-8 space-y-4 rounded-2xl border border-violet-500/30 bg-violet-500/10 p-5'>
+              <div className='flex items-start gap-3'>
+                <CheckCircle2 className='mt-0.5 h-5 w-5 flex-shrink-0 text-violet-400' />
+                <div>
+                  <h3 className='font-semibold text-white'>Acompanhamento Personalizado</h3>
+                  <p className='text-sm text-slate-400'>
+                    Seu terapeuta poderá acompanhar seu progresso e oferecer suporte personalizado
+                  </p>
+                </div>
+              </div>
+              <div className='flex items-start gap-3'>
+                <CheckCircle2 className='mt-0.5 h-5 w-5 flex-shrink-0 text-violet-400' />
+                <div>
+                  <h3 className='font-semibold text-white'>Privacidade Garantida</h3>
+                  <p className='text-sm text-slate-400'>
+                    Apenas seu terapeuta vinculado terá acesso aos seus dados
+                  </p>
+                </div>
+              </div>
+              <div className='flex items-start gap-3'>
+                <CheckCircle2 className='mt-0.5 h-5 w-5 flex-shrink-0 text-violet-400' />
+                <div>
+                  <h3 className='font-semibold text-white'>Ferramentas Completas</h3>
+                  <p className='text-sm text-slate-400'>
+                    Acesso a meditação, diário, tarefas e sistema de recompensas
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className='space-y-3'>
+              <button
+                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                onClick={handleAccept}
+              >
+                Aceitar Convite e Criar Conta
+              </button>
+
+              <button
+                className='w-full rounded-xl border border-slate-700 bg-slate-800/50 py-4 font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                onClick={handleLogin}
+              >
+                Já tenho conta - Fazer Login
+              </button>
+            </div>
+
+            {/* Info Alert */}
+            <div className='mt-6 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4'>
+              <AlertCircle className='mt-0.5 h-5 w-5 flex-shrink-0 text-amber-400' />
+              <p className='text-sm text-amber-200'>
+                <strong>Importante:</strong> Ao criar sua conta através deste link, você será
+                automaticamente vinculado ao seu terapeuta.
               </p>
             </div>
-          </div>
-          <div className='flex items-start gap-3'>
-            <CheckCircle2 className='h-6 w-6 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5' />
-            <div>
-              <h3 className='font-bold text-slate-900 dark:text-white mb-1'>
-                Ferramentas Completas
-              </h3>
-              <p className='text-sm text-slate-600 dark:text-slate-400'>
-                Acesso a meditação, diário, tarefas e sistema de recompensas
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className='space-y-3 mb-6'>
-          <button
-            className='w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2'
-            onClick={handleAccept}
-          >
-            <UserPlus className='h-5 w-5' />
-            Aceitar Convite e Criar Conta
-          </button>
-
-          <button
-            className='w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-4 px-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]'
-            onClick={handleLogin}
-          >
-            Já tenho conta - Fazer Login
-          </button>
-        </div>
-
-        {/* Info Alert */}
-        <div className='bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl p-4 flex items-start gap-3'>
-          <AlertCircle className='h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5' />
-          <p className='text-sm text-amber-800 dark:text-amber-200'>
-            <strong>Importante:</strong> Ao criar sua conta através deste link, você será
-            automaticamente vinculado ao seu terapeuta.
-          </p>
+          </main>
         </div>
       </div>
     </div>

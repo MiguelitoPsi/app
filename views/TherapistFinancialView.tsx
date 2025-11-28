@@ -8,7 +8,12 @@ import {
   DollarSign,
   FileText,
   LayoutGrid,
+  LogOut,
+  Moon,
   Plus,
+  RefreshCw,
+  Settings,
+  Sun,
   Target,
   Trash2,
   TrendingDown,
@@ -32,6 +37,8 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { useGame } from '@/context/GameContext'
+import { authClient } from '@/lib/auth-client'
 import { FINANCIAL_CATEGORIES, GOAL_CATEGORIES } from '@/lib/constants/therapist'
 import {
   formatCurrency,
@@ -105,13 +112,13 @@ function ChangeIndicator({
 
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+      className={`inline-flex flex-shrink-0 items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium sm:gap-1 sm:px-2 sm:text-xs ${
         isPositive
           ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
           : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
       }`}
     >
-      <Icon className='h-3 w-3' />
+      <Icon className='h-2.5 w-2.5 sm:h-3 sm:w-3' />
       {Math.abs(value).toFixed(1)}%
     </span>
   )
@@ -131,22 +138,24 @@ function PeriodSelector({
   return (
     <div className='relative'>
       <button
-        className='flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+        className='flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-medium text-slate-700 text-xs shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm'
         onClick={() => setIsOpen(!isOpen)}
         type='button'
       >
-        <Calendar className='h-4 w-4' />
-        {selectedOption?.label}
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        <Calendar className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
+        <span className='max-w-[60px] truncate sm:max-w-none'>{selectedOption?.label}</span>
+        <ChevronDown
+          className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${isOpen ? 'rotate-180' : ''}`}
+        />
       </button>
 
       {isOpen && (
         <>
           <div className='fixed inset-0 z-10' onClick={() => setIsOpen(false)} />
-          <div className='absolute right-0 z-20 mt-1 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800'>
+          <div className='absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:w-48'>
             {PERIOD_OPTIONS.map((option) => (
               <button
-                className={`w-full px-4 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-700 ${
+                className={`w-full px-3 py-2 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-700 sm:px-4 sm:text-sm ${
                   value === option.value
                     ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                     : 'text-slate-700 dark:text-slate-300'
@@ -183,36 +192,42 @@ function ProjectionCard({
   const conf = confidenceLabels[projection.confidence]
 
   return (
-    <div className='rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 p-4 text-white'>
-      <div className='mb-3 flex items-center justify-between'>
-        <h3 className='font-semibold'>Projeção do Período</h3>
-        <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${conf.color}`}>
+    <div className='overflow-hidden rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 p-3 text-white sm:rounded-xl sm:p-4'>
+      <div className='mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3'>
+        <h3 className='font-semibold text-sm sm:text-base'>Projeção do Período</h3>
+        <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-medium sm:text-xs ${conf.color}`}
+        >
           Confiança: {conf.text}
         </span>
       </div>
 
-      <div className='grid grid-cols-3 gap-4'>
-        <div>
-          <p className='text-indigo-200 text-xs'>Receita Projetada</p>
-          <p className='font-bold text-lg'>{formatCurrency(projection.projectedIncome)}</p>
+      <div className='grid grid-cols-3 gap-2 sm:gap-4'>
+        <div className='min-w-0'>
+          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Receita</p>
+          <p className='truncate font-bold text-sm sm:text-lg'>
+            {formatCurrency(projection.projectedIncome)}
+          </p>
         </div>
-        <div>
-          <p className='text-indigo-200 text-xs'>Despesa Projetada</p>
-          <p className='font-bold text-lg'>{formatCurrency(projection.projectedExpenses)}</p>
+        <div className='min-w-0'>
+          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Despesa</p>
+          <p className='truncate font-bold text-sm sm:text-lg'>
+            {formatCurrency(projection.projectedExpenses)}
+          </p>
         </div>
-        <div>
-          <p className='text-indigo-200 text-xs'>Saldo Projetado</p>
+        <div className='min-w-0'>
+          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Saldo</p>
           <p
-            className={`font-bold text-lg ${projection.projectedBalance >= 0 ? 'text-white' : 'text-red-300'}`}
+            className={`truncate font-bold text-sm sm:text-lg ${projection.projectedBalance >= 0 ? 'text-white' : 'text-red-300'}`}
           >
             {formatCurrency(projection.projectedBalance)}
           </p>
         </div>
       </div>
 
-      <div className='mt-3 flex items-center gap-2 text-xs text-indigo-200'>
-        <span>📊 Média diária: {formatCurrency(projection.averageDailyIncome)}/dia</span>
-        <span>•</span>
+      <div className='mt-2 flex flex-wrap items-center gap-1 text-[10px] text-indigo-200 sm:mt-3 sm:gap-2 sm:text-xs'>
+        <span>📊 Média: {formatCurrency(projection.averageDailyIncome)}/dia</span>
+        <span className='hidden sm:inline'>•</span>
         <span>{projection.daysRemaining} dias restantes</span>
       </div>
     </div>
@@ -220,6 +235,8 @@ function ProjectionCard({
 }
 
 export default function TherapistFinancialView(): React.ReactElement {
+  const { stats: realStats, toggleTheme } = useGame()
+  const [showSettings, setShowSettings] = useState(false)
   const [period, setPeriod] = useState<PeriodType>('month')
   const [showAddForm, setShowAddForm] = useState(false)
   const [showGoalForm, setShowGoalForm] = useState(false)
@@ -248,7 +265,10 @@ export default function TherapistFinancialView(): React.ReactElement {
   } = useFinancialData({ period, enableComparison: true, historyMonths: 12 })
 
   // Goals e Alerts (mantidos separados)
-  const { data: goals, isLoading: isLoadingGoals } = trpc.therapistFinancial.getGoals.useQuery({})
+  // autoRecalculate: true recalcula o progresso das metas automaticamente baseado nos dados reais
+  const { data: goals, isLoading: isLoadingGoals } = trpc.therapistFinancial.getGoals.useQuery({
+    autoRecalculate: true,
+  })
   const { data: alerts } = trpc.therapistFinancial.getAlerts.useQuery()
 
   // Mutations
@@ -272,6 +292,12 @@ export default function TherapistFinancialView(): React.ReactElement {
   const deleteGoalMutation = trpc.therapistFinancial.deleteGoal.useMutation({
     onSuccess: () => {
       setShowDeleteGoalConfirm(null)
+      utils.therapistFinancial.getGoals.invalidate()
+    },
+  })
+
+  const recalculateGoalsMutation = trpc.therapistFinancial.recalculateGoals.useMutation({
+    onSuccess: () => {
       utils.therapistFinancial.getGoals.invalidate()
     },
   })
@@ -402,58 +428,76 @@ export default function TherapistFinancialView(): React.ReactElement {
   ]
 
   return (
-    <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+    <div className='flex h-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950'>
       {/* Header */}
       <header className='bg-gradient-to-br from-emerald-600 to-teal-700 pt-safe text-white'>
-        <div className='px-4 pt-6 pb-4'>
-          <div className='flex items-center justify-between'>
-            <div>
-              <h1 className='mb-1 font-bold text-2xl'>Gestão Financeira</h1>
-              <p className='text-emerald-100 text-sm'>{currentRange.label}</p>
+        <div className='mx-auto max-w-7xl px-3 pt-4 pb-3 sm:px-4 lg:px-8'>
+          <div className='flex items-center justify-between gap-2'>
+            <div className='min-w-0 flex-1'>
+              <h1 className='mb-0.5 truncate font-bold text-lg sm:mb-1 sm:text-2xl lg:text-3xl'>
+                Gestão Financeira
+              </h1>
+              <p className='truncate text-emerald-100 text-xs sm:text-sm lg:text-base'>
+                {currentRange.label}
+              </p>
             </div>
-            <PeriodSelector onChange={setPeriod} value={period} />
+            <div className='flex flex-shrink-0 items-center gap-1.5 sm:gap-2'>
+              <PeriodSelector onChange={setPeriod} value={period} />
+              <button
+                aria-label='Configurações'
+                className='rounded-full p-1.5 transition-colors hover:bg-white/10 sm:p-2 lg:hidden'
+                onClick={() => setShowSettings(true)}
+                type='button'
+              >
+                <Settings className='h-5 w-5 sm:h-6 sm:w-6' />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Quick Stats com Comparação */}
         {currentSummary && (
-          <div className='grid grid-cols-3 gap-3 px-4 pb-4'>
-            <div className='rounded-xl bg-white/10 p-3 backdrop-blur-sm'>
-              <div className='flex items-center justify-between'>
-                <p className='text-emerald-100 text-xs'>Receitas</p>
+          <div className='mx-auto max-w-7xl grid grid-cols-3 gap-2 px-3 pb-3 sm:gap-3 sm:px-4 lg:gap-4 lg:px-8 lg:pb-4'>
+            <div className='rounded-lg bg-white/10 p-2 backdrop-blur-sm sm:rounded-xl sm:p-3 lg:p-4'>
+              <div className='flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1'>
+                <p className='text-emerald-100 text-[10px] sm:text-xs lg:text-sm'>Receitas</p>
                 {comparison && <ChangeIndicator value={comparison.incomeChange} />}
               </div>
-              <p className='font-bold text-lg'>{formatCurrency(currentSummary.income)}</p>
+              <p className='text-center font-bold text-sm sm:text-left sm:text-lg lg:text-xl'>
+                {formatCurrency(currentSummary.income)}
+              </p>
               {previousSummary && (
-                <p className='text-emerald-200 text-xs'>
+                <p className='hidden text-emerald-200 text-xs sm:block lg:text-sm'>
                   Anterior: {formatCurrency(previousSummary.income)}
                 </p>
               )}
             </div>
-            <div className='rounded-xl bg-white/10 p-3 backdrop-blur-sm'>
-              <div className='flex items-center justify-between'>
-                <p className='text-emerald-100 text-xs'>Despesas</p>
+            <div className='rounded-lg bg-white/10 p-2 backdrop-blur-sm sm:rounded-xl sm:p-3 lg:p-4'>
+              <div className='flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1'>
+                <p className='text-emerald-100 text-[10px] sm:text-xs lg:text-sm'>Despesas</p>
                 {comparison && <ChangeIndicator inverted value={comparison.expenseChange} />}
               </div>
-              <p className='font-bold text-lg'>{formatCurrency(currentSummary.expenses)}</p>
+              <p className='text-center font-bold text-sm sm:text-left sm:text-lg lg:text-xl'>
+                {formatCurrency(currentSummary.expenses)}
+              </p>
               {previousSummary && (
-                <p className='text-emerald-200 text-xs'>
+                <p className='hidden text-emerald-200 text-xs sm:block lg:text-sm'>
                   Anterior: {formatCurrency(previousSummary.expenses)}
                 </p>
               )}
             </div>
-            <div className='rounded-xl bg-white/10 p-3 backdrop-blur-sm'>
-              <div className='flex items-center justify-between'>
-                <p className='text-emerald-100 text-xs'>Saldo</p>
+            <div className='rounded-lg bg-white/10 p-2 backdrop-blur-sm sm:rounded-xl sm:p-3 lg:p-4'>
+              <div className='flex flex-col items-center gap-0.5 sm:flex-row sm:items-center sm:justify-between sm:gap-1'>
+                <p className='text-emerald-100 text-[10px] sm:text-xs lg:text-sm'>Saldo</p>
                 {comparison && <ChangeIndicator value={comparison.balanceChange} />}
               </div>
               <p
-                className={`font-bold text-lg ${currentSummary.balance >= 0 ? 'text-white' : 'text-red-300'}`}
+                className={`text-center font-bold text-sm sm:text-left sm:text-lg lg:text-xl ${currentSummary.balance >= 0 ? 'text-white' : 'text-red-300'}`}
               >
                 {formatCurrency(currentSummary.balance)}
               </p>
               {previousSummary && (
-                <p className='text-emerald-200 text-xs'>
+                <p className='hidden text-emerald-200 text-xs sm:block lg:text-sm'>
                   Anterior: {formatCurrency(previousSummary.balance)}
                 </p>
               )}
@@ -462,268 +506,447 @@ export default function TherapistFinancialView(): React.ReactElement {
         )}
       </header>
 
-      {/* Tabs */}
-      <div className='bg-white px-4 py-3 dark:bg-slate-900'>
-        <div className='grid grid-cols-4 gap-2'>
-          {tabs.map((tab) => (
-            <button
-              className={`flex flex-col items-center justify-center gap-1.5 rounded-xl py-3 font-medium transition-all ${
-                activeTab === tab.id
-                  ? 'bg-emerald-500 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-              }`}
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              type='button'
-            >
-              <tab.icon className='h-5 w-5' />
-              <span className='text-xs'>{tab.label}</span>
-            </button>
-          ))}
+      {/* Tabs - Mobile: grid de botões, Desktop: tabs horizontais elegantes */}
+      <div className='bg-white px-3 py-2 dark:bg-slate-900 sm:px-4 sm:py-3 lg:px-8 lg:py-4'>
+        <div className='mx-auto max-w-7xl'>
+          {/* Mobile tabs */}
+          <div className='grid grid-cols-4 gap-1.5 sm:gap-2 lg:hidden'>
+            {tabs.map((tab) => (
+              <button
+                className={`flex flex-col items-center justify-center gap-0.5 rounded-lg py-2 font-medium transition-all sm:gap-1.5 sm:rounded-xl sm:py-3 ${
+                  activeTab === tab.id
+                    ? 'bg-emerald-500 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                type='button'
+              >
+                <tab.icon className='h-4 w-4 sm:h-5 sm:w-5' />
+                <span className='text-[9px] sm:text-xs'>{tab.label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Desktop tabs */}
+          <div className='hidden lg:flex lg:gap-2 lg:rounded-xl lg:bg-slate-100 lg:p-1.5 dark:lg:bg-slate-800'>
+            {tabs.map((tab) => (
+              <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
+                    : 'text-slate-600 hover:bg-white dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                type='button'
+              >
+                <tab.icon className='h-5 w-5' />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <main className='flex-1 overflow-y-auto p-4 pb-24'>
-        {/* Alerts */}
-        {alerts && alerts.length > 0 && activeTab === 'overview' && (
-          <div className='mb-4 space-y-2'>
-            {alerts.map((alert, index) => (
-              <div
-                className={`flex items-start gap-3 rounded-lg p-3 ${
-                  alert.type === 'warning'
-                    ? 'bg-amber-50 dark:bg-amber-900/20'
-                    : 'bg-blue-50 dark:bg-blue-900/20'
-                }`}
-                key={index}
-              >
-                <p
-                  className={`text-sm ${alert.type === 'warning' ? 'text-amber-800 dark:text-amber-200' : 'text-blue-800 dark:text-blue-200'}`}
+      <main className='flex-1 overflow-x-hidden overflow-y-auto p-3 pb-24 sm:p-4 lg:pb-8 lg:px-8'>
+        <div className='mx-auto max-w-7xl'>
+          {/* Alerts */}
+          {alerts && alerts.length > 0 && activeTab === 'overview' && (
+            <div className='mb-4 space-y-2 lg:mb-6'>
+              {alerts.map((alert, index) => (
+                <div
+                  className={`flex items-start gap-3 rounded-lg p-3 ${
+                    alert.type === 'warning'
+                      ? 'bg-amber-50 dark:bg-amber-900/20'
+                      : 'bg-blue-50 dark:bg-blue-900/20'
+                  }`}
+                  key={index}
                 >
-                  <strong>{alert.title}:</strong> {alert.message}
-                </p>
-              </div>
-            ))}
-          </div>
-        )}
+                  <p
+                    className={`text-sm ${alert.type === 'warning' ? 'text-amber-800 dark:text-amber-200' : 'text-blue-800 dark:text-blue-200'}`}
+                  >
+                    <strong>{alert.title}:</strong> {alert.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
 
-        {/* Overview Tab */}
-        {activeTab === 'overview' && (
-          <div className='space-y-4'>
-            {isLoading ? (
-              <div className='flex h-40 items-center justify-center'>
-                <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
-              </div>
-            ) : currentSummary ? (
-              <>
-                {/* Projeção */}
-                {projection && projection.daysRemaining > 0 && (
-                  <ProjectionCard projection={projection} />
-                )}
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <div className='space-y-4'>
+              {isLoading ? (
+                <div className='flex h-40 items-center justify-center'>
+                  <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
+                </div>
+              ) : currentSummary ? (
+                <>
+                  {/* Projeção */}
+                  {projection && projection.daysRemaining > 0 && (
+                    <ProjectionCard projection={projection} />
+                  )}
 
-                {/* Gráfico Circular - Receitas vs Despesas */}
-                {pieChartData.length > 0 && currentSummary && (
-                  <div className='rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-5 shadow-lg dark:from-slate-900 dark:to-slate-800'>
-                    <div className='mb-4 flex items-center justify-between'>
-                      <h3 className='font-semibold text-lg text-slate-800 dark:text-slate-200'>
-                        Balanço do Período
-                      </h3>
-                      <div
-                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                          currentSummary.balance >= 0
-                            ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
-                            : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
-                        }`}
-                      >
-                        {currentSummary.balance >= 0 ? '+ ' : ''}
-                        {formatCurrency(currentSummary.balance)}
+                  {/* Gráfico Circular - Receitas vs Despesas */}
+                  {pieChartData.length > 0 && currentSummary && (
+                    <div className='rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-5 shadow-lg dark:from-slate-900 dark:to-slate-800'>
+                      <div className='mb-4 flex items-center justify-between'>
+                        <h3 className='font-semibold text-lg text-slate-800 dark:text-slate-200'>
+                          Balanço do Período
+                        </h3>
+                        <div
+                          className={`rounded-full px-3 py-1 text-xs font-medium ${
+                            currentSummary.balance >= 0
+                              ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400'
+                              : 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-400'
+                          }`}
+                        >
+                          {currentSummary.balance >= 0 ? '+ ' : ''}
+                          {formatCurrency(currentSummary.balance)}
+                        </div>
+                      </div>
+
+                      <div className='flex flex-col items-center gap-4'>
+                        {/* Gráfico */}
+                        <div className='relative h-44 w-44 flex-shrink-0'>
+                          <ResponsiveContainer height='100%' width='100%'>
+                            <PieChart>
+                              <Pie
+                                cx='50%'
+                                cy='50%'
+                                data={pieChartData}
+                                dataKey='value'
+                                innerRadius={50}
+                                outerRadius={70}
+                                paddingAngle={3}
+                                stroke='none'
+                              >
+                                {pieChartData.map((entry) => (
+                                  <Cell
+                                    fill={entry.type === 'income' ? '#10B981' : '#EF4444'}
+                                    key={`cell-${entry.type}`}
+                                  />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                contentStyle={{
+                                  backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                                  borderRadius: '12px',
+                                  border: 'none',
+                                  boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
+                                  padding: '12px 16px',
+                                }}
+                                formatter={(value: number) => formatCurrency(value)}
+                                itemStyle={{ color: '#fff' }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                          {/* Centro do donut */}
+                          <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center'>
+                            <span className='text-slate-400 text-xs dark:text-slate-500'>
+                              Total
+                            </span>
+                            <span className='font-bold text-slate-800 dark:text-slate-200'>
+                              {formatCurrency(currentSummary.income + currentSummary.expenses)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Legenda personalizada */}
+                        <div className='flex w-full flex-col gap-3'>
+                          <div className='rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800'>
+                            <div className='flex items-center gap-3'>
+                              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500'>
+                                <ArrowUpCircle className='h-5 w-5 text-white' />
+                              </div>
+                              <div className='flex-1'>
+                                <p className='text-slate-500 text-xs dark:text-slate-400'>
+                                  Receitas
+                                </p>
+                                <p className='font-bold text-emerald-600 text-lg dark:text-emerald-400'>
+                                  {formatCurrency(currentSummary.income)}
+                                </p>
+                              </div>
+                              <div className='rounded-full bg-emerald-100 px-2 py-1 font-semibold text-emerald-700 text-xs dark:bg-emerald-900/40 dark:text-emerald-400'>
+                                {currentSummary.income + currentSummary.expenses > 0
+                                  ? (
+                                      (currentSummary.income /
+                                        (currentSummary.income + currentSummary.expenses)) *
+                                      100
+                                    ).toFixed(0)
+                                  : 0}
+                                %
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className='rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800'>
+                            <div className='flex items-center gap-3'>
+                              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-500'>
+                                <ArrowDownCircle className='h-5 w-5 text-white' />
+                              </div>
+                              <div className='flex-1'>
+                                <p className='text-slate-500 text-xs dark:text-slate-400'>
+                                  Despesas
+                                </p>
+                                <p className='font-bold text-lg text-red-600 dark:text-red-400'>
+                                  {formatCurrency(currentSummary.expenses)}
+                                </p>
+                              </div>
+                              <div className='rounded-full bg-red-100 px-2 py-1 font-semibold text-red-700 text-xs dark:bg-red-900/40 dark:text-red-400'>
+                                {currentSummary.income + currentSummary.expenses > 0
+                                  ? (
+                                      (currentSummary.expenses /
+                                        (currentSummary.income + currentSummary.expenses)) *
+                                      100
+                                    ).toFixed(0)
+                                  : 0}
+                                %
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  )}
 
-                    <div className='flex flex-col items-center gap-4'>
-                      {/* Gráfico */}
-                      <div className='relative h-44 w-44 flex-shrink-0'>
+                  {/* Métricas Financeiras */}
+                  {metrics && (
+                    <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                      <div className='mb-4 flex items-center gap-2'>
+                        <FileText className='h-5 w-5 text-emerald-600' />
+                        <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
+                          Indicadores Financeiros
+                        </h3>
+                      </div>
+
+                      <div className='grid grid-cols-2 gap-3'>
+                        <div className='rounded-lg bg-slate-50 p-3 dark:bg-slate-800'>
+                          <p className='text-slate-500 text-xs'>Margem de Lucro</p>
+                          <p
+                            className={`font-bold text-xl ${
+                              metrics.profitMargin >= 0 ? 'text-emerald-600' : 'text-red-600'
+                            }`}
+                          >
+                            {metrics.profitMargin.toFixed(1)}%
+                          </p>
+                        </div>
+                        <div className='rounded-lg bg-slate-50 p-3 dark:bg-slate-800'>
+                          <p className='text-slate-500 text-xs'>Ratio Despesas/Receitas</p>
+                          <p
+                            className={`font-bold text-xl ${
+                              metrics.expenseRatio <= 70 ? 'text-emerald-600' : 'text-amber-600'
+                            }`}
+                          >
+                            {metrics.expenseRatio.toFixed(1)}%
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Top Categorias */}
+                      {(metrics.topIncomeCategory || metrics.topExpenseCategory) && (
+                        <div className='mt-4 space-y-2'>
+                          {metrics.topIncomeCategory && (
+                            <div className='flex items-center justify-between rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20'>
+                              <div className='flex items-center gap-2'>
+                                <ArrowUpCircle className='h-4 w-4 text-emerald-600' />
+                                <span className='text-emerald-800 text-sm dark:text-emerald-300'>
+                                  Principal fonte de receita
+                                </span>
+                              </div>
+                              <span className='font-medium text-emerald-700 text-sm dark:text-emerald-400'>
+                                {getCategoryInfo(metrics.topIncomeCategory[0]).label} (
+                                {formatCurrency(metrics.topIncomeCategory[1].income)})
+                              </span>
+                            </div>
+                          )}
+                          {metrics.topExpenseCategory && (
+                            <div className='flex items-center justify-between rounded-lg bg-red-50 p-3 dark:bg-red-900/20'>
+                              <div className='flex items-center gap-2'>
+                                <ArrowDownCircle className='h-4 w-4 text-red-600' />
+                                <span className='text-red-800 text-sm dark:text-red-300'>
+                                  Maior despesa
+                                </span>
+                              </div>
+                              <span className='font-medium text-red-700 text-sm dark:text-red-400'>
+                                {getCategoryInfo(metrics.topExpenseCategory[0]).label} (
+                                {formatCurrency(metrics.topExpenseCategory[1].expense)})
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Por Categoria */}
+                  {categoryChartData.length > 0 && (
+                    <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                      <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
+                        Por Categoria
+                      </h3>
+                      <div className='h-64'>
                         <ResponsiveContainer height='100%' width='100%'>
-                          <PieChart>
-                            <Pie
-                              cx='50%'
-                              cy='50%'
-                              data={pieChartData}
-                              dataKey='value'
-                              innerRadius={50}
-                              outerRadius={70}
-                              paddingAngle={3}
-                              stroke='none'
-                            >
-                              {pieChartData.map((entry) => (
-                                <Cell
-                                  fill={entry.type === 'income' ? '#10B981' : '#EF4444'}
-                                  key={`cell-${entry.type}`}
-                                />
-                              ))}
-                            </Pie>
+                          <BarChart data={categoryChartData} layout='vertical'>
+                            <CartesianGrid horizontal={false} strokeDasharray='3 3' />
+                            <XAxis tickFormatter={(value) => `R$${value}`} type='number' />
+                            <YAxis
+                              dataKey='name'
+                              tick={{ fontSize: 12 }}
+                              type='category'
+                              width={80}
+                            />
                             <Tooltip
                               contentStyle={{
-                                backgroundColor: 'rgba(15, 23, 42, 0.95)',
-                                borderRadius: '12px',
-                                border: 'none',
-                                boxShadow: '0 10px 40px rgba(0,0,0,0.2)',
-                                padding: '12px 16px',
+                                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                borderRadius: '8px',
+                                border: '1px solid #e2e8f0',
                               }}
                               formatter={(value: number) => formatCurrency(value)}
-                              itemStyle={{ color: '#fff' }}
                             />
-                          </PieChart>
+                            <Bar
+                              dataKey='income'
+                              fill={CHART_COLORS.income}
+                              name='Receita'
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar
+                              dataKey='expense'
+                              fill={CHART_COLORS.expense}
+                              name='Despesa'
+                              radius={[0, 4, 4, 0]}
+                            />
+                          </BarChart>
                         </ResponsiveContainer>
-                        {/* Centro do donut */}
-                        <div className='pointer-events-none absolute inset-0 flex flex-col items-center justify-center'>
-                          <span className='text-slate-400 text-xs dark:text-slate-500'>Total</span>
-                          <span className='font-bold text-slate-800 dark:text-slate-200'>
-                            {formatCurrency(currentSummary.income + currentSummary.expenses)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Legenda personalizada */}
-                      <div className='flex w-full flex-col gap-3'>
-                        <div className='rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800'>
-                          <div className='flex items-center gap-3'>
-                            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500'>
-                              <ArrowUpCircle className='h-5 w-5 text-white' />
-                            </div>
-                            <div className='flex-1'>
-                              <p className='text-slate-500 text-xs dark:text-slate-400'>Receitas</p>
-                              <p className='font-bold text-emerald-600 text-lg dark:text-emerald-400'>
-                                {formatCurrency(currentSummary.income)}
-                              </p>
-                            </div>
-                            <div className='rounded-full bg-emerald-100 px-2 py-1 font-semibold text-emerald-700 text-xs dark:bg-emerald-900/40 dark:text-emerald-400'>
-                              {currentSummary.income + currentSummary.expenses > 0
-                                ? (
-                                    (currentSummary.income /
-                                      (currentSummary.income + currentSummary.expenses)) *
-                                    100
-                                  ).toFixed(0)
-                                : 0}
-                              %
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className='rounded-xl bg-white p-3 shadow-sm dark:bg-slate-800'>
-                          <div className='flex items-center gap-3'>
-                            <div className='flex h-10 w-10 items-center justify-center rounded-full bg-red-500'>
-                              <ArrowDownCircle className='h-5 w-5 text-white' />
-                            </div>
-                            <div className='flex-1'>
-                              <p className='text-slate-500 text-xs dark:text-slate-400'>Despesas</p>
-                              <p className='font-bold text-lg text-red-600 dark:text-red-400'>
-                                {formatCurrency(currentSummary.expenses)}
-                              </p>
-                            </div>
-                            <div className='rounded-full bg-red-100 px-2 py-1 font-semibold text-red-700 text-xs dark:bg-red-900/40 dark:text-red-400'>
-                              {currentSummary.income + currentSummary.expenses > 0
-                                ? (
-                                    (currentSummary.expenses /
-                                      (currentSummary.income + currentSummary.expenses)) *
-                                    100
-                                  ).toFixed(0)
-                                : 0}
-                              %
-                            </div>
-                          </div>
-                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Métricas Financeiras */}
-                {metrics && (
-                  <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
-                    <div className='mb-4 flex items-center gap-2'>
-                      <FileText className='h-5 w-5 text-emerald-600' />
-                      <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
-                        Indicadores Financeiros
-                      </h3>
-                    </div>
-
-                    <div className='grid grid-cols-2 gap-3'>
-                      <div className='rounded-lg bg-slate-50 p-3 dark:bg-slate-800'>
-                        <p className='text-slate-500 text-xs'>Margem de Lucro</p>
-                        <p
-                          className={`font-bold text-xl ${
-                            metrics.profitMargin >= 0 ? 'text-emerald-600' : 'text-red-600'
-                          }`}
-                        >
-                          {metrics.profitMargin.toFixed(1)}%
-                        </p>
-                      </div>
-                      <div className='rounded-lg bg-slate-50 p-3 dark:bg-slate-800'>
-                        <p className='text-slate-500 text-xs'>Ratio Despesas/Receitas</p>
-                        <p
-                          className={`font-bold text-xl ${
-                            metrics.expenseRatio <= 70 ? 'text-emerald-600' : 'text-amber-600'
-                          }`}
-                        >
-                          {metrics.expenseRatio.toFixed(1)}%
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Top Categorias */}
-                    {(metrics.topIncomeCategory || metrics.topExpenseCategory) && (
-                      <div className='mt-4 space-y-2'>
-                        {metrics.topIncomeCategory && (
-                          <div className='flex items-center justify-between rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20'>
-                            <div className='flex items-center gap-2'>
-                              <ArrowUpCircle className='h-4 w-4 text-emerald-600' />
-                              <span className='text-emerald-800 text-sm dark:text-emerald-300'>
-                                Principal fonte de receita
-                              </span>
-                            </div>
-                            <span className='font-medium text-emerald-700 text-sm dark:text-emerald-400'>
-                              {getCategoryInfo(metrics.topIncomeCategory[0]).label} (
-                              {formatCurrency(metrics.topIncomeCategory[1].income)})
-                            </span>
-                          </div>
-                        )}
-                        {metrics.topExpenseCategory && (
-                          <div className='flex items-center justify-between rounded-lg bg-red-50 p-3 dark:bg-red-900/20'>
-                            <div className='flex items-center gap-2'>
-                              <ArrowDownCircle className='h-4 w-4 text-red-600' />
-                              <span className='text-red-800 text-sm dark:text-red-300'>
-                                Maior despesa
-                              </span>
-                            </div>
-                            <span className='font-medium text-red-700 text-sm dark:text-red-400'>
-                              {getCategoryInfo(metrics.topExpenseCategory[0]).label} (
-                              {formatCurrency(metrics.topExpenseCategory[1].expense)})
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Por Categoria */}
-                {categoryChartData.length > 0 && (
+                  {/* Sessões */}
                   <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
                     <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
-                      Por Categoria
+                      Sessões do Período
                     </h3>
-                    <div className='h-64'>
+                    <div className='grid grid-cols-2 gap-4'>
+                      <div>
+                        <p className='text-slate-500 text-sm'>Realizadas</p>
+                        <div className='flex items-center gap-2'>
+                          <p className='font-bold text-2xl text-slate-800 dark:text-slate-100'>
+                            {currentSummary.sessionsCount}
+                          </p>
+                          {comparison && <ChangeIndicator value={comparison.sessionsChange} />}
+                        </div>
+                        {previousSummary && (
+                          <p className='text-slate-400 text-xs'>
+                            Anterior: {previousSummary.sessionsCount}
+                          </p>
+                        )}
+                      </div>
+                      <div>
+                        <p className='text-slate-500 text-sm'>Valor Médio</p>
+                        <p className='font-bold text-2xl text-slate-800 dark:text-slate-100'>
+                          {formatCurrency(currentSummary.averageSessionValue)}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Registros Recorrentes */}
+                  {recurringData && recurringData.count > 0 && (
+                    <div className='rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-indigo-900/20'>
+                      <div className='mb-3 flex items-center gap-2'>
+                        <span className='text-xl'>🔄</span>
+                        <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
+                          Registros Recorrentes
+                        </h3>
+                      </div>
+                      <div className='grid grid-cols-3 gap-3'>
+                        <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
+                          <p className='text-slate-500 text-xs'>Total</p>
+                          <p className='font-bold text-lg text-slate-800 dark:text-slate-100'>
+                            {recurringData.count}
+                          </p>
+                          <p className='text-slate-400 text-xs'>registros</p>
+                        </div>
+                        <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
+                          <p className='text-emerald-600 text-xs'>Receitas</p>
+                          <p className='font-bold text-lg text-emerald-600'>
+                            {formatCurrency(recurringData.income)}
+                          </p>
+                          <p className='text-slate-400 text-xs'>recorrente</p>
+                        </div>
+                        <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
+                          <p className='text-red-600 text-xs'>Despesas</p>
+                          <p className='font-bold text-lg text-red-600'>
+                            {formatCurrency(recurringData.expense)}
+                          </p>
+                          <p className='text-slate-400 text-xs'>recorrente</p>
+                        </div>
+                      </div>
+
+                      {/* Lista de itens recorrentes */}
+                      <details className='mt-3'>
+                        <summary className='cursor-pointer font-medium text-blue-600 text-sm hover:text-blue-700'>
+                          Ver detalhes dos registros recorrentes
+                        </summary>
+                        <div className='mt-2 space-y-2'>
+                          {recurringData.records.map((record) => {
+                            const info = getCategoryInfo(record.category)
+                            return (
+                              <div
+                                className='flex items-center justify-between rounded-lg bg-white/80 p-2 dark:bg-slate-800/80'
+                                key={record.id}
+                              >
+                                <div className='flex items-center gap-2'>
+                                  <span>{info.icon}</span>
+                                  <span className='text-slate-700 text-sm dark:text-slate-300'>
+                                    {info.label}
+                                  </span>
+                                  <span className='rounded-full bg-blue-100 px-1.5 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
+                                    {record.frequency === 'weekly' && 'Semanal'}
+                                    {record.frequency === 'monthly' && 'Mensal'}
+                                    {record.frequency === 'yearly' && 'Anual'}
+                                  </span>
+                                </div>
+                                <span
+                                  className={`font-medium text-sm ${record.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}
+                                >
+                                  {record.type === 'income' ? '+' : '-'}
+                                  {formatCurrency(record.amount)}
+                                </span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </details>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className='flex h-40 items-center justify-center'>
+                  <p className='text-slate-500'>Sem dados para exibir</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Evolution Tab - Gráficos de linha */}
+          {activeTab === 'evolution' && (
+            <div className='space-y-4'>
+              {chartData && chartData.length > 0 ? (
+                <>
+                  {/* Evolução Mensal */}
+                  <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                    <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
+                      Evolução Mensal (últimos 12 meses)
+                    </h3>
+                    <div className='h-72'>
                       <ResponsiveContainer height='100%' width='100%'>
-                        <BarChart data={categoryChartData} layout='vertical'>
-                          <CartesianGrid horizontal={false} strokeDasharray='3 3' />
-                          <XAxis tickFormatter={(value) => `R$${value}`} type='number' />
-                          <YAxis
-                            dataKey='name'
-                            tick={{ fontSize: 12 }}
-                            type='category'
-                            width={80}
-                          />
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray='3 3' />
+                          <XAxis dataKey='monthLabel' tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(value) => `R$${value / 1000}k`} />
                           <Tooltip
                             contentStyle={{
                               backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -732,450 +955,317 @@ export default function TherapistFinancialView(): React.ReactElement {
                             }}
                             formatter={(value: number) => formatCurrency(value)}
                           />
+                          <Legend />
+                          <Line
+                            dataKey='income'
+                            dot={{ fill: CHART_COLORS.income }}
+                            name='Receita'
+                            stroke={CHART_COLORS.income}
+                            strokeWidth={2}
+                            type='monotone'
+                          />
+                          <Line
+                            dataKey='expense'
+                            dot={{ fill: CHART_COLORS.expense }}
+                            name='Despesa'
+                            stroke={CHART_COLORS.expense}
+                            strokeWidth={2}
+                            type='monotone'
+                          />
+                          <Line
+                            dataKey='balance'
+                            dot={{ fill: CHART_COLORS.balance }}
+                            name='Saldo'
+                            stroke={CHART_COLORS.balance}
+                            strokeWidth={2}
+                            type='monotone'
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  {/* Barras de Comparação */}
+                  <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                    <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
+                      Receitas vs Despesas por Mês
+                    </h3>
+                    <div className='h-64'>
+                      <ResponsiveContainer height='100%' width='100%'>
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray='3 3' />
+                          <XAxis dataKey='monthLabel' tick={{ fontSize: 12 }} />
+                          <YAxis tickFormatter={(value) => `R$${value / 1000}k`} />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                              borderRadius: '8px',
+                              border: '1px solid #e2e8f0',
+                            }}
+                            formatter={(value: number) => formatCurrency(value)}
+                          />
+                          <Legend />
                           <Bar
                             dataKey='income'
                             fill={CHART_COLORS.income}
                             name='Receita'
-                            radius={[0, 4, 4, 0]}
+                            radius={[4, 4, 0, 0]}
                           />
                           <Bar
                             dataKey='expense'
                             fill={CHART_COLORS.expense}
                             name='Despesa'
-                            radius={[0, 4, 4, 0]}
+                            radius={[4, 4, 0, 0]}
                           />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
                   </div>
-                )}
 
-                {/* Sessões */}
-                <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
-                  <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
-                    Sessões do Período
-                  </h3>
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div>
-                      <p className='text-slate-500 text-sm'>Realizadas</p>
-                      <div className='flex items-center gap-2'>
-                        <p className='font-bold text-2xl text-slate-800 dark:text-slate-100'>
-                          {currentSummary.sessionsCount}
-                        </p>
-                        {comparison && <ChangeIndicator value={comparison.sessionsChange} />}
-                      </div>
-                      {previousSummary && (
-                        <p className='text-slate-400 text-xs'>
-                          Anterior: {previousSummary.sessionsCount}
-                        </p>
-                      )}
-                    </div>
-                    <div>
-                      <p className='text-slate-500 text-sm'>Valor Médio</p>
-                      <p className='font-bold text-2xl text-slate-800 dark:text-slate-100'>
-                        {formatCurrency(currentSummary.averageSessionValue)}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Registros Recorrentes */}
-                {recurringData && recurringData.count > 0 && (
-                  <div className='rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-indigo-900/20'>
-                    <div className='mb-3 flex items-center gap-2'>
-                      <span className='text-xl'>🔄</span>
-                      <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
-                        Registros Recorrentes
+                  {/* Resumo de Evolução */}
+                  {chartData.length >= 2 && (
+                    <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                      <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
+                        Resumo da Evolução
                       </h3>
-                    </div>
-                    <div className='grid grid-cols-3 gap-3'>
-                      <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
-                        <p className='text-slate-500 text-xs'>Total</p>
-                        <p className='font-bold text-lg text-slate-800 dark:text-slate-100'>
-                          {recurringData.count}
-                        </p>
-                        <p className='text-slate-400 text-xs'>registros</p>
-                      </div>
-                      <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
-                        <p className='text-emerald-600 text-xs'>Receitas</p>
-                        <p className='font-bold text-lg text-emerald-600'>
-                          {formatCurrency(recurringData.income)}
-                        </p>
-                        <p className='text-slate-400 text-xs'>recorrente</p>
-                      </div>
-                      <div className='rounded-lg bg-white/60 p-3 dark:bg-slate-800/60'>
-                        <p className='text-red-600 text-xs'>Despesas</p>
-                        <p className='font-bold text-lg text-red-600'>
-                          {formatCurrency(recurringData.expense)}
-                        </p>
-                        <p className='text-slate-400 text-xs'>recorrente</p>
-                      </div>
-                    </div>
-
-                    {/* Lista de itens recorrentes */}
-                    <details className='mt-3'>
-                      <summary className='cursor-pointer font-medium text-blue-600 text-sm hover:text-blue-700'>
-                        Ver detalhes dos registros recorrentes
-                      </summary>
-                      <div className='mt-2 space-y-2'>
-                        {recurringData.records.map((record) => {
-                          const info = getCategoryInfo(record.category)
-                          return (
-                            <div
-                              className='flex items-center justify-between rounded-lg bg-white/80 p-2 dark:bg-slate-800/80'
-                              key={record.id}
-                            >
-                              <div className='flex items-center gap-2'>
-                                <span>{info.icon}</span>
-                                <span className='text-slate-700 text-sm dark:text-slate-300'>
-                                  {info.label}
-                                </span>
-                                <span className='rounded-full bg-blue-100 px-1.5 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
-                                  {record.frequency === 'weekly' && 'Semanal'}
-                                  {record.frequency === 'monthly' && 'Mensal'}
-                                  {record.frequency === 'yearly' && 'Anual'}
-                                </span>
-                              </div>
-                              <span
-                                className={`font-medium text-sm ${record.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}
-                              >
-                                {record.type === 'income' ? '+' : '-'}
-                                {formatCurrency(record.amount)}
-                              </span>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    </details>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className='flex h-40 items-center justify-center'>
-                <p className='text-slate-500'>Sem dados para exibir</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Evolution Tab - Gráficos de linha */}
-        {activeTab === 'evolution' && (
-          <div className='space-y-4'>
-            {chartData && chartData.length > 0 ? (
-              <>
-                {/* Evolução Mensal */}
-                <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
-                  <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
-                    Evolução Mensal (últimos 12 meses)
-                  </h3>
-                  <div className='h-72'>
-                    <ResponsiveContainer height='100%' width='100%'>
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='monthLabel' tick={{ fontSize: 12 }} />
-                        <YAxis tickFormatter={(value) => `R$${value / 1000}k`} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                          }}
-                          formatter={(value: number) => formatCurrency(value)}
-                        />
-                        <Legend />
-                        <Line
-                          dataKey='income'
-                          dot={{ fill: CHART_COLORS.income }}
-                          name='Receita'
-                          stroke={CHART_COLORS.income}
-                          strokeWidth={2}
-                          type='monotone'
-                        />
-                        <Line
-                          dataKey='expense'
-                          dot={{ fill: CHART_COLORS.expense }}
-                          name='Despesa'
-                          stroke={CHART_COLORS.expense}
-                          strokeWidth={2}
-                          type='monotone'
-                        />
-                        <Line
-                          dataKey='balance'
-                          dot={{ fill: CHART_COLORS.balance }}
-                          name='Saldo'
-                          stroke={CHART_COLORS.balance}
-                          strokeWidth={2}
-                          type='monotone'
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Barras de Comparação */}
-                <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
-                  <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
-                    Receitas vs Despesas por Mês
-                  </h3>
-                  <div className='h-64'>
-                    <ResponsiveContainer height='100%' width='100%'>
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray='3 3' />
-                        <XAxis dataKey='monthLabel' tick={{ fontSize: 12 }} />
-                        <YAxis tickFormatter={(value) => `R$${value / 1000}k`} />
-                        <Tooltip
-                          contentStyle={{
-                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                            borderRadius: '8px',
-                            border: '1px solid #e2e8f0',
-                          }}
-                          formatter={(value: number) => formatCurrency(value)}
-                        />
-                        <Legend />
-                        <Bar
-                          dataKey='income'
-                          fill={CHART_COLORS.income}
-                          name='Receita'
-                          radius={[4, 4, 0, 0]}
-                        />
-                        <Bar
-                          dataKey='expense'
-                          fill={CHART_COLORS.expense}
-                          name='Despesa'
-                          radius={[4, 4, 0, 0]}
-                        />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </div>
-
-                {/* Resumo de Evolução */}
-                {chartData.length >= 2 && (
-                  <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
-                    <h3 className='mb-3 font-semibold text-slate-800 dark:text-slate-200'>
-                      Resumo da Evolução
-                    </h3>
-                    <div className='grid grid-cols-2 gap-4'>
-                      <div>
-                        <p className='text-slate-500 text-sm'>Total no Período</p>
-                        <p className='font-bold text-xl text-emerald-600'>
-                          {formatCurrency(chartData.reduce((acc, m) => acc + m.income, 0))}
-                        </p>
-                        <p className='text-slate-400 text-xs'>em receitas</p>
-                      </div>
-                      <div>
-                        <p className='text-slate-500 text-sm'>Média Mensal</p>
-                        <p className='font-bold text-xl text-slate-800 dark:text-slate-100'>
-                          {formatCurrency(
-                            chartData.reduce((acc, m) => acc + m.balance, 0) / chartData.length
-                          )}
-                        </p>
-                        <p className='text-slate-400 text-xs'>de saldo</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className='flex h-40 flex-col items-center justify-center'>
-                <TrendingUp className='mb-3 h-12 w-12 text-slate-300' />
-                <p className='text-slate-500'>Adicione registros para ver a evolução</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Records Tab */}
-        {activeTab === 'records' && (
-          <div className='space-y-3'>
-            {isLoadingRecords ? (
-              <div className='flex h-40 items-center justify-center'>
-                <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
-              </div>
-            ) : records && records.length > 0 ? (
-              <>
-                <button
-                  className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-4 text-emerald-600 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:border-emerald-600'
-                  onClick={() => setShowAddForm(true)}
-                  type='button'
-                >
-                  <Plus className='h-5 w-5' />
-                  <span className='font-medium'>Novo Registro</span>
-                </button>
-                {records.map((record) => {
-                  const info = getCategoryInfo(record.category)
-                  return (
-                    <div
-                      className='flex items-center gap-4 rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
-                      key={record.id}
-                    >
-                      <div
-                        className={`relative flex h-12 w-12 items-center justify-center rounded-full ${record.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}
-                      >
-                        {record.type === 'income' ? (
-                          <ArrowUpCircle className='h-6 w-6 text-green-600' />
-                        ) : (
-                          <ArrowDownCircle className='h-6 w-6 text-red-600' />
-                        )}
-                        {record.isRecurring && (
-                          <span
-                            className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
-                            title={`Recorrente: ${record.frequency === 'weekly' ? 'Semanal' : record.frequency === 'monthly' ? 'Mensal' : 'Anual'}`}
-                          >
-                            🔄
-                          </span>
-                        )}
-                      </div>
-                      <div className='flex-1'>
-                        <div className='flex items-center gap-2'>
-                          <span>{info.icon}</span>
-                          <p className='font-medium text-slate-800 dark:text-slate-200'>
-                            {info.label}
+                      <div className='grid grid-cols-2 gap-4'>
+                        <div>
+                          <p className='text-slate-500 text-sm'>Total no Período</p>
+                          <p className='font-bold text-xl text-emerald-600'>
+                            {formatCurrency(chartData.reduce((acc, m) => acc + m.income, 0))}
                           </p>
+                          <p className='text-slate-400 text-xs'>em receitas</p>
+                        </div>
+                        <div>
+                          <p className='text-slate-500 text-sm'>Média Mensal</p>
+                          <p className='font-bold text-xl text-slate-800 dark:text-slate-100'>
+                            {formatCurrency(
+                              chartData.reduce((acc, m) => acc + m.balance, 0) / chartData.length
+                            )}
+                          </p>
+                          <p className='text-slate-400 text-xs'>de saldo</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className='flex h-40 flex-col items-center justify-center'>
+                  <TrendingUp className='mb-3 h-12 w-12 text-slate-300' />
+                  <p className='text-slate-500'>Adicione registros para ver a evolução</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Records Tab */}
+          {activeTab === 'records' && (
+            <div className='space-y-3'>
+              {isLoadingRecords ? (
+                <div className='flex h-40 items-center justify-center'>
+                  <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
+                </div>
+              ) : records && records.length > 0 ? (
+                <>
+                  <button
+                    className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-4 text-emerald-600 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:border-emerald-600'
+                    onClick={() => setShowAddForm(true)}
+                    type='button'
+                  >
+                    <Plus aria-hidden='true' className='h-5 w-5' />
+                    <span className='font-medium'>Novo Registro</span>
+                  </button>
+                  {records.map((record) => {
+                    const info = getCategoryInfo(record.category)
+                    return (
+                      <div
+                        className='flex items-center gap-3 overflow-hidden rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
+                        key={record.id}
+                      >
+                        <div
+                          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${record.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}
+                        >
+                          {record.type === 'income' ? (
+                            <ArrowUpCircle aria-hidden='true' className='h-6 w-6 text-green-600' />
+                          ) : (
+                            <ArrowDownCircle aria-hidden='true' className='h-6 w-6 text-red-600' />
+                          )}
                           {record.isRecurring && (
-                            <span className='rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
-                              {record.frequency === 'weekly' && 'Semanal'}
-                              {record.frequency === 'monthly' && 'Mensal'}
-                              {record.frequency === 'yearly' && 'Anual'}
+                            <span
+                              className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
+                              title={`Recorrente: ${record.frequency === 'weekly' ? 'Semanal' : record.frequency === 'monthly' ? 'Mensal' : 'Anual'}`}
+                            >
+                              🔄
                             </span>
                           )}
                         </div>
-                        {record.description && (
-                          <p className='text-slate-500 text-sm'>{record.description}</p>
-                        )}
-                        <p className='text-slate-400 text-xs'>{formatDateShort(record.date)}</p>
+                        <div className='min-w-0 flex-1'>
+                          <div className='flex items-center gap-2'>
+                            <span>{info.icon}</span>
+                            <p className='truncate font-medium text-slate-800 dark:text-slate-200'>
+                              {info.label}
+                            </p>
+                            {record.isRecurring && (
+                              <span className='rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
+                                {record.frequency === 'weekly' && 'Semanal'}
+                                {record.frequency === 'monthly' && 'Mensal'}
+                                {record.frequency === 'yearly' && 'Anual'}
+                              </span>
+                            )}
+                          </div>
+                          {record.description && (
+                            <p className='text-slate-500 text-sm'>{record.description}</p>
+                          )}
+                          <p className='text-slate-400 text-xs'>{formatDateShort(record.date)}</p>
+                        </div>
+                        <div className='flex shrink-0 items-center gap-1'>
+                          <p
+                            className={`whitespace-nowrap text-sm font-bold ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
+                          >
+                            {record.type === 'income' ? '+' : '-'}
+                            {formatCurrency(record.amount)}
+                          </p>
+                          <button
+                            aria-label='Excluir registro'
+                            className='shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
+                            onClick={() => setShowDeleteConfirm(record.id)}
+                            title='Excluir registro'
+                            type='button'
+                          >
+                            <Trash2 aria-hidden='true' className='h-4 w-4' />
+                          </button>
+                        </div>
                       </div>
-                      <p
-                        className={`font-bold ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
-                      >
-                        {record.type === 'income' ? '+' : '-'}
-                        {formatCurrency(record.amount)}
-                      </p>
-                      <button
-                        className='rounded-full p-2 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
-                        onClick={() => setShowDeleteConfirm(record.id)}
-                        title='Excluir registro'
-                        type='button'
-                      >
-                        <Trash2 className='h-5 w-5' />
-                      </button>
-                    </div>
-                  )
-                })}
-              </>
-            ) : (
-              <div className='flex h-40 flex-col items-center justify-center'>
-                <DollarSign className='mb-3 h-12 w-12 text-slate-300' />
-                <p className='text-slate-500'>Nenhum registro encontrado</p>
-                <button
-                  className='mt-3 font-medium text-emerald-600 text-sm hover:underline'
-                  onClick={() => setShowAddForm(true)}
-                  type='button'
-                >
-                  Adicionar primeiro registro
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Goals Tab */}
-        {activeTab === 'goals' && (
-          <div className='space-y-3'>
-            {isLoadingGoals ? (
-              <div className='flex h-40 items-center justify-center'>
-                <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
-              </div>
-            ) : goals && goals.length > 0 ? (
-              <>
-                <button
-                  className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-4 text-emerald-600 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:border-emerald-600'
-                  onClick={() => setShowGoalForm(true)}
-                  type='button'
-                >
-                  <Plus className='h-5 w-5' />
-                  <span className='font-medium'>Nova Meta</span>
-                </button>
-                {goals.map((goal) => (
-                  <div
-                    className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
-                    key={goal.id}
+                    )
+                  })}
+                </>
+              ) : (
+                <div className='flex h-40 flex-col items-center justify-center'>
+                  <DollarSign className='mb-3 h-12 w-12 text-slate-300' />
+                  <p className='text-slate-500'>Nenhum registro encontrado</p>
+                  <button
+                    className='mt-3 font-medium text-emerald-600 text-sm hover:underline'
+                    onClick={() => setShowAddForm(true)}
+                    type='button'
                   >
-                    <div className='mb-2 flex items-start justify-between'>
-                      <div className='flex items-center gap-2'>
-                        <Target className='h-5 w-5 text-emerald-500' />
-                        <h4 className='font-medium text-slate-800 dark:text-slate-200'>
-                          {goal.title}
-                        </h4>
-                      </div>
-                      <div className='flex items-center gap-2'>
-                        <span
-                          className={`rounded-full px-2 py-0.5 text-xs ${
-                            goal.status === 'completed'
-                              ? 'bg-green-100 text-green-700'
-                              : goal.status === 'active'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-slate-100 text-slate-700'
-                          }`}
-                        >
-                          {goal.status === 'completed'
-                            ? 'Concluída'
-                            : goal.status === 'active'
-                              ? 'Ativa'
-                              : 'Pausada'}
-                        </span>
-                        <button
-                          className='rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
-                          onClick={() => setShowDeleteGoalConfirm(goal.id)}
-                          title='Excluir meta'
-                          type='button'
-                        >
-                          <Trash2 className='h-4 w-4' />
-                        </button>
-                      </div>
-                    </div>
-                    {goal.description && (
-                      <p className='mb-3 text-slate-500 text-sm'>{goal.description}</p>
-                    )}
-                    <div className='mb-2'>
-                      <div className='mb-1 flex justify-between text-sm'>
-                        <span className='text-slate-600'>
-                          {goal.currentValue} / {goal.targetValue} {goal.unit}
-                        </span>
-                        <span className='font-medium text-emerald-600'>
-                          {Math.round(goal.progress)}%
-                        </span>
-                      </div>
-                      <div className='h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800'>
-                        <div
-                          className='h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500'
-                          style={{ width: `${Math.min(100, goal.progress)}%` }}
-                        />
-                      </div>
-                    </div>
-                    {goal.deadline && (
-                      <p className='text-slate-400 text-xs'>
-                        Prazo: {formatDateShort(goal.deadline)}
-                      </p>
-                    )}
+                    Adicionar primeiro registro
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Goals Tab */}
+          {activeTab === 'goals' && (
+            <div className='space-y-3'>
+              {isLoadingGoals ? (
+                <div className='flex h-40 items-center justify-center'>
+                  <div className='h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600' />
+                </div>
+              ) : goals && goals.length > 0 ? (
+                <>
+                  <div className='flex gap-2'>
+                    <button
+                      className='flex flex-1 items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-4 text-emerald-600 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:border-emerald-600'
+                      onClick={() => setShowGoalForm(true)}
+                      type='button'
+                    >
+                      <Plus className='h-5 w-5' />
+                      <span className='font-medium'>Nova Meta</span>
+                    </button>
+                    <button
+                      className='flex items-center justify-center gap-2 rounded-xl border-2 border-slate-200 bg-white p-4 text-slate-600 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600'
+                      disabled={recalculateGoalsMutation.isPending}
+                      onClick={() => recalculateGoalsMutation.mutate()}
+                      title='Recalcular progresso das metas'
+                      type='button'
+                    >
+                      <RefreshCw
+                        className={`h-5 w-5 ${recalculateGoalsMutation.isPending ? 'animate-spin' : ''}`}
+                      />
+                    </button>
                   </div>
-                ))}
-              </>
-            ) : (
-              <div className='flex h-40 flex-col items-center justify-center'>
-                <Target className='mb-3 h-12 w-12 text-slate-300' />
-                <p className='text-slate-500'>Nenhuma meta definida</p>
-                <button
-                  className='mt-3 font-medium text-emerald-600 text-sm hover:underline'
-                  onClick={() => setShowGoalForm(true)}
-                  type='button'
-                >
-                  Criar primeira meta
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+                  {goals.map((goal) => (
+                    <div
+                      className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
+                      key={goal.id}
+                    >
+                      <div className='mb-2 flex items-start justify-between'>
+                        <div className='flex items-center gap-2'>
+                          <Target className='h-5 w-5 text-emerald-500' />
+                          <h4 className='font-medium text-slate-800 dark:text-slate-200'>
+                            {goal.title}
+                          </h4>
+                        </div>
+                        <div className='flex items-center gap-2'>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-xs ${
+                              goal.status === 'completed'
+                                ? 'bg-green-100 text-green-700'
+                                : goal.status === 'active'
+                                  ? 'bg-blue-100 text-blue-700'
+                                  : 'bg-slate-100 text-slate-700'
+                            }`}
+                          >
+                            {goal.status === 'completed'
+                              ? 'Concluída'
+                              : goal.status === 'active'
+                                ? 'Ativa'
+                                : 'Pausada'}
+                          </span>
+                          <button
+                            className='rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
+                            onClick={() => setShowDeleteGoalConfirm(goal.id)}
+                            title='Excluir meta'
+                            type='button'
+                          >
+                            <Trash2 className='h-4 w-4' />
+                          </button>
+                        </div>
+                      </div>
+                      {goal.description && (
+                        <p className='mb-3 text-slate-500 text-sm'>{goal.description}</p>
+                      )}
+                      <div className='mb-2'>
+                        <div className='mb-1 flex justify-between text-sm'>
+                          <span className='text-slate-600'>
+                            {goal.currentValue} / {goal.targetValue} {goal.unit}
+                          </span>
+                          <span className='font-medium text-emerald-600'>
+                            {Math.round(goal.progress)}%
+                          </span>
+                        </div>
+                        <div className='h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800'>
+                          <div
+                            className='h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500'
+                            style={{ width: `${Math.min(100, goal.progress)}%` }}
+                          />
+                        </div>
+                      </div>
+                      {goal.deadline && (
+                        <p className='text-slate-400 text-xs'>
+                          Prazo: {formatDateShort(goal.deadline)}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </>
+              ) : (
+                <div className='flex h-40 flex-col items-center justify-center'>
+                  <Target className='mb-3 h-12 w-12 text-slate-300' />
+                  <p className='text-slate-500'>Nenhuma meta definida</p>
+                  <button
+                    className='mt-3 font-medium text-emerald-600 text-sm hover:underline'
+                    onClick={() => setShowGoalForm(true)}
+                    type='button'
+                  >
+                    Criar primeira meta
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </main>
 
       {/* Add Record Modal */}
@@ -1187,11 +1277,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                 Novo Registro
               </h2>
               <button
-                className='rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800'
+                aria-label='Fechar modal'
+                className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
                 onClick={() => setShowAddForm(false)}
                 type='button'
               >
-                <X className='h-5 w-5 text-slate-500' />
+                <X className='h-4 w-4' />
               </button>
             </div>
 
@@ -1374,11 +1465,12 @@ export default function TherapistFinancialView(): React.ReactElement {
             <div className='mb-4 flex items-center justify-between'>
               <h2 className='font-bold text-lg text-slate-800 dark:text-slate-100'>Nova Meta</h2>
               <button
-                className='rounded-full p-2 hover:bg-slate-100 dark:hover:bg-slate-800'
+                aria-label='Fechar modal'
+                className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
                 onClick={() => setShowGoalForm(false)}
                 type='button'
               >
-                <X className='h-5 w-5 text-slate-500' />
+                <X className='h-4 w-4' />
               </button>
             </div>
 
@@ -1584,6 +1676,86 @@ export default function TherapistFinancialView(): React.ReactElement {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='mb-4 flex items-center justify-between sm:mb-6'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <Settings className='text-slate-400' size={18} /> Configurações
+              </h3>
+              <button
+                aria-label='Fechar modal'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+                onClick={() => setShowSettings(false)}
+                type='button'
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className='space-y-3 sm:space-y-4'>
+              {/* Modo Escuro */}
+              <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                  </div>
+                  <div className='min-w-0'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Modo Escuro
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Ajustar aparência do app
+                    </p>
+                  </div>
+                </div>
+                <div
+                  aria-checked={realStats.theme === 'dark'}
+                  aria-label={
+                    realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
+                  }
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    realStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                  }`}
+                  onClick={toggleTheme}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+                  role='switch'
+                  tabIndex={0}
+                >
+                  <div
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+            <div className='mt-6 border-slate-100 border-t pt-4 sm:mt-8 sm:pt-6 dark:border-slate-800'>
+              <button
+                className='touch-target flex w-full items-center justify-center gap-2 py-2.5 font-medium text-slate-400 text-xs transition-colors hover:text-red-500 sm:py-3 sm:text-sm dark:text-slate-500'
+                onClick={async () => {
+                  await authClient.signOut({
+                    fetchOptions: {
+                      onSuccess: async () => {
+                        await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+                        window.location.href = '/auth/signin'
+                      },
+                    },
+                  })
+                }}
+                type='button'
+              >
+                <LogOut size={16} /> Sair da conta
+              </button>
+            </div>
+          </div>
+          <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
         </div>
       )}
     </div>

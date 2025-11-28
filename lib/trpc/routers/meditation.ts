@@ -9,7 +9,7 @@ export const meditationRouter = router({
   create: protectedProcedure
     .input(
       z.object({
-        duration: z.number().positive(),
+        duration: z.number().positive(), // duração em segundos
         type: z.string(),
         completed: z.boolean().default(true),
       })
@@ -17,8 +17,10 @@ export const meditationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const id = nanoid()
 
-      // Award XP and Coins using centralized system
-      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'meditation')
+      // Award XP and Coins using centralized system with duration multiplier
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'meditation', {
+        meditationDuration: input.duration,
+      })
       const { xpAwarded, coinsAwarded, levelUp } = result
       const now = new Date()
 

@@ -16,40 +16,32 @@ export function RoleGuard({ children, allowedRoles, fallbackPath }: RoleGuardPro
   const router = useRouter()
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null)
 
-  const { data: profile, isLoading, error } = trpc.user.getProfile.useQuery()
+  const {
+    data: profile,
+    isLoading,
+    error,
+  } = trpc.user.getProfile.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000, // 10 minutes - role doesn't change often
+    gcTime: 30 * 60 * 1000, // 30 minutes cache
+  })
 
   useEffect(() => {
-    // Debug log
-    console.log('[RoleGuard] State:', {
-      isLoading,
-      hasProfile: !!profile,
-      role: profile?.role,
-      roleType: typeof profile?.role,
-      allowedRoles,
-      error: error?.message,
-    })
-
     if (isLoading) return
 
     if (error || !profile) {
-      console.log('[RoleGuard] No profile or error, redirecting to signin')
       router.push('/auth/signin')
       return
     }
 
     // Normaliza a role para lowercase para comparação case-insensitive
     const userRole = (profile.role?.toLowerCase() || 'patient') as UserRole
-    console.log('[RoleGuard] Checking role:', userRole, 'allowed:', allowedRoles)
 
     if (allowedRoles.includes(userRole)) {
-      console.log('[RoleGuard] Role authorized')
       setIsAuthorized(true)
     } else {
-      console.log('[RoleGuard] Role NOT authorized, redirecting...')
       setIsAuthorized(false)
       // Usa o fallbackPath fornecido ou redireciona para a home correta da role
       const redirectTo = fallbackPath ?? getHomeRouteForRole(userRole)
-      console.log('[RoleGuard] Redirecting to:', redirectTo)
       router.push(redirectTo)
     }
   }, [profile, isLoading, error, allowedRoles, fallbackPath, router])

@@ -21,20 +21,35 @@ export const RANKS = [
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const utils = trpc.useUtils()
 
-  // Fetch user profile
-  const { data: userProfile } = trpc.user.getProfile.useQuery()
+  // Fetch user profile - core data, refresh less often
+  const { data: userProfile } = trpc.user.getProfile.useQuery(undefined, {
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: false,
+  })
 
-  // Fetch tasks
-  const { data: tasksData = [] } = trpc.task.getAll.useQuery()
+  // Fetch tasks - can change frequently
+  const { data: tasksData = [] } = trpc.task.getAll.useQuery(undefined, {
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnMount: false,
+  })
 
-  // Fetch journal entries
-  const { data: journalData = [] } = trpc.journal.getAll.useQuery()
+  // Fetch journal entries - rarely changes
+  const { data: journalData = [] } = trpc.journal.getAll.useQuery(undefined, {
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnMount: false,
+  })
 
-  // Fetch badges
-  const { data: badgesData = [] } = trpc.badge.getAll.useQuery()
+  // Fetch badges - rarely changes
+  const { data: badgesData = [] } = trpc.badge.getAll.useQuery(undefined, {
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnMount: false,
+  })
 
-  // Fetch rewards
-  const { data: rewardsData = [] } = trpc.reward.getAll.useQuery()
+  // Fetch rewards - can change with purchases
+  const { data: rewardsData = [] } = trpc.reward.getAll.useQuery(undefined, {
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnMount: false,
+  })
 
   // Convert user profile to UserStats format
   const stats: UserStats = useMemo(() => {
@@ -138,14 +153,23 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       lastMoodXPTimestamp: userProfile.lastMoodXpDate
         ? new Date(userProfile.lastMoodXpDate).getTime()
         : undefined,
-      rewards: rewardsData.map((r) => ({
-        id: r.id,
-        title: r.title,
-        category: (r.category as any) || 'lazer',
-        cost: r.cost,
-        status: r.claimed ? 'redeemed' : r.cost > 0 ? 'approved' : 'pending',
-        createdAt: r.createdAt ? new Date(r.createdAt).getTime() : Date.now(),
-      })),
+      rewards: rewardsData.map((r) => {
+        // Verificar se foi resgatado hoje (cooldown diário)
+        const claimedToday = r.claimedAt
+          ? new Date(r.claimedAt).toDateString() === new Date().toDateString()
+          : false
+
+        return {
+          id: r.id,
+          title: r.title,
+          category: (r.category as any) || 'lazer',
+          cost: r.cost,
+          // Status: redeemed se resgatou hoje, approved se tem custo, pending se aguarda aprovação
+          status: claimedToday ? 'redeemed' : r.cost > 0 ? 'approved' : 'pending',
+          createdAt: r.createdAt ? new Date(r.createdAt).getTime() : Date.now(),
+          claimedAt: r.claimedAt ? new Date(r.claimedAt).getTime() : undefined,
+        }
+      }),
       completedTasksHigh: extendedStats.completedTasksHigh || 0,
       completedTasksMedium: extendedStats.completedTasksMedium || 0,
       completedTasksLow: extendedStats.completedTasksLow || 0,
@@ -180,7 +204,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       journalData.map((entry) => ({
         id: entry.id,
         timestamp: new Date(entry.createdAt).getTime(),
-        emotion: (entry.mood || 'neutral') as Mood,
+        emotion: (entry.mood as Mood) || 'neutral',
         intensity: 5,
         thought: entry.content || '',
         aiAnalysis: entry.aiAnalysis || undefined,
@@ -211,31 +235,83 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Points awarded:', amount)
   }
 
-  const checkBadges = async () => {
-    try {
-      const result = await utils.client.badge.checkAndUnlock.mutate()
-      if (result.newBadges && result.newBadges.length > 0) {
-        const unlockedBadges = BADGE_DEFINITIONS.filter((def) => result.newBadges.includes(def.id))
-        setNewBadges((prev) => [...prev, ...unlockedBadges])
-        await utils.badge.getAll.invalidate()
-        await utils.user.getProfile.invalidate()
-      }
-    } catch (error) {
-      console.error('Error checking badges:', error)
-    }
+  const checkBadges = () => {
+    // Fire and forget - don't block UI
+    utils.client.badge.checkAndUnlock
+      .mutate()
+      .then((result) => {
+        if (result.newBadges && result.newBadges.length > 0) {
+          const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
+            result.newBadges.includes(def.id)
+          )
+          setNewBadges((prev) => [...prev, ...unlockedBadges])
+          // Invalidate in background
+          utils.badge.getAll.invalidate()
+          utils.user.getProfile.invalidate()
+        }
+      })
+      .catch((error) => {
+        console.error('Error checking badges:', error)
+      })
   }
 
   const dismissNewBadge = () => {
     setNewBadges((prev) => prev.slice(1))
   }
 
+  // Helper to optimistically update user profile XP and coins
+  const updateProfileOptimistically = (xpDelta: number, coinsDelta: number) => {
+    utils.user.getProfile.setData(undefined, (old) => {
+      if (!old) return old
+      const newExperience = Math.max(0, (old.experience || 0) + xpDelta)
+      const newCoins = Math.max(0, (old.coins || 0) + coinsDelta)
+      const newLevel = Math.floor(newExperience / 100) + 1
+      return {
+        ...old,
+        experience: newExperience,
+        coins: newCoins,
+        level: newLevel,
+      }
+    })
+  }
+
   const toggleTask = async (id: string) => {
+    // Find the task to get its priority for XP calculation
+    const task = tasksData.find((t) => t.id === id)
+    const wasCompleted = task?.completed ?? false
+
+    // Optimistic update - update task cache immediately
+    utils.task.getAll.setData(undefined, (old) => {
+      if (!old) return old
+      return old.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+    })
+
+    // Optimistic update for XP/coins based on task priority
+    if (task && !wasCompleted) {
+      const xpRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
+      const coinRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
+      const xp = xpRewards[task.priority] || 10
+      const coins = coinRewards[task.priority] || 10
+      updateProfileOptimistically(xp, coins)
+    } else if (task && wasCompleted) {
+      // Uncompleting - remove XP/coins
+      const xpRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
+      const coinRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
+      const xp = xpRewards[task.priority] || 10
+      const coins = coinRewards[task.priority] || 10
+      updateProfileOptimistically(-xp, -coins)
+    }
+
     try {
-      await utils.client.task.complete.mutate({ id })
-      await utils.task.getAll.invalidate()
-      await utils.user.getProfile.invalidate()
+      const result = await utils.client.task.complete.mutate({ id })
+      // After mutation, sync with actual server values in background
+      utils.task.getAll.invalidate()
+      utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
+      // Revert optimistic updates on error
+      utils.task.getAll.invalidate()
+      utils.user.getProfile.invalidate()
       console.error('Error completing task:', error)
     }
   }
@@ -260,17 +336,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         weekDays: taskData.weekDays,
         monthDays: taskData.monthDays,
       })
-      await utils.task.getAll.invalidate()
+
+      // Background invalidation - refetch to get the new task with all fields
+      utils.task.getAll.invalidate()
     } catch (error) {
       console.error('Error creating task:', error)
+      throw error
     }
   }
 
   const deleteTask = async (id: string) => {
+    // Optimistic delete
+    utils.task.getAll.setData(undefined, (old) => {
+      if (!old) return old
+      return old.filter((task) => task.id !== id)
+    })
+
     try {
       await utils.client.task.delete.mutate({ id })
-      await utils.task.getAll.invalidate()
+      // Background invalidation
+      utils.task.getAll.invalidate()
     } catch (error) {
+      utils.task.getAll.invalidate()
       console.error('Error deleting task:', error)
     }
   }
@@ -281,40 +368,79 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     thought: string
     aiAnalysis?: string
   }) => {
+    // Optimistic update for XP/coins (journal gives 30 XP and 30 coins)
+    updateProfileOptimistically(30, 30)
+
     try {
       await utils.client.journal.create.mutate({
         content: entryData.thought,
         mood: entryData.emotion,
         aiAnalysis: entryData.aiAnalysis,
       })
-      await utils.journal.getAll.invalidate()
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.journal.getAll.invalidate()
+      utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
+      // Revert on error
+      utils.user.getProfile.invalidate()
       console.error('Error creating journal entry:', error)
     }
   }
 
   const setMood = async (mood: Mood) => {
+    // Check if XP is available (1 hour cooldown)
+    const lastXP = stats.lastMoodXPTimestamp || 0
+    const ONE_HOUR_MS = 60 * 60 * 1000
+    const now = Date.now()
+    const canGainXP = !lastXP || now - lastXP >= ONE_HOUR_MS
+
+    // Only do optimistic update if XP is available
+    if (canGainXP) {
+      updateProfileOptimistically(10, 0)
+    }
+
     try {
       await utils.client.user.trackMood.mutate({ mood })
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
+      // Revert on error
+      utils.user.getProfile.invalidate()
       console.error('Error tracking mood:', error)
     }
   }
 
   const completeMeditation = async (minutes: number) => {
+    // Calcula duração em segundos
+    const durationSeconds = minutes * 60
+
+    // Calcula XP e coins baseado na duração
+    // 1-3 min: 1x (30 XP/coins), 5 min: 1.5x (45 XP/coins), 10 min: 2x (60 XP/coins)
+    let multiplier = 1
+    if (durationSeconds >= 600)
+      multiplier = 2 // 10+ min
+    else if (durationSeconds >= 300) multiplier = 1.5 // 5+ min
+
+    const xpReward = Math.round(30 * multiplier)
+    const coinReward = Math.round(30 * multiplier)
+
+    // Optimistic update for XP/coins
+    updateProfileOptimistically(xpReward, coinReward)
+
     try {
       await utils.client.meditation.create.mutate({
-        duration: minutes,
+        duration: durationSeconds,
         type: 'guided',
       })
-      await utils.meditation.getHistory.invalidate()
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.meditation.getHistory.invalidate()
+      utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
+      // Revert on error
+      utils.user.getProfile.invalidate()
       console.error('Error completing meditation:', error)
     }
   }
@@ -325,7 +451,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         accessory: config.accessory,
         shirtColor: config.shirtColor,
       })
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.user.getProfile.invalidate()
     } catch (error) {
       console.error('Error updating avatar:', error)
     }
@@ -337,7 +464,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const user = await utils.client.user.getProfile.query()
       const newTheme = user.preferences?.theme === 'light' ? 'dark' : 'light'
       await utils.client.user.updateTheme.mutate({ theme: newTheme })
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.user.getProfile.invalidate()
     } catch (error) {
       console.error('Error toggling theme:', error)
     }
@@ -351,28 +479,56 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         category,
         cost: 0,
       })
-      await utils.reward.getAll.invalidate()
+      // Background invalidation
+      utils.reward.getAll.invalidate()
     } catch (error) {
       console.error('Error creating reward:', error)
     }
   }
 
   const redeemReward = async (id: string) => {
+    // Find the reward to get its cost
+    const reward = rewardsData.find((r) => r.id === id)
+    const cost = reward?.cost || 0
+
+    // Optimistic update - mark claimedAt as now (cooldown diário)
+    utils.reward.getAll.setData(undefined, (old) => {
+      if (!old) return old
+      return old.map((r) => (r.id === id ? { ...r, claimedAt: new Date() } : r))
+    })
+
+    // Optimistic update - deduct coins
+    if (cost > 0) {
+      updateProfileOptimistically(0, -cost)
+    }
+
     try {
       await utils.client.reward.claim.mutate({ id })
-      await utils.reward.getAll.invalidate()
-      await utils.user.getProfile.invalidate()
+      // Background invalidation
+      utils.reward.getAll.invalidate()
+      utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
+      // Revert on error
+      utils.reward.getAll.invalidate()
+      utils.user.getProfile.invalidate()
       console.error('Error redeeming reward:', error)
     }
   }
 
   const deleteReward = async (id: string) => {
+    // Optimistic delete
+    utils.reward.getAll.setData(undefined, (old) => {
+      if (!old) return old
+      return old.filter((reward) => reward.id !== id)
+    })
+
     try {
       await utils.client.reward.delete.mutate({ id })
-      await utils.reward.getAll.invalidate()
+      // Background invalidation
+      utils.reward.getAll.invalidate()
     } catch (error) {
+      utils.reward.getAll.invalidate()
       console.error('Error deleting reward:', error)
     }
   }
@@ -391,7 +547,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         rewardId: id,
         cost: updates.cost || 0,
       })
-      await utils.reward.getAll.invalidate()
+      // Background invalidation
+      utils.reward.getAll.invalidate()
     } catch (error) {
       console.error('Error updating reward:', error)
     }

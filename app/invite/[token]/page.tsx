@@ -1,5 +1,6 @@
 'use client'
 
+import { UserPlus } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
@@ -116,14 +117,15 @@ export default function InvitePage() {
 
           <div className='mt-6 space-y-3'>
             <button
-              className='w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-3 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition'
+              className='w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-200 dark:shadow-none transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2'
               onClick={() => router.push(`/auth/signup?invite=${token}`)}
               type='button'
             >
+              <UserPlus aria-hidden='true' className='h-5 w-5' />
               Aceitar Convite e Criar Conta
             </button>
             <button
-              className='w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition'
+              className='w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-4 px-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]'
               onClick={() => router.push(`/auth/signin?invite=${token}`)}
               type='button'
             >

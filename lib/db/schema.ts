@@ -559,9 +559,45 @@ export const cognitiveConceptualization = sqliteTable('cognitive_conceptualizati
     }
   }>(),
   notes: text('notes'),
+  // Therapeutic Plan (AI generated)
+  therapeuticPlan: text('therapeutic_plan', { mode: 'json' }).$type<{
+    objectives: string[]
+    interventions: Array<{
+      technique: string
+      description: string
+      targetBelief?: string
+    }>
+    suggestedActivities: string[]
+    estimatedDuration: string
+    observations: string
+    generatedAt: string
+  }>(),
   // Approval fields
   isApproved: integer('is_approved', { mode: 'boolean' }).notNull().default(false),
   approvedAt: integer('approved_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+// Psychologist subscription management
+export const psychologistSubscriptions = sqliteTable('psychologist_subscriptions', {
+  id: text('id').primaryKey(),
+  psychologistId: text('psychologist_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  plan: text('plan', { enum: ['trial', 'monthly', 'quarterly', 'yearly'] })
+    .notNull()
+    .default('trial'),
+  status: text('status', { enum: ['active', 'expired', 'cancelled', 'pending'] })
+    .notNull()
+    .default('pending'),
+  amount: integer('amount').notNull().default(0), // Amount in cents
+  startDate: integer('start_date', { mode: 'timestamp' }).notNull(),
+  endDate: integer('end_date', { mode: 'timestamp' }).notNull(),
+  lastPaymentDate: integer('last_payment_date', { mode: 'timestamp' }),
+  nextPaymentDate: integer('next_payment_date', { mode: 'timestamp' }),
+  paymentMethod: text('payment_method'),
+  notes: text('notes'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
@@ -611,6 +647,8 @@ export type SessionDocument = typeof sessionDocuments.$inferSelect
 export type NewSessionDocument = typeof sessionDocuments.$inferInsert
 export type CognitiveConceptualization = typeof cognitiveConceptualization.$inferSelect
 export type NewCognitiveConceptualization = typeof cognitiveConceptualization.$inferInsert
+export type PsychologistSubscription = typeof psychologistSubscriptions.$inferSelect
+export type NewPsychologistSubscription = typeof psychologistSubscriptions.$inferInsert
 
 // Relations
 export const usersRelations = relations(users, ({ many, one }) => ({
@@ -762,6 +800,16 @@ export const cognitiveConceptualizationRelations = relations(
     }),
     patient: one(users, {
       fields: [cognitiveConceptualization.patientId],
+      references: [users.id],
+    }),
+  })
+)
+
+export const psychologistSubscriptionsRelations = relations(
+  psychologistSubscriptions,
+  ({ one }) => ({
+    psychologist: one(users, {
+      fields: [psychologistSubscriptions.psychologistId],
       references: [users.id],
     }),
   })

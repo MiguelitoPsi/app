@@ -275,10 +275,15 @@ export function useFinancialData(options: UseFinancialDataOptions) {
     data: currentSummary,
     isLoading: isLoadingCurrent,
     refetch: refetchCurrent,
-  } = trpc.therapistFinancial.getSummary.useQuery({
-    startDate: currentRange.startDate,
-    endDate: currentRange.endDate,
-  })
+  } = trpc.therapistFinancial.getSummary.useQuery(
+    {
+      startDate: currentRange.startDate,
+      endDate: currentRange.endDate,
+    },
+    {
+      staleTime: 2 * 60 * 1000, // 2 minutes
+    }
+  )
 
   // Resumo do período anterior (para comparação)
   const { data: previousSummary, isLoading: isLoadingPrevious } =
@@ -287,20 +292,33 @@ export function useFinancialData(options: UseFinancialDataOptions) {
         startDate: previousRange?.startDate ?? new Date(),
         endDate: previousRange?.endDate ?? new Date(),
       },
-      { enabled: enableComparison && previousRange !== null }
+      {
+        enabled: enableComparison && previousRange !== null,
+        staleTime: 5 * 60 * 1000, // 5 minutes - previous data changes less often
+      }
     )
 
   // Histórico mensal para gráficos
   const { data: monthlyCashflow, isLoading: isLoadingCashflow } =
-    trpc.therapistFinancial.getMonthlyCashflow.useQuery({ months: historyMonths })
+    trpc.therapistFinancial.getMonthlyCashflow.useQuery(
+      { months: historyMonths },
+      {
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      }
+    )
 
   // Registros recentes
   const { data: records, isLoading: isLoadingRecords } =
-    trpc.therapistFinancial.getRecords.useQuery({
-      startDate: currentRange.startDate,
-      endDate: currentRange.endDate,
-      limit: 100,
-    })
+    trpc.therapistFinancial.getRecords.useQuery(
+      {
+        startDate: currentRange.startDate,
+        endDate: currentRange.endDate,
+        limit: 100,
+      },
+      {
+        staleTime: 2 * 60 * 1000, // 2 minutes
+      }
+    )
 
   // Cálculos derivados
   const comparison = useMemo(() => {

@@ -48,8 +48,18 @@ export const taskRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Validate task limits for the due date
+      // Validate that the date is not in the past
       const targetDate = input.dueDate || new Date()
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const inputTaskDate = new Date(targetDate)
+      inputTaskDate.setHours(0, 0, 0, 0)
+
+      if (inputTaskDate < today) {
+        throw new Error('Não é possível criar tarefas para datas que já passaram')
+      }
+
+      // Validate task limits for the due date
       const dayStart = getStartOfDay(targetDate)
       const dayEnd = new Date(dayStart)
       dayEnd.setDate(dayEnd.getDate() + 1)
@@ -209,7 +219,9 @@ export const taskRouter = router({
 
       // If task is not completed, complete it (award rewards)
       // Award XP and Coins using centralized system
-      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'task', task.priority)
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'task', {
+        priority: task.priority,
+      })
 
       const { xpAwarded, coinsAwarded, levelUp } = result
 
@@ -328,6 +340,18 @@ export const taskRouter = router({
 
       if (!relationship) {
         throw new Error('Patient not found or not linked to you')
+      }
+
+      // Validate that the date is not in the past
+      if (input.dueDate) {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const taskDate = new Date(input.dueDate)
+        taskDate.setHours(0, 0, 0, 0)
+
+        if (taskDate < today) {
+          throw new Error('Não é possível criar tarefas para datas que já passaram')
+        }
       }
 
       const id = nanoid()

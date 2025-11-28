@@ -54,11 +54,12 @@ export const TherapistAchievementModal: React.FC<TherapistAchievementModalProps>
       >
         {/* Close Button */}
         <button
-          className='absolute top-4 right-4 rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800'
+          aria-label='Fechar modal'
+          className='absolute top-4 right-4 flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
           onClick={handleClose}
           type='button'
         >
-          <X className='h-5 w-5' />
+          <X className='h-4 w-4' />
         </button>
 
         {/* Confetti Animation Placeholder */}

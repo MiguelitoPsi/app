@@ -191,7 +191,8 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         <div className='mb-6 flex items-center justify-between'>
           <h2 className='text-xl font-semibold text-white'>Criar Novo Usuário</h2>
           <button
-            className='rounded-lg p-2 text-slate-400 transition-colors hover:bg-slate-800 hover:text-white'
+            aria-label='Fechar modal'
+            className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-slate-700 hover:text-white hover:scale-110 active:scale-95'
             onClick={onClose}
             type='button'
           >
@@ -309,7 +310,7 @@ function SearchIcon({ className }: { className?: string }) {
 
 function CloseIcon() {
   return (
-    <svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+    <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
       <title>Fechar</title>
       <path d='M6 18L18 6M6 6l12 12' strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} />
     </svg>

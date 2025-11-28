@@ -1,8 +1,14 @@
 import { GoogleGenAI } from '@google/genai'
 import { NextResponse } from 'next/server'
 
-// Initialize the client with the API key from the environment
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
+// API key validation helper
+function getGeminiClient(): GoogleGenAI | null {
+  const apiKey = process.env.GEMINI_API_KEY
+  if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY' || apiKey.trim() === '') {
+    return null
+  }
+  return new GoogleGenAI({ apiKey })
+}
 
 /**
  * POST /api/analyze-thought
@@ -10,6 +16,19 @@ const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY })
  */
 export async function POST(request: Request) {
   try {
+    // Validate API key first
+    const ai = getGeminiClient()
+    if (!ai) {
+      console.error('GEMINI_API_KEY is not configured or is a placeholder')
+      return NextResponse.json(
+        {
+          error:
+            'A API do Gemini não está configurada. Por favor, configure a GEMINI_API_KEY no arquivo .env.local',
+        },
+        { status: 503 }
+      )
+    }
+
     const { emotion, thought } = await request.json()
 
     const hasEmotion = Boolean(emotion)

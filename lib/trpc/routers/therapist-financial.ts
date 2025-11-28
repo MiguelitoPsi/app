@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { FINANCIAL_CATEGORIES, GOAL_CATEGORIES } from '@/lib/constants/therapist'
 import { db } from '@/lib/db'
 import { therapistFinancial, therapistGoals, therapySessions } from '@/lib/db/schema'
+import { updateAllGoalsProgress, updateGoalsByCategory } from '@/lib/goals/auto-update'
 import { awardTherapistXP } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
 
@@ -125,6 +126,11 @@ export const therapistFinancialRouter = router({
 
       // Dar XP por atualizar registros financeiros
       await awardTherapistXP(db, ctx.user.id, 'updateFinancialRecord')
+
+      // Atualizar metas de receita automaticamente se for income
+      if (input.type === 'income') {
+        await updateGoalsByCategory(db, ctx.user.id, 'revenue')
+      }
 
       return record
     }),
@@ -561,16 +567,33 @@ export const therapistFinancialRouter = router({
   // METAS PROFISSIONAIS
   // ==========================================
 
-  // Listar metas
+  // Recalcular progresso de todas as metas ativas
+  recalculateGoals: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+
+    const result = await updateAllGoalsProgress(db, ctx.user.id)
+
+    return result
+  }),
+
+  // Listar metas (com recálculo automático opcional)
   getGoals: protectedProcedure
     .input(
       z.object({
         status: z.enum(['active', 'completed', 'paused', 'cancelled']).optional(),
+        autoRecalculate: z.boolean().default(false),
       })
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== 'psychologist') {
         throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Recalcular metas ativas automaticamente se solicitado
+      if (input.autoRecalculate && (!input.status || input.status === 'active')) {
+        await updateAllGoalsProgress(db, ctx.user.id)
       }
 
       const conditions = [eq(therapistGoals.therapistId, ctx.user.id)]

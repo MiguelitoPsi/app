@@ -4,60 +4,58 @@ import {
   ArrowLeft,
   Brain,
   CheckCircle2,
+  Minus,
   Moon,
   Pause,
   Play,
+  Plus,
+  Settings2,
   Sparkles,
   Sun,
   Wind,
 } from 'lucide-react'
 import type React from 'react'
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { XP_REWARDS } from '@/lib/xp'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { getMeditationRewards } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
 
-// Breathing timing configuration (in milliseconds)
-const BREATH_CONFIG = {
-  inhale: 4000, // 4 seconds inhale
-  holdIn: 4000, // 4 seconds hold after inhale
-  exhale: 6000, // 6 seconds exhale (longer for relaxation)
-  holdOut: 2000, // 2 seconds hold after exhale
+// Breathing configurations based on physiological parameters
+// Inhale: 3-4s, Exhale: 4-8s (longer exhale for relaxation)
+type BreathConfig = {
+  inhale: number // milliseconds
+  exhale: number // milliseconds
 }
 
-const TOTAL_CYCLE =
-  BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale + BREATH_CONFIG.holdOut
+// Duration options in seconds
+const DURATION_OPTIONS = [60, 120, 180, 300, 600] // 1, 2, 3, 5, 10 minutes
 
-// Easing function for natural breathing curve (ease-in-out with custom bezier feel)
+// Easing function for natural breathing curve
 const easeBreathing = (t: number): number => {
   // Custom easing that mimics natural lung expansion
-  // Slow start, faster middle, slow end - like real breathing
   return t < 0.5 ? 2 * t * t : 1 - (-2 * t + 2) ** 2 / 2
 }
 
 // Calculate breath progress (0 to 1 for expansion, 1 to 0 for contraction)
-const getBreathValue = (elapsed: number): number => {
-  const cyclePosition = elapsed % TOTAL_CYCLE
+const getBreathValue = (elapsed: number, config: BreathConfig): number => {
+  const totalCycle = config.inhale + config.exhale
+  const cyclePosition = elapsed % totalCycle
 
-  if (cyclePosition < BREATH_CONFIG.inhale) {
+  if (cyclePosition < config.inhale) {
     // Inhaling: 0 -> 1
-    const progress = cyclePosition / BREATH_CONFIG.inhale
+    const progress = cyclePosition / config.inhale
     return easeBreathing(progress)
   }
 
-  if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn) {
-    // Holding after inhale: stay at 1
-    return 1
-  }
+  // Exhaling: 1 -> 0
+  const progress = (cyclePosition - config.inhale) / config.exhale
+  return 1 - easeBreathing(progress)
+}
 
-  if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale) {
-    // Exhaling: 1 -> 0
-    const exhaleStart = BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn
-    const progress = (cyclePosition - exhaleStart) / BREATH_CONFIG.exhale
-    return 1 - easeBreathing(progress)
-  }
-
-  // Holding after exhale: stay at 0
-  return 0
+// Get current phase text
+const getPhaseText = (elapsed: number, config: BreathConfig): 'Inspirar' | 'Expirar' => {
+  const totalCycle = config.inhale + config.exhale
+  const cyclePosition = elapsed % totalCycle
+  return cyclePosition < config.inhale ? 'Inspirar' : 'Expirar'
 }
 
 type MeditationType = {
@@ -71,6 +69,14 @@ type MeditationType = {
   ringColor: string
   textColor: string
   bgActive: string
+  breathInfo: string
+}
+
+// Default breathing values for each mode (in seconds)
+const DEFAULT_BREATH_VALUES: Record<string, { inhale: number; exhale: number }> = {
+  relax: { inhale: 4, exhale: 4 },
+  focus: { inhale: 4, exhale: 6 },
+  sleep: { inhale: 4, exhale: 8 },
 }
 
 const MEDITATION_TYPES: MeditationType[] = [
@@ -85,6 +91,7 @@ const MEDITATION_TYPES: MeditationType[] = [
     ringColor: 'ring-violet-300',
     textColor: 'text-violet-600 dark:text-violet-400',
     bgActive: 'bg-violet-50 dark:bg-violet-900/20',
+    breathInfo: '4s inspirar • 4s expirar',
   },
   {
     id: 'focus',
@@ -97,6 +104,7 @@ const MEDITATION_TYPES: MeditationType[] = [
     ringColor: 'ring-teal-300',
     textColor: 'text-teal-600 dark:text-teal-400',
     bgActive: 'bg-teal-50 dark:bg-teal-900/20',
+    breathInfo: '4s inspirar • 6s expirar',
   },
   {
     id: 'sleep',
@@ -109,6 +117,7 @@ const MEDITATION_TYPES: MeditationType[] = [
     ringColor: 'ring-indigo-300',
     textColor: 'text-indigo-600 dark:text-indigo-400',
     bgActive: 'bg-indigo-50 dark:bg-indigo-900/20',
+    breathInfo: '4s inspirar • 8s expirar',
   },
 ]
 
@@ -116,11 +125,36 @@ export const MeditationView: React.FC = () => {
   const { completeMeditation, stats } = useGame()
   const [selectedType, setSelectedType] = useState<MeditationType | null>(null)
   const [isActive, setIsActive] = useState(false)
-  const [timeLeft, setTimeLeft] = useState(60) // 1 minute default for MVP
+  const [timeLeft, setTimeLeft] = useState(60)
   const [duration, setDuration] = useState(60)
-  const [phase, setPhase] = useState<'Inspirar' | 'Segurar' | 'Expirar'>('Inspirar')
+  const [phase, setPhase] = useState<'Inspirar' | 'Expirar'>('Inspirar')
   const [completed, setCompleted] = useState(false)
-  const [breathProgress, setBreathProgress] = useState(0) // 0 to 1 continuous value
+  const [breathProgress, setBreathProgress] = useState(0)
+
+  // Custom breathing settings (can be adjusted per mode)
+  const [customInhale, setCustomInhale] = useState(4) // seconds
+  const [customExhale, setCustomExhale] = useState(6) // seconds
+  const [showSettings, setShowSettings] = useState(false)
+
+  // Reset custom values when selecting a new type
+  const handleSelectType = useCallback((type: MeditationType) => {
+    setSelectedType(type)
+    const defaults = DEFAULT_BREATH_VALUES[type.id]
+    if (defaults) {
+      setCustomInhale(defaults.inhale)
+      setCustomExhale(defaults.exhale)
+    }
+    setShowSettings(false)
+  }, [])
+
+  // Current breath config based on custom values
+  const currentBreathConfig = useMemo(
+    (): BreathConfig => ({
+      inhale: customInhale * 1000,
+      exhale: customExhale * 1000,
+    }),
+    [customInhale, customExhale]
+  )
 
   const animationRef = useRef<number | null>(null)
   const startTimeRef = useRef<number>(0)
@@ -142,29 +176,24 @@ export const MeditationView: React.FC = () => {
   }, [isActive, timeLeft, completeMeditation, duration])
 
   // Smooth breathing animation using requestAnimationFrame
-  const animateBreathing = useCallback((timestamp: number) => {
-    if (!startTimeRef.current) {
-      startTimeRef.current = timestamp
-    }
+  const animateBreathing = useCallback(
+    (timestamp: number) => {
+      if (!startTimeRef.current) {
+        startTimeRef.current = timestamp
+      }
 
-    const elapsed = timestamp - startTimeRef.current
-    const progress = getBreathValue(elapsed)
-    setBreathProgress(progress)
+      const elapsed = timestamp - startTimeRef.current
+      const progress = getBreathValue(elapsed, currentBreathConfig)
+      setBreathProgress(progress)
 
-    // Update phase text based on cycle position
-    const cyclePosition = elapsed % TOTAL_CYCLE
-    if (cyclePosition < BREATH_CONFIG.inhale) {
-      setPhase('Inspirar')
-    } else if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn) {
-      setPhase('Segurar')
-    } else if (cyclePosition < BREATH_CONFIG.inhale + BREATH_CONFIG.holdIn + BREATH_CONFIG.exhale) {
-      setPhase('Expirar')
-    } else {
-      setPhase('Segurar')
-    }
+      // Update phase text based on cycle position
+      const newPhase = getPhaseText(elapsed, currentBreathConfig)
+      setPhase(newPhase)
 
-    animationRef.current = requestAnimationFrame(animateBreathing)
-  }, [])
+      animationRef.current = requestAnimationFrame(animateBreathing)
+    },
+    [currentBreathConfig]
+  )
 
   useEffect(() => {
     if (isActive) {
@@ -187,19 +216,37 @@ export const MeditationView: React.FC = () => {
   const toggleTimer = () => {
     setIsActive(!isActive)
     if (!isActive && timeLeft === 0) {
-      setTimeLeft(60)
-      setDuration(60)
+      setTimeLeft(duration)
       setCompleted(false)
     }
   }
 
   const handleBack = () => {
     setIsActive(false)
-    setTimeLeft(60)
+    setTimeLeft(duration)
     setSelectedType(null)
+    setShowSettings(false)
+  }
+
+  const handleDurationChange = (newDuration: number) => {
+    setDuration(newDuration)
+    setTimeLeft(newDuration)
+  }
+
+  const formatDuration = (seconds: number): string => {
+    if (seconds < 60) return `${seconds}s`
+    const mins = Math.floor(seconds / 60)
+    return `${mins} min`
   }
 
   const recommendedTime = Math.min(5 + Math.floor(stats.level * 2), 20)
+
+  // Calculate cycle info for display
+  const cycleTime = (currentBreathConfig.inhale + currentBreathConfig.exhale) / 1000
+  const cyclesInSession = Math.floor(duration / cycleTime)
+
+  // Calculate rewards based on duration
+  const currentRewards = useMemo(() => getMeditationRewards(duration), [duration])
 
   // --- Render Selection Screen ---
   if (!selectedType) {
@@ -230,7 +277,7 @@ export const MeditationView: React.FC = () => {
               <button
                 className='group slide-in-from-bottom-4 fade-in relative w-full animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white fill-mode-backwards p-1 text-left shadow-sm transition-all duration-300 active:scale-[0.98] hover:shadow-md sm:rounded-3xl sm:hover:scale-[1.02] dark:border-slate-800 dark:bg-slate-900'
                 key={type.id}
-                onClick={() => setSelectedType(type)}
+                onClick={() => handleSelectType(type)}
                 style={{ animationDelay: `${index * 100}ms` }}
                 type='button'
               >
@@ -247,6 +294,9 @@ export const MeditationView: React.FC = () => {
                     </h3>
                     <p className='mt-0.5 font-medium text-slate-500 text-[11px] sm:text-xs dark:text-slate-400'>
                       {type.description}
+                    </p>
+                    <p className={`mt-1 font-semibold text-[10px] sm:text-xs ${type.textColor}`}>
+                      {type.breathInfo}
                     </p>
                   </div>
                   <div
@@ -317,8 +367,192 @@ export const MeditationView: React.FC = () => {
     )
   }
 
-  // Check if currently in hold phase
-  const isHoldPhase = phase === 'Segurar'
+  // Custom settings screen for any mode
+  if (showSettings && !isActive && !completed) {
+    const defaults = DEFAULT_BREATH_VALUES[selectedType.id]
+    const isCustomized = customInhale !== defaults?.inhale || customExhale !== defaults?.exhale
+
+    return (
+      <div className='relative flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
+        {/* Header */}
+        <div className='relative z-20 flex items-center justify-between px-4 pt-safe pb-4 sm:px-6 sm:pt-8 sm:pb-6'>
+          <button
+            className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white transition-all active:scale-95 hover:bg-slate-50 sm:h-10 sm:w-10 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800'
+            onClick={() => setShowSettings(false)}
+            type='button'
+          >
+            <ArrowLeft className='text-slate-500 dark:text-slate-400' size={18} />
+          </button>
+          <div className='flex flex-col items-center'>
+            <div className={`flex items-center gap-2 ${selectedType.textColor} mb-1 opacity-80`}>
+              <selectedType.icon size={14} />
+              <span className='font-bold text-[10px] uppercase tracking-wider'>
+                {selectedType.title}
+              </span>
+            </div>
+            <h2 className='font-black text-slate-800 text-lg sm:text-xl dark:text-white'>
+              Ajustar Respiração
+            </h2>
+          </div>
+          <div className='w-9 sm:w-10' />
+        </div>
+
+        <div className='flex-1 space-y-5 overflow-y-auto px-4 pb-28 sm:px-6 sm:pb-32'>
+          {/* Inhale Setting */}
+          <div className='rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+            <h3 className='mb-4 font-bold text-slate-700 text-sm dark:text-slate-300'>
+              Inspirar (segundos)
+            </h3>
+            <div className='flex items-center justify-center gap-6'>
+              <button
+                className='flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                onClick={() => setCustomInhale((prev) => Math.max(2, prev - 1))}
+                type='button'
+              >
+                <Minus size={20} />
+              </button>
+              <span className={`w-16 text-center font-black text-3xl ${selectedType.textColor}`}>
+                {customInhale}s
+              </span>
+              <button
+                className='flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                onClick={() => setCustomInhale((prev) => Math.min(8, prev + 1))}
+                type='button'
+              >
+                <Plus size={20} />
+              </button>
+            </div>
+            <p className='mt-2 text-center font-medium text-slate-400 text-xs'>
+              Padrão: {defaults?.inhale}s • Recomendado: 3-4s
+            </p>
+          </div>
+
+          {/* Exhale Setting */}
+          <div className='rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+            <h3 className='mb-4 font-bold text-slate-700 text-sm dark:text-slate-300'>
+              Expirar (segundos)
+            </h3>
+            <div className='flex items-center justify-center gap-6'>
+              <button
+                className='flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                onClick={() => setCustomExhale((prev) => Math.max(3, prev - 1))}
+                type='button'
+              >
+                <Minus size={20} />
+              </button>
+              <span className={`w-16 text-center font-black text-3xl ${selectedType.textColor}`}>
+                {customExhale}s
+              </span>
+              <button
+                className='flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
+                onClick={() => setCustomExhale((prev) => Math.min(12, prev + 1))}
+                type='button'
+              >
+                <Plus size={20} />
+              </button>
+            </div>
+            <p className='mt-2 text-center font-medium text-slate-400 text-xs'>
+              Padrão: {defaults?.exhale}s • Expiração longa relaxa mais
+            </p>
+          </div>
+
+          {/* Duration Setting */}
+          <div className='rounded-2xl border border-slate-100 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+            <h3 className='mb-4 font-bold text-slate-700 text-sm dark:text-slate-300'>
+              Duração da sessão
+            </h3>
+            <div className='flex flex-wrap justify-center gap-2'>
+              {DURATION_OPTIONS.map((dur) => {
+                const hasBonus = dur >= 300
+                return (
+                  <button
+                    className={`relative rounded-xl px-4 py-2 font-semibold text-sm transition-all ${
+                      duration === dur
+                        ? `bg-gradient-to-r ${selectedType.colorFrom} ${selectedType.colorTo} text-white shadow-md`
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                    }`}
+                    key={dur}
+                    onClick={() => handleDurationChange(dur)}
+                    type='button'
+                  >
+                    {formatDuration(dur)}
+                    {hasBonus && (
+                      <span
+                        className={`absolute -top-1.5 -right-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
+                          duration === dur ? 'bg-white text-violet-600' : 'bg-violet-500 text-white'
+                        }`}
+                      >
+                        {dur >= 600 ? '2x' : '1.5x'}
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+            <p className='mt-3 text-center font-medium text-slate-400 text-xs'>
+              Recompensa:{' '}
+              <span className='text-violet-500 dark:text-violet-400'>
+                +{currentRewards.xp} XP & {currentRewards.coins} Pts
+              </span>
+            </p>
+          </div>
+
+          {/* Summary */}
+          <div
+            className={`rounded-2xl border p-4 ${
+              selectedType.colorFrom.includes('violet')
+                ? 'border-violet-100 bg-violet-50 dark:border-violet-900/30 dark:bg-violet-900/10'
+                : selectedType.colorFrom.includes('teal')
+                  ? 'border-teal-100 bg-teal-50 dark:border-teal-900/30 dark:bg-teal-900/10'
+                  : 'border-indigo-100 bg-indigo-50 dark:border-indigo-900/30 dark:bg-indigo-900/10'
+            }`}
+          >
+            <div className='text-center'>
+              <p className='font-medium text-slate-600 text-sm dark:text-slate-400'>
+                Ciclo:{' '}
+                <span className={`font-bold ${selectedType.textColor}`}>{customInhale}s</span>{' '}
+                inspirar •{' '}
+                <span className={`font-bold ${selectedType.textColor}`}>{customExhale}s</span>{' '}
+                expirar
+                {isCustomized && (
+                  <span className='ml-2 text-xs text-slate-400'>(personalizado)</span>
+                )}
+              </p>
+              <p className='mt-1 text-slate-500 text-xs dark:text-slate-500'>
+                ~{Math.floor(duration / (customInhale + customExhale))} ciclos em{' '}
+                {formatDuration(duration)}
+              </p>
+            </div>
+          </div>
+
+          {/* Reset to defaults */}
+          {isCustomized && (
+            <button
+              className='w-full rounded-xl border border-slate-200 bg-white py-3 font-semibold text-slate-600 text-sm transition-all active:scale-[0.98] hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400'
+              onClick={() => {
+                if (defaults) {
+                  setCustomInhale(defaults.inhale)
+                  setCustomExhale(defaults.exhale)
+                }
+              }}
+              type='button'
+            >
+              Restaurar padrões
+            </button>
+          )}
+
+          {/* Confirm Button */}
+          <button
+            className={`w-full rounded-2xl bg-gradient-to-r ${selectedType.colorFrom} ${selectedType.colorTo} py-4 font-bold text-lg text-white shadow-lg transition-all active:scale-[0.98] hover:shadow-xl`}
+            onClick={() => setShowSettings(false)}
+            type='button'
+          >
+            Confirmar
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className='relative flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
@@ -356,7 +590,17 @@ export const MeditationView: React.FC = () => {
             Respire Fundo
           </h2>
         </div>
-        <div className='w-9 sm:w-10' /> {/* Spacer for centering */}
+        {/* Settings Button */}
+        <button
+          className={`touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white transition-all active:scale-95 hover:bg-slate-50 sm:h-10 sm:w-10 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800 ${
+            isActive ? 'pointer-events-none opacity-0' : 'opacity-100'
+          }`}
+          disabled={isActive}
+          onClick={() => setShowSettings(true)}
+          type='button'
+        >
+          <Settings2 className='text-slate-500 dark:text-slate-400' size={18} />
+        </button>
       </div>
 
       {/* Breathing Animation Container */}
@@ -432,12 +676,8 @@ export const MeditationView: React.FC = () => {
             `}
             style={{
               transform: `scale(${isActive ? getBreathScale(0) : 0.9})`,
-              boxShadow:
-                isActive && isHoldPhase
-                  ? `0 0 ${20 + breathProgress * 20}px ${selectedType.colorFrom.includes('violet') ? 'rgba(167, 139, 250, 0.5)' : selectedType.colorFrom.includes('teal') ? 'rgba(94, 234, 212, 0.5)' : 'rgba(129, 140, 248, 0.5)'}`
-                  : undefined,
               filter: selectedType.id === 'sleep' ? 'blur(1px)' : undefined,
-              transition: isActive ? 'box-shadow 300ms ease' : 'all 1000ms ease',
+              transition: isActive ? 'none' : 'all 1000ms ease',
             }}
           >
             {/* Timer display */}
@@ -457,18 +697,23 @@ export const MeditationView: React.FC = () => {
               </span>
             )}
           </div>
-
-          {/* Subtle pulse indicator during hold phase */}
-          {isActive && isHoldPhase && (
-            <div
-              className={`absolute inset-0 rounded-full ${selectedType.ringColor} ring-4 ring-opacity-30`}
-              style={{
-                transform: `scale(${getBreathScale(0)})`,
-                animation: 'pulse 2s ease-in-out infinite',
-              }}
-            />
-          )}
         </div>
+
+        {/* Breath cycle info */}
+        {!isActive && (
+          <div className='mt-6 text-center'>
+            <p className={`font-semibold text-sm ${selectedType.textColor}`}>
+              {customInhale}s inspirar • {customExhale}s expirar
+              {(customInhale !== DEFAULT_BREATH_VALUES[selectedType.id]?.inhale ||
+                customExhale !== DEFAULT_BREATH_VALUES[selectedType.id]?.exhale) && (
+                <span className='ml-1 text-xs opacity-60'>(ajustado)</span>
+              )}
+            </p>
+            <p className='mt-1 text-slate-400 text-xs'>
+              ~{cyclesInSession} ciclos em {formatDuration(duration)}
+            </p>
+          </div>
+        )}
 
         {/* Controls */}
         <div className='mt-1'>
@@ -516,7 +761,7 @@ export const MeditationView: React.FC = () => {
                 Recompensa
               </span>
               <p className='bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text font-black text-2xl text-transparent sm:text-3xl'>
-                +{XP_REWARDS.meditation} XP & Pts
+                +{currentRewards.xp} XP & {currentRewards.coins} Pts
               </p>
             </div>
           </div>

@@ -7,7 +7,7 @@
 
 import type { InferSelectModel } from 'drizzle-orm'
 import { eq } from 'drizzle-orm'
-import { users } from '@/lib/db/schema'
+import { userStats, users } from '@/lib/db/schema'
 import { isSameDay } from '@/lib/utils/timezone'
 
 /* ============================================
@@ -41,6 +41,42 @@ export const COIN_REWARDS = {
   meditation: 30,
   mood: 0, // Mood não ganha coins, apenas XP
 } as const
+
+/**
+ * Multiplicadores de recompensa baseados na duração da meditação (em segundos)
+ * - 1 a 3 min: 1x (base)
+ * - 5 min: 1.5x
+ * - 10 min: 2x
+ */
+export const MEDITATION_DURATION_MULTIPLIERS = {
+  base: 1, // 1 a 3 minutos
+  medium: 1.5, // 5 minutos (300 segundos)
+  long: 2, // 10 minutos (600 segundos)
+} as const
+
+/**
+ * Calcula o multiplicador de recompensa baseado na duração da meditação
+ * @param durationSeconds - Duração da meditação em segundos
+ * @returns Multiplicador de recompensa
+ */
+export function getMeditationMultiplier(durationSeconds: number): number {
+  if (durationSeconds >= 600) return MEDITATION_DURATION_MULTIPLIERS.long // 10+ min
+  if (durationSeconds >= 300) return MEDITATION_DURATION_MULTIPLIERS.medium // 5+ min
+  return MEDITATION_DURATION_MULTIPLIERS.base // < 5 min
+}
+
+/**
+ * Calcula XP e coins para meditação baseado na duração
+ * @param durationSeconds - Duração da meditação em segundos
+ * @returns Objeto com xp e coins calculados
+ */
+export function getMeditationRewards(durationSeconds: number): { xp: number; coins: number } {
+  const multiplier = getMeditationMultiplier(durationSeconds)
+  return {
+    xp: Math.round(XP_REWARDS.meditation * multiplier),
+    coins: Math.round(COIN_REWARDS.meditation * multiplier),
+  }
+}
 
 /* ============================================
  * CONSTANTES DE SISTEMA
@@ -114,8 +150,9 @@ const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
 
 /**
  * Verifica se o usuário pode ganhar XP para uma ação específica
+ * - Tasks: Sempre dão XP (sem cooldown)
  * - Mood: Limite de 1 vez por hora
- * - Outras ações: Limite de 1 vez por dia
+ * - Outras ações (journal, meditation): Limite de 1 vez por dia
  *
  * @param user - Objeto do usuário do banco de dados
  * @param action - Tipo de ação
@@ -142,8 +179,71 @@ export function canAwardXP(user: InferSelectModel<typeof users>, action: XPActio
     return timeDiff >= ONE_HOUR_MS
   }
 
-  // Para outras ações, verificar se é o mesmo dia
+  // Para outras ações (journal, meditation), verificar se é o mesmo dia
   return !isSameDay(lastDate, new Date())
+}
+
+/* ============================================
+ * LÓGICA DE STREAK
+ * ============================================ */
+
+/**
+ * Calcula o novo streak baseado na última atividade
+ * O streak representa dias consecutivos de uso do app
+ */
+function calculateStreak(
+  lastActivityDate: Date | null,
+  currentStreak: number,
+  longestStreak: number
+): { newStreak: number; newLongestStreak: number; streakUpdated: boolean } {
+  const now = new Date()
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+  if (!lastActivityDate) {
+    return { newStreak: 1, newLongestStreak: Math.max(1, longestStreak), streakUpdated: true }
+  }
+
+  const lastDate = new Date(lastActivityDate)
+  const lastDay = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate())
+
+  const diffDays = Math.floor((today.getTime() - lastDay.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) {
+    // Mesmo dia, não atualiza streak
+    return { newStreak: currentStreak, newLongestStreak: longestStreak, streakUpdated: false }
+  }
+
+  if (diffDays === 1) {
+    // Dia consecutivo
+    const newStreak = currentStreak + 1
+    return {
+      newStreak,
+      newLongestStreak: Math.max(newStreak, longestStreak),
+      streakUpdated: true,
+    }
+  }
+
+  // Streak quebrado (mais de 1 dia sem atividade)
+  return { newStreak: 1, newLongestStreak: longestStreak, streakUpdated: true }
+}
+
+/**
+ * Obtém a última data de atividade do usuário
+ * Considera a mais recente entre task, journal, meditation e mood
+ */
+function getLastActivityDate(user: InferSelectModel<typeof users>): Date | null {
+  const dates = [
+    user.lastTaskXpDate,
+    user.lastJournalXpDate,
+    user.lastMeditationXpDate,
+    user.lastMoodXpDate,
+  ].filter((d): d is Date => d !== null)
+
+  if (dates.length === 0) {
+    return null
+  }
+
+  return new Date(Math.max(...dates.map((d) => d.getTime())))
 }
 
 /* ============================================
@@ -157,6 +257,8 @@ export type XPResult = {
   newCoins: number
   newLevel: number
   levelUp: boolean
+  newStreak: number
+  streakUpdated: boolean
 }
 
 /**
@@ -173,14 +275,24 @@ export async function awardXPAndCoins(
   db: any,
   userId: string,
   action: XPAction,
-  priority?: 'low' | 'medium' | 'high'
+  options?: {
+    priority?: 'low' | 'medium' | 'high'
+    meditationDuration?: number // duração em segundos
+  }
 ): Promise<XPResult> {
+  const priority = options?.priority
+  const meditationDuration = options?.meditationDuration
+
   // Buscar usuário
   const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1)
 
   if (!user) {
     throw new Error('User not found')
   }
+
+  // Buscar userStats para longestStreak
+  const [stats] = await db.select().from(userStats).where(eq(userStats.userId, userId)).limit(1)
+  const currentLongestStreak = stats?.longestStreak || 0
 
   // Verificar se pode ganhar XP hoje
   const canGainXP = canAwardXP(user, action)
@@ -196,8 +308,15 @@ export async function awardXPAndCoins(
     xpReward = XP_REWARDS.journal
     coinReward = COIN_REWARDS.journal
   } else if (action === 'meditation') {
-    xpReward = XP_REWARDS.meditation
-    coinReward = COIN_REWARDS.meditation
+    // Usar duração para calcular recompensas se disponível
+    if (meditationDuration) {
+      const rewards = getMeditationRewards(meditationDuration)
+      xpReward = rewards.xp
+      coinReward = rewards.coins
+    } else {
+      xpReward = XP_REWARDS.meditation
+      coinReward = COIN_REWARDS.meditation
+    }
   } else if (action === 'mood') {
     xpReward = XP_REWARDS.mood
     coinReward = COIN_REWARDS.mood
@@ -210,6 +329,14 @@ export async function awardXPAndCoins(
   let newCoins = user.coins
   let newLevel = user.level
   let levelUp = false
+
+  // Calcular streak
+  const lastActivityDate = getLastActivityDate(user)
+  const { newStreak, newLongestStreak, streakUpdated } = calculateStreak(
+    lastActivityDate,
+    user.streak || 0,
+    currentLongestStreak
+  )
 
   // Preparar atualização do banco
   const now = new Date()
@@ -229,13 +356,42 @@ export async function awardXPAndCoins(
     updateData[COOLDOWN_FIELDS[action]] = now
   }
 
+  // Atualizar streak se mudou
+  if (streakUpdated) {
+    updateData.streak = newStreak
+  }
+
   // Sempre aplicar coins (independente do cooldown de XP)
   coinsAwarded = coinReward
   newCoins = user.coins + coinsAwarded
   updateData.coins = newCoins
 
-  // Atualizar banco de dados
+  // Atualizar banco de dados (users)
   await db.update(users).set(updateData).where(eq(users.id, userId))
+
+  // Atualizar longestStreak no userStats se necessário
+  if (streakUpdated && newLongestStreak > currentLongestStreak) {
+    if (stats) {
+      await db
+        .update(userStats)
+        .set({
+          longestStreak: newLongestStreak,
+          updatedAt: now,
+        })
+        .where(eq(userStats.userId, userId))
+    } else {
+      // Criar userStats se não existir
+      await db.insert(userStats).values({
+        userId,
+        totalTasks: 0,
+        completedTasks: 0,
+        totalMeditations: 0,
+        totalJournalEntries: 0,
+        longestStreak: newLongestStreak,
+        updatedAt: now,
+      })
+    }
+  }
 
   return {
     xpAwarded,
@@ -244,6 +400,8 @@ export async function awardXPAndCoins(
     newCoins,
     newLevel,
     levelUp,
+    newStreak,
+    streakUpdated,
   }
 }
 

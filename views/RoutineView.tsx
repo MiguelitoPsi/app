@@ -122,6 +122,22 @@ export const RoutineView: React.FC = () => {
       dueDateTimestamp = new Date(year, month - 1, day).getTime()
     }
 
+    // Validate that the date is not in the past
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const selectedTaskDate = new Date(dueDateTimestamp)
+    selectedTaskDate.setHours(0, 0, 0, 0)
+
+    if (selectedTaskDate < today) {
+      const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
+      setAlertMessage(
+        `⚠️ Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
+      )
+      setAlertTitle('Data no Passado')
+      setShowAlert(true)
+      return
+    }
+
     const baseDate = new Date(dueDateTimestamp)
     const datesToCreate: number[] = []
 
@@ -214,17 +230,19 @@ export const RoutineView: React.FC = () => {
       }
     }
 
-    // Create tasks for all dates
-    for (const timestamp of datesToCreate) {
-      await addTask({
-        title: newTaskTitle,
-        priority: newTaskPriority,
-        dueDate: timestamp,
-        frequency: newTaskFrequency,
-        weekDays: newTaskFrequency === 'weekly' ? selectedWeekDays : undefined,
-        monthDays: newTaskFrequency === 'monthly' ? selectedMonthDays : undefined,
-      })
-    }
+    // Create tasks for all dates in parallel for better performance
+    await Promise.all(
+      datesToCreate.map((timestamp) =>
+        addTask({
+          title: newTaskTitle,
+          priority: newTaskPriority,
+          dueDate: timestamp,
+          frequency: newTaskFrequency,
+          weekDays: newTaskFrequency === 'weekly' ? selectedWeekDays : undefined,
+          monthDays: newTaskFrequency === 'monthly' ? selectedMonthDays : undefined,
+        })
+      )
+    )
 
     // Reset form
     setNewTaskTitle('')
@@ -279,6 +297,66 @@ export const RoutineView: React.FC = () => {
 
   // Logic to hide progress bar when 100% complete
   const showProgressBar = displayTasks.length > 0 && dayProgress < 100
+
+  // Check if selected date is in the past
+  const isDateInPast = useMemo(() => {
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const todayDay = today.getDate()
+    const todayWeekDay = today.getDay()
+
+    // Check if the user is viewing a future month
+    const viewingMonth = selectedDate.getMonth()
+    const viewingYear = selectedDate.getFullYear()
+    const currentMonth = today.getMonth()
+    const currentYear = today.getFullYear()
+    const isViewingFutureMonth =
+      viewingYear > currentYear || (viewingYear === currentYear && viewingMonth > currentMonth)
+
+    // For weekly frequency, check if all selected weekdays have passed this week
+    if (newTaskFrequency === 'weekly' && selectedWeekDays.length > 0) {
+      // Check if at least one selected day is today or in the future this week
+      const hasValidDay = selectedWeekDays.some((day) => day >= todayWeekDay)
+      if (!hasValidDay) return true
+      return false
+    }
+
+    // For monthly frequency, check if all selected days have passed this month
+    if (newTaskFrequency === 'monthly' && selectedMonthDays.length > 0) {
+      // If viewing a future month, all days are valid
+      if (isViewingFutureMonth) return false
+      // Check if at least one selected day is today or in the future this month
+      const hasValidDay = selectedMonthDays.some((day) => day >= todayDay)
+      if (!hasValidDay) return true
+      return false
+    }
+
+    // For once/daily, check the date input
+    let dateToCheck: Date
+    if (newTaskDate && newTaskDate.length === 10) {
+      // Parse YYYY-MM-DD format
+      const parts = newTaskDate.split('-')
+      const year = Number.parseInt(parts[0], 10)
+      const month = Number.parseInt(parts[1], 10)
+      const day = Number.parseInt(parts[2], 10)
+      dateToCheck = new Date(year, month - 1, day)
+    } else {
+      dateToCheck = new Date(selectedDate)
+    }
+    dateToCheck.setHours(0, 0, 0, 0)
+
+    return dateToCheck.getTime() < today.getTime()
+  }, [newTaskDate, selectedDate, newTaskFrequency, selectedWeekDays, selectedMonthDays])
+
+  // Check if weekly/monthly requires day selection
+  const isMissingDaySelection = useMemo(() => {
+    if (newTaskFrequency === 'weekly' && selectedWeekDays.length === 0) return true
+    if (newTaskFrequency === 'monthly' && selectedMonthDays.length === 0) return true
+    return false
+  }, [newTaskFrequency, selectedWeekDays, selectedMonthDays])
+
+  // Form is invalid if date is in past OR missing day selection for weekly/monthly
+  const isFormInvalid = isDateInPast || isMissingDaySelection
 
   const handleToggleTask = (
     task: { id: string; dueDate: number; completed: boolean; priority: 'high' | 'medium' | 'low' },
@@ -687,7 +765,12 @@ export const RoutineView: React.FC = () => {
                   Cancelar
                 </button>
                 <button
-                  className='flex-[2] rounded-xl bg-slate-900 py-3 font-bold text-sm text-white shadow-lg transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
+                  className={`flex-[2] rounded-xl py-3 font-bold text-sm shadow-lg transition-opacity ${
+                    isFormInvalid
+                      ? 'cursor-not-allowed bg-slate-300 text-slate-500 dark:bg-slate-600 dark:text-slate-400'
+                      : 'bg-slate-900 text-white hover:opacity-90 dark:bg-white dark:text-slate-900'
+                  }`}
+                  disabled={isFormInvalid}
                   type='submit'
                 >
                   Adicionar Missão
@@ -736,7 +819,7 @@ export const RoutineView: React.FC = () => {
               key={task.id}
               style={{ animationDelay: `${index * 50}ms` }}
             >
-              <div className='flex flex-1 items-center gap-3 sm:gap-4'>
+              <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
                 <button
                   className={`touch-target flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-8 sm:w-8 ${
                     task.completed
@@ -755,20 +838,20 @@ export const RoutineView: React.FC = () => {
                   )}
                 </button>
 
-                <div className='flex flex-col'>
-                  <div className='flex items-center gap-2'>
+                <div className='flex min-w-0 flex-1 flex-col'>
+                  <div className='flex flex-wrap items-center gap-1 sm:gap-2'>
                     <span
-                      className={`font-bold text-sm transition-all sm:text-base ${task.completed ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
+                      className={`truncate font-bold text-sm transition-all sm:text-base ${task.completed ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
                     >
                       {task.title}
                     </span>
                     {displayDate && (
-                      <span className='rounded bg-slate-100 px-1.5 py-0.5 font-bold text-[10px] text-slate-500 dark:bg-slate-700 dark:text-slate-400'>
+                      <span className='shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-bold text-[10px] text-slate-500 dark:bg-slate-700 dark:text-slate-400'>
                         {displayDate}
                       </span>
                     )}
                     {task.frequency && task.frequency !== 'once' && (
-                      <span className='flex items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <span className='flex shrink-0 items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
                         <Repeat size={10} />
                         {task.frequency === 'daily'
                           ? 'Diário'
@@ -796,7 +879,7 @@ export const RoutineView: React.FC = () => {
                 </div>
               </div>
 
-              <div className='flex items-center gap-1 pl-2'>
+              <div className='flex shrink-0 items-center gap-1 pl-2'>
                 {!task.completed && (
                   <div className='flex flex-col items-end gap-1'>
                     <span className='rounded-lg bg-violet-50 px-2 py-0.5 font-black text-[10px] text-violet-600 dark:bg-violet-900/20 dark:text-violet-400'>
@@ -811,10 +894,10 @@ export const RoutineView: React.FC = () => {
                   </div>
                 )}
                 <button
-                  className={`rounded-lg p-2 transition-all focus:opacity-100 group-hover:opacity-100 ${
+                  className={`rounded-lg p-2 transition-all sm:focus:opacity-100 sm:group-hover:opacity-100 ${
                     task.completed
-                      ? 'cursor-not-allowed text-slate-300 opacity-0 hover:bg-slate-100 hover:text-slate-400 dark:hover:bg-slate-800'
-                      : 'text-slate-300 opacity-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20'
+                      ? 'cursor-not-allowed text-slate-300 hover:bg-slate-100 hover:text-slate-400 sm:opacity-0 dark:hover:bg-slate-800'
+                      : 'text-slate-400 hover:bg-red-50 hover:text-red-500 sm:opacity-0 dark:text-slate-500 dark:hover:bg-red-900/20'
                   }`}
                   onClick={() => {
                     if (task.completed) {

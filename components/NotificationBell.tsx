@@ -14,14 +14,16 @@ export default function NotificationBell() {
 
   const handleMarkAsRead = async (notificationId: string) => {
     await markAsReadMutation.mutateAsync({ id: notificationId })
-    await utils.notification.getAll.invalidate()
-    await utils.notification.getUnreadCount.invalidate()
+    // Invalidate in background without blocking
+    utils.notification.getAll.invalidate()
+    utils.notification.getUnreadCount.invalidate()
   }
 
   const handleMarkAllAsRead = async () => {
     await markAllAsReadMutation.mutateAsync()
-    await utils.notification.getAll.invalidate()
-    await utils.notification.getUnreadCount.invalidate()
+    // Invalidate in background without blocking
+    utils.notification.getAll.invalidate()
+    utils.notification.getUnreadCount.invalidate()
   }
 
   const getNotificationIcon = (type: string) => {

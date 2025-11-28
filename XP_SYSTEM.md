@@ -83,19 +83,33 @@ getXPInfo(currentXP)
 | Tarefa Média | 20 | 20 |
 | Tarefa Alta | 30 | 40 |
 | Diário | 50 | 50 |
-| Meditação | 50 | 30 |
+| Meditação (1-3 min) | 30 | 30 |
+| Meditação (5 min) | 45 | 45 |
+| Meditação (10 min) | 60 | 60 |
 | Humor | 20 | 0 |
+
+### Multiplicadores de Duração (Meditação)
+
+| Duração | Multiplicador | XP | Coins |
+|---------|---------------|-----|-------|
+| 1-3 min | 1x | 30 | 30 |
+| 5 min | 1.5x | 45 | 45 |
+| 10 min | 2x | 60 | 60 |
 
 ## 🔧 Como Usar
 
 ### No Backend (routers tRPC)
 
 ```typescript
-import { awardXPAndCoins } from "@/lib/xp";
+import { awardXPAndCoins, getMeditationRewards } from "@/lib/xp";
 
 // Conceder XP por completar tarefa
-const result = await awardXPAndCoins(ctx.db, userId, "task", "high");
+const result = await awardXPAndCoins(ctx.db, userId, "task", { priority: "high" });
 // result = { xpAwarded: 30, coinsAwarded: 40, levelUp: false, ... }
+
+// Conceder XP por meditação com duração
+const result = await awardXPAndCoins(ctx.db, userId, "meditation", { meditationDuration: 300 });
+// result = { xpAwarded: 45, coinsAwarded: 45, ... } (5 min = 1.5x)
 
 // Conceder XP por criar diário
 const result = await awardXPAndCoins(ctx.db, userId, "journal");

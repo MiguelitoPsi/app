@@ -43,18 +43,24 @@ Cookie `user-role` usado no middleware para redirecionamento.
 
 ```typescript
 // Valores centralizados - NUNCA hardcode XP/coins
-import { XP_REWARDS, COIN_REWARDS, awardXPAndCoins } from '@/lib/xp'
+import { XP_REWARDS, COIN_REWARDS, awardXPAndCoins, getMeditationRewards } from '@/lib/xp'
 
 // Conceder XP em routers tRPC
-const result = await awardXPAndCoins(ctx.db, userId, 'task', 'high')
+const result = await awardXPAndCoins(ctx.db, userId, 'task', { priority: 'high' })
 // { xpAwarded, coinsAwarded, newLevel, levelUp }
+
+// Meditação com duração (5 min = 1.5x, 10 min = 2x)
+const result = await awardXPAndCoins(ctx.db, userId, 'meditation', { meditationDuration: 300 })
+// { xpAwarded: 45, coinsAwarded: 45, ... }
 ```
 
 | Ação | XP | Coins |
 |------|-----|-------|
 | Task baixa/média/alta | 5/10/30 | 5/10/30 |
 | Journal | 30 | 30 |
-| Meditation | 30 | 30 |
+| Meditation (1-3 min) | 30 | 30 |
+| Meditation (5 min) | 45 | 45 |
+| Meditation (10 min) | 60 | 60 |
 | Mood | 10 | 0 |
 
 Cooldown: 1x/dia por tipo (exceto tasks = sempre).
