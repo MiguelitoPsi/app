@@ -232,4 +232,33 @@ export const therapistProfileRouter = router({
 
     return { success: true }
   }),
+
+  // Listar todos os terapeutas disponíveis (para pacientes buscando novo terapeuta)
+  getAvailableTherapists: protectedProcedure.query(async ({ ctx }) => {
+    const profiles = await ctx.db
+      .select({
+        therapistId: therapistProfiles.therapistId,
+        fullName: therapistProfiles.fullName,
+        crp: therapistProfiles.crp,
+        education: therapistProfiles.education,
+        city: therapistProfiles.city,
+        attendanceType: therapistProfiles.attendanceType,
+        clinicAddress: therapistProfiles.clinicAddress,
+        phone: therapistProfiles.phone,
+      })
+      .from(therapistProfiles)
+      .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
+      .where(eq(users.role, 'psychologist'))
+
+    return profiles.map((profile) => ({
+      id: profile.therapistId,
+      fullName: profile.fullName,
+      crp: profile.crp,
+      education: profile.education,
+      city: profile.city,
+      attendanceType: profile.attendanceType,
+      clinicAddress: profile.clinicAddress,
+      phone: profile.phone,
+    }))
+  }),
 })

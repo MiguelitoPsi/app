@@ -53,6 +53,19 @@ export async function POST(request: Request) {
       isPrimary: true,
     })
 
+    // Limpar suspensão se o paciente estava desvinculado
+    await db
+      .update(users)
+      .set({
+        bannedAt: null,
+        banReason: null,
+        unlinkReason: null,
+        unlinkedByTherapistId: null,
+        unlinkedByTherapistName: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, session.user.id))
+
     // Get patient name for notification
     const patient = await db.query.users.findFirst({
       where: eq(users.id, session.user.id),

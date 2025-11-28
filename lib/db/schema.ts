@@ -32,6 +32,10 @@ export const users = sqliteTable('users', {
   termsAcceptedAt: integer('terms_accepted_at', { mode: 'timestamp' }),
   bannedAt: integer('banned_at', { mode: 'timestamp' }),
   banReason: text('ban_reason'),
+  // Para distinguir entre suspensão admin e desvinculação de terapeuta
+  unlinkReason: text('unlink_reason', { enum: ['unlinked', 'discharged'] }),
+  unlinkedByTherapistId: text('unlinked_by_therapist_id'),
+  unlinkedByTherapistName: text('unlinked_by_therapist_name'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })

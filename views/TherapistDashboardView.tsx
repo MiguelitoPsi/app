@@ -13,6 +13,7 @@ import {
   FileText,
   Key,
   ListTodo,
+  LogOut,
   Moon,
   Settings,
   Smile,
@@ -22,6 +23,7 @@ import {
   Trophy,
   User,
   UserCircle,
+  UserMinus,
   Users,
   Wallet,
   X,
@@ -101,7 +103,11 @@ export const TherapistDashboardView: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const { selectedPatientId, setSelectedPatientId } = useSelectedPatient()
   const [showPatientList, setShowPatientList] = useState(false)
-  const [patientSubTab, setPatientSubTab] = useState<'summary' | 'mood' | 'journal'>('summary')
+  const [patientSubTab, setPatientSubTab] = useState<'summary' | 'mood' | 'journal' | 'profile'>(
+    'summary'
+  )
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
+  const [showDischargeConfirm, setShowDischargeConfirm] = useState(false)
 
   // Core queries with optimized staleTime
   const { data: statsData, isLoading: statsLoading } = trpc.therapistXp.getStats.useQuery(
@@ -159,6 +165,25 @@ export const TherapistDashboardView: React.FC = () => {
         staleTime: 2 * 60 * 1000,
       }
     )
+
+  // Mutations para desvincular/dar alta
+  const utils = trpc.useUtils()
+
+  const unlinkPatientMutation = trpc.patient.unlinkPatient.useMutation({
+    onSuccess: () => {
+      utils.patient.getAll.invalidate()
+      setSelectedPatientId('')
+      setShowUnlinkConfirm(false)
+    },
+  })
+
+  const dischargePatientMutation = trpc.patient.dischargePatient.useMutation({
+    onSuccess: () => {
+      utils.patient.getAll.invalidate()
+      setSelectedPatientId('')
+      setShowDischargeConfirm(false)
+    },
+  })
 
   const stats = statsData?.stats
   const selectedPatient = patients?.find((p) => p.id === selectedPatientId)
@@ -843,6 +868,7 @@ export const TherapistDashboardView: React.FC = () => {
                       { id: 'summary', label: 'Resumo', icon: BarChart2 },
                       { id: 'mood', label: 'Humor', icon: Smile },
                       { id: 'journal', label: 'Diário', icon: BookOpen },
+                      { id: 'profile', label: 'Perfil', icon: UserCircle },
                     ].map((tab) => (
                       <button
                         className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${patientSubTab === tab.id ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
@@ -1043,6 +1069,147 @@ export const TherapistDashboardView: React.FC = () => {
                           <p className='text-slate-500'>Nenhuma entrada no diário</p>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {patientSubTab === 'profile' && (
+                    <div className='space-y-4'>
+                      {/* Informações do Paciente */}
+                      <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800'>
+                        <h3 className='mb-4 font-semibold text-slate-800 dark:text-slate-200'>
+                          Informações do Paciente
+                        </h3>
+                        <div className='space-y-3'>
+                          <div className='flex items-center gap-3'>
+                            <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 font-semibold text-white text-lg'>
+                              {selectedPatient?.name?.charAt(0) ?? 'P'}
+                            </div>
+                            <div>
+                              <p className='font-medium text-slate-800 dark:text-slate-200'>
+                                {selectedPatient?.name}
+                              </p>
+                              <p className='text-slate-500 text-sm'>{selectedPatient?.email}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Ações do Paciente */}
+                      <div className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-800'>
+                        <h3 className='mb-4 font-semibold text-slate-800 dark:text-slate-200'>
+                          Ações
+                        </h3>
+                        <div className='space-y-3'>
+                          <button
+                            className='flex w-full items-center justify-center gap-2 rounded-lg border border-amber-500 bg-amber-50 px-4 py-3 font-medium text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30'
+                            onClick={() => setShowUnlinkConfirm(true)}
+                            type='button'
+                          >
+                            <UserMinus className='h-5 w-5' />
+                            Desvincular Paciente
+                          </button>
+                          <button
+                            className='flex w-full items-center justify-center gap-2 rounded-lg border border-green-500 bg-green-50 px-4 py-3 font-medium text-green-700 transition-colors hover:bg-green-100 dark:border-green-600 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30'
+                            onClick={() => setShowDischargeConfirm(true)}
+                            type='button'
+                          >
+                            <LogOut className='h-5 w-5' />
+                            Dar Alta ao Paciente
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Aviso */}
+                      <div className='rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/50'>
+                        <p className='text-slate-500 text-sm dark:text-slate-400'>
+                          <strong>Atenção:</strong> Ao desvincular ou dar alta, a conta do paciente
+                          será suspensa até que ele se vincule a um novo terapeuta ou o admin exclua
+                          a conta.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modal de confirmação - Desvincular */}
+                  {showUnlinkConfirm && (
+                    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+                      <div className='mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800'>
+                        <div className='mb-4 flex items-center justify-center'>
+                          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30'>
+                            <UserMinus className='h-6 w-6 text-amber-600 dark:text-amber-400' />
+                          </div>
+                        </div>
+                        <h3 className='mb-2 text-center font-semibold text-lg text-slate-800 dark:text-slate-200'>
+                          Desvincular Paciente?
+                        </h3>
+                        <p className='mb-6 text-center text-slate-500 dark:text-slate-400'>
+                          Tem certeza que deseja desvincular{' '}
+                          <strong>{selectedPatient?.name}</strong>? A conta do paciente será
+                          suspensa.
+                        </p>
+                        <div className='flex gap-3'>
+                          <button
+                            className='flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700'
+                            onClick={() => setShowUnlinkConfirm(false)}
+                            type='button'
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            className='flex-1 rounded-lg bg-amber-600 px-4 py-2 font-medium text-white transition-colors hover:bg-amber-700 disabled:opacity-50'
+                            disabled={unlinkPatientMutation.isPending}
+                            onClick={() => {
+                              if (selectedPatientId) {
+                                unlinkPatientMutation.mutate({ patientId: selectedPatientId })
+                              }
+                            }}
+                            type='button'
+                          >
+                            {unlinkPatientMutation.isPending ? 'Desvinculando...' : 'Desvincular'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Modal de confirmação - Dar Alta */}
+                  {showDischargeConfirm && (
+                    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+                      <div className='mx-4 w-full max-w-md rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800'>
+                        <div className='mb-4 flex items-center justify-center'>
+                          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                            <LogOut className='h-6 w-6 text-green-600 dark:text-green-400' />
+                          </div>
+                        </div>
+                        <h3 className='mb-2 text-center font-semibold text-lg text-slate-800 dark:text-slate-200'>
+                          Dar Alta ao Paciente?
+                        </h3>
+                        <p className='mb-6 text-center text-slate-500 dark:text-slate-400'>
+                          Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>
+                          ? A conta do paciente será suspensa.
+                        </p>
+                        <div className='flex gap-3'>
+                          <button
+                            className='flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700'
+                            onClick={() => setShowDischargeConfirm(false)}
+                            type='button'
+                          >
+                            Cancelar
+                          </button>
+                          <button
+                            className='flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50'
+                            disabled={dischargePatientMutation.isPending}
+                            onClick={() => {
+                              if (selectedPatientId) {
+                                dischargePatientMutation.mutate({ patientId: selectedPatientId })
+                              }
+                            }}
+                            type='button'
+                          >
+                            {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </>

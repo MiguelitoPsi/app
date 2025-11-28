@@ -4,7 +4,14 @@ import type React from 'react'
 import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import { BADGE_DEFINITIONS } from '@/lib/constants'
 import { trpc } from '@/lib/trpc/client'
-import type { AvatarConfig, GameContextType, Mood, UrgentTask, UserStats } from '../types'
+import type {
+  AvatarConfig,
+  GameContextType,
+  Mood,
+  RewardCategory,
+  UrgentTask,
+  UserStats,
+} from '../types'
 
 const GameContext = createContext<GameContextType | undefined>(undefined)
 
@@ -137,6 +144,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Cast userProfile to any to access extendedStats since type inference might lag
     // biome-ignore lint/suspicious/noExplicitAny: extendedStats added in router
     const extendedStats = (userProfile as any).extendedStats || {}
+    // biome-ignore lint/suspicious/noExplicitAny: stats added in router
     const dbStats = (userProfile as any).stats || {}
 
     // Calculate engagement for today
@@ -205,7 +213,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return {
           id: r.id,
           title: r.title,
-          category: (r.category as any) || 'lazer',
+          category: (r.category as RewardCategory) || 'lazer',
           cost: r.cost,
           // Status: redeemed se resgatou hoje, approved se tem custo, pending se aguarda aprovação
           status: claimedToday ? 'redeemed' : r.cost > 0 ? 'approved' : 'pending',
@@ -355,7 +363,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      const result = await utils.client.task.complete.mutate({ id })
+      await utils.client.task.complete.mutate({ id })
       // After mutation, sync with actual server values in background
       utils.task.getAll.invalidate()
       utils.user.getProfile.invalidate()

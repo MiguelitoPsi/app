@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { db } from '@/lib/db'
-import { patientInvites, psychologistPatients, users } from '@/lib/db/schema'
+import { notifications, patientInvites, psychologistPatients, users } from '@/lib/db/schema'
 import { sendInviteEmail } from '@/lib/email'
 import { protectedProcedure, publicProcedure, router } from '../trpc'
 
@@ -332,7 +332,7 @@ export const patientRouter = router({
       }))
   }),
 
-  // Remove patient (psychologist only)
+  // Remove patient (psychologist only) - deprecated, use unlinkPatient or dischargePatient
   removePatient: protectedProcedure
     .input(z.object({ relationshipId: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -355,6 +355,128 @@ export const patientRouter = router({
       }
 
       await db.delete(psychologistPatients).where(eq(psychologistPatients.id, input.relationshipId))
+
+      return { success: true }
+    }),
+
+  // Desvincular paciente (suspende a conta até novo vínculo ou exclusão pelo admin)
+  unlinkPatient: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verificar se existe o vínculo
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.patientId, input.patientId),
+          eq(psychologistPatients.psychologistId, ctx.user.id)
+        ),
+      })
+
+      if (!relationship) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vínculo não encontrado',
+        })
+      }
+
+      // Buscar nome do terapeuta
+      const therapist = await db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+      })
+
+      // Deletar o relacionamento
+      await db.delete(psychologistPatients).where(eq(psychologistPatients.id, relationship.id))
+
+      // Suspender a conta do paciente
+      await db
+        .update(users)
+        .set({
+          bannedAt: new Date(),
+          banReason: 'Desvinculado pelo terapeuta',
+          unlinkReason: 'unlinked',
+          unlinkedByTherapistId: ctx.user.id,
+          unlinkedByTherapistName: therapist?.name || 'Terapeuta',
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, input.patientId))
+
+      // Criar notificação para o paciente
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: input.patientId,
+        type: 'patient_unlinked',
+        title: 'Desvinculação do Terapeuta',
+        message: `Você foi desvinculado do terapeuta ${therapist?.name || 'seu terapeuta'}. Sua conta está suspensa até que você se vincule a um novo terapeuta.`,
+        metadata: {
+          therapistId: ctx.user.id,
+          therapistName: therapist?.name,
+          reason: 'unlinked',
+        },
+      })
+
+      return { success: true }
+    }),
+
+  // Dar alta ao paciente (suspende a conta até novo vínculo ou exclusão pelo admin)
+  dischargePatient: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verificar se existe o vínculo
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.patientId, input.patientId),
+          eq(psychologistPatients.psychologistId, ctx.user.id)
+        ),
+      })
+
+      if (!relationship) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vínculo não encontrado',
+        })
+      }
+
+      // Buscar nome do terapeuta
+      const therapist = await db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+      })
+
+      // Deletar o relacionamento
+      await db.delete(psychologistPatients).where(eq(psychologistPatients.id, relationship.id))
+
+      // Suspender a conta do paciente
+      await db
+        .update(users)
+        .set({
+          bannedAt: new Date(),
+          banReason: 'Alta do tratamento',
+          unlinkReason: 'discharged',
+          unlinkedByTherapistId: ctx.user.id,
+          unlinkedByTherapistName: therapist?.name || 'Terapeuta',
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, input.patientId))
+
+      // Criar notificação para o paciente
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: input.patientId,
+        type: 'patient_discharged',
+        title: 'Alta do Tratamento',
+        message: `Você recebeu alta do terapeuta ${therapist?.name || 'seu terapeuta'}. Sua conta está suspensa até que você se vincule a um novo terapeuta ou o admin exclua sua conta.`,
+        metadata: {
+          therapistId: ctx.user.id,
+          therapistName: therapist?.name,
+          reason: 'discharged',
+        },
+      })
 
       return { success: true }
     }),

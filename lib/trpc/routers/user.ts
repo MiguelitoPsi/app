@@ -360,6 +360,9 @@ export const userRouter = router({
         bannedAt: users.bannedAt,
         banReason: users.banReason,
         role: users.role,
+        unlinkReason: users.unlinkReason,
+        unlinkedByTherapistId: users.unlinkedByTherapistId,
+        unlinkedByTherapistName: users.unlinkedByTherapistName,
       })
       .from(users)
       .where(eq(users.id, ctx.user.id))
@@ -374,6 +377,9 @@ export const userRouter = router({
       bannedAt: user.bannedAt,
       banReason: user.banReason,
       role: user.role,
+      unlinkReason: user.unlinkReason,
+      unlinkedByTherapistId: user.unlinkedByTherapistId,
+      unlinkedByTherapistName: user.unlinkedByTherapistName,
     }
   }),
 })

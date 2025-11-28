@@ -2,18 +2,20 @@ import { and, desc, eq } from 'drizzle-orm'
 import type { DrizzleD1Database } from 'drizzle-orm/d1'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
+import type * as schema from '@/lib/db/schema'
 import { notifications } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
 
 // Helper function to create notification
-export async function createNotification(
-  userId: string,
-  type: string,
-  title: string,
-  message: string,
-  metadata: Record<string, unknown> | undefined,
-  db: DrizzleD1Database<any>
-) {
+export async function createNotification(params: {
+  userId: string
+  type: string
+  title: string
+  message: string
+  metadata?: Record<string, unknown>
+  db: DrizzleD1Database<typeof schema>
+}) {
+  const { userId, type, title, message, metadata, db } = params
   const id = nanoid()
   await db.insert(notifications).values({
     id,

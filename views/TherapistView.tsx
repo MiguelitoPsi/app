@@ -25,6 +25,7 @@ import {
   Sun,
   User,
   UserCircle,
+  UserMinus,
   UserPlus,
   Users,
   X,
@@ -91,6 +92,8 @@ export const TherapistView: React.FC = () => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
+  const [showDischargeConfirm, setShowDischargeConfirm] = useState(false)
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -150,6 +153,24 @@ export const TherapistView: React.FC = () => {
     onSuccess: () => {
       refetchPatients()
       setSelectedPatientId('')
+    },
+  })
+
+  // Unlink patient mutation
+  const unlinkPatientMutation = trpc.patient.unlinkPatient.useMutation({
+    onSuccess: () => {
+      refetchPatients()
+      setSelectedPatientId('')
+      setShowUnlinkConfirm(false)
+    },
+  })
+
+  // Discharge patient mutation
+  const dischargePatientMutation = trpc.patient.dischargePatient.useMutation({
+    onSuccess: () => {
+      refetchPatients()
+      setSelectedPatientId('')
+      setShowDischargeConfirm(false)
     },
   })
 
@@ -1325,6 +1346,120 @@ export const TherapistView: React.FC = () => {
                     {selectedPatient?.isPrimary ? 'Terapeuta Principal' : 'Vinculado'}
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Ações do Paciente */}
+            <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'>
+              <h3 className='mb-4 flex items-center gap-2 font-bold text-slate-800 sm:gap-3 dark:text-white'>
+                <div className='rounded-lg bg-slate-100 p-1.5 text-slate-500 sm:rounded-xl sm:p-2 dark:bg-slate-700'>
+                  <UserMinus size={16} />
+                </div>
+                Ações
+              </h3>
+              <div className='space-y-3'>
+                <button
+                  className='flex w-full items-center justify-center gap-2 rounded-xl border border-amber-500 bg-amber-50 px-4 py-3 font-bold text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-600 dark:bg-amber-900/20 dark:text-amber-400 dark:hover:bg-amber-900/30'
+                  onClick={() => setShowUnlinkConfirm(true)}
+                  type='button'
+                >
+                  <UserMinus size={18} />
+                  Desvincular Paciente
+                </button>
+                <button
+                  className='flex w-full items-center justify-center gap-2 rounded-xl border border-green-500 bg-green-50 px-4 py-3 font-bold text-green-700 transition-colors hover:bg-green-100 dark:border-green-600 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30'
+                  onClick={() => setShowDischargeConfirm(true)}
+                  type='button'
+                >
+                  <LogOut size={18} />
+                  Dar Alta ao Paciente
+                </button>
+              </div>
+              <p className='mt-3 text-slate-400 text-xs dark:text-slate-500'>
+                Ao desvincular ou dar alta, a conta do paciente será suspensa até que ele se vincule
+                a um novo terapeuta.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de confirmação - Desvincular */}
+        {showUnlinkConfirm && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm sm:p-6'>
+            <div className='zoom-in-95 w-full max-w-sm animate-in rounded-2xl bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:bg-slate-900'>
+              <div className='mb-4 flex items-center justify-center'>
+                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30'>
+                  <UserMinus className='h-6 w-6 text-amber-600 dark:text-amber-400' />
+                </div>
+              </div>
+              <h3 className='mb-2 text-center font-bold text-lg text-slate-800 dark:text-white'>
+                Desvincular Paciente?
+              </h3>
+              <p className='mb-6 text-center text-slate-500 text-sm dark:text-slate-400'>
+                Tem certeza que deseja desvincular <strong>{selectedPatient?.name}</strong>? A conta
+                do paciente será suspensa.
+              </p>
+              <div className='flex gap-3'>
+                <button
+                  className='flex-1 rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
+                  onClick={() => setShowUnlinkConfirm(false)}
+                  type='button'
+                >
+                  Cancelar
+                </button>
+                <button
+                  className='flex-1 rounded-xl bg-amber-600 px-4 py-3 font-bold text-white transition-colors hover:bg-amber-700 disabled:opacity-50'
+                  disabled={unlinkPatientMutation.isPending}
+                  onClick={() => {
+                    if (selectedPatientId) {
+                      unlinkPatientMutation.mutate({ patientId: selectedPatientId })
+                    }
+                  }}
+                  type='button'
+                >
+                  {unlinkPatientMutation.isPending ? 'Desvinculando...' : 'Desvincular'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal de confirmação - Dar Alta */}
+        {showDischargeConfirm && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm sm:p-6'>
+            <div className='zoom-in-95 w-full max-w-sm animate-in rounded-2xl bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:bg-slate-900'>
+              <div className='mb-4 flex items-center justify-center'>
+                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                  <LogOut className='h-6 w-6 text-green-600 dark:text-green-400' />
+                </div>
+              </div>
+              <h3 className='mb-2 text-center font-bold text-lg text-slate-800 dark:text-white'>
+                Dar Alta ao Paciente?
+              </h3>
+              <p className='mb-6 text-center text-slate-500 text-sm dark:text-slate-400'>
+                Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>? A conta
+                do paciente será suspensa.
+              </p>
+              <div className='flex gap-3'>
+                <button
+                  className='flex-1 rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
+                  onClick={() => setShowDischargeConfirm(false)}
+                  type='button'
+                >
+                  Cancelar
+                </button>
+                <button
+                  className='flex-1 rounded-xl bg-green-600 px-4 py-3 font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-50'
+                  disabled={dischargePatientMutation.isPending}
+                  onClick={() => {
+                    if (selectedPatientId) {
+                      dischargePatientMutation.mutate({ patientId: selectedPatientId })
+                    }
+                  }}
+                  type='button'
+                >
+                  {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
+                </button>
               </div>
             </div>
           </div>

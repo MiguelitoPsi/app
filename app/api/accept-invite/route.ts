@@ -66,6 +66,19 @@ export async function POST(request: Request) {
       })
     }
 
+    // Limpar suspensão se o paciente estava desvinculado
+    await db
+      .update(users)
+      .set({
+        bannedAt: null,
+        banReason: null,
+        unlinkReason: null,
+        unlinkedByTherapistId: null,
+        unlinkedByTherapistName: null,
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, session.user.id))
+
     // Update invite status
     await db
       .update(patientInvites)

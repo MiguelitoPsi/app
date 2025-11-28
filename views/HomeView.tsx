@@ -48,9 +48,6 @@ export const HomeView: React.FC = () => {
     days: 7,
   })
 
-  // Check if user has recent anxiety
-  const { data: anxietyData } = trpc.user.hasRecentAnxiety.useQuery()
-
   useEffect(() => {
     setIsMounted(true)
   }, [])
