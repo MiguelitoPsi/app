@@ -15,6 +15,7 @@ import {
   Plus,
   RefreshCw,
   Repeat,
+  Search,
   Send,
   Sparkles,
   Target,
@@ -29,19 +30,23 @@ import { trpc } from '../lib/trpc/client'
 
 type TaskFormData = {
   title: string
-  description: string
-  frequency: 'daily' | 'weekly' | 'once'
+  frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'once'
   priority: 'low' | 'medium' | 'high'
   dueDate?: string
   type?: 'feedback' | 'session' | 'review_records' | 'create_plan' | 'approve_reward' | 'custom'
+  // Nova categoria: 'geral' ou 'sessao'
+  taskCategory?: 'geral' | 'sessao'
+  // ID do paciente para tarefas de sessão
+  sessionPatientId?: string
 }
 
 const defaultTaskForm: TaskFormData = {
   title: '',
-  description: '',
-  frequency: 'daily',
+  frequency: 'weekly',
   priority: 'medium',
   type: 'custom',
+  taskCategory: undefined,
+  sessionPatientId: undefined,
 }
 
 export default function TherapistRoutineView() {
@@ -62,6 +67,9 @@ export default function TherapistRoutineView() {
     return d
   })
   const [showAiSuggestions, setShowAiSuggestions] = useState(true)
+  // Estado para busca de paciente no formulário de sessão
+  const [patientSearchQuery, setPatientSearchQuery] = useState('')
+  const [showPatientDropdown, setShowPatientDropdown] = useState(false)
 
   // tRPC queries
   const { data: patients } = trpc.patient.getAll.useQuery()
@@ -80,6 +88,23 @@ export default function TherapistRoutineView() {
     undefined,
     { enabled: mainView === 'my-routine' }
   )
+
+  // Filtrar pacientes para busca no formulário de sessão
+  const filteredPatients = useMemo(() => {
+    if (!patients) return []
+    if (!patientSearchQuery.trim()) return patients
+    const query = patientSearchQuery.toLowerCase()
+    return patients.filter(
+      (p) => p.name?.toLowerCase().includes(query) || p.email?.toLowerCase().includes(query)
+    )
+  }, [patients, patientSearchQuery])
+
+  // Encontrar paciente selecionado para sessão
+  const selectedSessionPatient = useMemo(() => {
+    if (!taskForm.sessionPatientId) return null
+    if (!patients) return null
+    return patients.find((p) => p.id === taskForm.sessionPatientId)
+  }, [patients, taskForm.sessionPatientId])
 
   const utils = trpc.useUtils()
 
@@ -113,7 +138,13 @@ export default function TherapistRoutineView() {
     onSuccess: () => {
       setShowTaskForm(false)
       setTaskForm(defaultTaskForm)
+      setPatientSearchQuery('')
+      setShowPatientDropdown(false)
       refetchMyTasks()
+      // Se criou tarefa de sessão, também recarregar tarefas do paciente
+      if (taskForm.taskCategory === 'sessao') {
+        refetchTasks()
+      }
       utils.therapistXp.getStats.invalidate()
     },
   })
@@ -291,26 +322,48 @@ export default function TherapistRoutineView() {
       if (!selectedPatientId) return
       if (!taskForm.title) return
 
+      // Para tarefas de pacientes na aba "Pacientes", mapear frequência
+      // (biweekly não é suportado no createForPatient, usar weekly como fallback)
+      const patientFrequency =
+        taskForm.frequency === 'biweekly' || taskForm.frequency === 'monthly'
+          ? 'weekly'
+          : (taskForm.frequency as 'once' | 'daily' | 'weekly')
+
       createTaskMutation.mutate({
         patientId: selectedPatientId,
         title: taskForm.title,
-        description: taskForm.description,
-        frequency: taskForm.frequency,
+        frequency: patientFrequency,
         priority: taskForm.priority,
         dueDate: taskForm.dueDate,
       })
     } else {
       // Create therapist's own task
-      if (!taskForm.title) return
+      if (!taskForm.taskCategory) return // Precisa selecionar tipo primeiro
+
+      // Se for sessão, precisa ter paciente selecionado
+      if (taskForm.taskCategory === 'sessao' && !taskForm.sessionPatientId) return
+
+      // Para tarefas gerais, precisa ter título
+      if (taskForm.taskCategory === 'geral' && !taskForm.title) return
+
+      // Gerar título automático para sessões: "Sessão - [Nome do Paciente]"
+      const sessionTitle =
+        taskForm.taskCategory === 'sessao' && selectedSessionPatient
+          ? `Sessão - ${selectedSessionPatient.name}`
+          : taskForm.title
 
       createMyTaskMutation.mutate({
-        title: taskForm.title,
-        description: taskForm.description,
-        type: taskForm.type || 'custom',
-        priority: taskForm.priority,
+        title: sessionTitle,
+        type: taskForm.taskCategory === 'sessao' ? 'session' : taskForm.type || 'custom',
+        priority: taskForm.taskCategory === 'sessao' ? 'high' : taskForm.priority,
         dueDate: taskForm.dueDate,
         isRecurring: taskForm.frequency !== 'once',
-        frequency: taskForm.frequency === 'once' ? undefined : taskForm.frequency,
+        frequency:
+          taskForm.frequency === 'once'
+            ? undefined
+            : (taskForm.frequency as 'daily' | 'weekly' | 'biweekly' | 'monthly'),
+        taskCategory: taskForm.taskCategory,
+        patientId: taskForm.sessionPatientId,
       })
     }
   }
@@ -714,7 +767,9 @@ export default function TherapistRoutineView() {
                                 ? 'Diário'
                                 : task.frequency === 'weekly'
                                   ? 'Semanal'
-                                  : 'Mensal'}
+                                  : task.frequency === 'biweekly'
+                                    ? 'Quinzenal'
+                                    : 'Mensal'}
                             </span>
                           )}
                         </div>
@@ -745,9 +800,9 @@ export default function TherapistRoutineView() {
                       </div>
                     </div>
 
-                    <div className='flex items-center gap-1'>
+                    <div className='flex items-center gap-1 self-center'>
                       <button
-                        className='rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-red-900/20'
+                        className='rounded-lg p-2 text-slate-300 transition-all hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20'
                         onClick={() => deleteMyTaskMutation.mutate({ id: task.id })}
                         title='Excluir tarefa'
                         type='button'
@@ -999,7 +1054,13 @@ export default function TherapistRoutineView() {
                           {task.frequency && task.frequency !== 'once' && (
                             <span className='flex items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
                               <Repeat size={10} />
-                              {task.frequency === 'daily' ? 'Diário' : 'Semanal'}
+                              {task.frequency === 'daily'
+                                ? 'Diário'
+                                : task.frequency === 'weekly'
+                                  ? 'Semanal'
+                                  : task.frequency === 'biweekly'
+                                    ? 'Quinzenal'
+                                    : 'Mensal'}
                             </span>
                           )}
                         </div>
@@ -1027,7 +1088,7 @@ export default function TherapistRoutineView() {
                       </div>
                     </div>
 
-                    <div className='flex items-center gap-1'>
+                    <div className='flex items-center gap-1 self-center'>
                       {task.status === 'completed' && !task.feedback && (
                         <button
                           className='rounded-lg bg-blue-100 p-2 text-blue-600 transition-colors hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-400'
@@ -1039,7 +1100,7 @@ export default function TherapistRoutineView() {
                         </button>
                       )}
                       <button
-                        className='rounded-lg p-2 text-slate-300 opacity-0 transition-all hover:bg-red-50 hover:text-red-500 focus:opacity-100 group-hover:opacity-100 dark:hover:bg-red-900/20'
+                        className='rounded-lg p-2 text-slate-300 transition-all hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-900/20'
                         onClick={() => deleteTaskMutation.mutate({ taskId: task.id })}
                         title='Excluir tarefa'
                         type='button'
@@ -1155,24 +1216,6 @@ export default function TherapistRoutineView() {
                     required
                     type='text'
                     value={taskForm.title}
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label
-                    className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                    htmlFor='task-description'
-                  >
-                    Descrição
-                  </label>
-                  <textarea
-                    className='w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-violet-900/30'
-                    id='task-description'
-                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                    placeholder='Instruções detalhadas para o paciente...'
-                    rows={3}
-                    value={taskForm.description}
                   />
                 </div>
 
@@ -1292,11 +1335,23 @@ export default function TherapistRoutineView() {
       {/* Add Task Form Modal for My Routine */}
       {showTaskForm && mainView === 'my-routine' && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
-          <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
-            <div className='relative bg-gradient-to-r from-emerald-500 to-teal-600 p-6 text-white'>
+          <div className='zoom-in-95 fade-in animate-in w-full max-w-md max-h-[90vh] overflow-y-auto overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
+            <div
+              className={`relative p-6 text-white ${
+                taskForm.taskCategory === 'sessao'
+                  ? 'bg-gradient-to-r from-violet-500 to-fuchsia-600'
+                  : 'bg-gradient-to-r from-emerald-500 to-teal-600'
+              }`}
+            >
               <div className='absolute top-0 right-0 h-20 w-20 rounded-full bg-white/10' />
               <h3 className='font-bold text-xl'>Nova Tarefa</h3>
-              <p className='text-emerald-100 text-sm'>Para sua rotina pessoal</p>
+              <p
+                className={`text-sm ${taskForm.taskCategory === 'sessao' ? 'text-violet-100' : 'text-emerald-100'}`}
+              >
+                {taskForm.taskCategory === 'sessao'
+                  ? `Sessão${selectedSessionPatient ? ` com ${selectedSessionPatient.name}` : ''}`
+                  : 'Para sua rotina pessoal'}
+              </p>
             </div>
 
             <form
@@ -1307,143 +1362,273 @@ export default function TherapistRoutineView() {
               }}
             >
               <div className='space-y-4'>
-                {/* Title */}
+                {/* TIPO DE TAREFA - SEMPRE NO TOPO */}
                 <div>
-                  <label
-                    className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                    htmlFor='my-task-title'
-                  >
-                    Título *
+                  <label className='mb-2 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                    <Target className='mb-0.5 inline h-3 w-3' /> Tipo de Tarefa *
                   </label>
-                  <input
-                    autoFocus
-                    className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-900/30'
-                    id='my-task-title'
-                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                    placeholder='Ex: Revisar relatórios semanais'
-                    required
-                    type='text'
-                    value={taskForm.title}
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label
-                    className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                    htmlFor='my-task-description'
-                  >
-                    Descrição
-                  </label>
-                  <textarea
-                    className='w-full resize-none rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-900/30'
-                    id='my-task-description'
-                    onChange={(e) => setTaskForm({ ...taskForm, description: e.target.value })}
-                    placeholder='Detalhes da tarefa...'
-                    rows={3}
-                    value={taskForm.description}
-                  />
-                </div>
-
-                {/* Task Type */}
-                <div>
-                  <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                    <Target className='mb-0.5 inline h-3 w-3' /> Tipo de Tarefa
-                  </label>
-                  <div className='grid grid-cols-3 gap-2'>
-                    {(
-                      [
-                        { key: 'custom', label: 'Geral' },
-                        { key: 'feedback', label: 'Feedback' },
-                        { key: 'session', label: 'Sessão' },
-                        { key: 'review_records', label: 'Revisão' },
-                        { key: 'create_plan', label: 'Plano' },
-                        { key: 'approve_reward', label: 'Recompensa' },
-                      ] as const
-                    ).map((t) => (
-                      <button
-                        className={`flex flex-col items-center rounded-lg border-2 px-2 py-2 font-bold text-[10px] transition-all ${
-                          taskForm.type === t.key
-                            ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-                            : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                        }`}
-                        key={t.key}
-                        onClick={() => setTaskForm({ ...taskForm, type: t.key })}
-                        type='button'
-                      >
-                        <span>{t.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Date and Priority */}
-                <div className='grid grid-cols-2 gap-4'>
-                  <div>
-                    <label
-                      className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                      htmlFor='my-task-due-date'
+                  <div className='grid grid-cols-2 gap-3'>
+                    <button
+                      className={`flex flex-col items-center justify-center rounded-xl border-2 p-4 font-bold transition-all ${
+                        taskForm.taskCategory === 'geral'
+                          ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
+                      }`}
+                      onClick={() =>
+                        setTaskForm({
+                          ...taskForm,
+                          taskCategory: 'geral',
+                          sessionPatientId: undefined,
+                          priority: 'medium',
+                        })
+                      }
+                      type='button'
                     >
-                      <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
-                    </label>
-                    <input
-                      className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                      id='my-task-due-date'
-                      onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                      type='date'
-                      value={taskForm.dueDate || ''}
-                    />
+                      <Target className='mb-2 h-6 w-6' />
+                      <span className='text-sm'>Geral</span>
+                      <span className='mt-1 font-normal text-[10px] opacity-70'>
+                        Tarefas pessoais
+                      </span>
+                    </button>
+                    <button
+                      className={`flex flex-col items-center justify-center rounded-xl border-2 p-4 font-bold transition-all ${
+                        taskForm.taskCategory === 'sessao'
+                          ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                          : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
+                      }`}
+                      onClick={() =>
+                        setTaskForm({
+                          ...taskForm,
+                          taskCategory: 'sessao',
+                          priority: 'high', // Sessão sempre alta prioridade
+                          type: 'session',
+                        })
+                      }
+                      type='button'
+                    >
+                      <Users className='mb-2 h-6 w-6' />
+                      <span className='text-sm'>Sessão</span>
+                      <span className='mt-1 font-normal text-[10px] opacity-70'>Com paciente</span>
+                    </button>
                   </div>
+                </div>
 
-                  <div>
-                    <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                      <Flag className='mb-0.5 inline h-3 w-3' /> Prioridade
-                    </label>
-                    <div className='flex gap-1'>
-                      {(['low', 'medium', 'high'] as const).map((p) => (
-                        <button
-                          className={`flex-1 rounded-lg border-2 py-2 font-bold text-[10px] uppercase transition-all ${
-                            taskForm.priority === p
-                              ? p === 'high'
-                                ? 'border-red-500 bg-red-50 text-red-500 dark:bg-red-900/20'
-                                : p === 'medium'
-                                  ? 'border-orange-500 bg-orange-50 text-orange-500 dark:bg-orange-900/20'
-                                  : 'border-blue-500 bg-blue-50 text-blue-500 dark:bg-blue-900/20'
-                              : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                          }`}
-                          key={p}
-                          onClick={() => setTaskForm({ ...taskForm, priority: p })}
-                          type='button'
+                {/* CAMPOS APARECEM APENAS APÓS SELECIONAR TIPO */}
+                {taskForm.taskCategory && (
+                  <>
+                    {/* BUSCA DE PACIENTE - APENAS PARA SESSÃO */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div>
+                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                          <User className='mb-0.5 inline h-3 w-3' /> Paciente *
+                        </label>
+                        <div className='relative'>
+                          <div className='relative'>
+                            <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
+                            <input
+                              className='w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-3 pl-10 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-violet-900/30'
+                              onChange={(e) => {
+                                setPatientSearchQuery(e.target.value)
+                                setShowPatientDropdown(true)
+                              }}
+                              onFocus={() => setShowPatientDropdown(true)}
+                              placeholder='Buscar paciente pelo nome...'
+                              type='text'
+                              value={
+                                selectedSessionPatient
+                                  ? selectedSessionPatient.name || ''
+                                  : patientSearchQuery
+                              }
+                            />
+                            {selectedSessionPatient && (
+                              <button
+                                className='absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700'
+                                onClick={() => {
+                                  setTaskForm({ ...taskForm, sessionPatientId: undefined })
+                                  setPatientSearchQuery('')
+                                }}
+                                type='button'
+                              >
+                                <X className='h-4 w-4' />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Dropdown de pacientes */}
+                          {showPatientDropdown && !selectedSessionPatient && (
+                            <div className='absolute z-10 mt-1 max-h-48 w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800'>
+                              {filteredPatients.length === 0 ? (
+                                <div className='p-4 text-center text-slate-500 text-sm'>
+                                  Nenhum paciente encontrado
+                                </div>
+                              ) : (
+                                filteredPatients.map((patient) => (
+                                  <button
+                                    className='flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700'
+                                    key={patient.id}
+                                    onClick={() => {
+                                      setTaskForm({ ...taskForm, sessionPatientId: patient.id })
+                                      setPatientSearchQuery('')
+                                      setShowPatientDropdown(false)
+                                    }}
+                                    type='button'
+                                  >
+                                    <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 font-semibold text-white text-sm'>
+                                      {patient.name?.charAt(0) || 'P'}
+                                    </div>
+                                    <div>
+                                      <p className='font-medium text-slate-800 text-sm dark:text-slate-200'>
+                                        {patient.name}
+                                      </p>
+                                      <p className='text-slate-500 text-xs dark:text-slate-400'>
+                                        {patient.email}
+                                      </p>
+                                    </div>
+                                  </button>
+                                ))
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Title - apenas para tarefas gerais, sessões têm título automático */}
+                    {taskForm.taskCategory === 'geral' && (
+                      <div>
+                        <label
+                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                          htmlFor='my-task-title'
                         >
-                          {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
+                          Título *
+                        </label>
+                        <input
+                          autoFocus
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-900/30'
+                          id='my-task-title'
+                          onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                          placeholder='Ex: Revisar relatórios semanais'
+                          required
+                          type='text'
+                          value={taskForm.title}
+                        />
+                      </div>
+                    )}
 
-                {/* Frequency */}
-                <div>
-                  <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                    <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
-                  </label>
-                  <div className='grid grid-cols-3 gap-2'>
-                    {(['once', 'daily', 'weekly'] as const).map((freq) => (
-                      <button
-                        className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
-                          taskForm.frequency === freq
-                            ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
-                            : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                        }`}
-                        key={freq}
-                        onClick={() => setTaskForm({ ...taskForm, frequency: freq })}
-                        type='button'
+                    {/* Date */}
+                    <div>
+                      <label
+                        className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                        htmlFor='my-task-due-date'
                       >
-                        {freq === 'once' ? 'Uma vez' : freq === 'daily' ? 'Diário' : 'Semanal'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                        <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
+                      </label>
+                      <input
+                        className={`w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors dark:border-slate-700 dark:bg-slate-900 dark:text-white ${
+                          taskForm.taskCategory === 'sessao'
+                            ? 'focus:border-violet-500'
+                            : 'focus:border-emerald-500'
+                        }`}
+                        id='my-task-due-date'
+                        onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                        type='date'
+                        value={taskForm.dueDate || ''}
+                      />
+                    </div>
+
+                    {/* Priority - APENAS PARA GERAL (sessão é sempre alta) */}
+                    {taskForm.taskCategory === 'geral' && (
+                      <div>
+                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                          <Flag className='mb-0.5 inline h-3 w-3' /> Prioridade
+                        </label>
+                        <div className='flex gap-1'>
+                          {(['low', 'medium', 'high'] as const).map((p) => (
+                            <button
+                              className={`flex-1 rounded-lg border-2 py-2 font-bold text-[10px] uppercase transition-all ${
+                                taskForm.priority === p
+                                  ? p === 'high'
+                                    ? 'border-red-500 bg-red-50 text-red-500 dark:bg-red-900/20'
+                                    : p === 'medium'
+                                      ? 'border-orange-500 bg-orange-50 text-orange-500 dark:bg-orange-900/20'
+                                      : 'border-blue-500 bg-blue-50 text-blue-500 dark:bg-blue-900/20'
+                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                              }`}
+                              key={p}
+                              onClick={() => setTaskForm({ ...taskForm, priority: p })}
+                              type='button'
+                            >
+                              {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Sessão mostra que prioridade é alta automaticamente */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div className='flex items-center gap-2 rounded-xl bg-red-50 p-3 dark:bg-red-900/20'>
+                        <Flag className='h-4 w-4 text-red-500' fill='currentColor' />
+                        <span className='font-medium text-red-600 text-sm dark:text-red-400'>
+                          Prioridade Alta (automático para sessões)
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Frequency - APENAS PARA SESSÃO */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div>
+                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                          <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
+                        </label>
+                        <div className='grid grid-cols-3 gap-2'>
+                          {(
+                            [
+                              { key: 'weekly', label: 'Semanal' },
+                              { key: 'biweekly', label: 'Quinzenal' },
+                              { key: 'monthly', label: 'Mensal' },
+                            ] as const
+                          ).map((freq) => (
+                            <button
+                              className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
+                                taskForm.frequency === freq.key
+                                  ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                              }`}
+                              key={freq.key}
+                              onClick={() => setTaskForm({ ...taskForm, frequency: freq.key })}
+                              type='button'
+                            >
+                              {freq.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Warning para sessão */}
+                    {taskForm.taskCategory === 'sessao' && selectedSessionPatient && (
+                      <div className='flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-900/20'>
+                        <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500' />
+                        <p className='text-amber-700 text-xs dark:text-amber-400'>
+                          {taskForm.frequency === 'weekly'
+                            ? 'Serão criadas sessões semanais no mês selecionado na rotina de '
+                            : taskForm.frequency === 'biweekly'
+                              ? 'Serão criadas sessões quinzenais no mês selecionado na rotina de '
+                              : taskForm.frequency === 'monthly'
+                                ? 'Será criada 1 sessão mensal na rotina de '
+                                : 'A tarefa será adicionada na rotina de '}
+                          <strong>{selectedSessionPatient.name}</strong>
+                          {taskForm.frequency &&
+                          taskForm.frequency !== 'once' &&
+                          taskForm.frequency !== 'monthly'
+                            ? ' sempre no mesmo dia da semana.'
+                            : '.'}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
 
               {/* Buttons */}
@@ -1453,14 +1638,23 @@ export default function TherapistRoutineView() {
                   onClick={() => {
                     setShowTaskForm(false)
                     setTaskForm(defaultTaskForm)
+                    setPatientSearchQuery('')
+                    setShowPatientDropdown(false)
                   }}
                   type='button'
                 >
                   Cancelar
                 </button>
                 <button
-                  className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-emerald-600 py-3 font-bold text-sm text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50'
-                  disabled={createMyTaskMutation.isPending || !taskForm.title}
+                  className={`flex flex-[2] items-center justify-center gap-2 rounded-xl py-3 font-bold text-sm text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
+                    taskForm.taskCategory === 'sessao' ? 'bg-violet-600' : 'bg-emerald-600'
+                  }`}
+                  disabled={
+                    createMyTaskMutation.isPending ||
+                    !taskForm.taskCategory ||
+                    (taskForm.taskCategory === 'geral' && !taskForm.title) ||
+                    (taskForm.taskCategory === 'sessao' && !taskForm.sessionPatientId)
+                  }
                   type='submit'
                 >
                   {createMyTaskMutation.isPending ? (

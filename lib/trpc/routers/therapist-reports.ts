@@ -3,7 +3,7 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { and, desc, eq, gte, lte } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, lte, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { db } from '@/lib/db'
@@ -483,7 +483,13 @@ export const therapistReportsRouter = router({
         .select()
         .from(patientTasksFromTherapist)
         .where(and(...conditions))
-        .orderBy(desc(patientTasksFromTherapist.createdAt))
+        .orderBy(
+          // Data mais próxima primeiro (nulls por último)
+          sql`CASE WHEN ${patientTasksFromTherapist.dueDate} IS NULL THEN 1 ELSE 0 END`,
+          asc(patientTasksFromTherapist.dueDate),
+          // Prioridade alta primeiro
+          sql`CASE ${patientTasksFromTherapist.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+        )
 
       return tasksList
     }),

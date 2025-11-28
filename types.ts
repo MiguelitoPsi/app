@@ -19,6 +19,8 @@ export type Task = {
   frequency?: 'once' | 'daily' | 'weekly' | 'monthly'
   weekDays?: number[] // 0-6 (Sunday-Saturday) for weekly tasks
   monthDays?: number[] // 1-31 for monthly tasks
+  isFromTherapist?: boolean // Se a tarefa foi criada pelo terapeuta
+  category?: string // Categoria da tarefa (ex: 'sessao', 'terapia', etc.)
 }
 
 export type UrgentTask = {

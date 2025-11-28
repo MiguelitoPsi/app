@@ -4,10 +4,10 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { and, desc, eq, gte, isNull, lt, or } from 'drizzle-orm'
+import { and, asc, eq, gte, isNull, lt, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { therapistTasks } from '@/lib/db/schema'
+import { patientTasksFromTherapist, psychologistPatients, therapistTasks } from '@/lib/db/schema'
 import { awardTherapistXP, type THERAPIST_XP_ACTIONS } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
 
@@ -32,7 +32,13 @@ export const therapistTasksRouter = router({
       .select()
       .from(therapistTasks)
       .where(eq(therapistTasks.therapistId, ctx.user.id))
-      .orderBy(desc(therapistTasks.createdAt))
+      .orderBy(
+        // Data mais próxima primeiro (nulls por último)
+        sql`CASE WHEN ${therapistTasks.dueDate} IS NULL THEN 1 ELSE 0 END`,
+        asc(therapistTasks.dueDate),
+        // Prioridade alta primeiro
+        sql`CASE ${therapistTasks.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+      )
   }),
 
   // Get tasks for a specific date range
@@ -68,7 +74,13 @@ export const therapistTasksRouter = router({
             )
           )
         )
-        .orderBy(desc(therapistTasks.createdAt))
+        .orderBy(
+          // Data mais próxima primeiro (nulls por último)
+          sql`CASE WHEN ${therapistTasks.dueDate} IS NULL THEN 1 ELSE 0 END`,
+          asc(therapistTasks.dueDate),
+          // Prioridade alta primeiro
+          sql`CASE ${therapistTasks.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+        )
     }),
 
   // Create a new personal task
@@ -90,8 +102,10 @@ export const therapistTasksRouter = router({
         priority: z.enum(['low', 'medium', 'high']).default('medium'),
         dueDate: z.string().optional(),
         isRecurring: z.boolean().default(false),
-        frequency: z.enum(['daily', 'weekly', 'monthly']).optional(),
+        frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly']).optional(),
         patientId: z.string().optional(),
+        // Nova categoria de tarefa: 'geral' (para terapeuta) ou 'sessao' (cria também para paciente)
+        taskCategory: z.enum(['geral', 'sessao']).default('geral'),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -100,6 +114,43 @@ export const therapistTasksRouter = router({
           code: 'FORBIDDEN',
           message: 'Apenas terapeutas podem criar tarefas',
         })
+      }
+
+      // Se for sessão, precisa ter um paciente selecionado
+      if (input.taskCategory === 'sessao' && !input.patientId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'É necessário selecionar um paciente para tarefas de sessão',
+        })
+      }
+
+      // Se for sessão, precisa ter uma data
+      if (input.taskCategory === 'sessao' && !input.dueDate) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'É necessário selecionar uma data para tarefas de sessão',
+        })
+      }
+
+      // Verificar se o paciente está vinculado ao terapeuta
+      if (input.patientId) {
+        const relationship = await ctx.db
+          .select()
+          .from(psychologistPatients)
+          .where(
+            and(
+              eq(psychologistPatients.psychologistId, ctx.user.id),
+              eq(psychologistPatients.patientId, input.patientId)
+            )
+          )
+          .limit(1)
+
+        if (relationship.length === 0) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Paciente não vinculado a este terapeuta',
+          })
+        }
       }
 
       // Validate that the date is not in the past
@@ -119,8 +170,9 @@ export const therapistTasksRouter = router({
         }
       }
 
-      const id = nanoid()
-      const xpReward = THERAPIST_TASK_XP[input.priority] || 20
+      // Para sessão, sempre prioridade alta
+      const effectivePriority = input.taskCategory === 'sessao' ? 'high' : input.priority
+      const xpReward = THERAPIST_TASK_XP[effectivePriority] || 20
 
       // Parse date as local time to avoid timezone issues
       let parsedDueDate: Date | null = null
@@ -130,23 +182,114 @@ export const therapistTasksRouter = router({
         parsedDueDate.setHours(12, 0, 0, 0) // Set to noon to avoid timezone edge cases
       }
 
-      await ctx.db.insert(therapistTasks).values({
-        id,
-        therapistId: ctx.user.id,
-        patientId: input.patientId || null,
-        title: input.title,
-        description: input.description,
-        type: input.type,
-        priority: input.priority,
-        status: 'pending',
-        dueDate: parsedDueDate,
-        xpReward,
-        isRecurring: input.isRecurring,
-        frequency: input.frequency,
-        isAiGenerated: false,
-      })
+      // Gerar datas para tarefas recorrentes de sessão (APENAS NO MÊS SELECIONADO)
+      const generateRecurringDates = (
+        startDate: Date,
+        frequency: 'weekly' | 'biweekly' | 'monthly' | undefined
+      ): Date[] => {
+        if (!frequency) return [startDate]
 
-      return { id, xpReward }
+        const dates: Date[] = [startDate]
+        const targetMonth = startDate.getMonth()
+        const targetYear = startDate.getFullYear()
+
+        // Para monthly, apenas 1 sessão por mês (já está na data inicial)
+        if (frequency === 'monthly') {
+          return dates
+        }
+
+        // Para weekly e biweekly, gerar datas até o fim do mês
+        const interval = frequency === 'weekly' ? 7 : 14
+
+        let nextDate = new Date(startDate)
+        nextDate.setHours(12, 0, 0, 0)
+
+        while (true) {
+          nextDate = new Date(nextDate)
+          nextDate.setDate(nextDate.getDate() + interval)
+          nextDate.setHours(12, 0, 0, 0)
+
+          // Parar se sair do mês selecionado
+          if (nextDate.getMonth() !== targetMonth || nextDate.getFullYear() !== targetYear) {
+            break
+          }
+
+          dates.push(new Date(nextDate))
+        }
+
+        return dates
+      }
+
+      // Para tarefas de sessão com frequência, criar múltiplas instâncias
+      const isSessionWithFrequency =
+        input.taskCategory === 'sessao' &&
+        input.frequency &&
+        ['weekly', 'biweekly', 'monthly'].includes(input.frequency)
+
+      const recurringDates =
+        isSessionWithFrequency && parsedDueDate
+          ? generateRecurringDates(
+              parsedDueDate,
+              input.frequency as 'weekly' | 'biweekly' | 'monthly'
+            )
+          : parsedDueDate
+            ? [parsedDueDate]
+            : []
+
+      // ID da primeira tarefa (para retorno)
+      const firstId = nanoid()
+      const patientTaskIds: string[] = []
+
+      // Criar tarefas para cada data recorrente
+      for (let i = 0; i < recurringDates.length; i++) {
+        const currentDate = recurringDates[i]
+        const taskId = i === 0 ? firstId : nanoid()
+
+        // Criar tarefa do terapeuta
+        await ctx.db.insert(therapistTasks).values({
+          id: taskId,
+          therapistId: ctx.user.id,
+          patientId: input.patientId || null,
+          title: input.title,
+          description: input.description,
+          type: input.taskCategory === 'sessao' ? 'session' : input.type,
+          priority: effectivePriority,
+          status: 'pending',
+          dueDate: currentDate,
+          xpReward,
+          isRecurring: input.isRecurring,
+          frequency: input.frequency,
+          isAiGenerated: false,
+        })
+
+        // Se for tarefa de sessão, criar automaticamente na rotina do paciente
+        if (input.taskCategory === 'sessao' && input.patientId) {
+          const patientTaskId = nanoid()
+          patientTaskIds.push(patientTaskId)
+
+          await ctx.db.insert(patientTasksFromTherapist).values({
+            id: patientTaskId,
+            therapistId: ctx.user.id,
+            patientId: input.patientId,
+            title: input.title,
+            description: input.description,
+            category: 'sessao',
+            priority: 'high', // Sessão sempre alta prioridade
+            dueDate: currentDate,
+            frequency: 'once', // Cada instância é uma ocorrência única
+            status: 'pending',
+            xpReward: 30, // XP alto para sessão
+            isAiSuggested: false,
+          })
+        }
+      }
+
+      return {
+        id: firstId,
+        xpReward,
+        patientTaskId: patientTaskIds[0] || null,
+        createdCount: recurringDates.length,
+      }
     }),
 
   // Complete a task and award XP
@@ -248,6 +391,36 @@ export const therapistTasksRouter = router({
         })
       }
 
+      // Buscar a tarefa antes de excluir para verificar se é uma sessão
+      const [task] = await ctx.db
+        .select()
+        .from(therapistTasks)
+        .where(and(eq(therapistTasks.id, input.id), eq(therapistTasks.therapistId, ctx.user.id)))
+        .limit(1)
+
+      if (!task) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Tarefa não encontrada',
+        })
+      }
+
+      // Se for tarefa de sessão com paciente, excluir também da rotina do paciente
+      if (task.type === 'session' && task.patientId && task.dueDate) {
+        await ctx.db
+          .delete(patientTasksFromTherapist)
+          .where(
+            and(
+              eq(patientTasksFromTherapist.therapistId, ctx.user.id),
+              eq(patientTasksFromTherapist.patientId, task.patientId),
+              eq(patientTasksFromTherapist.title, task.title),
+              eq(patientTasksFromTherapist.dueDate, task.dueDate),
+              eq(patientTasksFromTherapist.category, 'sessao')
+            )
+          )
+      }
+
+      // Excluir a tarefa do terapeuta
       await ctx.db
         .delete(therapistTasks)
         .where(and(eq(therapistTasks.id, input.id), eq(therapistTasks.therapistId, ctx.user.id)))

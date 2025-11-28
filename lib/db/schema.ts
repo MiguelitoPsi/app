@@ -299,7 +299,7 @@ export const therapistTasks = sqliteTable('therapist_tasks', {
   completedAt: integer('completed_at', { mode: 'timestamp' }),
   xpReward: integer('xp_reward').notNull().default(20),
   isRecurring: integer('is_recurring', { mode: 'boolean' }).notNull().default(false),
-  frequency: text('frequency', { enum: ['daily', 'weekly', 'monthly'] }),
+  frequency: text('frequency', { enum: ['daily', 'weekly', 'biweekly', 'monthly'] }),
   isAiGenerated: integer('is_ai_generated', { mode: 'boolean' }).notNull().default(false),
   metadata: text('metadata', { mode: 'json' }).$type<{
     icon?: string
@@ -459,7 +459,7 @@ export const patientTasksFromTherapist = sqliteTable('patient_tasks_from_therapi
     .notNull()
     .default('medium'),
   dueDate: integer('due_date', { mode: 'timestamp' }),
-  frequency: text('frequency', { enum: ['once', 'daily', 'weekly', 'monthly'] })
+  frequency: text('frequency', { enum: ['once', 'daily', 'weekly', 'biweekly', 'monthly'] })
     .notNull()
     .default('once'),
   weekDays: text('week_days', { mode: 'json' }).$type<number[]>(),

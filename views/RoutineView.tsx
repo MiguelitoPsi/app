@@ -400,7 +400,7 @@ export const RoutineView: React.FC = () => {
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
         const centerX = rect.left + rect.width / 2
         const centerY = rect.top + rect.height / 2
-        const { xp, pts } = getRewardValues(task.priority)
+        const { xp, pts } = getRewardValues(task)
         const id = Math.random().toString(36).substr(2, 9)
 
         // Add Ripple
@@ -474,11 +474,20 @@ export const RoutineView: React.FC = () => {
     }
   }
 
-  const getRewardValues = (priority: string) => {
-    if (priority === 'high') {
+  const getRewardValues = (task: {
+    priority: string
+    isFromTherapist?: boolean
+    category?: string
+  }) => {
+    // Sessões com terapeuta dão 40 XP e 40 pontos
+    if (task.isFromTherapist && task.category === 'sessao') {
+      return { xp: 40, pts: 40 }
+    }
+    // Tarefas normais baseadas na prioridade
+    if (task.priority === 'high') {
       return { xp: 30, pts: 30 }
     }
-    if (priority === 'medium') {
+    if (task.priority === 'medium') {
       return { xp: 10, pts: 10 }
     }
     return { xp: 5, pts: 5 }
@@ -818,7 +827,7 @@ export const RoutineView: React.FC = () => {
 
         {displayTasks.map((task, index) => {
           const styles = getPriorityStyles(task.priority)
-          const { xp, pts } = getRewardValues(task.priority)
+          const { xp, pts } = getRewardValues(task)
 
           // Format date for card if not in day view
           const taskDate = new Date(task.dueDate)

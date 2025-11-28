@@ -23,6 +23,7 @@ export const XP_REWARDS = {
     medium: 10,
     high: 30,
   },
+  session: 40, // Sessão com terapeuta
   journal: 30,
   meditation: 30,
   mood: 10,
@@ -37,6 +38,7 @@ export const COIN_REWARDS = {
     medium: 10,
     high: 30,
   },
+  session: 40, // Sessão com terapeuta
   journal: 30,
   meditation: 30,
   mood: 0, // Mood não ganha coins, apenas XP
@@ -169,13 +171,14 @@ export function getLevelProgress(currentXP: number): number {
  * VERIFICAÇÕES DE COOLDOWN
  * ============================================ */
 
-export type XPAction = 'task' | 'journal' | 'meditation' | 'mood'
+export type XPAction = 'task' | 'session' | 'journal' | 'meditation' | 'mood'
 
 /**
  * Mapeia ações para os campos de timestamp no banco de dados
  */
 const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
   task: 'lastTaskXpDate',
+  session: 'lastTaskXpDate', // Sessão usa o mesmo campo que task
   journal: 'lastJournalXpDate',
   meditation: 'lastMeditationXpDate',
   mood: 'lastMoodXpDate',
@@ -192,8 +195,8 @@ const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
  * @returns true se pode ganhar XP, false se ainda está em cooldown
  */
 export function canAwardXP(user: InferSelectModel<typeof users>, action: XPAction): boolean {
-  // Tasks sempre dão XP
-  if (action === 'task') {
+  // Tasks e sessões sempre dão XP
+  if (action === 'task' || action === 'session') {
     return true
   }
 
@@ -341,6 +344,10 @@ export async function awardXPAndCoins(
     const penaltyMultiplier = getOverduePenaltyMultiplier(daysOverdue, priority)
     xpReward = Math.round(XP_REWARDS.task[priority] * penaltyMultiplier)
     coinReward = Math.round(COIN_REWARDS.task[priority] * penaltyMultiplier)
+  } else if (action === 'session') {
+    // Sessão com terapeuta - 40 XP e 40 coins
+    xpReward = XP_REWARDS.session
+    coinReward = COIN_REWARDS.session
   } else if (action === 'journal') {
     xpReward = XP_REWARDS.journal
     coinReward = COIN_REWARDS.journal

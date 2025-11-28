@@ -40,6 +40,12 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     refetchOnMount: false,
   })
 
+  // Fetch tasks from therapist (for patients)
+  const { data: therapistTasksData = [] } = trpc.task.getMyTasksFromTherapist.useQuery(undefined, {
+    staleTime: 30 * 1000, // 30 seconds
+    refetchOnMount: false,
+  })
+
   // Transfer overdue tasks mutation
   const transferOverdueMutation = trpc.task.transferOverdueTasks.useMutation({
     onSuccess: (result) => {
@@ -233,24 +239,48 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [userProfile, journalData, rewardsData, badgesData])
 
-  // Convert tasks to the expected format
-  const tasks = useMemo(
-    () =>
-      tasksData.map((task) => ({
-        id: task.id,
-        title: task.title,
-        priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-        completed: Boolean(task.completed),
-        dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
-        originalDueDate: task.originalDueDate
-          ? new Date(task.originalDueDate).getTime()
-          : undefined,
-        frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
-        weekDays: task.weekDays as number[] | undefined,
-        monthDays: task.monthDays as number[] | undefined,
-      })),
-    [tasksData]
-  )
+  // Convert tasks to the expected format (including tasks from therapist)
+  const tasks = useMemo(() => {
+    // Regular tasks
+    const regularTasks = tasksData.map((task) => ({
+      id: task.id,
+      title: task.title,
+      priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
+      completed: Boolean(task.completed),
+      dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
+      originalDueDate: task.originalDueDate ? new Date(task.originalDueDate).getTime() : undefined,
+      frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
+      weekDays: task.weekDays as number[] | undefined,
+      monthDays: task.monthDays as number[] | undefined,
+      isFromTherapist: false,
+    }))
+
+    // Tasks from therapist
+    const fromTherapist = therapistTasksData.map((task) => ({
+      id: task.id,
+      title: task.title,
+      priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
+      completed: task.status === 'completed',
+      dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
+      originalDueDate: undefined,
+      frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
+      weekDays: task.weekDays as number[] | undefined,
+      monthDays: undefined,
+      isFromTherapist: true,
+      category: task.category,
+    }))
+
+    // Combine and sort by dueDate (closest first), then priority (high first)
+    return [...regularTasks, ...fromTherapist].sort((a, b) => {
+      // First by date (closer dates first)
+      if (a.dueDate !== b.dueDate) {
+        return a.dueDate - b.dueDate
+      }
+      // Then by priority (high > medium > low)
+      const priorityOrder = { high: 0, medium: 1, low: 2 }
+      return priorityOrder[a.priority] - priorityOrder[b.priority]
+    })
+  }, [tasksData, therapistTasksData])
 
   // Convert journal entries to the expected format
   const journal = useMemo(
@@ -336,41 +366,74 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   const toggleTask = async (id: string) => {
-    // Find the task to get its priority for XP calculation
-    const task = tasksData.find((t) => t.id === id)
-    const wasCompleted = task?.completed ?? false
+    // Find the task - check both regular tasks and therapist tasks
+    const regularTask = tasksData.find((t) => t.id === id)
+    const therapistTask = therapistTasksData.find((t) => t.id === id)
+    const task = regularTask || therapistTask
+    const isFromTherapist = !!therapistTask
+
+    if (!task) return
+
+    const wasCompleted = isFromTherapist
+      ? therapistTask?.status === 'completed'
+      : (regularTask?.completed ?? false)
 
     // Optimistic update - update task cache immediately
-    utils.task.getAll.setData(undefined, (old) => {
-      if (!old) return old
-      return old.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-    })
+    if (isFromTherapist) {
+      utils.task.getMyTasksFromTherapist.setData(undefined, (old) => {
+        if (!old) return old
+        return old.map((t) =>
+          t.id === id ? { ...t, status: wasCompleted ? 'pending' : 'completed' } : t
+        )
+      })
+    } else {
+      utils.task.getAll.setData(undefined, (old) => {
+        if (!old) return old
+        return old.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+      })
+    }
 
-    // Optimistic update for XP/coins based on task priority
-    if (task && !wasCompleted) {
+    // Optimistic update for XP/coins based on task type and priority
+    const priority = task.priority || 'medium'
+    // Sessões (categoria 'sessao') dão 40 XP/coins
+    const isSession = isFromTherapist && therapistTask?.category === 'sessao'
+    let xp: number
+    let coins: number
+
+    if (isSession) {
+      xp = 40
+      coins = 40
+    } else {
       const xpRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
       const coinRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
-      const xp = xpRewards[task.priority] || 10
-      const coins = coinRewards[task.priority] || 10
-      updateProfileOptimistically(xp, coins)
-    } else if (task && wasCompleted) {
+      xp = xpRewards[priority] || 10
+      coins = coinRewards[priority] || 10
+    }
+
+    if (wasCompleted) {
       // Uncompleting - remove XP/coins
-      const xpRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
-      const coinRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
-      const xp = xpRewards[task.priority] || 10
-      const coins = coinRewards[task.priority] || 10
       updateProfileOptimistically(-xp, -coins)
+    } else {
+      updateProfileOptimistically(xp, coins)
     }
 
     try {
-      await utils.client.task.complete.mutate({ id })
+      if (isFromTherapist) {
+        // Complete therapist task
+        await utils.client.task.completeTherapistTask.mutate({ taskId: id })
+        utils.task.getMyTasksFromTherapist.invalidate()
+      } else {
+        // Complete regular task
+        await utils.client.task.complete.mutate({ id })
+        utils.task.getAll.invalidate()
+      }
       // After mutation, sync with actual server values in background
-      utils.task.getAll.invalidate()
       utils.user.getProfile.invalidate()
       checkBadges()
     } catch (error) {
       // Revert optimistic updates on error
       utils.task.getAll.invalidate()
+      utils.task.getMyTasksFromTherapist.invalidate()
       utils.user.getProfile.invalidate()
       console.error('Error completing task:', error)
     }

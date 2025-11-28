@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lt } from 'drizzle-orm'
+import { and, asc, eq, isNull, lt, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { TASK_LIMITS } from '@/lib/constants'
@@ -21,7 +21,13 @@ export const taskRouter = router({
       .select()
       .from(tasks)
       .where(and(eq(tasks.userId, ctx.user.id), isNull(tasks.deletedAt)))
-      .orderBy(desc(tasks.createdAt))
+      .orderBy(
+        // Data mais próxima primeiro (nulls por último)
+        sql`CASE WHEN ${tasks.dueDate} IS NULL THEN 1 ELSE 0 END`,
+        asc(tasks.dueDate),
+        // Prioridade alta primeiro
+        sql`CASE ${tasks.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+      )
   ),
 
   getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
@@ -314,6 +320,78 @@ export const taskRouter = router({
       return { success: true }
     }),
 
+  // ================== PATIENT VIEW - TASKS FROM THERAPIST ==================
+
+  // Get tasks assigned to the current patient by their therapist
+  getMyTasksFromTherapist: protectedProcedure.query(({ ctx }) => {
+    // This is for patients to see tasks assigned to them by their therapist
+    return ctx.db
+      .select()
+      .from(patientTasksFromTherapist)
+      .where(eq(patientTasksFromTherapist.patientId, ctx.user.id))
+      .orderBy(
+        // Data mais próxima primeiro (nulls por último)
+        sql`CASE WHEN ${patientTasksFromTherapist.dueDate} IS NULL THEN 1 ELSE 0 END`,
+        asc(patientTasksFromTherapist.dueDate),
+        // Prioridade alta primeiro
+        sql`CASE ${patientTasksFromTherapist.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+      )
+  }),
+
+  // Complete a task assigned by therapist
+  completeTherapistTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify the task belongs to this patient
+      const [task] = await ctx.db
+        .select()
+        .from(patientTasksFromTherapist)
+        .where(
+          and(
+            eq(patientTasksFromTherapist.id, input.taskId),
+            eq(patientTasksFromTherapist.patientId, ctx.user.id)
+          )
+        )
+        .limit(1)
+
+      if (!task) {
+        throw new Error('Task not found')
+      }
+
+      if (task.status === 'completed') {
+        throw new Error('Task already completed')
+      }
+
+      const now = new Date()
+
+      // Verificar se é uma tarefa de sessão (categoria 'sessao')
+      const isSession = task.category === 'sessao'
+
+      // Award XP and coins - sessões dão 40 XP/coins, outras tarefas baseadas na prioridade
+      const result = isSession
+        ? await awardXPAndCoins(ctx.db, ctx.user.id, 'session')
+        : await awardXPAndCoins(ctx.db, ctx.user.id, 'task', {
+            priority: task.priority as 'low' | 'medium' | 'high',
+          })
+
+      // Update task status
+      await ctx.db
+        .update(patientTasksFromTherapist)
+        .set({
+          status: 'completed',
+          completedAt: now,
+          updatedAt: now,
+        })
+        .where(eq(patientTasksFromTherapist.id, input.taskId))
+
+      return {
+        success: true,
+        xp: result.xpAwarded,
+        coins: result.coinsAwarded,
+        levelUp: result.levelUp,
+      }
+    }),
+
   // ================== THERAPIST TASK MANAGEMENT ==================
 
   // Get tasks created by therapist for a specific patient
@@ -345,7 +423,13 @@ export const taskRouter = router({
             eq(patientTasksFromTherapist.patientId, input.patientId)
           )
         )
-        .orderBy(desc(patientTasksFromTherapist.createdAt))
+        .orderBy(
+          // Data mais próxima primeiro (nulls por último)
+          sql`CASE WHEN ${patientTasksFromTherapist.dueDate} IS NULL THEN 1 ELSE 0 END`,
+          asc(patientTasksFromTherapist.dueDate),
+          // Prioridade alta primeiro
+          sql`CASE ${patientTasksFromTherapist.priority} WHEN 'high' THEN 0 WHEN 'medium' THEN 1 WHEN 'low' THEN 2 END`
+        )
     }),
 
   // Create a task for a patient
