@@ -71,6 +71,7 @@ export const TherapistView: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
   const [showDischargeConfirm, setShowDischargeConfirm] = useState(false);
+  const [unlinkReason, setUnlinkReason] = useState("");
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState("");
@@ -135,6 +136,7 @@ export const TherapistView: React.FC = () => {
       refetchPatients();
       setSelectedPatientId("");
       setShowUnlinkConfirm(false);
+      setUnlinkReason("");
     },
   });
 
@@ -452,157 +454,139 @@ export const TherapistView: React.FC = () => {
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="h-full overflow-y-auto px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8">
       {/* Header */}
-      <div className="relative z-20 overflow-visible rounded-b-2xl border-slate-100 border-b bg-white px-4 pb-4 pt-safe shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pb-6 dark:border-slate-800 dark:bg-slate-900">
-        <div className="mb-4 flex items-center justify-between sm:mb-6">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="rounded-xl bg-indigo-600 p-2 text-white shadow-indigo-200 shadow-lg sm:rounded-2xl sm:p-3 dark:shadow-none">
-              <Activity className="sm:hidden" size={20} />
-              <Activity className="hidden sm:block" size={24} />
-            </div>
-            <div>
-              <h1 className="font-black text-slate-800 text-lg tracking-tight sm:text-xl dark:text-white">
-                Portal do Especialista
-              </h1>
-              <p className="font-medium text-slate-500 text-[10px] sm:text-xs dark:text-slate-400">
-                Acompanhamento de Pacientes
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              className="touch-target p-2 text-indigo-500 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-              onClick={handleInvite}
-              title="Convidar Cliente"
-              type="button"
-            >
-              <UserPlus className="sm:hidden" size={18} />
-              <UserPlus className="hidden sm:block" size={20} />
-            </button>
-            <button
-              className="touch-target p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
-              onClick={() => setShowSettings(true)}
-              type="button"
-            >
-              <Settings className="sm:hidden" size={18} />
-              <Settings className="hidden sm:block" size={20} />
-            </button>
-          </div>
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h2 className="font-bold text-slate-800 text-xl dark:text-white">
+            Acompanhamento
+          </h2>
+          <p className="text-slate-500 text-xs dark:text-slate-400">
+            Visão detalhada dos pacientes
+          </p>
         </div>
+        <button
+          className="flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-indigo-600"
+          onClick={handleInvite}
+          title="Convidar Paciente"
+          type="button"
+        >
+          <UserPlus size={16} />
+          <span className="hidden sm:inline">Convidar</span>
+        </button>
+      </div>
 
-        {/* Patient Selector */}
-        {linkedPatients.length > 0 && (
-          <div className="group relative" ref={patientDropdownRef}>
-            <label className="mb-1.5 ml-1 block font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:mb-2 sm:text-xs">
-              Paciente Selecionado
-            </label>
-            <div className="relative">
-              <button
-                className="touch-target w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 p-3 pl-10 pr-10 text-left font-bold text-sm text-slate-700 outline-none transition-all hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 sm:rounded-2xl sm:p-4 sm:pl-12 sm:pr-12 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/50"
-                disabled={isLoadingPatients}
-                onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
-                type="button"
-              >
-                {selectedPatientId
-                  ? linkedPatients.find((p) => p.id === selectedPatientId)?.name
-                  : "Selecione um paciente"}
-              </button>
-              <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 rounded-md bg-white p-1 shadow-sm sm:left-4 sm:rounded-lg sm:p-1.5 dark:bg-slate-700">
-                <Users
-                  className="text-indigo-500 dark:text-indigo-400"
-                  size={14}
-                />
-              </div>
-              <ChevronDown
-                className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 ${
-                  isPatientDropdownOpen ? "rotate-180" : ""
-                }`}
-                size={18}
+      {/* Patient Selector */}
+      {linkedPatients.length > 0 && (
+        <div className="group relative mb-6" ref={patientDropdownRef}>
+          <label className="mb-1.5 ml-1 block font-bold text-slate-400 text-[10px] uppercase tracking-wider dark:text-slate-500">
+            Paciente Selecionado
+          </label>
+          <div className="relative">
+            <button
+              className="touch-target w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 p-3 pl-10 pr-10 text-left font-bold text-sm text-slate-700 outline-none transition-all hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 sm:rounded-2xl sm:p-4 sm:pl-12 sm:pr-12 lg:max-w-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/50"
+              disabled={isLoadingPatients}
+              onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
+              type="button"
+            >
+              {selectedPatientId
+                ? linkedPatients.find((p) => p.id === selectedPatientId)?.name
+                : "Selecione um paciente"}
+            </button>
+            <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 rounded-md bg-white p-1 shadow-sm sm:left-4 sm:rounded-lg sm:p-1.5 dark:bg-slate-700">
+              <Users
+                className="text-indigo-500 dark:text-indigo-400"
+                size={14}
               />
+            </div>
+            <ChevronDown
+              className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 ${
+                isPatientDropdownOpen ? "rotate-180" : ""
+              }`}
+              size={18}
+            />
 
-              {/* Dropdown with search */}
-              {isPatientDropdownOpen && (
-                <div className="absolute top-full left-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg sm:rounded-2xl dark:border-slate-700 dark:bg-slate-800">
-                  {/* Search input */}
-                  <div className="border-slate-100 border-b p-2 dark:border-slate-700">
-                    <div className="relative">
-                      <input
-                        className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 pl-9 text-sm outline-none transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
-                        onChange={(e) => setPatientSearchQuery(e.target.value)}
-                        placeholder="Pesquisar por nome..."
-                        ref={patientSearchInputRef}
-                        type="text"
-                        value={patientSearchQuery}
-                      />
-                      <Search
-                        className="-translate-y-1/2 absolute top-1/2 left-3 text-slate-400"
-                        size={16}
-                      />
-                    </div>
+            {/* Dropdown with search */}
+            {isPatientDropdownOpen && (
+              <div className="absolute top-full left-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg sm:rounded-2xl lg:max-w-md dark:border-slate-700 dark:bg-slate-800">
+                {/* Search input */}
+                <div className="border-slate-100 border-b p-2 dark:border-slate-700">
+                  <div className="relative">
+                    <input
+                      className="w-full rounded-lg border border-slate-200 bg-slate-50 p-2 pl-9 text-sm outline-none transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:placeholder:text-slate-500"
+                      onChange={(e) => setPatientSearchQuery(e.target.value)}
+                      placeholder="Pesquisar por nome..."
+                      ref={patientSearchInputRef}
+                      type="text"
+                      value={patientSearchQuery}
+                    />
+                    <Search
+                      className="-translate-y-1/2 absolute top-1/2 left-3 text-slate-400"
+                      size={16}
+                    />
                   </div>
+                </div>
 
-                  {/* Patient list */}
-                  <div className="max-h-60 overflow-y-auto">
-                    <button
-                      className={`w-full p-3 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
-                        selectedPatientId
-                          ? "text-slate-500 dark:text-slate-400"
-                          : "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
-                      }`}
-                      onClick={() => {
-                        setSelectedPatientId("");
-                        setIsPatientDropdownOpen(false);
-                        setPatientSearchQuery("");
-                      }}
-                      type="button"
-                    >
-                      Selecione um paciente
-                    </button>
-                    {linkedPatients
-                      .filter((patient) =>
-                        patient.name
-                          .toLowerCase()
-                          .includes(patientSearchQuery.toLowerCase())
-                      )
-                      .map((patient) => (
-                        <button
-                          className={`w-full p-3 text-left text-sm font-medium transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
-                            selectedPatientId === patient.id
-                              ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
-                              : "text-slate-700 dark:text-slate-200"
-                          }`}
-                          key={patient.id}
-                          onClick={() => {
-                            setSelectedPatientId(patient.id);
-                            setIsPatientDropdownOpen(false);
-                            setPatientSearchQuery("");
-                          }}
-                          type="button"
-                        >
-                          {patient.name}
-                        </button>
-                      ))}
-                    {linkedPatients.filter((patient) =>
+                {/* Patient list */}
+                <div className="max-h-60 overflow-y-auto">
+                  <button
+                    className={`w-full p-3 text-left text-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
+                      selectedPatientId
+                        ? "text-slate-500 dark:text-slate-400"
+                        : "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
+                    }`}
+                    onClick={() => {
+                      setSelectedPatientId("");
+                      setIsPatientDropdownOpen(false);
+                      setPatientSearchQuery("");
+                    }}
+                    type="button"
+                  >
+                    Selecione um paciente
+                  </button>
+                  {linkedPatients
+                    .filter((patient) =>
                       patient.name
                         .toLowerCase()
                         .includes(patientSearchQuery.toLowerCase())
-                    ).length === 0 &&
-                      patientSearchQuery && (
-                        <div className="p-3 text-center text-slate-400 text-sm">
-                          Nenhum paciente encontrado
-                        </div>
-                      )}
-                  </div>
+                    )
+                    .map((patient) => (
+                      <button
+                        className={`w-full p-3 text-left text-sm font-medium transition-colors hover:bg-slate-50 dark:hover:bg-slate-700/50 ${
+                          selectedPatientId === patient.id
+                            ? "bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20 dark:text-indigo-400"
+                            : "text-slate-700 dark:text-slate-200"
+                        }`}
+                        key={patient.id}
+                        onClick={() => {
+                          setSelectedPatientId(patient.id);
+                          setIsPatientDropdownOpen(false);
+                          setPatientSearchQuery("");
+                        }}
+                        type="button"
+                      >
+                        {patient.name}
+                      </button>
+                    ))}
+                  {linkedPatients.filter((patient) =>
+                    patient.name
+                      .toLowerCase()
+                      .includes(patientSearchQuery.toLowerCase())
+                  ).length === 0 &&
+                    patientSearchQuery && (
+                      <div className="p-3 text-center text-slate-400 text-sm">
+                        Nenhum paciente encontrado
+                      </div>
+                    )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Content */}
-      <div className="relative z-10 flex-1 space-y-4 overflow-y-auto p-4 pb-28 sm:space-y-6 sm:p-6 sm:pb-32">
+      <div className="space-y-4 sm:space-y-6">
         {selectedPatientId ? (
           <>
             {/* Navigation Tabs - Only shown when patient is selected */}
@@ -1555,15 +1539,37 @@ export const TherapistView: React.FC = () => {
               <h3 className="mb-2 text-center font-bold text-lg text-slate-800 dark:text-white">
                 Desvincular Paciente?
               </h3>
-              <p className="mb-6 text-center text-slate-500 text-sm dark:text-slate-400">
+              <p className="mb-4 text-center text-slate-500 text-sm dark:text-slate-400">
                 Tem certeza que deseja desvincular{" "}
                 <strong>{selectedPatient?.name}</strong>? A conta do paciente
                 será suspensa.
               </p>
+              <div className="mb-4">
+                <label
+                  className="mb-1 block text-slate-600 text-sm dark:text-slate-400"
+                  htmlFor="unlinkReason"
+                >
+                  Motivo da desvinculação (opcional)
+                </label>
+                <textarea
+                  className="w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-800 text-sm placeholder:text-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500"
+                  id="unlinkReason"
+                  onChange={(e) => setUnlinkReason(e.target.value)}
+                  placeholder="Ex: Mudança de cidade, incompatibilidade de horários..."
+                  rows={2}
+                  value={unlinkReason}
+                />
+                <p className="mt-1 text-slate-400 text-xs dark:text-slate-500">
+                  Este motivo será mostrado ao paciente.
+                </p>
+              </div>
               <div className="flex gap-3">
                 <button
                   className="flex-1 rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
-                  onClick={() => setShowUnlinkConfirm(false)}
+                  onClick={() => {
+                    setShowUnlinkConfirm(false);
+                    setUnlinkReason("");
+                  }}
                   type="button"
                 >
                   Cancelar
@@ -1575,6 +1581,7 @@ export const TherapistView: React.FC = () => {
                     if (selectedPatientId) {
                       unlinkPatientMutation.mutate({
                         patientId: selectedPatientId,
+                        reason: unlinkReason || undefined,
                       });
                     }
                   }}
