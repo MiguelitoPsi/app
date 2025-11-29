@@ -521,6 +521,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     // Only do optimistic update if XP is available
     if (canGainXP) {
       updateProfileOptimistically(10, 0)
+    } else {
+      return // Abort if no XP can be gained
     }
 
     try {

@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  AlertTriangle,
   Calendar as CalendarIcon,
   Check,
   CheckCircle2,
@@ -38,6 +39,10 @@ type TaskFormData = {
   taskCategory?: 'geral' | 'sessao'
   // ID do paciente para tarefas de sessão
   sessionPatientId?: string
+  // Dias da semana para frequência semanal (0-6, onde 0 = Domingo)
+  weekDays?: number[]
+  // Dias do mês para frequência mensal (1-31)
+  monthDays?: number[]
 }
 
 const defaultTaskForm: TaskFormData = {
@@ -70,6 +75,11 @@ export default function TherapistRoutineView() {
   // Estado para busca de paciente no formulário de sessão
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
   const [showPatientDropdown, setShowPatientDropdown] = useState(false)
+
+  // Alert Modal State
+  const [showAlert, setShowAlert] = useState(false)
+  const [alertMessage, setAlertMessage] = useState('')
+  const [alertTitle, setAlertTitle] = useState('Atenção')
 
   // tRPC queries
   const { data: patients } = trpc.patient.getAll.useQuery()
@@ -318,6 +328,24 @@ export default function TherapistRoutineView() {
       : displayMyTasks && displayMyTasks.length > 0 && myDayProgress < 100
 
   const handleCreateTask = () => {
+    // Validate date is not in the past
+    if (taskForm.dueDate) {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const selectedTaskDate = new Date(taskForm.dueDate)
+      selectedTaskDate.setHours(0, 0, 0, 0)
+
+      if (selectedTaskDate < today) {
+        const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
+        setAlertMessage(
+          `⚠️ Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
+        )
+        setAlertTitle('Data no Passado')
+        setShowAlert(true)
+        return
+      }
+    }
+
     if (mainView === 'patients') {
       if (!selectedPatientId) return
       if (!taskForm.title) return
@@ -366,6 +394,28 @@ export default function TherapistRoutineView() {
         patientId: taskForm.sessionPatientId,
       })
     }
+  }
+
+  const handleCompleteTask = (task: { id: string; dueDate?: Date | string | null; status: string }) => {
+    if (task.status !== 'completed') {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      if (task.dueDate) {
+        const taskDate = new Date(task.dueDate)
+        taskDate.setHours(0, 0, 0, 0)
+
+        if (taskDate.getTime() > today.getTime()) {
+          setAlertMessage(
+            '⏳ Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
+          )
+          setAlertTitle('Tarefa Futura')
+          setShowAlert(true)
+          return
+        }
+      }
+    }
+    completeMyTaskMutation.mutate({ id: task.id })
   }
 
   const handleSendFeedback = (taskId: string) => {
@@ -740,7 +790,7 @@ export default function TherapistRoutineView() {
                             : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50 dark:border-slate-600 dark:hover:border-emerald-500 dark:hover:bg-emerald-900/20'
                         }`}
                         disabled={completeMyTaskMutation.isPending}
-                        onClick={() => completeMyTaskMutation.mutate({ id: task.id })}
+                        onClick={() => handleCompleteTask(task)}
                         type='button'
                       >
                         {task.status === 'completed' && (
@@ -1027,18 +1077,6 @@ export default function TherapistRoutineView() {
                 >
                   <div className='flex items-start justify-between'>
                     <div className='flex flex-1 items-center gap-3 sm:gap-4'>
-                      <div
-                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 sm:h-8 sm:w-8 ${
-                          task.status === 'completed'
-                            ? 'scale-110 border-violet-500 bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]'
-                            : 'border-slate-300 dark:border-slate-600'
-                        }`}
-                      >
-                        {task.status === 'completed' && (
-                          <Check className='stroke-[3] text-white' size={14} />
-                        )}
-                      </div>
-
                       <div className='flex flex-col'>
                         <div className='flex flex-wrap items-center gap-2'>
                           <span
@@ -1515,26 +1553,24 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
-                    {/* Date */}
-                    <div>
-                      <label
-                        className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                        htmlFor='my-task-due-date'
-                      >
-                        <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
-                      </label>
-                      <input
-                        className={`w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors dark:border-slate-700 dark:bg-slate-900 dark:text-white ${
-                          taskForm.taskCategory === 'sessao'
-                            ? 'focus:border-violet-500'
-                            : 'focus:border-emerald-500'
-                        }`}
-                        id='my-task-due-date'
-                        onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                        type='date'
-                        value={taskForm.dueDate || ''}
-                      />
-                    </div>
+                    {/* Date - APENAS PARA SESSÃO */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div>
+                        <label
+                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                          htmlFor='my-task-due-date'
+                        >
+                          <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
+                        </label>
+                        <input
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                          id='my-task-due-date'
+                          onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                          type='date'
+                          value={taskForm.dueDate || ''}
+                        />
+                      </div>
+                    )}
 
                     {/* Priority - APENAS PARA GERAL (sessão é sempre alta) */}
                     {taskForm.taskCategory === 'geral' && (
@@ -1562,6 +1598,108 @@ export default function TherapistRoutineView() {
                             </button>
                           ))}
                         </div>
+                      </div>
+                    )}
+
+                    {/* Frequency - PARA GERAL */}
+                    {taskForm.taskCategory === 'geral' && (
+                      <div>
+                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                          <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
+                        </label>
+                        <div className='grid grid-cols-2 gap-2'>
+                          {(
+                            [
+                              { key: 'once', label: 'Uma Vez' },
+                              { key: 'daily', label: 'Diário' },
+                              { key: 'weekly', label: 'Semanal' },
+                              { key: 'monthly', label: 'Mensal' },
+                            ] as const
+                          ).map((freq) => (
+                            <button
+                              className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
+                                taskForm.frequency === freq.key
+                                  ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                              }`}
+                              key={freq.key}
+                              onClick={() =>
+                                setTaskForm({ ...taskForm, frequency: freq.key, weekDays: [], monthDays: [] })
+                              }
+                              type='button'
+                            >
+                              {freq.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Seleção de dias da semana para frequência semanal */}
+                        {taskForm.frequency === 'weekly' && (
+                          <div className='mt-3'>
+                            <p className='mb-2 text-slate-500 text-xs dark:text-slate-400'>
+                              Selecione os dias da semana:
+                            </p>
+                            <div className='grid grid-cols-7 gap-1'>
+                              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                                const isSelected = taskForm.weekDays?.includes(index) || false
+                                return (
+                                  <button
+                                    className={`aspect-square rounded-lg border-2 font-bold text-xs transition-all ${
+                                      isSelected
+                                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600'
+                                    }`}
+                                    key={index}
+                                    onClick={() => {
+                                      const currentDays = taskForm.weekDays || []
+                                      const newDays = isSelected
+                                        ? currentDays.filter((d) => d !== index)
+                                        : [...currentDays, index].sort((a, b) => a - b)
+                                      setTaskForm({ ...taskForm, weekDays: newDays })
+                                    }}
+                                    type='button'
+                                  >
+                                    {day}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Seleção de dias do mês para frequência mensal */}
+                        {taskForm.frequency === 'monthly' && (
+                          <div className='mt-3'>
+                            <p className='mb-2 text-slate-500 text-xs dark:text-slate-400'>
+                              Selecione os dias do mês:
+                            </p>
+                            <div className='grid grid-cols-7 gap-1'>
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
+                                const isSelected = taskForm.monthDays?.includes(day) || false
+                                return (
+                                  <button
+                                    className={`aspect-square rounded-lg border-2 font-bold text-xs transition-all ${
+                                      isSelected
+                                        ? 'border-emerald-500 bg-emerald-500 text-white'
+                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600'
+                                    }`}
+                                    key={day}
+                                    onClick={() => {
+                                      const currentDays = taskForm.monthDays || []
+                                      const newDays = isSelected
+                                        ? currentDays.filter((d) => d !== day)
+                                        : [...currentDays, day].sort((a, b) => a - b)
+                                      setTaskForm({ ...taskForm, monthDays: newDays })
+                                    }}
+                                    type='button'
+                                  >
+                                    {day}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -1671,6 +1809,27 @@ export default function TherapistRoutineView() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Alert Modal */}
+      {showAlert && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='w-full max-w-sm animate-in fade-in zoom-in-95 rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800'>
+            <div className='mb-4 flex items-center gap-3 text-amber-500'>
+              <AlertTriangle size={28} />
+              <h3 className='font-bold text-lg text-slate-800 dark:text-white'>{alertTitle}</h3>
+            </div>
+            <p className='mb-6 whitespace-pre-line text-slate-600 dark:text-slate-300'>
+              {alertMessage}
+            </p>
+            <button
+              className='w-full rounded-xl bg-slate-900 py-3 font-bold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
+              onClick={() => setShowAlert(false)}
+              type='button'
+            >
+              Entendi
+            </button>
           </div>
         </div>
       )}
