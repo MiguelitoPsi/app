@@ -178,6 +178,13 @@ export const TherapistView: React.FC = () => {
   const [journalDateFilter, setJournalDateFilter] = useState<string>('')
   const [journalEmotionFilter, setJournalEmotionFilter] = useState<Mood | ''>('')
   const [isJournalFilterOpen, setIsJournalFilterOpen] = useState(false)
+  const [readJournalEntries, setReadJournalEntries] = useState<string[]>([])
+
+  const toggleJournalRead = (entryId: string) => {
+    setReadJournalEntries((prev) =>
+      prev.includes(entryId) ? prev.filter((id) => id !== entryId) : [...prev, entryId]
+    )
+  }
 
   // Reward Management State
   const [editingReward, setEditingReward] = useState<Reward | null>(null)
@@ -606,7 +613,9 @@ export const TherapistView: React.FC = () => {
                 <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
                   <FileText className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='font-semibold text-[9px] sm:text-xs'>
-                    Diário ({journalData.length})
+                    Diário{' '}
+                    {journalData.length - readJournalEntries.length > 0 &&
+                      `(${journalData.length - readJournalEntries.length})`}
                   </span>
                 </div>
               </button>
@@ -619,6 +628,11 @@ export const TherapistView: React.FC = () => {
                 <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
                   <Gift className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='truncate font-semibold text-[8px] sm:text-xs'>Prêmios</span>
+                  {rewardsData.filter((r) => r.status === 'pending').length > 0 && (
+                    <span className='font-bold text-[10px] sm:text-xs'>
+                      ({rewardsData.filter((r) => r.status === 'pending').length})
+                    </span>
+                  )}
                 </div>
               </button>
               <button
@@ -967,58 +981,107 @@ export const TherapistView: React.FC = () => {
                 )}
               </div>
             ) : (
-              journalData.map((entry, index) => (
-                <div
-                  className='slide-in-from-bottom-2 animate-in rounded-2xl border border-slate-100 bg-white fill-mode-backwards p-4 shadow-sm transition-all hover:shadow-md sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
-                  key={entry.id}
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <div className='mb-3 flex items-start justify-between sm:mb-4'>
+              journalData.map((entry, index) => {
+                const isRead = readJournalEntries.includes(entry.id)
+
+                if (isRead) {
+                  return (
                     <div
-                      className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-2 ${getMoodColor(entry.emotion)}`}
+                      className='slide-in-from-bottom-2 animate-in rounded-xl border border-slate-100 bg-slate-50 p-3 opacity-75 transition-all hover:opacity-100 sm:rounded-2xl sm:p-4 dark:border-slate-800 dark:bg-slate-900/50'
+                      key={entry.id}
+                      style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <span className='text-xl drop-shadow-sm filter sm:text-2xl'>
-                        {getMoodEmoji(entry.emotion)}
-                      </span>
-                      <div>
-                        <span className='block font-black text-[10px] uppercase opacity-80 sm:text-xs'>
-                          {entry.emotion}
-                        </span>
-                        <span className='font-bold text-[9px] opacity-60 sm:text-[10px]'>
-                          Intensidade: {entry.intensity}
-                        </span>
+                      <div className='flex items-center justify-between gap-3'>
+                        <div className='flex min-w-0 items-center gap-3'>
+                          <div
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg ${getMoodColor(entry.emotion)} bg-opacity-20`}
+                          >
+                            {getMoodEmoji(entry.emotion)}
+                          </div>
+                          <div className='min-w-0 flex-1'>
+                            <p className='font-bold text-slate-700 text-xs dark:text-slate-300'>
+                              Registro de {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
+                            </p>
+                            <p className='truncate text-[10px] text-slate-500'>
+                              {entry.thought}
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          className='shrink-0 rounded-lg bg-white px-3 py-1.5 font-bold text-indigo-600 text-[10px] shadow-sm transition-colors hover:bg-indigo-50 sm:text-xs dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-slate-700'
+                          onClick={() => toggleJournalRead(entry.id)}
+                          type='button'
+                        >
+                          Revisar
+                        </button>
                       </div>
                     </div>
-                    <span className='rounded-full bg-slate-50 px-2 py-1 font-bold text-slate-400 text-[10px] sm:px-3 sm:text-xs dark:bg-slate-800'>
-                      {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
-                    </span>
-                  </div>
+                  )
+                }
 
-                  <div className='mb-4 border-slate-100 border-l-2 pl-2 sm:mb-5 dark:border-slate-800'>
-                    <p className='mb-1.5 font-bold text-[9px] text-slate-400 uppercase tracking-wider sm:mb-2 sm:text-[10px]'>
-                      Pensamento Automático
-                    </p>
-                    <p className='text-slate-700 text-xs italic leading-relaxed sm:text-sm dark:text-slate-300'>
-                      "{entry.thought}"
-                    </p>
-                  </div>
-
-                  {entry.aiAnalysis && (
-                    <div className='relative overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50 p-3 sm:rounded-2xl sm:p-4 dark:border-indigo-900/30 dark:bg-indigo-900/10'>
-                      <div className='-mr-6 -mt-6 absolute top-0 right-0 h-12 w-12 rounded-full bg-indigo-200/20 sm:-mr-8 sm:-mt-8 sm:h-16 sm:w-16' />
-                      <div className='relative z-10 mb-1.5 flex items-center gap-1.5 text-indigo-600 sm:mb-2 sm:gap-2 dark:text-indigo-400'>
-                        <Brain size={14} />
-                        <span className='font-black text-[10px] uppercase tracking-wider sm:text-xs'>
-                          Análise do Sistema
+                return (
+                  <div
+                    className='slide-in-from-bottom-2 animate-in rounded-2xl border border-slate-100 bg-white fill-mode-backwards p-4 shadow-sm transition-all hover:shadow-md sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+                    key={entry.id}
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <div className='mb-3 flex items-start justify-between sm:mb-4'>
+                      <div
+                        className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-2 ${getMoodColor(entry.emotion)}`}
+                      >
+                        <span className='text-xl drop-shadow-sm filter sm:text-2xl'>
+                          {getMoodEmoji(entry.emotion)}
                         </span>
+                        <div>
+                          <span className='block font-black text-[10px] uppercase opacity-80 sm:text-xs'>
+                            {entry.emotion}
+                          </span>
+                          <span className='font-bold text-[9px] opacity-60 sm:text-[10px]'>
+                            Intensidade: {entry.intensity}
+                          </span>
+                        </div>
                       </div>
-                      <p className='relative z-10 font-medium text-indigo-800 text-[10px] leading-relaxed sm:text-xs dark:text-indigo-200'>
-                        {entry.aiAnalysis}
+                      <div className='flex items-center gap-2'>
+                        <span className='rounded-full bg-slate-50 px-2 py-1 font-bold text-slate-400 text-[10px] sm:px-3 sm:text-xs dark:bg-slate-800'>
+                          {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
+                        </span>
+                        <button
+                          className='flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1 font-bold text-white text-[10px] shadow-indigo-200 shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md sm:px-4 sm:py-1.5 sm:text-xs dark:shadow-none'
+                          onClick={() => toggleJournalRead(entry.id)}
+                          type='button'
+                        >
+                          <CheckCircle2 size={12} />
+                          Lido
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className='mb-4 border-slate-100 border-l-2 pl-2 sm:mb-5 dark:border-slate-800'>
+                      <p className='mb-1.5 font-bold text-[9px] text-slate-400 uppercase tracking-wider sm:mb-2 sm:text-[10px]'>
+                        Pensamento Automático
+                      </p>
+                      <p className='text-slate-700 text-xs italic leading-relaxed sm:text-sm dark:text-slate-300'>
+                        "{entry.thought}"
                       </p>
                     </div>
-                  )}
-                </div>
-              ))
+
+                    {entry.aiAnalysis && (
+                      <div className='relative overflow-hidden rounded-xl border border-indigo-100 bg-indigo-50 p-3 sm:rounded-2xl sm:p-4 dark:border-indigo-900/30 dark:bg-indigo-900/10'>
+                        <div className='-mr-6 -mt-6 absolute top-0 right-0 h-12 w-12 rounded-full bg-indigo-200/20 sm:-mr-8 sm:-mt-8 sm:h-16 sm:w-16' />
+                        <div className='relative z-10 mb-1.5 flex items-center gap-1.5 text-indigo-600 sm:mb-2 sm:gap-2 dark:text-indigo-400'>
+                          <Brain size={14} />
+                          <span className='font-black text-[10px] uppercase tracking-wider sm:text-xs'>
+                            Análise do Sistema
+                          </span>
+                        </div>
+                        <p className='relative z-10 font-medium text-indigo-800 text-[10px] leading-relaxed sm:text-xs dark:text-indigo-200'>
+                          {entry.aiAnalysis}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })
             )}
           </div>
         )}
