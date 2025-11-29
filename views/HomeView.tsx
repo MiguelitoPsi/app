@@ -296,9 +296,9 @@ export const HomeView: React.FC = () => {
                   selectedMood === m.id
                     ? 'scale-105 bg-violet-50 shadow-sm ring-2 ring-violet-100 sm:scale-110 dark:bg-violet-900/20 dark:ring-violet-900/30'
                     : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
-                } ${!isXPAvailable ? 'cursor-not-allowed opacity-50' : ''}`}
-                key={m.id}
+                } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
                 disabled={!isXPAvailable}
+                key={m.id}
                 onClick={() => handleMoodChange(m.id)}
                 type='button'
               >

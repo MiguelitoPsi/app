@@ -35,8 +35,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Check for session cookie
-  const sessionToken = request.cookies.get('better-auth.session_token')
+  // Check for session cookie (both secure and non-secure versions)
+  // Em produção HTTPS, better-auth usa prefixo __Secure-
+  const sessionToken =
+    request.cookies.get('__Secure-better-auth.session_token') ||
+    request.cookies.get('better-auth.session_token')
   const isAuthenticated = !!sessionToken
 
   // Public paths that don't require authentication

@@ -8,8 +8,11 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'https://app.guiadomiguel.com.br',
     process.env.NEXT_PUBLIC_APP_URL || '',
   ].filter(Boolean),
+  baseURL:
+    process.env.BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
   database: drizzleAdapter(db, {
     provider: 'sqlite',
     schema: {

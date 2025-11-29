@@ -8,7 +8,7 @@ export default function AchievementsPage() {
   const router = useRouter()
 
   return (
-    <div className='flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950'>
+    <div className='flex min-h-screen flex-col'>
       {/* Header */}
       <header className='bg-gradient-to-br from-amber-500 to-orange-600 pt-safe text-white'>
         <div className='flex items-center gap-3 px-4 pt-4 pb-6'>

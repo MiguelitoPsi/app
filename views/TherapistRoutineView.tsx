@@ -96,7 +96,9 @@ export default function TherapistRoutineView() {
   // Therapist's own tasks
   const { data: myTasks, refetch: refetchMyTasks } = trpc.therapistTasks.getAll.useQuery(
     undefined,
-    { enabled: mainView === 'my-routine' }
+    {
+      enabled: mainView === 'my-routine',
+    }
   )
 
   // Filtrar pacientes para busca no formulário de sessão
@@ -177,7 +179,10 @@ export default function TherapistRoutineView() {
   // Helper to format date for display
   const formatDisplayDate = (date: Date) => {
     if (viewMode === 'month') {
-      const str = date.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })
+      const str = date.toLocaleDateString('pt-BR', {
+        month: 'long',
+        year: 'numeric',
+      })
       return str.charAt(0).toUpperCase() + str.slice(1)
     }
 
@@ -190,7 +195,11 @@ export default function TherapistRoutineView() {
       const end = new Date(start)
       end.setDate(start.getDate() + 6)
 
-      return `${start.getDate()} ${start.toLocaleDateString('pt-BR', { month: 'short' })} - ${end.getDate()} ${end.toLocaleDateString('pt-BR', { month: 'short' })}`
+      return `${start.getDate()} ${start.toLocaleDateString('pt-BR', {
+        month: 'short',
+      })} - ${end.getDate()} ${end.toLocaleDateString('pt-BR', {
+        month: 'short',
+      })}`
     }
 
     const today = new Date()
@@ -396,7 +405,11 @@ export default function TherapistRoutineView() {
     }
   }
 
-  const handleCompleteTask = (task: { id: string; dueDate?: Date | string | null; status: string }) => {
+  const handleCompleteTask = (task: {
+    id: string
+    dueDate?: Date | string | null
+    status: string
+  }) => {
     if (task.status !== 'completed') {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -491,7 +504,7 @@ export default function TherapistRoutineView() {
   }
 
   return (
-    <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
+    <div className='h-full overflow-y-auto px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32'>
       {/* Header */}
       <div className='mb-4 flex items-end justify-between sm:mb-6'>
         <div>
@@ -513,7 +526,10 @@ export default function TherapistRoutineView() {
                 const yyyy = selectedDate.getFullYear()
                 const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
                 const dd = String(selectedDate.getDate()).padStart(2, '0')
-                setTaskForm({ ...defaultTaskForm, dueDate: `${yyyy}-${mm}-${dd}` })
+                setTaskForm({
+                  ...defaultTaskForm,
+                  dueDate: `${yyyy}-${mm}-${dd}`,
+                })
               }}
               type='button'
             >
@@ -582,7 +598,9 @@ export default function TherapistRoutineView() {
               </div>
             </div>
             <ChevronDown
-              className={`h-5 w-5 text-slate-400 transition-transform ${showPatientList ? 'rotate-180' : ''}`}
+              className={`h-5 w-5 text-slate-400 transition-transform ${
+                showPatientList ? 'rotate-180' : ''
+              }`}
             />
           </button>
 
@@ -631,7 +649,11 @@ export default function TherapistRoutineView() {
           {/* View Mode Selector */}
           <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'day' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'day'
+                  ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('day')}
               type='button'
             >
@@ -642,7 +664,11 @@ export default function TherapistRoutineView() {
               </div>
             </button>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'week' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'week'
+                  ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('week')}
               type='button'
             >
@@ -653,7 +679,11 @@ export default function TherapistRoutineView() {
               </div>
             </button>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'month' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'month'
+                  ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('month')}
               type='button'
             >
@@ -801,7 +831,11 @@ export default function TherapistRoutineView() {
                       <div className='flex flex-col'>
                         <div className='flex flex-wrap items-center gap-2'>
                           <span
-                            className={`font-bold text-sm sm:text-base ${task.status === 'completed' ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
+                            className={`font-bold text-sm sm:text-base ${
+                              task.status === 'completed'
+                                ? 'text-slate-400 line-through dark:text-slate-600'
+                                : 'text-slate-800 dark:text-slate-200'
+                            }`}
                           >
                             {task.title}
                           </span>
@@ -874,7 +908,11 @@ export default function TherapistRoutineView() {
           {/* View Mode Selector */}
           <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'day' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'day'
+                  ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('day')}
               type='button'
             >
@@ -885,7 +923,11 @@ export default function TherapistRoutineView() {
               </div>
             </button>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'week' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'week'
+                  ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('week')}
               type='button'
             >
@@ -896,7 +938,11 @@ export default function TherapistRoutineView() {
               </div>
             </button>
             <button
-              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'month' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+              className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                viewMode === 'month'
+                  ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                  : 'hover:scale-[1.02]'
+              }`}
               onClick={() => setViewMode('month')}
               type='button'
             >
@@ -1080,7 +1126,11 @@ export default function TherapistRoutineView() {
                       <div className='flex flex-col'>
                         <div className='flex flex-wrap items-center gap-2'>
                           <span
-                            className={`font-bold text-sm sm:text-base ${task.status === 'completed' ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
+                            className={`font-bold text-sm sm:text-base ${
+                              task.status === 'completed'
+                                ? 'text-slate-400 line-through dark:text-slate-600'
+                                : 'text-slate-800 dark:text-slate-200'
+                            }`}
                           >
                             {task.title}
                           </span>
@@ -1384,7 +1434,9 @@ export default function TherapistRoutineView() {
               <div className='absolute top-0 right-0 h-20 w-20 rounded-full bg-white/10' />
               <h3 className='font-bold text-xl'>Nova Tarefa</h3>
               <p
-                className={`text-sm ${taskForm.taskCategory === 'sessao' ? 'text-violet-100' : 'text-emerald-100'}`}
+                className={`text-sm ${
+                  taskForm.taskCategory === 'sessao' ? 'text-violet-100' : 'text-emerald-100'
+                }`}
               >
                 {taskForm.taskCategory === 'sessao'
                   ? `Sessão${selectedSessionPatient ? ` com ${selectedSessionPatient.name}` : ''}`
@@ -1482,7 +1534,10 @@ export default function TherapistRoutineView() {
                               <button
                                 className='absolute top-1/2 right-3 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-600 dark:hover:bg-slate-700'
                                 onClick={() => {
-                                  setTaskForm({ ...taskForm, sessionPatientId: undefined })
+                                  setTaskForm({
+                                    ...taskForm,
+                                    sessionPatientId: undefined,
+                                  })
                                   setPatientSearchQuery('')
                                 }}
                                 type='button'
@@ -1505,7 +1560,10 @@ export default function TherapistRoutineView() {
                                     className='flex w-full items-center gap-3 p-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700'
                                     key={patient.id}
                                     onClick={() => {
-                                      setTaskForm({ ...taskForm, sessionPatientId: patient.id })
+                                      setTaskForm({
+                                        ...taskForm,
+                                        sessionPatientId: patient.id,
+                                      })
                                       setPatientSearchQuery('')
                                       setShowPatientDropdown(false)
                                     }}
@@ -1565,7 +1623,12 @@ export default function TherapistRoutineView() {
                         <input
                           className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
                           id='my-task-due-date'
-                          onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
+                          onChange={(e) =>
+                            setTaskForm({
+                              ...taskForm,
+                              dueDate: e.target.value,
+                            })
+                          }
                           type='date'
                           value={taskForm.dueDate || ''}
                         />
@@ -1624,7 +1687,12 @@ export default function TherapistRoutineView() {
                               }`}
                               key={freq.key}
                               onClick={() =>
-                                setTaskForm({ ...taskForm, frequency: freq.key, weekDays: [], monthDays: [] })
+                                setTaskForm({
+                                  ...taskForm,
+                                  frequency: freq.key,
+                                  weekDays: [],
+                                  monthDays: [],
+                                })
                               }
                               type='button'
                             >
@@ -1641,7 +1709,7 @@ export default function TherapistRoutineView() {
                             </p>
                             <div className='grid grid-cols-7 gap-1'>
                               {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
-                                const isSelected = taskForm.weekDays?.includes(index) || false
+                                const isSelected = taskForm.weekDays?.includes(index)
                                 return (
                                   <button
                                     className={`aspect-square rounded-lg border-2 font-bold text-xs transition-all ${
@@ -1655,7 +1723,10 @@ export default function TherapistRoutineView() {
                                       const newDays = isSelected
                                         ? currentDays.filter((d) => d !== index)
                                         : [...currentDays, index].sort((a, b) => a - b)
-                                      setTaskForm({ ...taskForm, weekDays: newDays })
+                                      setTaskForm({
+                                        ...taskForm,
+                                        weekDays: newDays,
+                                      })
                                     }}
                                     type='button'
                                   >
@@ -1675,7 +1746,7 @@ export default function TherapistRoutineView() {
                             </p>
                             <div className='grid grid-cols-7 gap-1'>
                               {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                                const isSelected = taskForm.monthDays?.includes(day) || false
+                                const isSelected = taskForm.monthDays?.includes(day)
                                 return (
                                   <button
                                     className={`aspect-square rounded-lg border-2 font-bold text-xs transition-all ${
@@ -1689,7 +1760,10 @@ export default function TherapistRoutineView() {
                                       const newDays = isSelected
                                         ? currentDays.filter((d) => d !== day)
                                         : [...currentDays, day].sort((a, b) => a - b)
-                                      setTaskForm({ ...taskForm, monthDays: newDays })
+                                      setTaskForm({
+                                        ...taskForm,
+                                        monthDays: newDays,
+                                      })
                                     }}
                                     type='button'
                                   >
@@ -1734,7 +1808,12 @@ export default function TherapistRoutineView() {
                                   : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
                               }`}
                               key={freq.key}
-                              onClick={() => setTaskForm({ ...taskForm, frequency: freq.key })}
+                              onClick={() =>
+                                setTaskForm({
+                                  ...taskForm,
+                                  frequency: freq.key,
+                                })
+                              }
                               type='button'
                             >
                               {freq.label}

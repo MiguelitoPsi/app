@@ -35,15 +35,21 @@ import { useMemo, useState } from 'react'
 import { Avatar } from '@/components/Avatar'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
-import { useGame } from '@/context/GameContext'
 import { useSelectedPatient } from '@/context/SelectedPatientContext'
+import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 
 const AreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart), { ssr: false })
-const Area = dynamic(() => import('recharts').then((mod) => mod.Area), { ssr: false })
-const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis), { ssr: false })
-const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), { ssr: false })
+const Area = dynamic(() => import('recharts').then((mod) => mod.Area), {
+  ssr: false,
+})
+const XAxis = dynamic(() => import('recharts').then((mod) => mod.XAxis), {
+  ssr: false,
+})
+const Tooltip = dynamic(() => import('recharts').then((mod) => mod.Tooltip), {
+  ssr: false,
+})
 const ResponsiveContainer = dynamic(
   () => import('recharts').then((mod) => mod.ResponsiveContainer),
   { ssr: false }
@@ -86,7 +92,8 @@ const MOOD_CONFIG: Record<string, { emoji: string; label: string; color: string 
 
 export const TherapistDashboardView: React.FC = () => {
   const router = useRouter()
-  const { stats: gameStats, toggleTheme } = useGame()
+  const { theme, toggleTheme } = useTherapistGame()
+
   const [activeTab, setActiveTab] = useState<TherapistDashboardTab>('overview')
   const [showSettings, setShowSettings] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
@@ -290,14 +297,14 @@ export const TherapistDashboardView: React.FC = () => {
 
   if (statsLoading) {
     return (
-      <div className='flex h-full items-center justify-center bg-slate-50 dark:bg-slate-950'>
+      <div className='flex h-full items-center justify-center'>
         <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent' />
       </div>
     )
   }
 
   return (
-    <div className='flex h-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950'>
+    <div className='flex h-full flex-col overflow-x-hidden'>
       <header className='relative z-10 bg-gradient-to-br from-violet-600 to-purple-700 pt-safe text-white'>
         <div className='mx-auto max-w-7xl px-3 pt-4 pb-4 sm:px-4 lg:px-8 lg:pt-8 lg:pb-8'>
           <div className='flex items-center justify-between'>
@@ -418,7 +425,9 @@ export const TherapistDashboardView: React.FC = () => {
               },
             ].map((tab) => (
               <button
-                className={`relative flex aspect-square flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 sm:gap-2 sm:rounded-2xl ${tab.bgColor} ${tab.hoverBg} ${
+                className={`relative flex aspect-square flex-col items-center justify-center gap-1 rounded-xl transition-all duration-200 sm:gap-2 sm:rounded-2xl ${
+                  tab.bgColor
+                } ${tab.hoverBg} ${
                   activeTab === tab.id
                     ? 'scale-105 shadow-xl ring-2 ring-white/30 sm:ring-4'
                     : 'shadow-lg hover:scale-[1.02]'
@@ -712,7 +721,11 @@ export const TherapistDashboardView: React.FC = () => {
                           <div
                             className='h-full bg-white rounded-full transition-all'
                             style={{
-                              width: `${totalChallenges > 0 ? (completedChallenges / totalChallenges) * 100 : 0}%`,
+                              width: `${
+                                totalChallenges > 0
+                                  ? (completedChallenges / totalChallenges) * 100
+                                  : 0
+                              }%`,
                             }}
                           />
                         </div>
@@ -728,7 +741,11 @@ export const TherapistDashboardView: React.FC = () => {
                           <div
                             className='h-full bg-white rounded-full transition-all'
                             style={{
-                              width: `${totalAchievements > 0 ? (unlockedAchievements / totalAchievements) * 100 : 0}%`,
+                              width: `${
+                                totalAchievements > 0
+                                  ? (unlockedAchievements / totalAchievements) * 100
+                                  : 0
+                              }%`,
                             }}
                           />
                         </div>
@@ -821,7 +838,9 @@ export const TherapistDashboardView: React.FC = () => {
                     </div>
                   </div>
                   <ChevronDown
-                    className={`h-5 w-5 text-slate-400 transition-transform ${showPatientList ? 'rotate-180' : ''}`}
+                    className={`h-5 w-5 text-slate-400 transition-transform ${
+                      showPatientList ? 'rotate-180' : ''
+                    }`}
                   />
                 </button>
 
@@ -829,7 +848,11 @@ export const TherapistDashboardView: React.FC = () => {
                   <div className='mt-2 max-h-60 overflow-y-auto rounded-xl bg-white shadow-lg dark:bg-slate-800'>
                     {patients?.map((patient) => (
                       <button
-                        className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${selectedPatientId === patient.id ? 'bg-violet-50 dark:bg-violet-900/20' : ''}`}
+                        className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${
+                          selectedPatientId === patient.id
+                            ? 'bg-violet-50 dark:bg-violet-900/20'
+                            : ''
+                        }`}
                         key={patient.id}
                         onClick={() => {
                           setSelectedPatientId(patient.id)
@@ -871,7 +894,11 @@ export const TherapistDashboardView: React.FC = () => {
                       { id: 'profile', label: 'Perfil', icon: UserCircle },
                     ].map((tab) => (
                       <button
-                        className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${patientSubTab === tab.id ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300' : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'}`}
+                        className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
+                          patientSubTab === tab.id
+                            ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+                            : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
+                        }`}
                         key={tab.id}
                         onClick={() => setPatientSubTab(tab.id as typeof patientSubTab)}
                         type='button'
@@ -923,7 +950,9 @@ export const TherapistDashboardView: React.FC = () => {
                                   .slice(0, 3)
                                   .map(([mood, count]) => (
                                     <span
-                                      className={`rounded-full px-2 py-0.5 text-xs ${MOOD_CONFIG[mood]?.color ?? 'bg-slate-100'}`}
+                                      className={`rounded-full px-2 py-0.5 text-xs ${
+                                        MOOD_CONFIG[mood]?.color ?? 'bg-slate-100'
+                                      }`}
                                       key={mood}
                                     >
                                       {MOOD_CONFIG[mood]?.emoji} {count}
@@ -940,7 +969,9 @@ export const TherapistDashboardView: React.FC = () => {
                               <div className='flex flex-wrap gap-2'>
                                 {patientSummary.recentMoods.map((mood) => (
                                   <div
-                                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'}`}
+                                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${
+                                      MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'
+                                    }`}
                                     key={mood.id}
                                   >
                                     <span>{MOOD_CONFIG[mood.mood]?.emoji}</span>
@@ -995,7 +1026,9 @@ export const TherapistDashboardView: React.FC = () => {
                             key={mood.id}
                           >
                             <div
-                              className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'}`}
+                              className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${
+                                MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'
+                              }`}
                             >
                               {MOOD_CONFIG[mood.mood]?.emoji ?? '😕'}
                             </div>
@@ -1039,7 +1072,9 @@ export const TherapistDashboardView: React.FC = () => {
                             >
                               <div className='mb-3 flex items-center justify-between'>
                                 <span
-                                  className={`rounded-full px-3 py-1 text-sm ${MOOD_CONFIG[moodKey]?.color ?? 'bg-slate-100'}`}
+                                  className={`rounded-full px-3 py-1 text-sm ${
+                                    MOOD_CONFIG[moodKey]?.color ?? 'bg-slate-100'
+                                  }`}
                                 >
                                   {MOOD_CONFIG[moodKey]?.emoji} {MOOD_CONFIG[moodKey]?.label}
                                 </span>
@@ -1160,7 +1195,9 @@ export const TherapistDashboardView: React.FC = () => {
                             disabled={unlinkPatientMutation.isPending}
                             onClick={() => {
                               if (selectedPatientId) {
-                                unlinkPatientMutation.mutate({ patientId: selectedPatientId })
+                                unlinkPatientMutation.mutate({
+                                  patientId: selectedPatientId,
+                                })
                               }
                             }}
                             type='button'
@@ -1201,7 +1238,9 @@ export const TherapistDashboardView: React.FC = () => {
                             disabled={dischargePatientMutation.isPending}
                             onClick={() => {
                               if (selectedPatientId) {
-                                dischargePatientMutation.mutate({ patientId: selectedPatientId })
+                                dischargePatientMutation.mutate({
+                                  patientId: selectedPatientId,
+                                })
                               }
                             }}
                             type='button'
@@ -1240,13 +1279,21 @@ export const TherapistDashboardView: React.FC = () => {
               <div className='space-y-4'>
                 {challengesData?.map((challenge) => (
                   <div
-                    className={`rounded-xl p-4 shadow-sm transition-all ${challenge.status === 'completed' ? 'bg-green-50 dark:bg-green-900/20' : 'bg-white dark:bg-slate-800'}`}
+                    className={`rounded-xl p-4 shadow-sm transition-all ${
+                      challenge.status === 'completed'
+                        ? 'bg-green-50 dark:bg-green-900/20'
+                        : 'bg-white dark:bg-slate-800'
+                    }`}
                     key={challenge.id}
                   >
                     <div className='flex items-start justify-between'>
                       <div className='flex items-start gap-3'>
                         <div
-                          className={`rounded-lg p-2 ${challenge.status === 'completed' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-violet-100 dark:bg-violet-900/30'}`}
+                          className={`rounded-lg p-2 ${
+                            challenge.status === 'completed'
+                              ? 'bg-green-100 dark:bg-green-900/30'
+                              : 'bg-violet-100 dark:bg-violet-900/30'
+                          }`}
                         >
                           <span className='text-xl'>{challenge.template?.icon || '🎯'}</span>
                         </div>
@@ -1272,7 +1319,9 @@ export const TherapistDashboardView: React.FC = () => {
                       </div>
                       <div className='h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700'>
                         <div
-                          className={`h-full rounded-full transition-all ${challenge.status === 'completed' ? 'bg-green-500' : 'bg-violet-500'}`}
+                          className={`h-full rounded-full transition-all ${
+                            challenge.status === 'completed' ? 'bg-green-500' : 'bg-violet-500'
+                          }`}
                           style={{ width: `${challenge.progress}%` }}
                         />
                       </div>
@@ -1348,7 +1397,11 @@ export const TherapistDashboardView: React.FC = () => {
               <div className='grid grid-cols-3 gap-3 sm:grid-cols-4'>
                 {achievementProgress?.slice(0, 12).map((achievement) => (
                   <button
-                    className={`relative flex flex-col items-center rounded-xl p-3 transition-all ${achievement.isUnlocked ? 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20' : 'bg-slate-100 dark:bg-slate-800'}`}
+                    className={`relative flex flex-col items-center rounded-xl p-3 transition-all ${
+                      achievement.isUnlocked
+                        ? 'bg-gradient-to-br from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20'
+                        : 'bg-slate-100 dark:bg-slate-800'
+                    }`}
                     key={achievement.id}
                     type='button'
                   >
@@ -1358,7 +1411,11 @@ export const TherapistDashboardView: React.FC = () => {
                       {achievement.icon}
                     </span>
                     <p
-                      className={`mt-1 text-center text-xs ${achievement.isUnlocked ? 'text-slate-700 dark:text-slate-200' : 'text-slate-400 dark:text-slate-500'}`}
+                      className={`mt-1 text-center text-xs ${
+                        achievement.isUnlocked
+                          ? 'text-slate-700 dark:text-slate-200'
+                          : 'text-slate-400 dark:text-slate-500'
+                      }`}
                     >
                       {achievement.name}
                     </p>
@@ -1406,7 +1463,7 @@ export const TherapistDashboardView: React.FC = () => {
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                   <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
-                    {gameStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
@@ -1418,12 +1475,10 @@ export const TherapistDashboardView: React.FC = () => {
                   </div>
                 </div>
                 <div
-                  aria-checked={gameStats.theme === 'dark'}
-                  aria-label={
-                    gameStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
-                  }
+                  aria-checked={theme === 'dark'}
+                  aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    gameStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1432,7 +1487,7 @@ export const TherapistDashboardView: React.FC = () => {
                 >
                   <div
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                      gameStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                      theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
                   />
                 </div>

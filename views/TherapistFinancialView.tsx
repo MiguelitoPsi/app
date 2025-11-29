@@ -44,7 +44,7 @@ import {
 } from 'recharts'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
-import { useGame } from '@/context/GameContext'
+import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { FINANCIAL_CATEGORIES, GOAL_CATEGORIES } from '@/lib/constants/therapist'
 import {
@@ -152,7 +152,9 @@ function PeriodSelector({
         <Calendar className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
         <span className='max-w-[60px] truncate sm:max-w-none'>{selectedOption?.label}</span>
         <ChevronDown
-          className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${isOpen ? 'rotate-180' : ''}`}
+          className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${
+            isOpen ? 'rotate-180' : ''
+          }`}
         />
       </button>
 
@@ -191,9 +193,18 @@ function ProjectionCard({
   projection: NonNullable<ReturnType<typeof useFinancialData>['projection']>
 }): React.ReactElement {
   const confidenceLabels = {
-    low: { text: 'Baixa', color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30' },
-    medium: { text: 'Média', color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30' },
-    high: { text: 'Alta', color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30' },
+    low: {
+      text: 'Baixa',
+      color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30',
+    },
+    medium: {
+      text: 'Média',
+      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
+    },
+    high: {
+      text: 'Alta',
+      color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30',
+    },
   }
 
   const conf = confidenceLabels[projection.confidence]
@@ -225,7 +236,9 @@ function ProjectionCard({
         <div className='min-w-0'>
           <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Saldo</p>
           <p
-            className={`truncate font-bold text-sm sm:text-lg ${projection.projectedBalance >= 0 ? 'text-white' : 'text-red-300'}`}
+            className={`truncate font-bold text-sm sm:text-lg ${
+              projection.projectedBalance >= 0 ? 'text-white' : 'text-red-300'
+            }`}
           >
             {formatCurrency(projection.projectedBalance)}
           </p>
@@ -242,7 +255,8 @@ function ProjectionCard({
 }
 
 export default function TherapistFinancialView(): React.ReactElement {
-  const { stats: realStats, toggleTheme } = useGame()
+  const { theme, toggleTheme } = useTherapistGame()
+
   const [showSettings, setShowSettings] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
@@ -395,10 +409,18 @@ export default function TherapistFinancialView(): React.ReactElement {
 
     const data: { name: string; value: number; type: string }[] = []
     if (currentSummary.income > 0) {
-      data.push({ name: 'Receitas', value: currentSummary.income, type: 'income' })
+      data.push({
+        name: 'Receitas',
+        value: currentSummary.income,
+        type: 'income',
+      })
     }
     if (currentSummary.expenses > 0) {
-      data.push({ name: 'Despesas', value: currentSummary.expenses, type: 'expense' })
+      data.push({
+        name: 'Despesas',
+        value: currentSummary.expenses,
+        type: 'expense',
+      })
     }
     return data
   }, [currentSummary])
@@ -439,7 +461,11 @@ export default function TherapistFinancialView(): React.ReactElement {
     }
   }, [records])
 
-  const tabs: { id: typeof activeTab; label: string; icon: typeof LayoutGrid }[] = [
+  const tabs: {
+    id: typeof activeTab
+    label: string
+    icon: typeof LayoutGrid
+  }[] = [
     { id: 'overview', label: 'Visão Geral', icon: LayoutGrid },
     { id: 'evolution', label: 'Evolução', icon: TrendingUp },
     { id: 'records', label: 'Registros', icon: FileText },
@@ -519,7 +545,7 @@ export default function TherapistFinancialView(): React.ReactElement {
   }
 
   return (
-    <div className='flex h-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950'>
+    <div className='flex h-full flex-col overflow-x-hidden'>
       {/* Header */}
       <header className='bg-gradient-to-br from-emerald-600 to-teal-700 pt-safe text-white'>
         <div className='mx-auto max-w-7xl px-3 pt-4 pb-3 sm:px-4 lg:px-8'>
@@ -583,7 +609,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                 {comparison && <ChangeIndicator value={comparison.balanceChange} />}
               </div>
               <p
-                className={`text-center font-bold text-sm sm:text-left sm:text-lg lg:text-xl ${currentSummary.balance >= 0 ? 'text-white' : 'text-red-300'}`}
+                className={`text-center font-bold text-sm sm:text-left sm:text-lg lg:text-xl ${
+                  currentSummary.balance >= 0 ? 'text-white' : 'text-red-300'
+                }`}
               >
                 {formatCurrency(currentSummary.balance)}
               </p>
@@ -656,7 +684,11 @@ export default function TherapistFinancialView(): React.ReactElement {
                   key={index}
                 >
                   <p
-                    className={`text-sm ${alert.type === 'warning' ? 'text-amber-800 dark:text-amber-200' : 'text-blue-800 dark:text-blue-200'}`}
+                    className={`text-sm ${
+                      alert.type === 'warning'
+                        ? 'text-amber-800 dark:text-amber-200'
+                        : 'text-blue-800 dark:text-blue-200'
+                    }`}
                   >
                     <strong>{alert.title}:</strong> {alert.message}
                   </p>
@@ -1001,7 +1033,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                                   </span>
                                 </div>
                                 <span
-                                  className={`font-medium text-sm ${record.type === 'income' ? 'text-emerald-600' : 'text-red-600'}`}
+                                  className={`font-medium text-sm ${
+                                    record.type === 'income' ? 'text-emerald-600' : 'text-red-600'
+                                  }`}
                                 >
                                   {record.type === 'income' ? '+' : '-'}
                                   {formatCurrency(record.amount)}
@@ -1174,7 +1208,11 @@ export default function TherapistFinancialView(): React.ReactElement {
                         key={record.id}
                       >
                         <div
-                          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${record.type === 'income' ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}
+                          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                            record.type === 'income'
+                              ? 'bg-green-100 dark:bg-green-900/30'
+                              : 'bg-red-100 dark:bg-red-900/30'
+                          }`}
                         >
                           {record.type === 'income' ? (
                             <ArrowUpCircle aria-hidden='true' className='h-6 w-6 text-green-600' />
@@ -1184,7 +1222,13 @@ export default function TherapistFinancialView(): React.ReactElement {
                           {record.isRecurring && (
                             <span
                               className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
-                              title={`Recorrente: ${record.frequency === 'weekly' ? 'Semanal' : record.frequency === 'monthly' ? 'Mensal' : 'Anual'}`}
+                              title={`Recorrente: ${
+                                record.frequency === 'weekly'
+                                  ? 'Semanal'
+                                  : record.frequency === 'monthly'
+                                    ? 'Mensal'
+                                    : 'Anual'
+                              }`}
                             >
                               🔄
                             </span>
@@ -1211,7 +1255,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                         </div>
                         <div className='flex shrink-0 items-center gap-1'>
                           <p
-                            className={`whitespace-nowrap text-sm font-bold ${record.type === 'income' ? 'text-green-600' : 'text-red-600'}`}
+                            className={`whitespace-nowrap text-sm font-bold ${
+                              record.type === 'income' ? 'text-green-600' : 'text-red-600'
+                            }`}
                           >
                             {record.type === 'income' ? '+' : '-'}
                             {formatCurrency(record.amount)}
@@ -1272,7 +1318,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                       type='button'
                     >
                       <RefreshCw
-                        className={`h-5 w-5 ${recalculateGoalsMutation.isPending ? 'animate-spin' : ''}`}
+                        className={`h-5 w-5 ${
+                          recalculateGoalsMutation.isPending ? 'animate-spin' : ''
+                        }`}
                       />
                     </button>
                   </div>
@@ -1329,7 +1377,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                         <div className='h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800'>
                           <div
                             className='h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500'
-                            style={{ width: `${Math.min(100, goal.progress)}%` }}
+                            style={{
+                              width: `${Math.min(100, goal.progress)}%`,
+                            }}
                           />
                         </div>
                       </div>
@@ -1380,9 +1430,17 @@ export default function TherapistFinancialView(): React.ReactElement {
             <form className='space-y-4' onSubmit={handleSubmit}>
               <div className='flex gap-2'>
                 <button
-                  className={`flex-1 rounded-lg py-2 font-medium text-sm ${formData.type === 'income' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-600'}`}
+                  className={`flex-1 rounded-lg py-2 font-medium text-sm ${
+                    formData.type === 'income'
+                      ? 'bg-green-100 text-green-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
                   onClick={() =>
-                    setFormData((prev) => ({ ...prev, type: 'income', category: 'session' }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      type: 'income',
+                      category: 'session',
+                    }))
                   }
                   type='button'
                 >
@@ -1390,9 +1448,17 @@ export default function TherapistFinancialView(): React.ReactElement {
                   Receita
                 </button>
                 <button
-                  className={`flex-1 rounded-lg py-2 font-medium text-sm ${formData.type === 'expense' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-600'}`}
+                  className={`flex-1 rounded-lg py-2 font-medium text-sm ${
+                    formData.type === 'expense'
+                      ? 'bg-red-100 text-red-700'
+                      : 'bg-slate-100 text-slate-600'
+                  }`}
                   onClick={() =>
-                    setFormData((prev) => ({ ...prev, type: 'expense', category: 'subscription' }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      type: 'expense',
+                      category: 'subscription',
+                    }))
                   }
                   type='button'
                 >
@@ -1407,7 +1473,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                 </label>
                 <select
                   className='w-full rounded-lg border border-slate-200 bg-white p-3 text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
-                  onChange={(e) => setFormData((prev) => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      category: e.target.value,
+                    }))
+                  }
                   value={formData.category}
                 >
                   {Object.entries(FINANCIAL_CATEGORIES)
@@ -1454,7 +1525,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                 <input
                   className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                   onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, description: e.target.value }))
+                    setFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
                   }
                   placeholder='Ex: Sessão com João'
                   type='text'
@@ -1499,7 +1573,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
                         }`}
-                        onClick={() => setFormData((prev) => ({ ...prev, frequency: 'weekly' }))}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            frequency: 'weekly',
+                          }))
+                        }
                         type='button'
                       >
                         Semanal
@@ -1510,7 +1589,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
                         }`}
-                        onClick={() => setFormData((prev) => ({ ...prev, frequency: 'monthly' }))}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            frequency: 'monthly',
+                          }))
+                        }
                         type='button'
                       >
                         Mensal
@@ -1521,7 +1605,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                             ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
                             : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400'
                         }`}
-                        onClick={() => setFormData((prev) => ({ ...prev, frequency: 'yearly' }))}
+                        onClick={() =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            frequency: 'yearly',
+                          }))
+                        }
                         type='button'
                       >
                         Anual
@@ -1572,7 +1661,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                 </label>
                 <input
                   className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
-                  onChange={(e) => setGoalFormData((prev) => ({ ...prev, title: e.target.value }))}
+                  onChange={(e) =>
+                    setGoalFormData((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }))
+                  }
                   placeholder='Ex: Aumentar sessões semanais'
                   type='text'
                   value={goalFormData.title}
@@ -1610,7 +1704,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                     className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                     min='1'
                     onChange={(e) =>
-                      setGoalFormData((prev) => ({ ...prev, targetValue: e.target.value }))
+                      setGoalFormData((prev) => ({
+                        ...prev,
+                        targetValue: e.target.value,
+                      }))
                     }
                     placeholder='Ex: 20'
                     type='number'
@@ -1623,7 +1720,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                   </label>
                   <input
                     className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
-                    onChange={(e) => setGoalFormData((prev) => ({ ...prev, unit: e.target.value }))}
+                    onChange={(e) =>
+                      setGoalFormData((prev) => ({
+                        ...prev,
+                        unit: e.target.value,
+                      }))
+                    }
                     placeholder='Ex: sessões/mês'
                     type='text'
                     value={goalFormData.unit}
@@ -1638,7 +1740,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                 <input
                   className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                   onChange={(e) =>
-                    setGoalFormData((prev) => ({ ...prev, deadline: e.target.value }))
+                    setGoalFormData((prev) => ({
+                      ...prev,
+                      deadline: e.target.value,
+                    }))
                   }
                   type='date'
                   value={goalFormData.deadline}
@@ -1652,7 +1757,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                 <textarea
                   className='w-full rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                   onChange={(e) =>
-                    setGoalFormData((prev) => ({ ...prev, description: e.target.value }))
+                    setGoalFormData((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
                   }
                   placeholder='Descreva sua meta...'
                   rows={2}
@@ -1795,7 +1903,7 @@ export default function TherapistFinancialView(): React.ReactElement {
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                   <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
-                    {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
@@ -1807,12 +1915,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                   </div>
                 </div>
                 <div
-                  aria-checked={realStats.theme === 'dark'}
-                  aria-label={
-                    realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
-                  }
+                  aria-checked={theme === 'dark'}
+                  aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    realStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1821,7 +1927,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                 >
                   <div
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                      realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                      theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
                   />
                 </div>
@@ -1907,7 +2013,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                   await authClient.signOut({
                     fetchOptions: {
                       onSuccess: async () => {
-                        await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+                        await fetch('/api/auth/clear-role-cookie', {
+                          method: 'POST',
+                        })
                         window.location.href = '/auth/signin'
                       },
                     },

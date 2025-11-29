@@ -30,8 +30,8 @@ import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
-import { useGame } from '@/context/GameContext'
 import { useSelectedPatient } from '@/context/SelectedPatientContext'
+import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import {
@@ -84,7 +84,8 @@ const initialFormData: CognitiveFormData = {
 }
 
 export default function TherapistReportsView(): React.ReactElement {
-  const { stats: realStats, toggleTheme } = useGame()
+  const { theme, toggleTheme } = useTherapistGame()
+
   const { selectedPatientId, setSelectedPatientId } = useSelectedPatient()
   const [showSettings, setShowSettings] = useState(false)
   const [showTermsModal, setShowTermsModal] = useState(false)
@@ -198,9 +199,15 @@ export default function TherapistReportsView(): React.ReactElement {
         coreBelief: cognitiveData.coreBelief ?? '',
         conditionalAssumptions: cognitiveData.conditionalAssumptions ?? '',
         compensatoryStrategies: cognitiveData.compensatoryStrategies ?? '',
-        situation1: cognitiveData.situations?.situation1 ?? { ...emptySituation },
-        situation2: cognitiveData.situations?.situation2 ?? { ...emptySituation },
-        situation3: cognitiveData.situations?.situation3 ?? { ...emptySituation },
+        situation1: cognitiveData.situations?.situation1 ?? {
+          ...emptySituation,
+        },
+        situation2: cognitiveData.situations?.situation2 ?? {
+          ...emptySituation,
+        },
+        situation3: cognitiveData.situations?.situation3 ?? {
+          ...emptySituation,
+        },
         notes: cognitiveData.notes ?? '',
       })
     } else {
@@ -263,7 +270,9 @@ export default function TherapistReportsView(): React.ReactElement {
 
     try {
       // First approve the cognitive conceptualization
-      await approveCognitiveMutation.mutateAsync({ patientId: selectedPatientId })
+      await approveCognitiveMutation.mutateAsync({
+        patientId: selectedPatientId,
+      })
 
       // Get patient name
       const patient = patients?.find((p) => p.id === selectedPatientId)
@@ -504,7 +513,7 @@ export default function TherapistReportsView(): React.ReactElement {
   }
 
   return (
-    <div className='flex h-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950'>
+    <div className='flex h-full flex-col overflow-x-hidden'>
       {/* Header - Portal do Especialista */}
       <header className='relative z-10 bg-gradient-to-br from-violet-600 to-purple-700 pt-safe text-white'>
         <div className='mx-auto max-w-7xl px-3 pt-4 pb-3 sm:px-4 sm:px-6 lg:px-8'>
@@ -556,7 +565,9 @@ export default function TherapistReportsView(): React.ReactElement {
               </span>
             </div>
             <ChevronDown
-              className={`h-4 w-4 flex-shrink-0 transition-transform sm:h-5 sm:w-5 ${showPatientList ? 'rotate-180' : ''}`}
+              className={`h-4 w-4 flex-shrink-0 transition-transform sm:h-5 sm:w-5 ${
+                showPatientList ? 'rotate-180' : ''
+              }`}
             />
           </button>
 
@@ -606,7 +617,11 @@ export default function TherapistReportsView(): React.ReactElement {
               {/* Mobile tabs */}
               <div className='grid grid-cols-3 gap-2 sm:gap-3 lg:hidden'>
                 <button
-                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${activeSection === 'documents' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${
+                    activeSection === 'documents'
+                      ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
+                      : 'hover:scale-[1.02]'
+                  }`}
                   onClick={() => setActiveSection('documents')}
                   type='button'
                 >
@@ -617,7 +632,11 @@ export default function TherapistReportsView(): React.ReactElement {
                   </div>
                 </button>
                 <button
-                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${activeSection === 'cognitive' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${
+                    activeSection === 'cognitive'
+                      ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900'
+                      : 'hover:scale-[1.02]'
+                  }`}
                   onClick={() => setActiveSection('cognitive')}
                   type='button'
                 >
@@ -630,7 +649,11 @@ export default function TherapistReportsView(): React.ReactElement {
                   </div>
                 </button>
                 <button
-                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${activeSection === 'therapeutic' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                  className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${
+                    activeSection === 'therapeutic'
+                      ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                      : 'hover:scale-[1.02]'
+                  }`}
                   onClick={() => setActiveSection('therapeutic')}
                   type='button'
                 >
@@ -900,7 +923,10 @@ export default function TherapistReportsView(): React.ReactElement {
                               <input
                                 className='rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800'
                                 onChange={(e) =>
-                                  setCognitiveForm((prev) => ({ ...prev, name: e.target.value }))
+                                  setCognitiveForm((prev) => ({
+                                    ...prev,
+                                    name: e.target.value,
+                                  }))
                                 }
                                 placeholder={selectedPatient?.name ?? 'Nome do paciente'}
                                 type='text'
@@ -920,7 +946,10 @@ export default function TherapistReportsView(): React.ReactElement {
                               <input
                                 className='rounded border border-slate-300 px-2 py-1 text-sm dark:border-slate-600 dark:bg-slate-800'
                                 onChange={(e) =>
-                                  setCognitiveForm((prev) => ({ ...prev, date: e.target.value }))
+                                  setCognitiveForm((prev) => ({
+                                    ...prev,
+                                    date: e.target.value,
+                                  }))
                                 }
                                 type='date'
                                 value={cognitiveForm.date}
@@ -1090,7 +1119,9 @@ export default function TherapistReportsView(): React.ReactElement {
                         <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                           {/* Situation 1 */}
                           <div
-                            className={`space-y-3 ${activeSituation !== 1 ? 'hidden md:block' : ''}`}
+                            className={`space-y-3 ${
+                              activeSituation !== 1 ? 'hidden md:block' : ''
+                            }`}
                           >
                             <div className='rounded-xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100 p-3 dark:border-rose-700 dark:from-rose-900/30 dark:to-rose-900/20'>
                               <h5 className='mb-2 text-center font-bold text-sm text-rose-700 dark:text-rose-400'>
@@ -1202,7 +1233,9 @@ export default function TherapistReportsView(): React.ReactElement {
 
                           {/* Situation 2 */}
                           <div
-                            className={`space-y-3 ${activeSituation !== 2 ? 'hidden md:block' : ''}`}
+                            className={`space-y-3 ${
+                              activeSituation !== 2 ? 'hidden md:block' : ''
+                            }`}
                           >
                             <div className='rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3 dark:border-amber-700 dark:from-amber-900/30 dark:to-amber-900/20'>
                               <h5 className='mb-2 text-center font-bold text-sm text-amber-700 dark:text-amber-400'>
@@ -1314,7 +1347,9 @@ export default function TherapistReportsView(): React.ReactElement {
 
                           {/* Situation 3 */}
                           <div
-                            className={`space-y-3 ${activeSituation !== 3 ? 'hidden md:block' : ''}`}
+                            className={`space-y-3 ${
+                              activeSituation !== 3 ? 'hidden md:block' : ''
+                            }`}
                           >
                             <div className='rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 dark:border-emerald-700 dark:from-emerald-900/30 dark:to-emerald-900/20'>
                               <h5 className='mb-2 text-center font-bold text-sm text-emerald-700 dark:text-emerald-400'>
@@ -1435,7 +1470,10 @@ export default function TherapistReportsView(): React.ReactElement {
                               <textarea
                                 className='min-h-[60px] w-full resize-y rounded-lg border border-slate-200 p-2 text-sm dark:border-slate-700 dark:bg-slate-800'
                                 onChange={(e) =>
-                                  setCognitiveForm((prev) => ({ ...prev, notes: e.target.value }))
+                                  setCognitiveForm((prev) => ({
+                                    ...prev,
+                                    notes: e.target.value,
+                                  }))
                                 }
                                 placeholder='Adicione observações...'
                                 value={cognitiveForm.notes}
@@ -1827,7 +1865,7 @@ export default function TherapistReportsView(): React.ReactElement {
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                   <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
-                    {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
@@ -1839,12 +1877,10 @@ export default function TherapistReportsView(): React.ReactElement {
                   </div>
                 </div>
                 <div
-                  aria-checked={realStats.theme === 'dark'}
-                  aria-label={
-                    realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
-                  }
+                  aria-checked={theme === 'dark'}
+                  aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    realStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1853,7 +1889,7 @@ export default function TherapistReportsView(): React.ReactElement {
                 >
                   <div
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                      realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                      theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
                   />
                 </div>
@@ -1939,7 +1975,9 @@ export default function TherapistReportsView(): React.ReactElement {
                   await authClient.signOut({
                     fetchOptions: {
                       onSuccess: async () => {
-                        await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+                        await fetch('/api/auth/clear-role-cookie', {
+                          method: 'POST',
+                        })
                         window.location.href = '/auth/signin'
                       },
                     },

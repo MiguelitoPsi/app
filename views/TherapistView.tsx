@@ -35,46 +35,16 @@ import { useEffect, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
+import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
-import { useGame } from '../context/GameContext'
 import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
 
-// Mock data for demo purposes
-const DEMO_PATIENT = {
-  name: 'Ana (Demo)',
-  stats: {
-    level: 5,
-    streak: 12,
-    totalMeditationMinutes: 145,
-    totalTasksCompleted: 32,
-    totalJournals: 8,
-    points: 450,
-  },
-  moodData: [
-    { name: 'Seg', score: 40 },
-    { name: 'Ter', score: 50 },
-    { name: 'Qua', score: 30 },
-    { name: 'Qui', score: 60 },
-    { name: 'Sex', score: 55 },
-    { name: 'Sáb', score: 70 },
-    { name: 'Dom', score: 80 },
-  ],
-  journal: [
-    {
-      id: 'demo1',
-      timestamp: Date.now() - 86_400_000 * 2,
-      emotion: 'anxious' as Mood,
-      intensity: 8,
-      thought: 'Sinto que não vou conseguir entregar o projeto a tempo.',
-      aiAnalysis:
-        'Pensamento catastrófico identificado. Tente focar nas etapas pequenas que você já concluiu.',
-    },
-  ],
-}
-
 export const TherapistView: React.FC = () => {
-  const { stats: realStats, journal: realJournal, updateReward, toggleTheme } = useGame()
+  // Buscar dados do terapeuta via tRPC
+  const { data: therapistProfile } = trpc.user.getProfile.useQuery()
+  const { theme, toggleTheme } = useTherapistGame()
+
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
   const [activeSection, setActiveSection] = useState<
     'overview' | 'journal' | 'rewards' | 'profile'
@@ -148,14 +118,6 @@ export const TherapistView: React.FC = () => {
   // Update reward cost mutation
   const updateRewardCostMutation = trpc.reward.updateCost.useMutation()
 
-  // Remove patient mutation
-  const removePatientMutation = trpc.patient.removePatient.useMutation({
-    onSuccess: () => {
-      refetchPatients()
-      setSelectedPatientId('')
-    },
-  })
-
   // Unlink patient mutation
   const unlinkPatientMutation = trpc.patient.unlinkPatient.useMutation({
     onSuccess: () => {
@@ -219,31 +181,45 @@ export const TherapistView: React.FC = () => {
         patientId: selectedPatientId,
       })
       refetchPatientRewards()
-    } else {
-      // For own rewards, use the local state update
-      updateReward(editingReward.id, {
-        cost,
-        status: 'approved',
-      })
     }
+    // Terapeuta só pode editar recompensas de pacientes selecionados
 
     setIsCostModalOpen(false)
     setEditingReward(null)
     setRewardCost('')
   }
 
-  const handleRemovePatient = (relationshipId: string, patientName: string) => {
-    if (confirm(`Tem certeza que deseja remover o vínculo com ${patientName}?`)) {
-      removePatientMutation.mutate({ relationshipId })
-    }
+  // Helper to normalize patient data from database
+  const defaultStats = {
+    name: '',
+    level: 0,
+    streak: 0,
+    points: 0,
+    totalMeditationMinutes: 0,
+    totalTasksCompleted: 0,
+    totalJournals: 0,
   }
 
-  // Helper to normalize patient data from database
-  const normalizePatientStats = (patient: any) => {
-    if (!patient) return realStats
+  type PatientData =
+    | {
+        name: string
+        level?: number
+        streak?: number
+        coins?: number
+        stats?: {
+          totalMeditations?: number
+          completedTasks?: number
+          totalJournalEntries?: number
+        }
+      }
+    | null
+    | undefined
+
+  const normalizePatientStats = (patient: PatientData) => {
+    if (!patient) return defaultStats
 
     return {
-      ...realStats,
+      ...defaultStats,
       name: patient.name,
       level: patient.level || 1,
       streak: patient.streak || 0,
@@ -256,7 +232,7 @@ export const TherapistView: React.FC = () => {
 
   // Determine which data to show
   const selectedPatient = linkedPatients.find((p) => p.id === selectedPatientId)
-  const _patientName = selectedPatient?.name || realStats.name
+  const _patientName = selectedPatient?.name || 'Nenhum paciente'
   const stats = normalizePatientStats(selectedPatient)
 
   // Transform patient journal data from DB format to component format
@@ -279,9 +255,9 @@ export const TherapistView: React.FC = () => {
     createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
   }))
 
-  // Use patient data when a patient is selected
-  const journalDataRaw = selectedPatientId ? transformedJournalData : realJournal
-  const rewardsData = selectedPatientId ? transformedRewardsData : realStats.rewards
+  // Use patient data when a patient is selected (terapeuta não tem journal/rewards próprios nesta view)
+  const journalDataRaw = selectedPatientId ? transformedJournalData : []
+  const rewardsData = selectedPatientId ? transformedRewardsData : []
 
   // Filter journal data based on filters
   const journalData = journalDataRaw.filter((entry) => {
@@ -358,7 +334,7 @@ export const TherapistView: React.FC = () => {
   }
 
   const handleInvite = () => {
-    const link = `${window.location.origin}/therapist-invite/${realStats.id || 'unknown'}`
+    const link = `${window.location.origin}/therapist-invite/${therapistProfile?.id || 'unknown'}`
     setInviteLink(link)
     setIsLinkCopied(false)
     setIsInviteModalOpen(true)
@@ -447,7 +423,7 @@ export const TherapistView: React.FC = () => {
   }
 
   return (
-    <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+    <div className='flex h-full flex-col'>
       {/* Header */}
       <div className='relative z-20 overflow-visible rounded-b-2xl border-slate-100 border-b bg-white px-4 pb-4 pt-safe shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pb-6 dark:border-slate-800 dark:bg-slate-900'>
         <div className='mb-4 flex items-center justify-between sm:mb-6'>
@@ -507,7 +483,9 @@ export const TherapistView: React.FC = () => {
                 <Users className='text-indigo-500 dark:text-indigo-400' size={14} />
               </div>
               <ChevronDown
-                className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 ${isPatientDropdownOpen ? 'rotate-180' : ''}`}
+                className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 ${
+                  isPatientDropdownOpen ? 'rotate-180' : ''
+                }`}
                 size={18}
               />
 
@@ -594,7 +572,11 @@ export const TherapistView: React.FC = () => {
             {/* Navigation Tabs - Only shown when patient is selected */}
             <div className='grid grid-cols-4 gap-2 sm:gap-3'>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'overview' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                  activeSection === 'overview'
+                    ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
+                    : 'hover:scale-[1.02]'
+                }`}
                 onClick={() => setActiveSection('overview')}
                 type='button'
               >
@@ -605,7 +587,11 @@ export const TherapistView: React.FC = () => {
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'journal' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                  activeSection === 'journal'
+                    ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900'
+                    : 'hover:scale-[1.02]'
+                }`}
                 onClick={() => setActiveSection('journal')}
                 type='button'
               >
@@ -620,7 +606,11 @@ export const TherapistView: React.FC = () => {
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'rewards' ? 'ring-2 ring-cyan-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                  activeSection === 'rewards'
+                    ? 'ring-2 ring-cyan-400 ring-offset-2 dark:ring-offset-slate-900'
+                    : 'hover:scale-[1.02]'
+                }`}
                 onClick={() => setActiveSection('rewards')}
                 type='button'
               >
@@ -636,7 +626,11 @@ export const TherapistView: React.FC = () => {
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${activeSection === 'profile' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                  activeSection === 'profile'
+                    ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                    : 'hover:scale-[1.02]'
+                }`}
                 onClick={() => setActiveSection('profile')}
                 type='button'
               >
@@ -726,7 +720,11 @@ export const TherapistView: React.FC = () => {
                         axisLine={false}
                         dataKey='name'
                         dy={10}
-                        tick={{ fontSize: 12, fill: '#94a3b8', fontWeight: 600 }}
+                        tick={{
+                          fontSize: 12,
+                          fill: '#94a3b8',
+                          fontWeight: 600,
+                        }}
                         tickLine={false}
                       />
                       <Tooltip
@@ -736,12 +734,21 @@ export const TherapistView: React.FC = () => {
                           boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)',
                           padding: '12px',
                         }}
-                        cursor={{ stroke: '#6366f1', strokeWidth: 1, strokeDasharray: '4 4' }}
+                        cursor={{
+                          stroke: '#6366f1',
+                          strokeWidth: 1,
+                          strokeDasharray: '4 4',
+                        }}
                       />
                       <Line
                         activeDot={{ r: 8, fill: '#4f46e5' }}
                         dataKey='score'
-                        dot={{ r: 6, fill: '#6366f1', strokeWidth: 4, stroke: '#fff' }}
+                        dot={{
+                          r: 6,
+                          fill: '#6366f1',
+                          strokeWidth: 4,
+                          stroke: '#fff',
+                        }}
                         stroke='#6366f1'
                         strokeWidth={4}
                         type='monotone'
@@ -762,7 +769,9 @@ export const TherapistView: React.FC = () => {
                     <div className='flex flex-wrap gap-2'>
                       {topEmotionsData.topEmotions.map((item) => (
                         <div
-                          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 sm:gap-2 sm:px-4 sm:py-2 ${getMoodColor(item.emotion as Mood)}`}
+                          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 sm:gap-2 sm:px-4 sm:py-2 ${getMoodColor(
+                            item.emotion as Mood
+                          )}`}
                           key={item.emotion}
                         >
                           <span className='text-base drop-shadow-sm filter sm:text-lg'>
@@ -850,7 +859,9 @@ export const TherapistView: React.FC = () => {
                   )}
                 </div>
                 <ChevronDown
-                  className={`text-slate-400 transition-transform duration-200 ${isJournalFilterOpen ? 'rotate-180' : ''}`}
+                  className={`text-slate-400 transition-transform duration-200 ${
+                    isJournalFilterOpen ? 'rotate-180' : ''
+                  }`}
                   size={16}
                 />
               </button>
@@ -938,7 +949,8 @@ export const TherapistView: React.FC = () => {
             {hasActiveJournalFilters && (
               <div className='flex items-center justify-between rounded-xl bg-indigo-50 px-3 py-2 sm:rounded-2xl sm:px-4 sm:py-2.5 dark:bg-indigo-900/20'>
                 <span className='font-medium text-[10px] text-indigo-600 sm:text-xs dark:text-indigo-400'>
-                  {journalData.length} registro{journalData.length !== 1 ? 's' : ''} encontrado
+                  {journalData.length} registro
+                  {journalData.length !== 1 ? 's' : ''} encontrado
                   {journalData.length !== 1 ? 's' : ''}
                 </span>
                 <span className='text-[10px] text-indigo-500 sm:text-xs dark:text-indigo-400'>
@@ -994,7 +1006,9 @@ export const TherapistView: React.FC = () => {
                       <div className='flex items-center justify-between gap-3'>
                         <div className='flex min-w-0 items-center gap-3'>
                           <div
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg ${getMoodColor(entry.emotion)} bg-opacity-20`}
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg ${getMoodColor(
+                              entry.emotion
+                            )} bg-opacity-20`}
                           >
                             {getMoodEmoji(entry.emotion)}
                           </div>
@@ -1002,9 +1016,7 @@ export const TherapistView: React.FC = () => {
                             <p className='font-bold text-slate-700 text-xs dark:text-slate-300'>
                               Registro de {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
                             </p>
-                            <p className='truncate text-[10px] text-slate-500'>
-                              {entry.thought}
-                            </p>
+                            <p className='truncate text-[10px] text-slate-500'>{entry.thought}</p>
                           </div>
                         </div>
                         <button
@@ -1027,7 +1039,9 @@ export const TherapistView: React.FC = () => {
                   >
                     <div className='mb-3 flex items-start justify-between sm:mb-4'>
                       <div
-                        className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-2 ${getMoodColor(entry.emotion)}`}
+                        className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-2 ${getMoodColor(
+                          entry.emotion
+                        )}`}
                       >
                         <span className='text-xl drop-shadow-sm filter sm:text-2xl'>
                           {getMoodEmoji(entry.emotion)}
@@ -1475,7 +1489,9 @@ export const TherapistView: React.FC = () => {
                   disabled={unlinkPatientMutation.isPending}
                   onClick={() => {
                     if (selectedPatientId) {
-                      unlinkPatientMutation.mutate({ patientId: selectedPatientId })
+                      unlinkPatientMutation.mutate({
+                        patientId: selectedPatientId,
+                      })
                     }
                   }}
                   type='button'
@@ -1516,7 +1532,9 @@ export const TherapistView: React.FC = () => {
                   disabled={dischargePatientMutation.isPending}
                   onClick={() => {
                     if (selectedPatientId) {
-                      dischargePatientMutation.mutate({ patientId: selectedPatientId })
+                      dischargePatientMutation.mutate({
+                        patientId: selectedPatientId,
+                      })
                     }
                   }}
                   type='button'
@@ -1609,7 +1627,7 @@ export const TherapistView: React.FC = () => {
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                   <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
-                    {realStats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                    {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
@@ -1621,12 +1639,10 @@ export const TherapistView: React.FC = () => {
                   </div>
                 </div>
                 <div
-                  aria-checked={realStats.theme === 'dark'}
-                  aria-label={
-                    realStats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
-                  }
+                  aria-checked={theme === 'dark'}
+                  aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    realStats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1635,7 +1651,7 @@ export const TherapistView: React.FC = () => {
                 >
                   <div
                     className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                      realStats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                      theme === 'dark' ? 'left-[22px]' : 'left-0.5'
                     }`}
                   />
                 </div>
@@ -1721,7 +1737,9 @@ export const TherapistView: React.FC = () => {
                   await authClient.signOut({
                     fetchOptions: {
                       onSuccess: async () => {
-                        await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+                        await fetch('/api/auth/clear-role-cookie', {
+                          method: 'POST',
+                        })
                         window.location.href = '/auth/signin'
                       },
                     },

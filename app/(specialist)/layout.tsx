@@ -1,53 +1,53 @@
-"use client";
+'use client'
 
-import type { ReactNode } from "react";
-import { RoleGuard } from "@/components/RoleGuard";
-import { SuspendedAccountModal } from "@/components/SuspendedAccountModal";
-import { TherapistBottomNav } from "@/components/TherapistBottomNav";
-import { TherapistHeader } from "@/components/TherapistHeader";
-import { TherapistLevelUpManager } from "@/components/TherapistLevelUpManager";
-import { TherapistProfileModal } from "@/components/TherapistProfileModal";
-import { TherapistSidebar } from "@/components/TherapistSidebar";
-import { TherapistTermsModal } from "@/components/TherapistTermsModal";
-import { TherapistXPGainToast } from "@/components/TherapistXPGainToast";
-import { SelectedPatientProvider } from "@/context/SelectedPatientContext";
-import { TherapistGameProvider } from "@/context/TherapistGameContext";
-import { trpc } from "@/lib/trpc/client";
+import type { ReactNode } from 'react'
+import { RoleGuard } from '@/components/RoleGuard'
+import { SuspendedAccountModal } from '@/components/SuspendedAccountModal'
+import { TherapistBottomNav } from '@/components/TherapistBottomNav'
+import { TherapistHeader } from '@/components/TherapistHeader'
+import { TherapistLevelUpManager } from '@/components/TherapistLevelUpManager'
+import { TherapistProfileModal } from '@/components/TherapistProfileModal'
+import { TherapistSidebar } from '@/components/TherapistSidebar'
+import { TherapistTermsModal } from '@/components/TherapistTermsModal'
+import { TherapistXPGainToast } from '@/components/TherapistXPGainToast'
+import { SelectedPatientProvider } from '@/context/SelectedPatientContext'
+import { TherapistGameProvider } from '@/context/TherapistGameContext'
+import { trpc } from '@/lib/trpc/client'
 
 function SpecialistContent({ children }: { children: ReactNode }) {
-  const { data: termsData, isLoading: isLoadingTerms } =
-    trpc.user.checkTermsAccepted.useQuery(undefined, {
+  const { data: termsData, isLoading: isLoadingTerms } = trpc.user.checkTermsAccepted.useQuery(
+    undefined,
+    {
       staleTime: 0,
       refetchOnMount: true,
-    });
+    }
+  )
 
   const { data: profileData, isLoading: isLoadingProfile } =
     trpc.therapistProfile.checkProfileComplete.useQuery(undefined, {
       staleTime: 0,
       refetchOnMount: true,
-    });
+    })
 
-  const isLoading = isLoadingTerms || isLoadingProfile;
+  const isLoading = isLoadingTerms || isLoadingProfile
 
   // Determine which modal to show based on server data
   const getModalState = () => {
-    if (isLoading) return { showTerms: false, showProfile: false };
+    if (isLoading) return { showTerms: false, showProfile: false }
 
     // First check if terms need to be accepted
-    if (termsData?.needsToAcceptTerms)
-      return { showTerms: true, showProfile: false };
+    if (termsData?.needsToAcceptTerms) return { showTerms: true, showProfile: false }
 
     // Then check if profile needs to be created
-    if (profileData?.needsProfile)
-      return { showTerms: false, showProfile: true };
+    if (profileData?.needsProfile) return { showTerms: false, showProfile: true }
 
-    return { showTerms: false, showProfile: false };
-  };
+    return { showTerms: false, showProfile: false }
+  }
 
-  const { showTerms, showProfile } = getModalState();
+  const { showTerms, showProfile } = getModalState()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-800">
+    <div className='min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 transition-colors duration-300 dark:from-slate-900 dark:to-slate-800'>
       {/* Suspended Account Modal */}
       <SuspendedAccountModal />
 
@@ -55,7 +55,7 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       <TherapistTermsModal isOpen={showTerms} />
 
       {/* Profile Modal - shown after terms are accepted */}
-      <TherapistProfileModal isOpen={showProfile} mode="create" />
+      <TherapistProfileModal isOpen={showProfile} mode='create' />
 
       {/* Level Up Manager - shows modal on level up */}
       <TherapistLevelUpManager />
@@ -67,31 +67,27 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       <TherapistSidebar />
 
       {/* XP Header - visible on mobile, hidden on desktop (sidebar shows XP there) */}
-      <div className="lg:hidden">
+      <div className='lg:hidden'>
         <TherapistHeader />
       </div>
 
       {/* Main content - with left margin on desktop for sidebar (48 = 12rem = 192px) */}
-      <main className="min-h-screen pb-24 lg:ml-48 lg:pb-0">{children}</main>
+      <main className='min-h-screen bg-slate-50 pb-24 transition-colors duration-300 lg:ml-48 lg:pb-0 dark:bg-transparent'>{children}</main>
 
       {/* Mobile Bottom Nav - hidden on desktop */}
       <TherapistBottomNav />
     </div>
-  );
+  )
 }
 
-export default function SpecialistLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function SpecialistLayout({ children }: { children: ReactNode }) {
   return (
     <TherapistGameProvider>
-      <RoleGuard allowedRoles={["psychologist"]}>
+      <RoleGuard allowedRoles={['psychologist']}>
         <SelectedPatientProvider>
           <SpecialistContent>{children}</SpecialistContent>
         </SelectedPatientProvider>
       </RoleGuard>
     </TherapistGameProvider>
-  );
+  )
 }
