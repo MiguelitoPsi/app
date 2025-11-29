@@ -446,7 +446,6 @@ export default function TherapistRoutineView() {
     if (!suggestion) return
     setTaskForm({
       title: suggestion.title,
-      description: suggestion.description,
       frequency: suggestion.frequency as 'daily' | 'weekly' | 'once',
       priority: suggestion.priority as 'low' | 'medium' | 'high',
     })

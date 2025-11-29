@@ -1,6 +1,18 @@
 import { Resend } from 'resend'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors
+let _resend: Resend | null = null
+
+const getResend = () => {
+  if (!_resend) {
+    const apiKey = process.env.RESEND_API_KEY
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set')
+    }
+    _resend = new Resend(apiKey)
+  }
+  return _resend
+}
 
 export async function sendInviteEmail(
   to: string,
@@ -13,7 +25,7 @@ export async function sendInviteEmail(
       process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
     }/invite/${inviteToken}`
 
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'MiguelitoPsi <noreply@miguelitopsi.com>',
       to,
       subject: 'Convite MiguelitoPsi - Inicie sua jornada de bem-estar',
