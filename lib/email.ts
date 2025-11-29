@@ -1,18 +1,18 @@
-import { Resend } from 'resend'
+import { Resend } from "resend";
 
 // Lazy initialization to avoid build-time errors
-let _resend: Resend | null = null
+let _resend: Resend | null = null;
 
 const getResend = () => {
   if (!_resend) {
-    const apiKey = process.env.RESEND_API_KEY
+    const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) {
-      throw new Error('RESEND_API_KEY environment variable is not set')
+      throw new Error("RESEND_API_KEY environment variable is not set");
     }
-    _resend = new Resend(apiKey)
+    _resend = new Resend(apiKey);
   }
-  return _resend
-}
+  return _resend;
+};
 
 export async function sendInviteEmail(
   to: string,
@@ -22,13 +22,13 @@ export async function sendInviteEmail(
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const inviteUrl = `${
-      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-    }/invite/${inviteToken}`
+      process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+    }/invite/${inviteToken}`;
 
     await getResend().emails.send({
-      from: 'MiguelitoPsi <noreply@miguelitopsi.com>',
+      from: "MiguelitoPsi <noreply@miguelitopsi.com>",
       to,
-      subject: 'Convite MiguelitoPsi - Inicie sua jornada de bem-estar',
+      subject: "Convite MiguelitoPsi - Inicie sua jornada de bem-estar",
       html: `
         <!DOCTYPE html>
         <html>
@@ -115,14 +115,14 @@ export async function sendInviteEmail(
           </body>
         </html>
       `,
-    })
+    });
 
-    return { success: true }
+    return { success: true };
   } catch (error) {
-    console.error('Error sending invite email:', error)
+    console.error("Error sending invite email:", error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to send email',
-    }
+      error: error instanceof Error ? error.message : "Failed to send email",
+    };
   }
 }
