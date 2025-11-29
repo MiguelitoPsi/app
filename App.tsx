@@ -21,7 +21,7 @@ const AppContent = () => {
       case Tab.HOME:
         return <HomeView />
       case Tab.MEDITATION:
-        return <MeditationView />
+        return <MeditationView goHome={() => setCurrentTab(Tab.HOME)} />
       case Tab.ADD:
         // Journal view is the main "Add" action
         return <JournalView goHome={() => setCurrentTab(Tab.HOME)} />
