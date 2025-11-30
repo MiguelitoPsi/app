@@ -24,42 +24,11 @@ import {
   MessageCircle
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useEffect } from "react";
+
 import { motion } from "framer-motion";
 
 export default function LandingPage() {
-  const [activeTestimonial, setActiveTestimonial] = useState(0);
 
-  const testimonials = [
-    {
-      name: "Mariana Costa",
-      role: "Paciente",
-      avatar: "👩‍💼",
-      text: "O sistema de gamificação torna o processo de autoconhecimento mais leve. Sinto que estou progredindo dia após dia.",
-      rating: 5,
-    },
-    {
-      name: "Dr. Ricardo Almeida",
-      role: "Psicólogo Clínico (CRP 06/12345)",
-      avatar: "👨‍⚕️",
-      text: "Uma ferramenta excelente para aumentar a adesão dos pacientes às tarefas de casa e monitorar o estado emocional entre sessões.",
-      rating: 5,
-    },
-    {
-      name: "Felipe Santos",
-      role: "Paciente",
-      avatar: "👨‍💻",
-      text: "O diário emocional me ajudou a identificar padrões que eu não percebia. Levo os relatórios para minha terapia e discutimos sobre eles.",
-      rating: 5,
-    },
-  ];
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 8000); // Mais tempo para leitura
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-violet-500/30">
@@ -80,9 +49,7 @@ export default function LandingPage() {
             <Link href="#profissionais" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
               Para Terapeutas
             </Link>
-            <Link href="#depoimentos" className="text-sm font-medium text-slate-400 hover:text-white transition-colors">
-              Depoimentos
-            </Link>
+
           </nav>
 
           <div className="flex items-center gap-4">
@@ -301,56 +268,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section id="depoimentos" className="px-4 py-24 bg-slate-900/30 border-y border-slate-800/50">
-        <div className="mx-auto max-w-4xl">
-          <div className="mb-12 text-center">
-            <h2 className="mb-4 font-bold text-3xl text-white">
-              Relatos da Comunidade
-            </h2>
-            <p className="text-slate-400">
-              Experiências reais de quem utiliza o Nepsis como ferramenta de apoio.
-            </p>
-          </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/50 p-8 md:p-12">
-            <div className="flex flex-col items-center text-center">
-              <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-slate-800 text-3xl border border-slate-700">
-                {testimonials[activeTestimonial].avatar}
-              </div>
-              <div className="mb-6 flex gap-1">
-                {[...new Array(testimonials[activeTestimonial].rating)].map((_, j) => (
-                  <Star key={j} className="h-5 w-5 fill-amber-500 text-amber-500" />
-                ))}
-              </div>
-              <blockquote className="mb-6 text-xl text-slate-200 font-medium leading-relaxed">
-                "{testimonials[activeTestimonial].text}"
-              </blockquote>
-              <div>
-                <cite className="not-italic font-semibold text-white block">
-                  {testimonials[activeTestimonial].name}
-                </cite>
-                <span className="text-slate-500 text-sm">
-                  {testimonials[activeTestimonial].role}
-                </span>
-              </div>
-            </div>
-
-            <div className="mt-8 flex justify-center gap-2">
-              {testimonials.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveTestimonial(i)}
-                  className={`h-1.5 rounded-full transition-all duration-300 ${
-                    i === activeTestimonial ? "w-8 bg-violet-500" : "w-2 bg-slate-700 hover:bg-slate-600"
-                  }`}
-                  aria-label={`Ver depoimento ${i + 1}`}
-                />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* CTA / Pricing Simplified */}
       <section className="px-4 py-24">
