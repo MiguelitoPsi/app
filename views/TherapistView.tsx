@@ -155,14 +155,17 @@ export const TherapistView: React.FC = () => {
     ""
   );
   const [isJournalFilterOpen, setIsJournalFilterOpen] = useState(false);
-  const [readJournalEntries, setReadJournalEntries] = useState<string[]>([]);
+
+
+  const utils = trpc.useUtils();
+  const markAsReadMutation = trpc.journal.markAsRead.useMutation({
+    onSuccess: () => {
+      utils.journal.getAll.invalidate();
+    }
+  });
 
   const toggleJournalRead = (entryId: string) => {
-    setReadJournalEntries((prev) =>
-      prev.includes(entryId)
-        ? prev.filter((id) => id !== entryId)
-        : [...prev, entryId]
-    );
+    markAsReadMutation.mutate({ id: entryId });
   };
 
   // Reward Management State
@@ -265,6 +268,7 @@ export const TherapistView: React.FC = () => {
       intensity: 5, // Default intensity since DB doesn't have this field
       thought: entry.content,
       aiAnalysis: entry.aiAnalysis || undefined,
+      isRead: entry.isRead || false,
     })
   );
 
@@ -590,9 +594,9 @@ export const TherapistView: React.FC = () => {
         {selectedPatientId ? (
           <>
             {/* Navigation Tabs - Only shown when patient is selected */}
-            <div className="grid grid-cols-4 gap-2 sm:gap-3">
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 lg:flex lg:gap-4">
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
                   activeSection === "overview"
                     ? "ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900"
                     : "hover:scale-[1.02]"
@@ -601,15 +605,15 @@ export const TherapistView: React.FC = () => {
                 type="button"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600" />
-                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2">
-                  <BarChart2 className="h-5 w-5 sm:h-7 sm:w-7" />
-                  <span className="font-semibold text-[9px] sm:text-xs">
+                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3">
+                  <BarChart2 className="h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5" />
+                  <span className="font-semibold text-[9px] sm:text-xs lg:text-sm">
                     Visão Geral
                   </span>
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
                   activeSection === "journal"
                     ? "ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900"
                     : "hover:scale-[1.02]"
@@ -618,17 +622,17 @@ export const TherapistView: React.FC = () => {
                 type="button"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600" />
-                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2">
-                  <FileText className="h-5 w-5 sm:h-7 sm:w-7" />
-                  <span className="font-semibold text-[9px] sm:text-xs">
+                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3">
+                  <FileText className="h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5" />
+                  <span className="font-semibold text-[9px] sm:text-xs lg:text-sm">
                     Diário{" "}
-                    {journalData.length - readJournalEntries.length > 0 &&
-                      `(${journalData.length - readJournalEntries.length})`}
+                    {journalData.filter((e) => !e.isRead).length > 0 &&
+                      `(${journalData.filter((e) => !e.isRead).length})`}
                   </span>
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
                   activeSection === "rewards"
                     ? "ring-2 ring-cyan-400 ring-offset-2 dark:ring-offset-slate-900"
                     : "hover:scale-[1.02]"
@@ -637,14 +641,14 @@ export const TherapistView: React.FC = () => {
                 type="button"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-cyan-600" />
-                <div className="relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2">
-                  <Gift className="h-5 w-5 sm:h-7 sm:w-7" />
-                  <span className="truncate font-semibold text-[8px] sm:text-xs">
+                <div className="relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2 lg:flex-row lg:gap-3">
+                  <Gift className="h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5" />
+                  <span className="truncate font-semibold text-[8px] sm:text-xs lg:text-sm">
                     Prêmios
                   </span>
                   {rewardsData.filter((r) => r.status === "pending").length >
                     0 && (
-                    <span className="font-bold text-[10px] sm:text-xs">
+                    <span className="font-bold text-[10px] sm:text-xs lg:text-sm">
                       (
                       {rewardsData.filter((r) => r.status === "pending").length}
                       )
@@ -653,7 +657,7 @@ export const TherapistView: React.FC = () => {
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
                   activeSection === "profile"
                     ? "ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900"
                     : "hover:scale-[1.02]"
@@ -662,9 +666,9 @@ export const TherapistView: React.FC = () => {
                 type="button"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600" />
-                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2">
-                  <User className="h-5 w-5 sm:h-7 sm:w-7" />
-                  <span className="font-semibold text-[9px] sm:text-xs">
+                <div className="relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3">
+                  <User className="h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5" />
+                  <span className="font-semibold text-[9px] sm:text-xs lg:text-sm">
                     Perfil
                   </span>
                 </div>
@@ -1033,7 +1037,7 @@ export const TherapistView: React.FC = () => {
               </div>
             ) : (
               journalData.map((entry, index) => {
-                const isRead = readJournalEntries.includes(entry.id);
+                const isRead = entry.isRead;
 
                 if (isRead) {
                   return (

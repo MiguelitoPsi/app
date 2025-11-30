@@ -127,6 +127,7 @@ export const journalEntries = sqliteTable("journal_entries", {
   mood: text("mood"),
   tags: text("tags", { mode: "json" }).$type<string[]>(),
   aiAnalysis: text("ai_analysis"),
+  isRead: integer("is_read", { mode: "boolean" }).default(false),
   deletedAt: integer("deleted_at", { mode: "timestamp" }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()

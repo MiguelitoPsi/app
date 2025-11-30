@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { journalEntries, psychologistPatients, userStats } from '@/lib/db/schema'
-import { awardXPAndCoins } from '@/lib/xp'
+import { awardXPAndCoins, addRawXP } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
 
@@ -153,5 +153,53 @@ export const journalRouter = router({
         .where(and(eq(journalEntries.id, input.id), eq(journalEntries.userId, ctx.user.id)))
 
       return { success: true }
+    }),
+
+  markAsRead: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify user is a psychologist
+      if (ctx.user.role !== 'psychologist') {
+        throw new Error('Unauthorized: Only psychologists can mark entries as read')
+      }
+
+      // Get the entry to find the patient ID
+      const [entry] = await ctx.db
+        .select()
+        .from(journalEntries)
+        .where(eq(journalEntries.id, input.id))
+        .limit(1)
+
+      if (!entry) {
+        throw new Error('Journal entry not found')
+      }
+
+      // Verify relationship
+      const relationship = await ctx.db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.psychologistId, ctx.user.id),
+          eq(psychologistPatients.patientId, entry.userId)
+        ),
+      })
+
+      if (!relationship) {
+        throw new Error('Unauthorized: No relationship with this patient')
+      }
+
+      // Check if already read to avoid double XP
+      if (entry.isRead) {
+        return { success: true, xpAwarded: 0 }
+      }
+
+      // Mark as read
+      await ctx.db
+        .update(journalEntries)
+        .set({ isRead: true })
+        .where(eq(journalEntries.id, input.id))
+
+      // Award XP to patient
+      const { experience, level } = await addRawXP(ctx.db, entry.userId, 5)
+
+      return { success: true, xpAwarded: 5, newLevel: level, newExperience: experience }
     }),
 })

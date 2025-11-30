@@ -7,6 +7,7 @@ export type JournalEntry = {
   intensity: number // 1-10
   thought: string
   aiAnalysis?: string
+  isRead?: boolean
 }
 
 export type Task = {

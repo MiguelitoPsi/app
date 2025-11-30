@@ -1,11 +1,12 @@
 'use client'
 
-import { AlertCircle, ArrowRight, BarChart2, BookOpen, Heart, Sparkles } from 'lucide-react'
+import { AlertCircle, ArrowRight, BarChart2, BookOpen, Heart, Key, LogOut, Moon, Settings, Sparkles, Stethoscope, Sun, X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import AvatarOficial from '@/components/Avatar-oficial'
+import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import { XP_REWARDS } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
@@ -31,7 +32,7 @@ const ResponsiveContainer = dynamic(
 
 export const HomeView: React.FC = () => {
   const router = useRouter()
-  const { stats, currentMood, setMood, tasks } = useGame()
+  const { stats, currentMood, setMood, tasks, toggleTheme } = useGame()
   const [isXPAvailable, setIsXPAvailable] = useState(false)
   const [xpFeedback, setXpFeedback] = useState<{
     id: number
@@ -42,6 +43,8 @@ export const HomeView: React.FC = () => {
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood)
   const [_, setIsScrolled] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Fetch mood history from backend
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
@@ -109,6 +112,29 @@ export const HomeView: React.FC = () => {
 
     // Update backend asynchronously
     setMood(mood)
+  }
+
+  // Logout handler
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: async () => {
+            // Limpar o cookie de role
+            await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+            window.location.href = '/auth/signin'
+          },
+          onError: (ctx) => {
+            console.error('Logout error:', ctx.error)
+            setIsLoggingOut(false)
+          },
+        },
+      })
+    } catch (error) {
+      console.error('Error during logout:', error)
+      setIsLoggingOut(false)
+    }
   }
 
   // Check for High Priority Tasks due Today
@@ -201,6 +227,17 @@ export const HomeView: React.FC = () => {
       )}
 
       {/* Header Section */}
+      <div className='mb-3 flex justify-end px-4 sm:mb-4 sm:px-6'>
+        <button
+          aria-label='Abrir configurações'
+          className='touch-target p-2 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+          onClick={() => setShowSettings(true)}
+          type='button'
+        >
+          <Settings className='sm:hidden' size={18} />
+          <Settings className='hidden sm:block' size={20} />
+        </button>
+      </div>
 
       {/* Scrollable Content - Main area */}
       <main
@@ -416,6 +453,123 @@ export const HomeView: React.FC = () => {
           )}
         </section>
       </main>
+
+      {/* Settings Modal */}
+      {showSettings && (
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+          <div
+            className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className='mb-4 flex items-center justify-between sm:mb-6'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <Settings className='text-slate-400' size={18} /> Configurações
+              </h3>
+              <button
+                aria-label='Fechar modal'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+                onClick={() => setShowSettings(false)}
+                type='button'
+              >
+                <X size={16} />
+              </button>
+            </div>
+            <div className='space-y-3 sm:space-y-4'>
+              <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    {stats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
+                  </div>
+                  <div className='min-w-0'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Modo Escuro
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Ajustar aparência do app
+                    </p>
+                  </div>
+                </div>
+                <div
+                  aria-checked={stats.theme === 'dark'}
+                  aria-label={
+                    stats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
+                  }
+                  className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                    stats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                  }`}
+                  onClick={toggleTheme}
+                  onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+                  role='switch'
+                  tabIndex={0}
+                >
+                  <div
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                      stats.theme === 'dark' ? 'left-[22px]' : 'left-0.5'
+                    }`}
+                  />
+                </div>
+              </div>
+              {/* Change Password Button */}
+              <button
+                className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                onClick={() => {
+                  setShowSettings(false)
+                  router.push('/profile')
+                }}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <Key size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Alterar Senha
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Atualizar sua senha de acesso
+                    </p>
+                  </div>
+                </div>
+              </button>
+              {stats.role === 'psychologist' && (
+                <button
+                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                  onClick={() => {
+                    window.location.href = '/dashboard'
+                  }}
+                  type='button'
+                >
+                  <div className='flex items-center gap-2 sm:gap-3'>
+                    <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <Stethoscope size={18} />
+                    </div>
+                    <div className='text-left'>
+                      <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                        Portal do Especialista
+                      </h4>
+                      <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                        Gerencie seus pacientes
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              )}
+            </div>
+            <div className='mt-6 border-slate-100 border-t pt-4 sm:mt-8 sm:pt-6 dark:border-slate-800'>
+              <button
+                className='touch-target flex w-full items-center justify-center gap-2 py-2.5 font-medium text-slate-400 text-xs transition-colors hover:text-red-500 sm:py-3 sm:text-sm dark:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50'
+                disabled={isLoggingOut}
+                onClick={handleLogout}
+                type='button'
+              >
+                <LogOut size={16} /> {isLoggingOut ? 'Saindo...' : 'Sair da conta'}
+              </button>
+            </div>
+          </div>
+          <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
+        </div>
+      )}
     </div>
   )
 }
