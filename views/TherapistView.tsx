@@ -482,13 +482,13 @@ export const TherapistView: React.FC = () => {
 
       {/* Patient Selector */}
       {linkedPatients.length > 0 && (
-        <div className="group relative mb-6" ref={patientDropdownRef}>
+        <div className="group relative mb-6 lg:max-w-xs" ref={patientDropdownRef}>
           <label className="mb-1.5 ml-1 block font-bold text-slate-400 text-[10px] uppercase tracking-wider dark:text-slate-500">
             Paciente Selecionado
           </label>
           <div className="relative">
             <button
-              className="touch-target w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 p-3 pl-10 pr-10 text-left font-bold text-sm text-slate-700 outline-none transition-all hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 sm:rounded-2xl sm:p-4 sm:pl-12 sm:pr-12 lg:max-w-md dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/50"
+              className="touch-target w-full cursor-pointer appearance-none rounded-xl border border-slate-200 bg-slate-50 p-3 pl-10 pr-10 text-left font-bold text-sm text-slate-700 outline-none transition-all hover:bg-slate-100 focus:ring-2 focus:ring-indigo-500 sm:rounded-2xl sm:p-4 sm:pl-12 sm:pr-12 lg:rounded-xl lg:p-2.5 lg:pl-9 lg:pr-10 lg:text-xs dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700/50"
               disabled={isLoadingPatients}
               onClick={() => setIsPatientDropdownOpen(!isPatientDropdownOpen)}
               type="button"
@@ -497,14 +497,14 @@ export const TherapistView: React.FC = () => {
                 ? linkedPatients.find((p) => p.id === selectedPatientId)?.name
                 : "Selecione um paciente"}
             </button>
-            <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 rounded-md bg-white p-1 shadow-sm sm:left-4 sm:rounded-lg sm:p-1.5 dark:bg-slate-700">
+            <div className="-translate-y-1/2 pointer-events-none absolute top-1/2 left-3 rounded-md bg-white p-1 shadow-sm sm:left-4 sm:rounded-lg sm:p-1.5 lg:left-2.5 lg:p-1 dark:bg-slate-700">
               <Users
-                className="text-indigo-500 dark:text-indigo-400"
+                className="text-indigo-500 dark:text-indigo-400 lg:h-3.5 lg:w-3.5"
                 size={14}
               />
             </div>
             <ChevronDown
-              className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 ${
+              className={`-translate-y-1/2 pointer-events-none absolute top-1/2 right-3 text-slate-400 transition-all group-hover:text-indigo-500 sm:right-4 lg:right-2.5 lg:h-4 lg:w-4 ${
                 isPatientDropdownOpen ? "rotate-180" : ""
               }`}
               size={18}
@@ -512,7 +512,7 @@ export const TherapistView: React.FC = () => {
 
             {/* Dropdown with search */}
             {isPatientDropdownOpen && (
-              <div className="absolute top-full left-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg sm:rounded-2xl lg:max-w-md dark:border-slate-700 dark:bg-slate-800">
+              <div className="absolute top-full left-0 z-50 mt-2 w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg sm:rounded-2xl dark:border-slate-700 dark:bg-slate-800">
                 {/* Search input */}
                 <div className="border-slate-100 border-b p-2 dark:border-slate-700">
                   <div className="relative">
