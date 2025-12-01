@@ -146,7 +146,14 @@ export const TherapistSidebar: React.FC = memo(
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-200 p-3 dark:border-slate-700">
+          <div className="border-t border-slate-200 p-3 space-y-1 dark:border-slate-700">
+            <Link
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+              href="/settings"
+            >
+              <span className="text-base">⚙️</span>
+              Configurações
+            </Link>
             <button
               className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
               onClick={handleLogout}
