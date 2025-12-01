@@ -249,7 +249,7 @@ export const TherapistView: React.FC = () => {
     intensity: 5, // Default intensity since DB doesn't have this field
     thought: entry.content,
     aiAnalysis: entry.aiAnalysis || undefined,
-    isRead: entry.isRead,
+    isRead: entry.isRead ?? undefined,
   }))
 
   // Transform patient rewards data from DB format to component format
