@@ -9,6 +9,7 @@ type TherapistTermsModalProps = {
   onAccept?: () => void
   onClose?: () => void
   mode?: 'accept' | 'view'
+  termsAcceptedAt?: Date | null
 }
 
 export function TherapistTermsModal({
@@ -16,6 +17,7 @@ export function TherapistTermsModal({
   onAccept,
   onClose,
   mode = 'accept',
+  termsAcceptedAt,
 }: TherapistTermsModalProps) {
   const [hasScrolledToBottom, setHasScrolledToBottom] = useState(false)
   const [isAccepting, setIsAccepting] = useState(false)
@@ -276,6 +278,32 @@ export function TherapistTermsModal({
               </div>
             </div>
           </div>
+
+          {/* Signature timestamp - only show in view mode if terms were accepted */}
+          {isViewMode && termsAcceptedAt && (
+            <div className='mt-6 rounded-xl border border-green-100 bg-green-50/50 p-4 dark:border-green-900/30 dark:bg-green-900/10'>
+              <div className='flex items-center gap-2'>
+                <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />
+                <div>
+                  <p className='m-0 font-semibold text-green-700 text-sm dark:text-green-300'>
+                    Termo assinado em:
+                  </p>
+                  <p className='m-0 text-green-600 text-sm dark:text-green-400'>
+                    {new Date(termsAcceptedAt).toLocaleDateString('pt-BR', {
+                      day: '2-digit',
+                      month: '2-digit',
+                      year: 'numeric',
+                    })}{' '}
+                    às{' '}
+                    {new Date(termsAcceptedAt).toLocaleTimeString('pt-BR', {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Footer */}

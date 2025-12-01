@@ -346,11 +346,12 @@ export const userRouter = router({
 
     // Only psychologists need to accept terms
     if (user.role !== "psychologist") {
-      return { needsToAcceptTerms: false };
+      return { needsToAcceptTerms: false, termsAcceptedAt: null };
     }
 
     return {
       needsToAcceptTerms: !user.termsAcceptedAt,
+      termsAcceptedAt: user.termsAcceptedAt,
     };
   }),
 

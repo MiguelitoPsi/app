@@ -17,6 +17,7 @@ import { TherapistProfileModal } from "@/components/TherapistProfileModal";
 import { TherapistTermsModal } from "@/components/TherapistTermsModal";
 import { useTherapistGame } from "@/context/TherapistGameContext";
 import { authClient } from "@/lib/auth-client";
+import { trpc } from "@/lib/trpc/client";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -35,6 +36,9 @@ export default function SettingsPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // Fetch terms acceptance status
+  const { data: termsData } = trpc.user.checkTermsAccepted.useQuery();
 
   const resetPasswordForm = () => {
     setCurrentPassword("");
@@ -410,6 +414,7 @@ export default function SettingsPage() {
         isOpen={showTermsModal}
         mode="view"
         onClose={() => setShowTermsModal(false)}
+        termsAcceptedAt={termsData?.termsAcceptedAt ?? null}
       />
 
       <TherapistProfileModal
