@@ -213,9 +213,9 @@ function SignInForm() {
                 Não tem uma conta?{' '}
                 <Link
                   className='rounded font-semibold text-violet-400 underline-offset-2 hover:text-violet-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
-                  href='/auth/signup'
+                  href='/'
                 >
-                  Cadastre-se
+                  Voltar ao início
                 </Link>
               </p>
             </div>

@@ -52,16 +52,10 @@ export default function LandingPage() {
 
           <div className='flex items-center gap-4'>
             <Link
-              className='hidden text-sm font-medium text-slate-300 hover:text-white sm:block'
+              className='rounded-lg bg-violet-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-violet-500 hover:shadow-lg hover:shadow-violet-500/20'
               href='/auth/signin'
             >
               Entrar
-            </Link>
-            <Link
-              className='rounded-lg bg-violet-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-violet-500 hover:shadow-lg hover:shadow-violet-500/20'
-              href='/auth/signup'
-            >
-              Começar Agora
             </Link>
           </div>
         </div>
@@ -99,9 +93,9 @@ export default function LandingPage() {
           <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
             <Link
               className='group flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-slate-900 shadow-xl shadow-violet-500/10 transition-all hover:bg-slate-100 hover:shadow-violet-500/20 sm:w-auto'
-              href='/auth/signup'
+              href='#recursos'
             >
-              Criar Conta Gratuita
+              Saiba mais
               <ArrowRight className='h-5 w-5 text-violet-600 transition-transform group-hover:translate-x-1' />
             </Link>
             <Link
@@ -225,9 +219,9 @@ export default function LandingPage() {
 
               <Link
                 className='inline-flex items-center justify-center gap-2 rounded-lg border border-violet-500/50 bg-violet-500/10 px-6 py-3 font-semibold text-violet-300 transition-all hover:bg-violet-500/20'
-                href='/auth/signup?role=specialist'
+                href='mailto:contato@nepsis.com?subject=Cadastro como Profissional'
               >
-                Cadastrar como Profissional
+                Entre em contato para cadastro
                 <ChevronRight className='h-4 w-4' />
               </Link>
             </div>
@@ -288,9 +282,9 @@ export default function LandingPage() {
               <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
                 <Link
                   className='group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-violet-900 shadow-lg transition-all hover:bg-slate-100 hover:scale-105'
-                  href='/auth/signup'
+                  href='#recursos'
                 >
-                  Criar Conta Gratuita
+                  Saiba mais
                   <ArrowRight className='h-5 w-5 transition-transform group-hover:translate-x-1' />
                 </Link>
               </div>
