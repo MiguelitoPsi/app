@@ -26,6 +26,12 @@ export default function UsersPage() {
     name: string
     action: 'suspend' | 'delete' | 'reactivate'
   } | null>(null)
+  const [selectedUser, setSelectedUser] = useState<{
+    id: string
+    name: string
+    role: 'patient' | 'psychologist' | 'admin'
+    action: 'suspend' | 'delete' | 'reactivate'
+  } | null>(null)
 
   const { data: users, isLoading, refetch } = trpc.admin.getAllUsers.useQuery()
 
@@ -64,6 +70,40 @@ export default function UsersPage() {
     },
   })
 
+  const suspendUser = trpc.admin.suspendUser.useMutation({
+    onSuccess: () => {
+      broadcastSuspension()
+      alert('Usuário suspenso com sucesso.')
+      setSelectedUser(null)
+      refetch()
+    },
+    onError: (err) => {
+      alert(`Erro ao suspender: ${err.message}`)
+    },
+  })
+
+  const reactivateUser = trpc.admin.reactivateUser.useMutation({
+    onSuccess: () => {
+      alert('Usuário reativado com sucesso.')
+      setSelectedUser(null)
+      refetch()
+    },
+    onError: (err) => {
+      alert(`Erro ao reativar: ${err.message}`)
+    },
+  })
+
+  const deleteUser = trpc.admin.deleteUser.useMutation({
+    onSuccess: () => {
+      alert('Usuário excluído com sucesso.')
+      setSelectedUser(null)
+      refetch()
+    },
+    onError: (err) => {
+      alert(`Erro ao excluir: ${err.message}`)
+    },
+  })
+
   const handleConfirmAction = (reason?: string) => {
     if (!selectedPsychologist) return
 
@@ -77,6 +117,22 @@ export default function UsersPage() {
       reactivatePsychologist.mutate({ psychologistId: selectedPsychologist.id })
     } else if (selectedPsychologist.action === 'delete') {
       deletePsychologist.mutate({ psychologistId: selectedPsychologist.id })
+    }
+  }
+
+  const handleUserAction = (reason?: string) => {
+    if (!selectedUser) return
+
+    if (selectedUser.action === 'suspend') {
+      if (!reason) {
+        alert('Motivo da suspensão é obrigatório')
+        return
+      }
+      suspendUser.mutate({ userId: selectedUser.id, reason })
+    } else if (selectedUser.action === 'reactivate') {
+      reactivateUser.mutate({ userId: selectedUser.id })
+    } else if (selectedUser.action === 'delete') {
+      deleteUser.mutate({ userId: selectedUser.id })
     }
   }
 
@@ -202,19 +258,26 @@ export default function UsersPage() {
                       {new Date(user.createdAt).toLocaleDateString('pt-BR')}
                     </td>
                     <td className='px-6 py-4'>
-                      {user.role === 'psychologist' && (
+                      {(user.role === 'psychologist' || user.role === 'patient') && (
                         <div className='flex items-center gap-2'>
                           {user.bannedAt ? (
                             <button
                               className='rounded-lg bg-green-600/20 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-600/30'
                               onClick={() =>
-                                setSelectedPsychologist({
-                                  id: user.id,
-                                  name: user.name,
-                                  action: 'reactivate',
-                                })
+                                user.role === 'psychologist'
+                                  ? setSelectedPsychologist({
+                                      id: user.id,
+                                      name: user.name,
+                                      action: 'reactivate',
+                                    })
+                                  : setSelectedUser({
+                                      id: user.id,
+                                      name: user.name,
+                                      role: user.role as 'patient' | 'psychologist',
+                                      action: 'reactivate',
+                                    })
                               }
-                              title='Reativar psicólogo e pacientes'
+                              title={`Reativar ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
                               type='button'
                             >
                               <ReactivateIcon />
@@ -223,13 +286,20 @@ export default function UsersPage() {
                             <button
                               className='rounded-lg bg-amber-600/20 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-600/30'
                               onClick={() =>
-                                setSelectedPsychologist({
-                                  id: user.id,
-                                  name: user.name,
-                                  action: 'suspend',
-                                })
+                                user.role === 'psychologist'
+                                  ? setSelectedPsychologist({
+                                      id: user.id,
+                                      name: user.name,
+                                      action: 'suspend',
+                                    })
+                                  : setSelectedUser({
+                                      id: user.id,
+                                      name: user.name,
+                                      role: user.role as 'patient' | 'psychologist',
+                                      action: 'suspend',
+                                    })
                               }
-                              title='Suspender psicólogo e pacientes'
+                              title={`Suspender ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
                               type='button'
                             >
                               <SuspendIcon />
@@ -238,13 +308,20 @@ export default function UsersPage() {
                           <button
                             className='rounded-lg bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30'
                             onClick={() =>
-                              setSelectedPsychologist({
-                                id: user.id,
-                                name: user.name,
-                                action: 'delete',
-                              })
+                              user.role === 'psychologist'
+                                ? setSelectedPsychologist({
+                                    id: user.id,
+                                    name: user.name,
+                                    action: 'delete',
+                                  })
+                                : setSelectedUser({
+                                    id: user.id,
+                                    name: user.name,
+                                    role: user.role as 'patient' | 'psychologist',
+                                    action: 'delete',
+                                  })
                             }
-                            title='Excluir psicólogo e pacientes'
+                            title={`Excluir ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
                             type='button'
                           >
                             <TrashIcon />
@@ -271,7 +348,7 @@ export default function UsersPage() {
         />
       )}
 
-      {/* Confirmation Modal */}
+      {/* Confirmation Modal for Psychologists */}
       {selectedPsychologist && (
         <ConfirmationModal
           action={selectedPsychologist.action}
@@ -284,6 +361,18 @@ export default function UsersPage() {
           onConfirm={handleConfirmAction}
           psychologistId={selectedPsychologist.id}
           psychologistName={selectedPsychologist.name}
+        />
+      )}
+
+      {/* Confirmation Modal for Users (Patients) */}
+      {selectedUser && (
+        <UserConfirmationModal
+          action={selectedUser.action}
+          isLoading={suspendUser.isPending || reactivateUser.isPending || deleteUser.isPending}
+          onClose={() => setSelectedUser(null)}
+          onConfirm={handleUserAction}
+          userName={selectedUser.name}
+          userRole={selectedUser.role as 'patient' | 'psychologist'}
         />
       )}
     </div>
@@ -635,6 +724,123 @@ function ConfirmationModal({
               <textarea
                 className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500'
                 id='suspend-reason'
+                onChange={(e) => setSuspendReason(e.target.value)}
+                placeholder='Descreva o motivo da suspensão...'
+                rows={3}
+                value={suspendReason}
+              />
+            </div>
+          )}
+
+          <div className='flex gap-3 pt-4'>
+            <button
+              className='flex-1 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800'
+              onClick={onClose}
+              type='button'
+            >
+              Cancelar
+            </button>
+            <button
+              className={`flex-1 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${labels.buttonClass}`}
+              disabled={isLoading || (action === 'suspend' && !suspendReason.trim())}
+              onClick={() => onConfirm(action === 'suspend' ? suspendReason : undefined)}
+              type='button'
+            >
+              {isLoading ? 'Processando...' : labels.buttonText}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function UserConfirmationModal({
+  userName,
+  userRole,
+  action,
+  onClose,
+  onConfirm,
+  isLoading,
+}: {
+  userName: string
+  userRole: 'patient' | 'psychologist'
+  action: 'suspend' | 'delete' | 'reactivate'
+  onClose: () => void
+  onConfirm: (reason?: string) => void
+  isLoading: boolean
+}) {
+  const [suspendReason, setSuspendReason] = useState('')
+
+  const userRoleLabels = {
+    patient: 'Paciente',
+    psychologist: 'Psicólogo',
+  }
+
+  const actionLabels = {
+    suspend: {
+      title: `Suspender ${userRoleLabels[userRole]}`,
+      description: 'suspender',
+      warning: `Ao suspender este ${userRoleLabels[userRole].toLowerCase()}, ele não poderá acessar o sistema.`,
+      buttonText: 'Suspender',
+      buttonClass: 'bg-amber-600 hover:bg-amber-700',
+    },
+    reactivate: {
+      title: `Reativar ${userRoleLabels[userRole]}`,
+      description: 'reativar',
+      warning: `Ao reativar este ${userRoleLabels[userRole].toLowerCase()}, ele poderá acessar o sistema novamente.`,
+      buttonText: 'Reativar',
+      buttonClass: 'bg-green-600 hover:bg-green-700',
+    },
+    delete: {
+      title: `Excluir ${userRoleLabels[userRole]}`,
+      description: 'excluir permanentemente',
+      warning: `ATENÇÃO: Esta ação é irreversível! Ao excluir este ${userRoleLabels[userRole].toLowerCase()}, TODOS os seus dados serão perdidos permanentemente.`,
+      buttonText: 'Excluir Permanentemente',
+      buttonClass: 'bg-red-600 hover:bg-red-700',
+    },
+  }
+
+  const labels = actionLabels[action]
+
+  return (
+    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+      <div className='w-full max-w-lg rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl'>
+        <div className='mb-6 flex items-center justify-between'>
+          <h2 className='text-xl font-semibold text-white'>{labels.title}</h2>
+          <button
+            aria-label='Fechar modal'
+            className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-slate-700 hover:text-white hover:scale-110 active:scale-95'
+            onClick={onClose}
+            type='button'
+          >
+            <CloseIcon />
+          </button>
+        </div>
+
+        <div className='space-y-4'>
+          <p className='text-slate-300'>
+            Você está prestes a {labels.description} o {userRoleLabels[userRole].toLowerCase()}{' '}
+            <strong className='text-white'>{userName}</strong>.
+          </p>
+
+          <div
+            className={`rounded-lg p-4 ${action === 'delete' ? 'bg-red-500/20 text-red-300' : action === 'reactivate' ? 'bg-green-500/20 text-green-300' : 'bg-amber-500/20 text-amber-300'}`}
+          >
+            <p className='text-sm'>{labels.warning}</p>
+          </div>
+
+          {action === 'suspend' && (
+            <div className='space-y-2'>
+              <label
+                className='block text-sm font-medium text-slate-300'
+                htmlFor='suspend-reason-user'
+              >
+                Motivo da suspensão <span className='text-red-400'>*</span>
+              </label>
+              <textarea
+                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500'
+                id='suspend-reason-user'
                 onChange={(e) => setSuspendReason(e.target.value)}
                 placeholder='Descreva o motivo da suspensão...'
                 rows={3}

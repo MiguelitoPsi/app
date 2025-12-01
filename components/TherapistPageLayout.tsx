@@ -1,41 +1,41 @@
-"use client";
+'use client'
 
-import type { LucideIcon } from "lucide-react";
-import type React from "react";
+import type { LucideIcon } from 'lucide-react'
+import type React from 'react'
 
 type TherapistPageLayoutProps = {
-  children: React.ReactNode;
+  children: React.ReactNode
   /**
    * Se true, remove todo o padding do container (útil para pages com header próprio)
    */
-  noPadding?: boolean;
+  noPadding?: boolean
   /**
    * Classes CSS adicionais para o container
    */
-  className?: string;
-};
+  className?: string
+}
 
 type TherapistPageHeaderProps = {
-  title: string;
-  subtitle?: string;
-  icon?: LucideIcon;
+  title: string
+  subtitle?: string
+  icon?: LucideIcon
   /**
    * Classes de gradiente Tailwind (ex: "from-violet-600 to-purple-700")
    */
-  gradient?: string;
+  gradient?: string
   /**
    * Conteúdo adicional à direita do título
    */
-  rightContent?: React.ReactNode;
+  rightContent?: React.ReactNode
   /**
    * Seção de estatísticas abaixo do título
    */
-  statsSection?: React.ReactNode;
+  statsSection?: React.ReactNode
   /**
    * Conteúdo extra abaixo das stats (ex: seletor de paciente)
    */
-  extraContent?: React.ReactNode;
-};
+  extraContent?: React.ReactNode
+}
 
 /**
  * TherapistPageLayout - Layout padronizado para páginas do terapeuta
@@ -74,19 +74,17 @@ type TherapistPageHeaderProps = {
 export function TherapistPageLayout({
   children,
   noPadding = false,
-  className = "",
+  className = '',
 }: TherapistPageLayoutProps) {
   return (
     <div
       className={`h-full overflow-y-auto ${
-        noPadding
-          ? ""
-          : "px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8"
+        noPadding ? '' : 'px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8'
       } ${className}`}
     >
       {children}
     </div>
-  );
+  )
 }
 
 /**
@@ -109,57 +107,45 @@ export function TherapistPageHeader({
   title,
   subtitle,
   icon: Icon,
-  gradient = "from-violet-600 to-purple-700",
+  gradient = 'from-violet-600 to-purple-700',
   rightContent,
   statsSection,
   extraContent,
 }: TherapistPageHeaderProps) {
   return (
-    <header
-      className={`relative z-10 bg-gradient-to-br ${gradient} pt-safe text-white`}
-    >
-      <div className="mx-auto max-w-7xl px-3 pb-3 pt-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-3">
+    <header className={`relative z-10 bg-gradient-to-br ${gradient} pt-safe text-white`}>
+      <div className='mx-auto max-w-7xl px-3 pb-3 pt-4 sm:px-6 lg:px-8'>
+        <div className='flex items-center justify-between'>
+          <div className='flex items-center gap-2 sm:gap-3'>
             {Icon && (
-              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-10 sm:w-10 lg:h-12 lg:w-12">
-                <Icon className="h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6" />
+              <div className='flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white/20 sm:h-10 sm:w-10 lg:h-12 lg:w-12'>
+                <Icon className='h-4 w-4 sm:h-5 sm:w-5 lg:h-6 lg:w-6' />
               </div>
             )}
-            <div className="min-w-0">
+            <div className='min-w-0'>
               {subtitle && (
-                <p className="text-xs text-white/80 sm:text-sm lg:text-base">
-                  {subtitle}
-                </p>
+                <p className='text-xs text-white/80 sm:text-sm lg:text-base'>{subtitle}</p>
               )}
-              <h1 className="truncate font-bold text-lg sm:text-xl lg:text-2xl">
-                {title}
-              </h1>
+              <h1 className='truncate font-bold text-lg sm:text-xl lg:text-2xl'>{title}</h1>
             </div>
           </div>
           {rightContent && (
-            <div className="flex flex-shrink-0 items-center gap-2">
-              {rightContent}
-            </div>
+            <div className='flex flex-shrink-0 items-center gap-2'>{rightContent}</div>
           )}
         </div>
       </div>
 
       {/* Stats Section - opcional */}
       {statsSection && (
-        <div className="mx-auto max-w-7xl px-3 pb-3 sm:px-6 sm:pb-4 lg:px-8">
-          {statsSection}
-        </div>
+        <div className='mx-auto max-w-7xl px-3 pb-3 sm:px-6 sm:pb-4 lg:px-8'>{statsSection}</div>
       )}
 
       {/* Extra Content - opcional (ex: seletor de paciente) */}
       {extraContent && (
-        <div className="mx-auto max-w-7xl px-3 pb-3 sm:px-6 sm:pb-4 lg:px-8">
-          {extraContent}
-        </div>
+        <div className='mx-auto max-w-7xl px-3 pb-3 sm:px-6 sm:pb-4 lg:px-8'>{extraContent}</div>
       )}
     </header>
-  );
+  )
 }
 
 /**
@@ -169,10 +155,10 @@ export function TherapistPageHeader({
  */
 export function TherapistPageContent({
   children,
-  className = "",
+  className = '',
 }: {
-  children: React.ReactNode;
-  className?: string;
+  children: React.ReactNode
+  className?: string
 }) {
   return (
     <main
@@ -180,7 +166,7 @@ export function TherapistPageContent({
     >
       {children}
     </main>
-  );
+  )
 }
 
-export default TherapistPageLayout;
+export default TherapistPageLayout

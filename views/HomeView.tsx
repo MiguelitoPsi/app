@@ -1,6 +1,20 @@
 'use client'
 
-import { AlertCircle, ArrowRight, BarChart2, BookOpen, Heart, Key, LogOut, Moon, Settings, Sparkles, Stethoscope, Sun, X } from 'lucide-react'
+import {
+  AlertCircle,
+  ArrowRight,
+  BarChart2,
+  BookOpen,
+  Heart,
+  Key,
+  LogOut,
+  Moon,
+  Settings,
+  Sparkles,
+  Stethoscope,
+  Sun,
+  X,
+} from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import type React from 'react'

@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { journalEntries, psychologistPatients, userStats } from '@/lib/db/schema'
-import { awardXPAndCoins, addRawXP } from '@/lib/xp'
+import { addRawXP, awardXPAndCoins } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
 
