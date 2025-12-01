@@ -220,18 +220,7 @@ function SignInForm() {
               </p>
             </div>
 
-            {/* Test Credentials */}
-            <div className='mt-8 border-slate-700/50 border-t pt-6'>
-              <p className='text-center text-slate-500 text-xs'>
-                <strong className='text-slate-400'>Credenciais de teste:</strong>
-                <br />
-                Admin: psijmrodrigues@gmail.com | Senha: Mig123@el!
-                <br />
-                Terapeuta: miguelito123@gmail.com | Senha: Mig123@el!
-                <br />
-                Paciente: miguel310rodrigues@gmail.com | Senha: Mig123@el!
-              </p>
-            </div>
+
           </main>
         </div>
       </div>
