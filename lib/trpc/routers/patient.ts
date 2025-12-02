@@ -496,4 +496,102 @@ export const patientRouter = router({
 
       return { success: true }
     }),
+  // Transferir paciente para outro terapeuta (Encaminhamento)
+  transferPatient: protectedProcedure
+    .input(
+      z.object({
+        patientId: z.string(),
+        newTherapistId: z.string(),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // 1. Verificar se existe o vínculo atual
+      const currentRelationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.patientId, input.patientId),
+          eq(psychologistPatients.psychologistId, ctx.user.id)
+        ),
+      })
+
+      if (!currentRelationship) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vínculo atual não encontrado',
+        })
+      }
+
+      // 2. Verificar se o novo terapeuta existe e é psicólogo
+      const newTherapist = await db.query.users.findFirst({
+        where: and(eq(users.id, input.newTherapistId), eq(users.role, 'psychologist')),
+      })
+
+      if (!newTherapist) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Novo terapeuta não encontrado',
+        })
+      }
+
+      // 3. Buscar nome do terapeuta atual
+      const currentTherapist = await db.query.users.findFirst({
+        where: eq(users.id, ctx.user.id),
+      })
+
+      // 4. Remover vínculo antigo
+      await db
+        .delete(psychologistPatients)
+        .where(eq(psychologistPatients.id, currentRelationship.id))
+
+      // 5. Criar novo vínculo
+      await db.insert(psychologistPatients).values({
+        id: nanoid(),
+        psychologistId: input.newTherapistId,
+        patientId: input.patientId,
+        isPrimary: true, // Assumindo que o novo terapeuta será o principal
+        createdAt: new Date(),
+      })
+
+      // 6. Criar notificação para o paciente
+      const reasonText = input.reason ? ` Motivo: ${input.reason}.` : ''
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: input.patientId,
+        type: 'patient_transferred', // Novo tipo de notificação, pode precisar adicionar ao schema se for enum
+        title: 'Novo Terapeuta',
+        message: `Você foi encaminhado para o terapeuta ${newTherapist.name} por ${
+          currentTherapist?.name || 'seu antigo terapeuta'
+        }.${reasonText}`,
+        metadata: {
+          oldTherapistId: ctx.user.id,
+          oldTherapistName: currentTherapist?.name,
+          newTherapistId: newTherapist.id,
+          newTherapistName: newTherapist.name,
+          reason: 'transferred',
+        },
+      })
+
+      // 7. Criar notificação para o novo terapeuta
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: newTherapist.id,
+        type: 'new_patient_transfer',
+        title: 'Novo Paciente Encaminhado',
+        message: `O paciente foi encaminhado para você por ${
+          currentTherapist?.name || 'outro terapeuta'
+        }.${reasonText}`,
+        metadata: {
+          patientId: input.patientId,
+          referredByTherapistId: ctx.user.id,
+          referredByTherapistName: currentTherapist?.name,
+          reason: 'transferred',
+        },
+      })
+
+      return { success: true }
+    }),
 })

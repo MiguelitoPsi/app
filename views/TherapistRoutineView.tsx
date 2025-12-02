@@ -341,7 +341,11 @@ export default function TherapistRoutineView() {
     if (taskForm.dueDate) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      const selectedTaskDate = new Date(taskForm.dueDate)
+      
+      // Parse the date string to avoid timezone issues
+      // taskForm.dueDate is in format "YYYY-MM-DD"
+      const [year, month, day] = taskForm.dueDate.split('-').map(Number)
+      const selectedTaskDate = new Date(year, month - 1, day)
       selectedTaskDate.setHours(0, 0, 0, 0)
 
       if (selectedTaskDate < today) {
@@ -522,9 +526,11 @@ export default function TherapistRoutineView() {
               className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 lg:flex lg:items-center lg:gap-2 lg:px-5 lg:py-3 sm:hover:scale-105 dark:shadow-none'
               onClick={() => {
                 setShowTaskForm(!showTaskForm)
-                const yyyy = selectedDate.getFullYear()
-                const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
-                const dd = String(selectedDate.getDate()).padStart(2, '0')
+                // Sempre usar a data de hoje como padrão, não a selectedDate
+                const today = new Date()
+                const yyyy = today.getFullYear()
+                const mm = String(today.getMonth() + 1).padStart(2, '0')
+                const dd = String(today.getDate()).padStart(2, '0')
                 setTaskForm({
                   ...defaultTaskForm,
                   dueDate: `${yyyy}-${mm}-${dd}`,
@@ -1697,31 +1703,54 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
-                    {/* Priority - APENAS PARA GERAL (sessão é sempre alta) */}
+                    {/* Date and Priority - PARA TAREFAS GERAIS */}
                     {taskForm.taskCategory === 'geral' && (
-                      <div>
-                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                          <Flag className='mb-0.5 inline h-3 w-3' /> Prioridade
-                        </label>
-                        <div className='flex gap-1'>
-                          {(['low', 'medium', 'high'] as const).map((p) => (
-                            <button
-                              className={`flex-1 rounded-lg border-2 py-2 font-bold text-[10px] uppercase transition-all ${
-                                taskForm.priority === p
-                                  ? p === 'high'
-                                    ? 'border-red-500 bg-red-50 text-red-500 dark:bg-red-900/20'
-                                    : p === 'medium'
-                                      ? 'border-orange-500 bg-orange-50 text-orange-500 dark:bg-orange-900/20'
-                                      : 'border-blue-500 bg-blue-50 text-blue-500 dark:bg-blue-900/20'
-                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                              }`}
-                              key={p}
-                              onClick={() => setTaskForm({ ...taskForm, priority: p })}
-                              type='button'
-                            >
-                              {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
-                            </button>
-                          ))}
+                      <div className='grid grid-cols-2 gap-4'>
+                        <div>
+                          <label
+                            className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                            htmlFor='my-task-due-date-geral'
+                          >
+                            <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
+                          </label>
+                          <input
+                            className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-emerald-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                            id='my-task-due-date-geral'
+                            onChange={(e) =>
+                              setTaskForm({
+                                ...taskForm,
+                                dueDate: e.target.value,
+                              })
+                            }
+                            type='date'
+                            value={taskForm.dueDate || ''}
+                          />
+                        </div>
+
+                        <div>
+                          <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                            <Flag className='mb-0.5 inline h-3 w-3' /> Prioridade
+                          </label>
+                          <div className='flex gap-1'>
+                            {(['low', 'medium', 'high'] as const).map((p) => (
+                              <button
+                                className={`flex-1 rounded-lg border-2 py-2 font-bold text-[10px] uppercase transition-all ${
+                                  taskForm.priority === p
+                                    ? p === 'high'
+                                      ? 'border-red-500 bg-red-50 text-red-500 dark:bg-red-900/20'
+                                      : p === 'medium'
+                                        ? 'border-orange-500 bg-orange-50 text-orange-500 dark:bg-orange-900/20'
+                                        : 'border-blue-500 bg-blue-50 text-blue-500 dark:bg-blue-900/20'
+                                    : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                                }`}
+                                key={p}
+                                onClick={() => setTaskForm({ ...taskForm, priority: p })}
+                                type='button'
+                              >
+                                {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
+                              </button>
+                            ))}
+                          </div>
                         </div>
                       </div>
                     )}

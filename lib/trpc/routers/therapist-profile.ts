@@ -3,7 +3,7 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { eq } from 'drizzle-orm'
+import { and, eq, ne } from 'drizzle-orm'
 import { z } from 'zod'
 import { therapistProfiles, users } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
@@ -248,7 +248,12 @@ export const therapistProfileRouter = router({
       })
       .from(therapistProfiles)
       .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
-      .where(eq(users.role, 'psychologist'))
+      .where(
+        and(
+          eq(users.role, 'psychologist'),
+          ne(users.id, ctx.user.id) // Exclude current therapist
+        )
+      )
 
     return profiles.map((profile) => ({
       id: profile.therapistId,

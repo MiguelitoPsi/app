@@ -2,6 +2,7 @@
 
 import {
   AlertCircle,
+  ArrowRightLeft,
   Award,
   BarChart2,
   BookOpen,
@@ -15,6 +16,7 @@ import {
   ListTodo,
   LogOut,
   Moon,
+  Search,
   Settings,
   Smile,
   Star,
@@ -115,7 +117,11 @@ export const TherapistDashboardView: React.FC = () => {
   )
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
   const [showDischargeConfirm, setShowDischargeConfirm] = useState(false)
+  const [showReferralModal, setShowReferralModal] = useState(false)
   const [unlinkReason, setUnlinkReason] = useState('')
+  const [referralReason, setReferralReason] = useState('')
+  const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
+  const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
 
   // Core queries with optimized staleTime
   const { data: statsData, isLoading: statsLoading } = trpc.therapistXp.getStats.useQuery(
@@ -188,11 +194,40 @@ export const TherapistDashboardView: React.FC = () => {
 
   const dischargePatientMutation = trpc.patient.dischargePatient.useMutation({
     onSuccess: () => {
-      utils.patient.getAll.invalidate()
-      setSelectedPatientId('')
       setShowDischargeConfirm(false)
+      setSelectedPatientId(null)
+      utils.patient.getAll.invalidate()
     },
   })
+
+  const transferPatientMutation = trpc.patient.transferPatient.useMutation({
+    onSuccess: () => {
+      setShowReferralModal(false)
+      setSelectedPatientId(null)
+      setReferralReason('')
+      setSelectedNewTherapistId(null)
+      utils.patient.getAll.invalidate()
+    },
+  })
+
+  const { data: availableTherapists } = trpc.therapistProfile.getAvailableTherapists.useQuery(
+    undefined,
+    {
+      enabled: showReferralModal,
+    }
+  )
+
+  const filteredTherapists = useMemo(() => {
+    if (!availableTherapists) return []
+    if (!therapistSearchQuery.trim()) return availableTherapists
+    const query = therapistSearchQuery.toLowerCase()
+    return availableTherapists.filter(
+      (t) =>
+        t.fullName.toLowerCase().includes(query) ||
+        t.city.toLowerCase().includes(query) ||
+        t.education.toLowerCase().includes(query)
+    )
+  }, [availableTherapists, therapistSearchQuery])
 
   const stats = statsData?.stats
   const selectedPatient = patients?.find((p) => p.id === selectedPatientId)
@@ -1011,6 +1046,14 @@ export const TherapistDashboardView: React.FC = () => {
                           Desvincular Paciente
                         </button>
                         <button
+                          className='flex w-full items-center justify-center gap-2 rounded-lg border border-blue-500 bg-blue-50 px-4 py-3 font-medium text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-600 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30'
+                          onClick={() => setShowReferralModal(true)}
+                          type='button'
+                        >
+                          <ArrowRightLeft className='h-5 w-5' />
+                          Encaminhamento
+                        </button>
+                        <button
                           className='flex w-full items-center justify-center gap-2 rounded-lg border border-green-500 bg-green-50 px-4 py-3 font-medium text-green-700 transition-colors hover:bg-green-100 dark:border-green-600 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30'
                           onClick={() => setShowDischargeConfirm(true)}
                           type='button'
@@ -1135,6 +1178,125 @@ export const TherapistDashboardView: React.FC = () => {
                           type='button'
                         >
                           {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal de Encaminhamento */}
+                {showReferralModal && (
+                  <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+                    <div className='mx-4 w-full max-w-2xl rounded-xl bg-white p-6 shadow-2xl dark:bg-slate-800 flex flex-col max-h-[90vh]'>
+                      <div className='mb-4 flex items-center justify-between'>
+                        <div className='flex items-center gap-3'>
+                          <div className='flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30'>
+                            <ArrowRightLeft className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+                          </div>
+                          <div>
+                            <h3 className='font-semibold text-lg text-slate-800 dark:text-slate-200'>
+                              Encaminhar Paciente
+                            </h3>
+                            <p className='text-slate-500 text-sm dark:text-slate-400'>
+                              Selecione um novo terapeuta para <strong>{selectedPatient?.name}</strong>
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => setShowReferralModal(false)}
+                          className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                        >
+                          <X size={24} />
+                        </button>
+                      </div>
+
+                      <div className='mb-4'>
+                        <div className='relative'>
+                          <Search className='absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400' />
+                          <input
+                            type='text'
+                            placeholder='Buscar por nome, cidade ou especialidade...'
+                            className='w-full rounded-lg border border-slate-200 bg-slate-50 pl-10 pr-4 py-2 text-sm focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                            value={therapistSearchQuery}
+                            onChange={(e) => setTherapistSearchQuery(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div className='flex-1 overflow-y-auto mb-4 space-y-2 pr-2'>
+                        {filteredTherapists.map((therapist) => (
+                          <button
+                            key={therapist.id}
+                            onClick={() => setSelectedNewTherapistId(therapist.id)}
+                            className={`w-full flex items-center justify-between p-3 rounded-lg border transition-all ${
+                              selectedNewTherapistId === therapist.id
+                                ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                                : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700'
+                            }`}
+                          >
+                            <div className='flex items-center gap-3 text-left'>
+                              <div className='h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-semibold'>
+                                {therapist.fullName.charAt(0)}
+                              </div>
+                              <div>
+                                <p className='font-medium text-slate-800 dark:text-slate-200'>
+                                  {therapist.fullName}
+                                </p>
+                                <div className='flex items-center gap-2 text-xs text-slate-500'>
+                                  <span>CRP: {therapist.crp}</span>
+                                  <span>•</span>
+                                  <span>{therapist.city}</span>
+                                </div>
+                              </div>
+                            </div>
+                            {selectedNewTherapistId === therapist.id && (
+                              <CheckCircle2 className='h-5 w-5 text-blue-500' />
+                            )}
+                          </button>
+                        ))}
+                        {filteredTherapists.length === 0 && (
+                          <div className='text-center py-8 text-slate-500'>
+                            Nenhum terapeuta encontrado.
+                          </div>
+                        )}
+                      </div>
+
+                      <div className='mb-4'>
+                        <label className='block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1'>
+                          Motivo do Encaminhamento (Opcional)
+                        </label>
+                        <textarea
+                          className='w-full rounded-lg border border-slate-300 bg-white p-3 text-sm focus:border-blue-500 focus:outline-none dark:border-slate-600 dark:bg-slate-700 dark:text-white'
+                          rows={2}
+                          placeholder='Ex: Especialidade mais adequada, mudança de cidade...'
+                          value={referralReason}
+                          onChange={(e) => setReferralReason(e.target.value)}
+                        />
+                      </div>
+
+                      <div className='flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700'>
+                        <button
+                          className='flex-1 rounded-lg border border-slate-300 px-4 py-2 font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700'
+                          onClick={() => setShowReferralModal(false)}
+                          type='button'
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          className='flex-1 rounded-lg bg-blue-600 px-4 py-2 font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                          disabled={!selectedNewTherapistId || transferPatientMutation.isPending}
+                          onClick={() => {
+                            if (selectedPatientId && selectedNewTherapistId) {
+                              transferPatientMutation.mutate({
+                                patientId: selectedPatientId,
+                                newTherapistId: selectedNewTherapistId,
+                                reason: referralReason || undefined,
+                              })
+                            }
+                          }}
+                          type='button'
+                        >
+                          {transferPatientMutation.isPending ? 'Processando...' : 'Confirmar Encaminhamento'}
                         </button>
                       </div>
                     </div>

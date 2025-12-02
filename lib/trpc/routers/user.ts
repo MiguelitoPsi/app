@@ -317,8 +317,8 @@ export const userRouter = router({
       throw new Error('User not found')
     }
 
-    // Only psychologists need to accept terms
-    if (user.role !== 'psychologist') {
+    // Both psychologists and patients need to accept terms
+    if (user.role !== 'psychologist' && user.role !== 'patient') {
       return { needsToAcceptTerms: false, termsAcceptedAt: null }
     }
 
@@ -339,8 +339,8 @@ export const userRouter = router({
       throw new Error('User not found')
     }
 
-    if (user.role !== 'psychologist') {
-      throw new Error('Only psychologists need to accept terms')
+    if (user.role !== 'psychologist' && user.role !== 'patient') {
+      throw new Error('Only psychologists and patients need to accept terms')
     }
 
     await ctx.db

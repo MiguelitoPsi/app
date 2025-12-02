@@ -165,7 +165,7 @@ export default function LandingPage() {
               title='Monitoramento de Humor'
             />
             <FeatureCard
-              description='Compartilhe seus registros e relatórios diretamente com seu psicólogo para sessões mais produtivas.'
+              description='Envie seus registros de humor e pensamentos com segurança para o seu psicólogo e transforme cada sessão em um encontro mais claro, focado e eficiente.'
               icon={<Users className='h-6 w-6 text-blue-400' />}
               title='Conexão com Terapeuta'
             />
@@ -175,7 +175,7 @@ export default function LandingPage() {
               title='Metas e Rotinas'
             />
             <FeatureCard
-              description='Seus pensamentos e registros são privados e protegidos. Você decide o que compartilhar.'
+              description='Seus pensamentos e registros são privados e protegidos. Somente você e seu psicólogo tem acesso.'
               icon={<Shield className='h-6 w-6 text-slate-400' />}
               title='Privacidade em Primeiro Lugar'
             />
@@ -191,7 +191,7 @@ export default function LandingPage() {
             <div>
               <div className='inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-400 mb-6'>
                 <Users className='h-4 w-4' />
-                Para Psicólogos e Terapeutas
+                Para Psicólogos
               </div>
               <h2 className='text-3xl md:text-4xl font-bold text-white mb-6'>
                 Potencialize seus atendimentos clínicos
@@ -275,8 +275,8 @@ export default function LandingPage() {
                 Comece a cuidar de você hoje
               </h2>
               <p className='mx-auto mb-10 max-w-xl text-lg text-violet-100/80'>
-                O Nepsis oferece um plano gratuito completo para você iniciar sua jornada de
-                autoconhecimento com suporte da tecnologia.
+                O Nepsis oferece o primeiro mês gratuito para você iniciar sua jornada de
+                autoconhecimento com o apoio da tecnologia, no seu ritmo e com total segurança.
               </p>
 
               <div className='flex flex-col items-center justify-center gap-4 sm:flex-row'>
@@ -288,10 +288,6 @@ export default function LandingPage() {
                   <ArrowRight className='h-5 w-5 transition-transform group-hover:translate-x-1' />
                 </Link>
               </div>
-
-              <p className='mt-6 text-sm text-violet-200/60'>
-                Não exigimos cartão de crédito para o plano gratuito.
-              </p>
             </div>
 
             {/* Decorative background */}
@@ -317,11 +313,11 @@ export default function LandingPage() {
               question='Como a IA é utilizada?'
             />
             <FaqItem
-              answer='Apenas se você autorizar explicitamente. Você tem total controle sobre quais informações deseja compartilhar através da funcionalidade de vinculação de conta.'
+              answer='Ao vincular sua conta ao terapeuta, suas informações clínicas — como registros de humor, diários de pensamento, histórico de meditação e tarefas da rotina — ficam acessíveis ao profissional responsável. Essa vinculação é necessária para que o terapeuta acompanhe seu progresso, integre os registros às intervenções e otimize o tratamento. Você mantém os direitos previstos na LGPD (acesso, correção, exclusão e portabilidade).'
               question='Meus dados são compartilhados com meu terapeuta?'
             />
             <FaqItem
-              answer='Sim, oferecemos um plano gratuito robusto que permite acesso às principais funcionalidades de diário e gamificação. Planos premium oferecem recursos adicionais e relatórios mais detalhados.'
+              answer='Você ganha 30 dias de acesso completo para testar tudo sem pagar nada. Depois desse período, o uso do app continua apenas por meio de um plano pago. Não existe versão gratuita permanente. Assim fica justo e transparente: você experimenta primeiro, decide depois.'
               question='O app é gratuito?'
             />
           </div>

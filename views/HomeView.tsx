@@ -23,6 +23,7 @@ import AvatarOficial from '@/components/Avatar-oficial'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import { XP_REWARDS } from '@/lib/xp'
+import { PatientConsentModal } from '@/components/PatientConsentModal'
 import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
 
@@ -64,6 +65,10 @@ export const HomeView: React.FC = () => {
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
     days: 7,
   })
+
+  // Check if user needs to accept terms
+  const { data: termsData, refetch: refetchTerms } =
+    trpc.user.checkTermsAccepted.useQuery()
 
   useEffect(() => {
     setIsMounted(true)
@@ -583,6 +588,11 @@ export const HomeView: React.FC = () => {
           </div>
           <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
         </div>
+      )}
+
+      {/* Patient Consent Modal */}
+      {termsData?.needsToAcceptTerms && (
+        <PatientConsentModal onSuccess={() => refetchTerms()} />
       )}
     </div>
   )

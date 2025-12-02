@@ -2,6 +2,7 @@
 
 import {
   Activity,
+  ArrowRightLeft,
   BarChart2,
   Brain,
   Calendar,
@@ -31,7 +32,7 @@ import {
   X,
 } from 'lucide-react'
 import type React from 'react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
@@ -64,7 +65,11 @@ export const TherapistView: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false)
   const [showDischargeConfirm, setShowDischargeConfirm] = useState(false)
+  const [showReferralModal, setShowReferralModal] = useState(false)
   const [unlinkReason, setUnlinkReason] = useState('')
+  const [referralReason, setReferralReason] = useState('')
+  const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
+  const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -132,11 +137,40 @@ export const TherapistView: React.FC = () => {
   // Discharge patient mutation
   const dischargePatientMutation = trpc.patient.dischargePatient.useMutation({
     onSuccess: () => {
-      refetchPatients()
-      setSelectedPatientId('')
       setShowDischargeConfirm(false)
+      setSelectedPatientId('')
+      refetchPatients()
     },
   })
+
+  const transferPatientMutation = trpc.patient.transferPatient.useMutation({
+    onSuccess: () => {
+      setShowReferralModal(false)
+      setSelectedPatientId('')
+      setReferralReason('')
+      setSelectedNewTherapistId(null)
+      refetchPatients()
+    },
+  })
+
+  const { data: availableTherapists } = trpc.therapistProfile.getAvailableTherapists.useQuery(
+    undefined,
+    {
+      enabled: showReferralModal,
+    }
+  )
+
+  const filteredTherapists = useMemo(() => {
+    if (!availableTherapists) return []
+    if (!therapistSearchQuery.trim()) return availableTherapists
+    const query = therapistSearchQuery.toLowerCase()
+    return availableTherapists.filter(
+      (t) =>
+        t.fullName.toLowerCase().includes(query) ||
+        t.city.toLowerCase().includes(query) ||
+        t.education.toLowerCase().includes(query)
+    )
+  }, [availableTherapists, therapistSearchQuery])
 
   // Journal filter state
   const [journalDateFilter, setJournalDateFilter] = useState<string>('')
@@ -1435,6 +1469,14 @@ export const TherapistView: React.FC = () => {
                   Desvincular Paciente
                 </button>
                 <button
+                  className='flex w-full items-center justify-center gap-2 rounded-xl border border-blue-500 bg-blue-50 px-4 py-3 font-bold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-600 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30'
+                  onClick={() => setShowReferralModal(true)}
+                  type='button'
+                >
+                  <ArrowRightLeft size={18} />
+                  Encaminhamento
+                </button>
+                <button
                   className='flex w-full items-center justify-center gap-2 rounded-xl border border-green-500 bg-green-50 px-4 py-3 font-bold text-green-700 transition-colors hover:bg-green-100 dark:border-green-600 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30'
                   onClick={() => setShowDischargeConfirm(true)}
                   type='button'
@@ -1518,48 +1560,166 @@ export const TherapistView: React.FC = () => {
         )}
 
         {/* Modal de confirmação - Dar Alta */}
-        {showDischargeConfirm && (
-          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm sm:p-6'>
-            <div className='zoom-in-95 w-full max-w-sm animate-in rounded-2xl bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:bg-slate-900'>
-              <div className='mb-4 flex items-center justify-center'>
-                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
-                  <LogOut className='h-6 w-6 text-green-600 dark:text-green-400' />
-                </div>
-              </div>
-              <h3 className='mb-2 text-center font-bold text-lg text-slate-800 dark:text-white'>
-                Dar Alta ao Paciente?
-              </h3>
-              <p className='mb-6 text-center text-slate-500 text-sm dark:text-slate-400'>
-                Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>? A conta
-                do paciente será suspensa.
-              </p>
-              <div className='flex gap-3'>
-                <button
-                  className='flex-1 rounded-xl border border-slate-300 px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
-                  onClick={() => setShowDischargeConfirm(false)}
-                  type='button'
-                >
-                  Cancelar
-                </button>
-                <button
-                  className='flex-1 rounded-xl bg-green-600 px-4 py-3 font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-50'
-                  disabled={dischargePatientMutation.isPending}
-                  onClick={() => {
-                    if (selectedPatientId) {
-                      dischargePatientMutation.mutate({
-                        patientId: selectedPatientId,
-                      })
-                    }
-                  }}
-                  type='button'
-                >
-                  {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
-                </button>
+      {showDischargeConfirm && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+          <div className='mx-4 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800'>
+            <div className='mb-6 flex items-center justify-center'>
+              <div className='flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                <LogOut className='h-8 w-8 text-green-600 dark:text-green-400' />
               </div>
             </div>
+            <h3 className='mb-2 text-center font-bold text-xl text-slate-800 dark:text-white'>
+              Dar Alta ao Paciente?
+            </h3>
+            <p className='mb-8 text-center text-slate-500 dark:text-slate-400'>
+              Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>? A conta do
+              paciente será suspensa.
+            </p>
+            <div className='flex gap-3'>
+              <button
+                className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                onClick={() => setShowDischargeConfirm(false)}
+                type='button'
+              >
+                Cancelar
+              </button>
+              <button
+                className='flex-1 rounded-xl bg-green-500 px-4 py-3 font-bold text-white transition-colors hover:bg-green-600 disabled:opacity-50'
+                disabled={dischargePatientMutation.isPending}
+                onClick={() => {
+                  if (selectedPatientId) {
+                    dischargePatientMutation.mutate({
+                      patientId: selectedPatientId,
+                    })
+                  }
+                }}
+                type='button'
+              >
+                {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
+              </button>
+            </div>
           </div>
-        )}
+        </div>
+      )}
 
+      {/* Modal de Encaminhamento */}
+      {showReferralModal && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+          <div className='mx-4 w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800 flex flex-col max-h-[90vh]'>
+            <div className='mb-6 flex items-center justify-between'>
+              <div className='flex items-center gap-4'>
+                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30'>
+                  <ArrowRightLeft className='h-6 w-6 text-blue-600 dark:text-blue-400' />
+                </div>
+                <div>
+                  <h3 className='font-bold text-xl text-slate-800 dark:text-white'>
+                    Encaminhar Paciente
+                  </h3>
+                  <p className='text-slate-500 dark:text-slate-400'>
+                    Selecione um novo terapeuta para <strong>{selectedPatient?.name}</strong>
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowReferralModal(false)}
+                className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <div className='mb-6'>
+              <div className='relative'>
+                <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400' />
+                <input
+                  type='text'
+                  placeholder='Buscar por nome, cidade ou especialidade...'
+                  className='w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 py-3 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                  value={therapistSearchQuery}
+                  onChange={(e) => setTherapistSearchQuery(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className='flex-1 overflow-y-auto mb-6 space-y-3 pr-2'>
+              {filteredTherapists.map((therapist) => (
+                <button
+                  key={therapist.id}
+                  onClick={() => setSelectedNewTherapistId(therapist.id)}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                    selectedNewTherapistId === therapist.id
+                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  <div className='flex items-center gap-4 text-left'>
+                    <div className='h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-lg'>
+                      {therapist.fullName.charAt(0)}
+                    </div>
+                    <div>
+                      <p className='font-bold text-lg text-slate-800 dark:text-white'>
+                        {therapist.fullName}
+                      </p>
+                      <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
+                        <span className='font-medium'>CRP: {therapist.crp}</span>
+                        <span>•</span>
+                        <span>{therapist.city}</span>
+                      </div>
+                    </div>
+                  </div>
+                  {selectedNewTherapistId === therapist.id && (
+                    <CheckCircle2 className='h-6 w-6 text-blue-500' />
+                  )}
+                </button>
+              ))}
+              {filteredTherapists.length === 0 && (
+                <div className='text-center py-12 text-slate-500'>
+                  Nenhum terapeuta encontrado.
+                </div>
+              )}
+            </div>
+
+            <div className='mb-6'>
+              <label className='block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2'>
+                Motivo do Encaminhamento (Opcional)
+              </label>
+              <textarea
+                className='w-full rounded-xl border border-slate-200 bg-white p-4 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                rows={2}
+                placeholder='Ex: Especialidade mais adequada, mudança de cidade...'
+                value={referralReason}
+                onChange={(e) => setReferralReason(e.target.value)}
+              />
+            </div>
+
+            <div className='flex gap-3 pt-6 border-t border-slate-100 dark:border-slate-700'>
+              <button
+                className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                onClick={() => setShowReferralModal(false)}
+                type='button'
+              >
+                Cancelar
+              </button>
+              <button
+                className='flex-1 rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                disabled={!selectedNewTherapistId || transferPatientMutation.isPending}
+                onClick={() => {
+                  if (selectedPatientId && selectedNewTherapistId) {
+                    transferPatientMutation.mutate({
+                      patientId: selectedPatientId,
+                      newTherapistId: selectedNewTherapistId,
+                      reason: referralReason || undefined,
+                    })
+                  }
+                }}
+                type='button'
+              >
+                {transferPatientMutation.isPending ? 'Processando...' : 'Confirmar Encaminhamento'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
         {/* Cost Modal */}
         {isCostModalOpen && (
           <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm sm:p-6'>
