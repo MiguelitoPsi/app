@@ -1,10 +1,11 @@
-// "use client"
+'use client'
 
 import {
   CheckCircle2,
   Crown,
   Eye,
   EyeOff,
+  FileText,
   Flame,
   Key,
   LayoutGrid,
@@ -40,6 +41,22 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   const [selectedBadge, setSelectedBadge] = useState<BadgeDefinition | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'rank' | 'achievements'>('stats')
   const [showSettings, setShowSettings] = useState(false)
+  const [showConsent, setShowConsent] = useState(false)
+  const { data: termsData } = require('@/lib/trpc/client').trpc.user.checkTermsAccepted.useQuery()
+  // Helper para formatar data/hora completa
+  const formatDateTime = (timestamp: number) => {
+    if (!timestamp) return ''
+    const date = new Date(timestamp)
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
   const [showChangePassword, setShowChangePassword] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -51,8 +68,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false)
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [scrollY, setScrollY] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  const [scrollY, setScrollY] = useState(0)
 
   // Track scroll position
   useEffect(() => {
@@ -114,7 +131,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   }
 
   // Change password handler
-  const handleChangePassword = async () => {
+  const resetPasswordForm = async () => {
     setPasswordError('')
     setPasswordSuccess(false)
 
@@ -148,43 +165,25 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
         revokeOtherSessions: true,
       })
 
-      if (error) {
-        if (error.message?.includes('Invalid password') || error.message?.includes('incorrect')) {
-          setPasswordError('Senha atual incorreta')
-        } else {
-          setPasswordError(error.message || 'Erro ao alterar senha')
-        }
-        return
-      }
-
-      setPasswordSuccess(true)
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmPassword('')
-
-      // Close modal after success
-      setTimeout(() => {
-        setShowChangePassword(false)
+      if (
+        error &&
+        (error.message?.includes('Invalid password') || error.message?.includes('incorrect'))
+      ) {
+        setPasswordError('Senha atual incorreta')
+        setCurrentPassword('')
+        setNewPassword('')
+        setConfirmPassword('')
+        setPasswordError('')
         setPasswordSuccess(false)
-      }, 2000)
+        setShowCurrentPassword(false)
+        setShowNewPassword(false)
+        setShowConfirmPassword(false)
+      }
     } catch (error) {
       console.error('Error changing password:', error)
-      setPasswordError('Erro ao alterar senha. Tente novamente.')
-    } finally {
+      setPasswordError('Erro ao alterar senha')
       setIsChangingPassword(false)
     }
-  }
-
-  // Reset password form state
-  const resetPasswordForm = () => {
-    setCurrentPassword('')
-    setNewPassword('')
-    setConfirmPassword('')
-    setPasswordError('')
-    setPasswordSuccess(false)
-    setShowCurrentPassword(false)
-    setShowNewPassword(false)
-    setShowConfirmPassword(false)
   }
 
   // Helper to format unlock date
@@ -586,6 +585,38 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               </button>
             </div>
             <div className='space-y-3 sm:space-y-4'>
+              {/* Botão para visualizar termo de consentimento */}
+              <button
+                className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                onClick={() => setShowConsent(true)}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <FileText size={18} />
+                  </div>
+                  <div className='text-left'>
+                    <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                      Termo de Consentimento
+                    </h4>
+                    <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                      Visualizar termo assinado e data/hora
+                    </p>
+                  </div>
+                </div>
+                <div className='w-full mt-1'>
+                  {termsData?.termsAcceptedAt ? (
+                    <span className='block text-xs text-green-600 dark:text-green-400 font-semibold'>
+                      Assinado
+                    </span>
+                  ) : (
+                    <span className='block text-xs text-slate-400 dark:text-slate-500 font-semibold'>
+                      Não assinado
+                    </span>
+                  )}
+                </div>
+              </button>
+              {/* ...demais opções de configuração... */}
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                   <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
@@ -665,6 +696,15 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                       </p>
                     </div>
                   </div>
+                  {termsData?.termsAcceptedAt ? (
+                    <span className='text-xs text-green-600 dark:text-green-400 font-semibold'>
+                      Assinado
+                    </span>
+                  ) : (
+                    <span className='text-xs text-slate-400 dark:text-slate-500 font-semibold'>
+                      Não assinado
+                    </span>
+                  )}
                 </button>
               )}
             </div>
@@ -680,6 +720,89 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             </div>
           </div>
           <div className='-z-10 absolute inset-0' onClick={() => setShowSettings(false)} />
+        </div>
+      )}
+
+      {/* Modal do termo de consentimento */}
+      {showConsent && (
+        <div className='fade-in fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/80 px-4 backdrop-blur-sm'>
+          <div className='w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900'>
+            <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
+              <div className='flex items-center gap-4'>
+                <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h2 className='font-bold text-xl text-slate-900 sm:text-2xl dark:text-white'>
+                    Termo de Consentimento
+                  </h2>
+                  <p className='text-slate-500 text-sm dark:text-slate-400'>
+                    Abaixo está o termo assinado e a data/hora do aceite.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className='max-h-[60vh] overflow-y-auto p-6 sm:p-8'>
+              <div className='prose prose-slate max-w-none dark:prose-invert prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-800 dark:prose-p:text-slate-200 prose-li:text-slate-800 dark:prose-li:text-slate-200 prose-strong:text-slate-900 dark:prose-strong:text-white'>
+                <p className='text-slate-800 dark:text-slate-200 font-medium'>
+                  Este Termo de Consentimento Livre e Esclarecido (TCLE) tem como objetivo fornecer
+                  informações sobre a utilização da plataforma de acompanhamento terapêutico.
+                </p>
+                <h3 className='text-slate-900 dark:text-white font-bold'>
+                  1. Objetivo da Plataforma
+                </h3>
+                <p className='text-slate-800 dark:text-slate-200'>
+                  Esta plataforma foi desenvolvida para auxiliar no acompanhamento do seu processo
+                  terapêutico, permitindo o registro de humor, diário de pensamentos, realização de
+                  tarefas e meditações.
+                </p>
+                <h3 className='text-slate-900 dark:text-white font-bold'>
+                  2. Confidencialidade e Privacidade
+                </h3>
+                <p className='text-slate-800 dark:text-slate-200'>
+                  Todas as informações registradas na plataforma são confidenciais e protegidas.
+                  Apenas você e seu terapeuta vinculado terão acesso aos dados inseridos.
+                </p>
+                <h3 className='text-slate-900 dark:text-white font-bold'>3. Uso de Dados</h3>
+                <p className='text-slate-800 dark:text-slate-200'>
+                  Os dados coletados serão utilizados exclusivamente para fins terapêuticos e de
+                  melhoria do seu acompanhamento. Dados anonimizados poderão ser utilizados para
+                  fins estatísticos e de pesquisa.
+                </p>
+                <h3 className='text-slate-900 dark:text-white font-bold'>
+                  4. Compromisso do Usuário
+                </h3>
+                <p className='text-slate-800 dark:text-slate-200'>
+                  Ao utilizar a plataforma, você se compromete a fornecer informações verídicas e a
+                  utilizar os recursos de forma responsável.
+                </p>
+                <h3 className='text-slate-900 dark:text-white font-bold'>5. Desistência</h3>
+                <p className='text-slate-800 dark:text-slate-200'>
+                  Você pode deixar de utilizar a plataforma a qualquer momento, sem prejuízo ao seu
+                  atendimento terapêutico presencial ou online.
+                </p>
+              </div>
+              <div className='mt-6 rounded-xl bg-violet-50 p-4 text-slate-700 text-sm dark:bg-violet-900/20 dark:text-slate-200'>
+                <strong>Data/hora da assinatura:</strong>{' '}
+                {termsData?.termsAcceptedAt ? (
+                  <span className='font-mono'>{formatDateTime(termsData.termsAcceptedAt)}</span>
+                ) : (
+                  <span className='italic text-slate-400'>Não assinado</span>
+                )}
+              </div>
+            </div>
+            <div className='border-slate-100 border-t bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50'>
+              <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
+                <button
+                  className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-bold text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/20 active:scale-95 sm:w-auto'
+                  onClick={() => setShowConsent(false)}
+                  type='button'
+                >
+                  Fechar
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -723,7 +846,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               <form
                 onSubmit={(e) => {
                   e.preventDefault()
-                  handleChangePassword()
+                  resetPasswordForm()
                 }}
               >
                 <div className='space-y-4'>
