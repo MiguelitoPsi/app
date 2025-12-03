@@ -292,6 +292,9 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         intensity: 5,
         thought: entry.content || '',
         aiAnalysis: entry.aiAnalysis || undefined,
+        therapistFeedback: entry.therapistFeedback || undefined,
+        feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
+        feedbackViewed: entry.feedbackViewed ?? false,
       })),
     [journalData]
   )

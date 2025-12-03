@@ -202,4 +202,98 @@ export const journalRouter = router({
 
       return { success: true, xpAwarded: 5, newLevel: level, newExperience: experience }
     }),
+
+  addFeedback: protectedProcedure
+    .input(
+      z.object({
+        entryId: z.string(),
+        feedback: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Verify user is a psychologist
+      if (ctx.user.role !== 'psychologist') {
+        throw new Error('Unauthorized: Only psychologists can add feedback')
+      }
+
+      // Get the entry to find the patient ID
+      const [entry] = await ctx.db
+        .select()
+        .from(journalEntries)
+        .where(eq(journalEntries.id, input.entryId))
+        .limit(1)
+
+      if (!entry) {
+        throw new Error('Journal entry not found')
+      }
+
+      // Verify relationship
+      const relationship = await ctx.db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.psychologistId, ctx.user.id),
+          eq(psychologistPatients.patientId, entry.userId)
+        ),
+      })
+
+      if (!relationship) {
+        throw new Error('Unauthorized: No relationship with this patient')
+      }
+
+      // Update entry with feedback
+      await ctx.db
+        .update(journalEntries)
+        .set({
+          therapistFeedback: input.feedback,
+          feedbackViewed: false,
+          feedbackAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(journalEntries.id, input.entryId))
+
+      return { success: true }
+    }),
+
+  getUnviewedFeedbackCount: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'patient') {
+      return 0
+    }
+
+    const [result] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(journalEntries)
+      .where(
+        and(
+          eq(journalEntries.userId, ctx.user.id),
+          isNotNull(journalEntries.therapistFeedback),
+          eq(journalEntries.feedbackViewed, false)
+        )
+      )
+
+    return result?.count || 0
+  }),
+
+  markFeedbackAsViewed: protectedProcedure
+    .input(z.object({ entryId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'patient') {
+        throw new Error('Unauthorized: Only patients can mark feedback as viewed')
+      }
+
+      const [entry] = await ctx.db
+        .select()
+        .from(journalEntries)
+        .where(and(eq(journalEntries.id, input.entryId), eq(journalEntries.userId, ctx.user.id)))
+        .limit(1)
+
+      if (!entry) {
+        throw new Error('Journal entry not found')
+      }
+
+      await ctx.db
+        .update(journalEntries)
+        .set({ feedbackViewed: true })
+        .where(eq(journalEntries.id, input.entryId))
+
+      return { success: true }
+    }),
 })

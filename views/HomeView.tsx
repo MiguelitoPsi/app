@@ -8,6 +8,7 @@ import {
   Heart,
   Key,
   LogOut,
+  MessageSquare,
   Moon,
   Settings,
   Sparkles,
@@ -69,6 +70,9 @@ export const HomeView: React.FC = () => {
   // Check if user needs to accept terms
   const { data: termsData, refetch: refetchTerms } =
     trpc.user.checkTermsAccepted.useQuery()
+
+  // Check for unviewed feedback
+  const { data: unviewedFeedbackCount = 0 } = trpc.journal.getUnviewedFeedbackCount.useQuery()
 
   useEffect(() => {
     setIsMounted(true)
@@ -264,6 +268,34 @@ export const HomeView: React.FC = () => {
         id='main-content'
         ref={scrollContainerRef}
       >
+        {/* Feedback Notification Alert */}
+        {unviewedFeedbackCount > 0 && (
+          <button
+            aria-label={`Você tem ${unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta. Clique para ver.`}
+            className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
+            onClick={() => router.push('/journal')}
+            type='button'
+          >
+            <div className='flex items-center gap-2 sm:gap-3'>
+              <div className='animate-pulse rounded-xl bg-emerald-100 p-2 text-emerald-600 sm:rounded-2xl sm:p-2.5 dark:bg-emerald-900/40 dark:text-emerald-400'>
+                <MessageSquare className='sm:hidden' size={18} />
+                <MessageSquare className='hidden sm:block' size={20} />
+              </div>
+              <div className='text-left'>
+                <h3 className='font-bold text-emerald-700 text-xs sm:text-sm dark:text-emerald-300'>
+                  Novo Feedback Recebido
+                </h3>
+                <p className='font-medium text-emerald-600/80 text-[10px] sm:text-xs dark:text-emerald-400/80'>
+                  Você tem {unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta.
+                </p>
+              </div>
+            </div>
+            <div className='flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 sm:h-8 sm:w-8 dark:bg-emerald-900/30'>
+              <ArrowRight className='text-emerald-600 dark:text-emerald-400' size={14} />
+            </div>
+          </button>
+        )}
+
         {/* Urgent Tasks Alert */}
         {urgentTasks.length > 0 && (
           <button

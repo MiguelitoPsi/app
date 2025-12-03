@@ -18,6 +18,7 @@ import {
   LogOut,
   Mail,
   MapPin,
+  MessageSquare,
   Moon,
   Phone,
   Save,
@@ -70,6 +71,11 @@ export const TherapistView: React.FC = () => {
   const [referralReason, setReferralReason] = useState('')
   const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
   const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
+  
+  // Feedback modal state
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [selectedFeedbackEntry, setSelectedFeedbackEntry] = useState<JournalEntry | null>(null)
+  const [feedbackText, setFeedbackText] = useState('')
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -186,6 +192,30 @@ export const TherapistView: React.FC = () => {
 
   const toggleJournalRead = (entryId: string) => {
     markAsReadMutation.mutate({ id: entryId })
+  }
+
+  // Feedback mutation
+  const addFeedbackMutation = trpc.journal.addFeedback.useMutation({
+    onSuccess: () => {
+      utils.journal.getAll.invalidate()
+      setShowFeedbackModal(false)
+      setSelectedFeedbackEntry(null)
+      setFeedbackText('')
+    },
+  })
+
+  const openFeedbackModal = (entry: JournalEntry) => {
+    setSelectedFeedbackEntry(entry)
+    setFeedbackText(entry.therapistFeedback || '')
+    setShowFeedbackModal(true)
+  }
+
+  const handleSubmitFeedback = () => {
+    if (!selectedFeedbackEntry || !feedbackText.trim()) return
+    addFeedbackMutation.mutate({
+      entryId: selectedFeedbackEntry.id,
+      feedback: feedbackText.trim(),
+    })
   }
 
   // Reward Management State
@@ -1028,7 +1058,7 @@ export const TherapistView: React.FC = () => {
                       key={entry.id}
                       style={{ animationDelay: `${index * 50}ms` }}
                     >
-                      <div className='flex items-center justify-between gap-3'>
+                      <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='flex min-w-0 items-center gap-3'>
                           <div
                             className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg ${getMoodColor(
@@ -1042,15 +1072,36 @@ export const TherapistView: React.FC = () => {
                               Registro de {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
                             </p>
                             <p className='truncate text-[10px] text-slate-500'>{entry.thought}</p>
+                            {entry.therapistFeedback && (
+                              <p className='mt-1 text-[10px] text-emerald-600 dark:text-emerald-400'>
+                                ✓ Feedback enviado
+                              </p>
+                            )}
                           </div>
                         </div>
-                        <button
-                          className='shrink-0 rounded-lg bg-white px-3 py-1.5 font-bold text-indigo-600 text-[10px] shadow-sm transition-colors hover:bg-indigo-50 sm:text-xs dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-slate-700'
-                          onClick={() => toggleJournalRead(entry.id)}
-                          type='button'
-                        >
-                          Revisar
-                        </button>
+                        <div className='flex w-full gap-2 sm:w-auto'>
+                          <button
+                            className='flex-1 shrink-0 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-1.5 font-bold text-emerald-600 text-[10px] shadow-sm transition-colors hover:bg-emerald-100 sm:flex-initial sm:text-xs dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:bg-emerald-900/30'
+                            onClick={() => openFeedbackModal(entry)}
+                            type='button'
+                          >
+                            {entry.therapistFeedback ? (
+                              <>
+                                <Eye size={12} />
+                                Revisar
+                              </>
+                            ) : (
+                              'Feedback'
+                            )}
+                          </button>
+                          <button
+                            className='flex-1 shrink-0 rounded-lg bg-white px-3 py-1.5 font-bold text-indigo-600 text-[10px] shadow-sm transition-colors hover:bg-indigo-50 sm:flex-initial sm:text-xs dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-slate-700'
+                            onClick={() => toggleJournalRead(entry.id)}
+                            type='button'
+                          >
+                            Lido
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )
@@ -1085,6 +1136,14 @@ export const TherapistView: React.FC = () => {
                           {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
                         </span>
                         <button
+                          className='flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 font-bold text-white text-[10px] shadow-emerald-200 shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md sm:px-4 sm:py-1.5 sm:text-xs dark:shadow-none'
+                          onClick={() => openFeedbackModal(entry)}
+                          type='button'
+                        >
+                          {entry.therapistFeedback ? <Eye size={12} /> : <MessageSquare size={12} />}
+                          {entry.therapistFeedback ? 'Revisar' : 'Feedback'}
+                        </button>
+                        <button
                           className='flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1 font-bold text-white text-[10px] shadow-indigo-200 shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md sm:px-4 sm:py-1.5 sm:text-xs dark:shadow-none'
                           onClick={() => toggleJournalRead(entry.id)}
                           type='button'
@@ -1116,6 +1175,30 @@ export const TherapistView: React.FC = () => {
                         <p className='relative z-10 font-medium text-indigo-800 text-[10px] leading-relaxed sm:text-xs dark:text-indigo-200'>
                           {entry.aiAnalysis}
                         </p>
+                      </div>
+                    )}
+
+                    {entry.therapistFeedback && (
+                      <div className='relative overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 p-3 sm:rounded-2xl sm:p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10'>
+                        <div className='-mr-6 -mt-6 absolute top-0 right-0 h-12 w-12 rounded-full bg-emerald-200/20 sm:-mr-8 sm:-mt-8 sm:h-16 sm:w-16' />
+                        <div className='relative z-10 mb-1.5 flex items-center gap-1.5 text-emerald-600 sm:mb-2 sm:gap-2 dark:text-emerald-400'>
+                          <MessageSquare size={14} />
+                          <span className='font-black text-[10px] uppercase tracking-wider sm:text-xs'>
+                            Feedback do Terapeuta
+                          </span>
+                        </div>
+                        <p className='relative z-10 font-medium text-emerald-800 text-[10px] leading-relaxed sm:text-xs dark:text-emerald-200'>
+                          {entry.therapistFeedback}
+                        </p>
+                        {entry.feedbackAt && (
+                          <p className='relative z-10 mt-2 text-[9px] text-emerald-600 dark:text-emerald-400'>
+                            Enviado em {new Date(entry.feedbackAt).toLocaleDateString('pt-BR')} às{' '}
+                            {new Date(entry.feedbackAt).toLocaleTimeString('pt-BR', {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
@@ -2182,6 +2265,113 @@ export const TherapistView: React.FC = () => {
             </div>
           </div>
           <div className='-z-10 absolute inset-0' onClick={() => setIsInviteModalOpen(false)} />
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {showFeedbackModal && selectedFeedbackEntry && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+          <div className='zoom-in-95 flex max-h-[90vh] w-full max-w-2xl animate-in flex-col overflow-hidden rounded-2xl bg-white shadow-2xl duration-200 sm:rounded-3xl dark:bg-slate-900'>
+            <div className='flex items-center justify-between border-slate-100 border-b p-4 sm:p-6 dark:border-slate-800'>
+              <div className='flex items-center gap-2 sm:gap-3'>
+                <div className='flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 sm:h-12 sm:w-12 dark:bg-emerald-900/30'>
+                  <MessageSquare className='h-5 w-5 text-emerald-600 sm:h-6 sm:w-6 dark:text-emerald-400' />
+                </div>
+                <div className='min-w-0'>
+                  <h3 className='truncate font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                    {selectedFeedbackEntry.therapistFeedback ? 'Revisar Feedback' : 'Dar Feedback'}
+                  </h3>
+                  <p className='truncate text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+                    Registro de{' '}
+                    {new Date(selectedFeedbackEntry.timestamp).toLocaleDateString('pt-BR')}
+                  </p>
+                </div>
+              </div>
+              <button
+                className='shrink-0 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-200'
+                onClick={() => setShowFeedbackModal(false)}
+                type='button'
+              >
+                <X size={20} className='sm:hidden' />
+                <X size={24} className='hidden sm:block' />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className='flex-1 space-y-4 overflow-y-auto p-4 sm:p-6'>
+            <div className='mb-4 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50'>
+              <div className='mb-3 flex items-center gap-2'>
+                <div
+                  className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ${getMoodColor(
+                    selectedFeedbackEntry.emotion
+                  )} bg-opacity-20`}
+                >
+                  {getMoodEmoji(selectedFeedbackEntry.emotion)}
+                </div>
+                <div>
+                  <span className='block font-bold text-slate-700 text-xs uppercase dark:text-slate-300'>
+                    {selectedFeedbackEntry.emotion}
+                  </span>
+                  <span className='text-slate-500 text-xs dark:text-slate-400'>
+                    Intensidade: {selectedFeedbackEntry.intensity}
+                  </span>
+                </div>
+              </div>
+              <div className='border-slate-200 border-l-2 pl-3 dark:border-slate-700'>
+                <p className='mb-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                  Pensamento Automático
+                </p>
+                <p className='text-slate-700 text-sm italic leading-relaxed dark:text-slate-300'>
+                  "{selectedFeedbackEntry.thought}"
+                </p>
+              </div>
+            </div>
+
+            {/* Feedback Textarea */}
+            <div className='mb-4'>
+              <label
+                className='mb-2 block font-bold text-slate-700 text-sm dark:text-slate-300'
+                htmlFor='feedbackText'
+              >
+                Sua Mensagem de Feedback
+              </label>
+              <textarea
+                className='w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-800 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
+                id='feedbackText'
+                onChange={(e) => setFeedbackText(e.target.value)}
+                placeholder='Escreva aqui sua mensagem de feedback para o paciente...'
+                rows={6}
+                value={feedbackText}
+              />
+              <p className='mt-2 text-slate-400 text-xs dark:text-slate-500'>
+                Esta mensagem será visível para o paciente junto com o registro de pensamento.
+              </p>
+            </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className='flex gap-2 border-slate-100 border-t p-4 sm:gap-3 sm:p-6 dark:border-slate-800'>
+              <button
+                className='flex-1 rounded-xl border border-slate-300 px-4 py-2.5 font-bold text-slate-700 text-sm transition-colors hover:bg-slate-100 sm:py-3 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800'
+                onClick={() => setShowFeedbackModal(false)}
+                type='button'
+              >
+                Cancelar
+              </button>
+              <button
+                className='flex-1 rounded-xl bg-emerald-600 px-4 py-2.5 font-bold text-white text-sm transition-colors hover:bg-emerald-700 disabled:opacity-50 sm:py-3'
+                disabled={!feedbackText.trim() || addFeedbackMutation.isPending}
+                onClick={handleSubmitFeedback}
+                type='button'
+              >
+                {addFeedbackMutation.isPending
+                  ? 'Enviando...'
+                  : selectedFeedbackEntry.therapistFeedback
+                    ? 'Atualizar'
+                    : 'Enviar'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

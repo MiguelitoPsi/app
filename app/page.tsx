@@ -44,6 +44,12 @@ export default function LandingPage() {
             </Link>
             <Link
               className='text-sm font-medium text-slate-400 hover:text-white transition-colors'
+              href='#pacientes'
+            >
+              Para Pacientes
+            </Link>
+            <Link
+              className='text-sm font-medium text-slate-400 hover:text-white transition-colors'
               href='#profissionais'
             >
               Para Terapeutas
@@ -97,6 +103,12 @@ export default function LandingPage() {
             >
               Saiba mais
               <ArrowRight className='h-5 w-5 text-violet-600 transition-transform group-hover:translate-x-1' />
+            </Link>
+            <Link
+              className='flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-600/50 bg-emerald-600/10 px-8 py-4 font-medium text-emerald-300 transition-all hover:bg-emerald-600/20 hover:border-emerald-500 sm:w-auto'
+              href='#pacientes'
+            >
+              Buscar Psicólogo
             </Link>
             <Link
               className='flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-8 py-4 font-medium text-slate-300 transition-all hover:bg-slate-800 hover:border-slate-600 sm:w-auto'
@@ -179,6 +191,89 @@ export default function LandingPage() {
               icon={<Shield className='h-6 w-6 text-slate-400' />}
               title='Privacidade em Primeiro Lugar'
             />
+          </div>
+        </div>
+      </section>
+
+      {/* Section for Patients */}
+      <section className='px-4 py-24 relative overflow-hidden' id='pacientes'>
+        <div className='absolute inset-0 bg-gradient-to-b from-slate-950 to-emerald-950/20' />
+        <div className='mx-auto max-w-6xl relative'>
+          <div className='grid md:grid-cols-2 gap-12 items-center'>
+            <div className='relative order-2 md:order-1'>
+              <div className='absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent rounded-2xl blur-2xl' />
+              <div className='relative rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl'>
+                {/* Mockup de Lista de Psicólogos */}
+                <div className='space-y-4'>
+                  <div className='flex items-center justify-between border-b border-slate-800 pb-4'>
+                    <div className='flex items-center gap-3'>
+                      <div className='h-10 w-10 rounded-full bg-slate-800 flex items-center justify-center'>
+                        <Users className='h-5 w-5 text-slate-400' />
+                      </div>
+                      <div>
+                        <p className='font-medium text-white'>Psicólogos Disponíveis</p>
+                        <p className='text-xs text-slate-500'>Encontre seu terapeuta</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className='space-y-3'>
+                    {[1, 2, 3].map((i) => (
+                      <div
+                        className='flex items-center justify-between p-3 rounded-lg bg-slate-800/50 border border-slate-800'
+                        key={i}
+                      >
+                        <div className='flex items-center gap-3'>
+                          <div className='h-8 w-8 rounded-full bg-slate-700' />
+                          <div>
+                            <div className='h-2 w-32 bg-slate-700 rounded mb-1' />
+                            <div className='h-2 w-20 bg-slate-700/50 rounded' />
+                          </div>
+                        </div>
+                        <div className='h-6 w-20 bg-violet-500/20 rounded-full' />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='order-1 md:order-2'>
+              <div className='inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-sm font-medium text-emerald-400 mb-6'>
+                <Heart className='h-4 w-4' />
+                Para Pacientes
+              </div>
+              <h2 className='text-3xl md:text-4xl font-bold text-white mb-6'>
+                Ainda não tem um psicólogo?
+              </h2>
+              <p className='text-slate-400 text-lg mb-8 leading-relaxed'>
+                Encontre profissionais qualificados que utilizam o Nepsis e inicie sua jornada de
+                autoconhecimento com o suporte adequado.
+              </p>
+
+              <ul className='space-y-4 mb-8'>
+                {[
+                  'Acesso a psicólogos cadastrados e verificados',
+                  'Perfis completos com especialidades e abordagens',
+                  'Contato direto para agendar sua primeira sessão',
+                  'Integração total entre terapia presencial e digital',
+                ].map((item, i) => (
+                  <li className='flex items-start gap-3' key={i}>
+                    <div className='mt-1 h-5 w-5 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0'>
+                      <Check className='h-3 w-3 text-emerald-400' />
+                    </div>
+                    <span className='text-slate-300'>{item}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                className='inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-500/50 bg-emerald-500/10 px-6 py-3 font-semibold text-emerald-300 transition-all hover:bg-emerald-500/20'
+                href='/psychologists'
+              >
+                Ver psicólogos disponíveis
+                <ChevronRight className='h-4 w-4' />
+              </Link>
+            </div>
           </div>
         </div>
       </section>
@@ -319,6 +414,10 @@ export default function LandingPage() {
             <FaqItem
               answer='Você ganha 30 dias de acesso completo para testar tudo sem pagar nada. Depois desse período, o uso do app continua apenas por meio de um plano pago. Não existe versão gratuita permanente. Assim fica justo e transparente: você experimenta primeiro, decide depois.'
               question='O app é gratuito?'
+            />
+            <FaqItem
+              answer='Não. O acesso do paciente só é liberado quando ele está vinculado a um psicólogo cadastrado no Nepsis. Isso garante que os registros, análises e dados sejam utilizados dentro de um acompanhamento terapêutico adequado. Se o usuário ainda não tiver um psicólogo, deve aparecer a opção de visualizar profissionais disponíveis na plataforma e entrar em contato com um deles para iniciar o processo de vinculação.'
+              question='Posso usar o Nepsis sem um psicólogo?'
             />
           </div>
         </div>

@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Brain, Save, Sparkles } from 'lucide-react'
 import type React from 'react'
 import { useId, useState } from 'react'
 import { XP_REWARDS } from '@/lib/xp'
+import { trpc } from '@/lib/trpc/client'
 import { useGame } from '../context/GameContext'
 import { analyzeThought } from '../services/geminiService'
 import type { Mood } from '../types'
@@ -13,7 +14,9 @@ type JournalViewProps = {
 }
 
 export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
-  const { addJournalEntry } = useGame()
+  const { addJournalEntry, journal } = useGame()
+  console.log('JournalView journal data:', journal)
+  const utils = trpc.useUtils()
   const thoughtId = useId()
   const emotionId = useId()
   const customEmotionId = useId()
@@ -27,6 +30,25 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiResult, setAiResult] = useState<string | null>(null)
+  const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null)
+
+  const markFeedbackAsViewedMutation = trpc.journal.markFeedbackAsViewed.useMutation({
+    onSuccess: () => {
+      utils.journal.getUnviewedFeedbackCount.invalidate()
+      utils.journal.getAll.invalidate()
+    },
+  })
+
+  const handleExpandEntry = (entry: any) => {
+    if (expandedEntryId === entry.id) {
+      setExpandedEntryId(null)
+    } else {
+      setExpandedEntryId(entry.id)
+      if (entry.therapistFeedback && !entry.feedbackViewed) {
+        markFeedbackAsViewedMutation.mutate({ entryId: entry.id })
+      }
+    }
+  }
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true)
@@ -82,7 +104,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             </button>
             <div>
               <h1 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
-                Diário
+                Diário <span className="text-xs text-red-500">DEBUG: V2</span>
               </h1>
               <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
                 Registre seus pensamentos
@@ -303,6 +325,108 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             </button>
           </div>
         )}
+
+        {/* Journal History Section */}
+        <section className='mt-8 border-slate-100 border-t pt-8 dark:border-slate-800'>
+          <h2 className='mb-4 font-bold text-lg text-slate-800 sm:mb-6 sm:text-xl dark:text-white'>
+            Seus Registros Anteriores
+          </h2>
+          <div className='space-y-4'>
+            {journal.length === 0 ? (
+              <div className='rounded-2xl border border-slate-100 bg-white p-6 text-center sm:p-8 dark:border-slate-800 dark:bg-slate-900'>
+                <p className='text-slate-500 dark:text-slate-400'>
+                  Você ainda não tem registros no diário.
+                </p>
+              </div>
+            ) : (
+              journal.map((entry) => (
+                <article
+                  key={entry.id}
+                  className={`overflow-hidden rounded-2xl border bg-white transition-all duration-300 dark:bg-slate-900 ${
+                    entry.therapistFeedback && !entry.feedbackViewed
+                      ? 'border-emerald-200 shadow-emerald-100/50 shadow-lg ring-1 ring-emerald-100 dark:border-emerald-900/50 dark:shadow-none dark:ring-emerald-900/30'
+                      : 'border-slate-100 shadow-sm hover:shadow-md dark:border-slate-800'
+                  }`}
+                >
+                  <button
+                    onClick={() => handleExpandEntry(entry)}
+                    className='w-full text-left'
+                  >
+                    <div className='flex items-start justify-between p-4 sm:p-5'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-2xl dark:bg-slate-800'>
+                          {moods.find((m) => m.id === entry.emotion)?.emoji || '😐'}
+                        </div>
+                        <div>
+                          <div className='flex items-center gap-2'>
+                            <span className='font-bold text-slate-700 text-sm dark:text-slate-300'>
+                              {new Date(entry.timestamp).toLocaleDateString('pt-BR', {
+                                weekday: 'long',
+                                day: 'numeric',
+                                month: 'long',
+                              })}
+                            </span>
+                            {entry.therapistFeedback && !entry.feedbackViewed && (
+                              <span className='rounded-full bg-emerald-100 px-2 py-0.5 font-bold text-[10px] text-emerald-600 uppercase tracking-wider dark:bg-emerald-900/30 dark:text-emerald-400'>
+                                Novo Feedback
+                              </span>
+                            )}
+                          </div>
+                          <p className='mt-1 line-clamp-1 text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+                            {entry.thought}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+
+                  {expandedEntryId === entry.id && (
+                    <div className='border-slate-100 border-t bg-slate-50/50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900/50'>
+                      <div className='space-y-4'>
+                        <div>
+                          <h4 className='mb-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                            Pensamento
+                          </h4>
+                          <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
+                            {entry.thought}
+                          </p>
+                        </div>
+
+                        {entry.aiAnalysis && (
+                          <div className='rounded-xl bg-violet-50 p-3 dark:bg-violet-900/20'>
+                            <h4 className='mb-1 flex items-center gap-1.5 font-bold text-violet-600 text-xs uppercase tracking-wider dark:text-violet-400'>
+                              <Sparkles size={12} /> Insight da IA
+                            </h4>
+                            <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
+                              {entry.aiAnalysis}
+                            </p>
+                          </div>
+                        )}
+
+                        {entry.therapistFeedback && (
+                          <div className='rounded-xl border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900/30 dark:bg-emerald-900/20'>
+                            <h4 className='mb-1 flex items-center gap-1.5 font-bold text-emerald-600 text-xs uppercase tracking-wider dark:text-emerald-400'>
+                              <Brain size={12} /> Feedback do Terapeuta
+                            </h4>
+                            <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
+                              {entry.therapistFeedback}
+                            </p>
+                            {entry.feedbackAt && (
+                              <p className='mt-2 text-emerald-600/60 text-[10px] dark:text-emerald-400/60'>
+                                Enviado em{' '}
+                                {new Date(entry.feedbackAt).toLocaleString('pt-BR')}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </article>
+              ))
+            )}
+          </div>
+        </section>
       </main>
     </div>
   )
