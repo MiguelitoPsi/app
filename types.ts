@@ -8,6 +8,9 @@ export type JournalEntry = {
   thought: string
   aiAnalysis?: string
   isRead?: boolean
+  therapistFeedback?: string
+  feedbackViewed?: boolean
+  feedbackAt?: number
 }
 
 export type Task = {
