@@ -256,15 +256,16 @@ export type UseFinancialDataOptions = {
   period: PeriodType
   enableComparison?: boolean
   historyMonths?: number
+  referenceDate?: Date
 }
 
 /**
  * Hook centralizado para dados financeiros do terapeuta
  */
 export function useFinancialData(options: UseFinancialDataOptions) {
-  const { period, enableComparison = true, historyMonths = 12 } = options
+  const { period, enableComparison = true, historyMonths = 12, referenceDate = new Date() } = options
 
-  const currentRange = useMemo(() => getPeriodRange(period), [period])
+  const currentRange = useMemo(() => getPeriodRange(period, referenceDate), [period, referenceDate])
   const previousRange = useMemo(
     () => (enableComparison ? getPreviousPeriodRange(period, currentRange) : null),
     [period, currentRange, enableComparison]
@@ -425,8 +426,8 @@ export function useFinancialData(options: UseFinancialDataOptions) {
  * Opções de período para o seletor
  */
 export const PERIOD_OPTIONS: Array<{ value: PeriodType; label: string }> = [
-  { value: 'month', label: 'Este Mês' },
-  { value: 'quarter', label: 'Este Trimestre' },
-  { value: 'semester', label: 'Este Semestre' },
-  { value: 'year', label: 'Este Ano' },
+  { value: 'month', label: 'Mensal' },
+  { value: 'quarter', label: 'Trimestral' },
+  { value: 'semester', label: 'Semestral' },
+  { value: 'year', label: 'Anual' },
 ]

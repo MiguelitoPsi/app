@@ -6,6 +6,8 @@ import {
   Calendar,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   DollarSign,
   Eye,
   EyeOff,
@@ -135,53 +137,75 @@ function ChangeIndicator({
 function PeriodSelector({
   value,
   onChange,
+  onPrevious,
+  onNext,
 }: {
   value: PeriodType
   onChange: (value: PeriodType) => void
+  onPrevious: () => void
+  onNext: () => void
 }): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false)
   const selectedOption = PERIOD_OPTIONS.find((opt) => opt.value === value)
 
   return (
-    <div className='relative'>
+    <div className='flex items-center gap-1'>
       <button
-        className='flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-medium text-slate-700 text-xs shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm'
-        onClick={() => setIsOpen(!isOpen)}
+        className='flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 sm:h-9 sm:w-9'
+        onClick={onPrevious}
         type='button'
       >
-        <Calendar className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
-        <span className='max-w-[60px] truncate sm:max-w-none'>{selectedOption?.label}</span>
-        <ChevronDown
-          className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${
-            isOpen ? 'rotate-180' : ''
-          }`}
-        />
+        <ChevronLeft className='h-4 w-4' />
       </button>
 
-      {isOpen && (
-        <>
-          <div className='fixed inset-0 z-10' onClick={() => setIsOpen(false)} />
-          <div className='absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:w-48'>
-            {PERIOD_OPTIONS.map((option) => (
-              <button
-                className={`w-full px-3 py-2 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-700 sm:px-4 sm:text-sm ${
-                  value === option.value
-                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                    : 'text-slate-700 dark:text-slate-300'
-                }`}
-                key={option.value}
-                onClick={() => {
-                  onChange(option.value)
-                  setIsOpen(false)
-                }}
-                type='button'
-              >
-                {option.label}
-              </button>
-            ))}
-          </div>
-        </>
-      )}
+      <div className='relative'>
+        <button
+          className='flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 font-medium text-slate-700 text-xs shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 sm:gap-2 sm:px-3 sm:py-2 sm:text-sm'
+          onClick={() => setIsOpen(!isOpen)}
+          type='button'
+        >
+          <Calendar className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
+          <span className='max-w-[60px] truncate sm:max-w-none'>{selectedOption?.label}</span>
+          <ChevronDown
+            className={`h-3.5 w-3.5 flex-shrink-0 transition-transform sm:h-4 sm:w-4 ${
+              isOpen ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {isOpen && (
+          <>
+            <div className='fixed inset-0 z-10' onClick={() => setIsOpen(false)} />
+            <div className='absolute right-0 z-20 mt-1 w-40 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:w-48'>
+              {PERIOD_OPTIONS.map((option) => (
+                <button
+                  className={`w-full px-3 py-2 text-left text-xs hover:bg-slate-50 dark:hover:bg-slate-700 sm:px-4 sm:text-sm ${
+                    value === option.value
+                      ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
+                      : 'text-slate-700 dark:text-slate-300'
+                  }`}
+                  key={option.value}
+                  onClick={() => {
+                    onChange(option.value)
+                    setIsOpen(false)
+                  }}
+                  type='button'
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <button
+        className='flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200 sm:h-9 sm:w-9'
+        onClick={onNext}
+        type='button'
+      >
+        <ChevronRight className='h-4 w-4' />
+      </button>
     </div>
   )
 }
@@ -271,6 +295,7 @@ export default function TherapistFinancialView(): React.ReactElement {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [period, setPeriod] = useState<PeriodType>('month')
+  const [referenceDate, setReferenceDate] = useState(new Date())
   const [showAddForm, setShowAddForm] = useState(false)
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null)
@@ -295,7 +320,35 @@ export default function TherapistFinancialView(): React.ReactElement {
     records,
     isLoading,
     isLoadingRecords,
-  } = useFinancialData({ period, enableComparison: true, historyMonths: 12 })
+  } = useFinancialData({ period, enableComparison: true, historyMonths: 12, referenceDate })
+
+  const handlePreviousPeriod = () => {
+    const newDate = new Date(referenceDate)
+    if (period === 'month') {
+      newDate.setMonth(newDate.getMonth() - 1)
+    } else if (period === 'quarter') {
+      newDate.setMonth(newDate.getMonth() - 3)
+    } else if (period === 'semester') {
+      newDate.setMonth(newDate.getMonth() - 6)
+    } else if (period === 'year') {
+      newDate.setFullYear(newDate.getFullYear() - 1)
+    }
+    setReferenceDate(newDate)
+  }
+
+  const handleNextPeriod = () => {
+    const newDate = new Date(referenceDate)
+    if (period === 'month') {
+      newDate.setMonth(newDate.getMonth() + 1)
+    } else if (period === 'quarter') {
+      newDate.setMonth(newDate.getMonth() + 3)
+    } else if (period === 'semester') {
+      newDate.setMonth(newDate.getMonth() + 6)
+    } else if (period === 'year') {
+      newDate.setFullYear(newDate.getFullYear() + 1)
+    }
+    setReferenceDate(newDate)
+  }
 
   // Goals e Alerts (mantidos separados)
   // autoRecalculate: true recalcula o progresso das metas automaticamente baseado nos dados reais
@@ -557,7 +610,12 @@ export default function TherapistFinancialView(): React.ReactElement {
           </p>
         </div>
         <div className='flex items-center gap-2'>
-          <PeriodSelector onChange={setPeriod} value={period} />
+          <PeriodSelector
+            onChange={setPeriod}
+            onNext={handleNextPeriod}
+            onPrevious={handlePreviousPeriod}
+            value={period}
+          />
           <button
             aria-label='Configurações'
             className='touch-target group rounded-xl bg-slate-100 p-2.5 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 sm:rounded-2xl sm:p-3 lg:hidden dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
