@@ -27,6 +27,8 @@ import { XP_REWARDS } from '@/lib/xp'
 import { PatientConsentModal } from '@/components/PatientConsentModal'
 import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
+import { useXPAnimation } from '@/hooks/useXPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation'
 
 // Dynamically import Recharts components to avoid SSR issues
 const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
@@ -61,6 +63,9 @@ export const HomeView: React.FC = () => {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // XP Animation
+  const { particles, triggerAnimation } = useXPAnimation()
 
   // Fetch mood history from backend
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
@@ -123,7 +128,7 @@ export const HomeView: React.FC = () => {
     return () => clearInterval(interval)
   }, [stats.lastMoodXPTimestamp])
 
-  const handleMoodChange = (mood: Mood) => {
+  const handleMoodChange = (mood: Mood, e?: React.MouseEvent<HTMLButtonElement>) => {
     if (!isXPAvailable) return
     // Update local state immediately for instant UI feedback
     setSelectedMood(mood)
@@ -131,6 +136,17 @@ export const HomeView: React.FC = () => {
     if (isXPAvailable) {
       setXpFeedback({ id: Date.now(), amount: 10 })
       setTimeout(() => setXpFeedback(null), 2000)
+      
+      // Trigger animation from button position
+      if (e?.currentTarget) {
+        const rect = e.currentTarget.getBoundingClientRect()
+        const centerX = rect.left + rect.width / 2
+        const centerY = rect.top + rect.height / 2
+        
+        setTimeout(() => {
+          triggerAnimation(10, 'xp', centerX, centerY)
+        }, 300)
+      }
     }
 
     // Update backend asynchronously
@@ -227,7 +243,9 @@ export const HomeView: React.FC = () => {
   ]
 
   return (
-    <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+    <>
+      <XPAnimationContainer particles={particles} />
+      <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
       {/* Live region for screen reader announcements */}
       <div aria-atomic='true' aria-live='polite' className='sr-only'>
         {xpFeedback && `Você ganhou ${xpFeedback.amount} pontos de experiência!`}
@@ -387,7 +405,7 @@ export const HomeView: React.FC = () => {
                 } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
                 disabled={!isXPAvailable}
                 key={m.id}
-                onClick={() => handleMoodChange(m.id)}
+                onClick={(e) => handleMoodChange(m.id, e)}
                 type='button'
               >
                 <span
@@ -627,5 +645,6 @@ export const HomeView: React.FC = () => {
         <PatientConsentModal onSuccess={() => refetchTerms()} />
       )}
     </div>
+    </>
   )
 }

@@ -2,12 +2,14 @@
 
 import { ArrowLeft, BookOpen, Brain, Save, Sparkles } from 'lucide-react'
 import type React from 'react'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 import { XP_REWARDS } from '@/lib/xp'
 import { trpc } from '@/lib/trpc/client'
 import { useGame } from '../context/GameContext'
 import { analyzeThought } from '../services/geminiService'
 import type { Mood } from '../types'
+import { useXPAnimation } from '@/hooks/useXPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation'
 
 type JournalViewProps = {
   goHome: () => void
@@ -30,25 +32,11 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
 
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [aiResult, setAiResult] = useState<string | null>(null)
-  const [expandedEntryId, setExpandedEntryId] = useState<string | null>(null)
 
-  const markFeedbackAsViewedMutation = trpc.journal.markFeedbackAsViewed.useMutation({
-    onSuccess: () => {
-      utils.journal.getUnviewedFeedbackCount.invalidate()
-      utils.journal.getAll.invalidate()
-    },
-  })
-
-  const handleExpandEntry = (entry: any) => {
-    if (expandedEntryId === entry.id) {
-      setExpandedEntryId(null)
-    } else {
-      setExpandedEntryId(entry.id)
-      if (entry.therapistFeedback && !entry.feedbackViewed) {
-        markFeedbackAsViewedMutation.mutate({ entryId: entry.id })
-      }
-    }
-  }
+  // XP Animation
+  const { particles, triggerAnimation } = useXPAnimation()
+  const saveButtonRef = useRef<HTMLButtonElement>(null)
+  const analyzeButtonRef = useRef<HTMLButtonElement>(null)
 
   const handleAnalyze = async () => {
     setIsAnalyzing(true)
@@ -59,14 +47,31 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
     setStep(2) // Move to result view
   }
 
-  const handleSave = () => {
+  const handleSave = (e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Trigger animation from button position
+    if (e?.currentTarget) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
+      
+      // Trigger both XP and Points animations with slight delay
+      triggerAnimation(XP_REWARDS.journal, 'xp', centerX, centerY)
+      setTimeout(() => {
+        triggerAnimation(XP_REWARDS.journal, 'pts', centerX, centerY)
+      }, 100)
+    }
+
     addJournalEntry({
       emotion,
       intensity,
       thought,
       aiAnalysis: aiResult || undefined,
     })
-    goHome()
+    
+    // Delay navigation to show animation
+    setTimeout(() => {
+      goHome()
+    }, 400)
   }
 
   const moods: { id: Mood; emoji: string; label: string }[] = [
@@ -79,7 +84,9 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   ]
 
   return (
-    <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+    <>
+      <XPAnimationContainer particles={particles} />
+      <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
       {/* Live region for status announcements */}
       <div aria-atomic='true' aria-live='polite' className='sr-only'>
         {isAnalyzing && 'Analisando seu pensamento com inteligência artificial...'}
@@ -104,20 +111,22 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             </button>
             <div>
               <h1 className='font-black text-xl text-slate-800 tracking-tight sm:text-2xl dark:text-white'>
-                Diário <span className="text-xs text-red-500">DEBUG: V2</span>
+                Diário de Pensamentos
               </h1>
               <p className='font-medium text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
                 Registre seus pensamentos
               </p>
             </div>
           </div>
-          <div
-            aria-hidden='true'
-            className='flex h-9 w-9 items-center justify-center rounded-full border border-violet-100 bg-violet-50 text-violet-600 sm:h-10 sm:w-10 dark:border-violet-800 dark:bg-violet-900/30 dark:text-violet-400'
+          <button
+            aria-label='Ver registros anteriores'
+            className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-300 bg-violet-100 text-violet-700 shadow-md shadow-violet-200/50 transition-all hover:bg-violet-200 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-300/50 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm sm:h-11 sm:w-11 dark:border-violet-700 dark:bg-violet-900/40 dark:text-violet-300 dark:shadow-violet-900/30 dark:hover:bg-violet-900/60 dark:hover:border-violet-600'
+            onClick={() => window.location.href = '/journal/history'}
+            type='button'
           >
             <BookOpen className='sm:hidden' size={18} />
             <BookOpen className='hidden sm:block' size={20} />
-          </div>
+          </button>
         </div>
       </header>
 
@@ -250,6 +259,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             {/* Actions */}
             <div className='space-y-2 pt-2 sm:space-y-3 sm:pt-4'>
               <button
+                ref={analyzeButtonRef}
                 aria-describedby='analyze-hint'
                 className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-violet-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
                 disabled={!thought || isAnalyzing}
@@ -263,7 +273,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                 ) : (
                   <>
                     <Brain aria-hidden='true' size={18} />
-                    <span>Analisar com IA</span>
+                    <span>Analisar com IA (+{XP_REWARDS.journal} XP & Pts.)</span>
                   </>
                 )}
               </button>
@@ -273,12 +283,13 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               </p>
 
               <button
+                ref={saveButtonRef}
                 className='touch-target flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-sm text-slate-600 transition-all active:scale-[0.98] hover:bg-slate-50 sm:rounded-2xl sm:py-4 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
-                onClick={handleSave}
+                onClick={(e) => handleSave(e)}
                 type='button'
               >
                 <Save aria-hidden='true' size={16} />
-                <span>Salvar sem análise (+{XP_REWARDS.journal} XP)</span>
+                <span>Salvar sem análise (+{XP_REWARDS.journal} XP & Pts.)</span>
               </button>
             </div>
           </form>
@@ -317,7 +328,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
 
             <button
               className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 font-bold text-sm text-white shadow-lg transition-transform active:scale-[0.98] hover:scale-[1.02] sm:rounded-2xl sm:py-4 sm:text-base dark:bg-white dark:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
-              onClick={handleSave}
+              onClick={(e) => handleSave(e)}
               type='button'
             >
               <Save aria-hidden='true' size={18} />
@@ -325,109 +336,8 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             </button>
           </div>
         )}
-
-        {/* Journal History Section */}
-        <section className='mt-8 border-slate-100 border-t pt-8 dark:border-slate-800'>
-          <h2 className='mb-4 font-bold text-lg text-slate-800 sm:mb-6 sm:text-xl dark:text-white'>
-            Seus Registros Anteriores
-          </h2>
-          <div className='space-y-4'>
-            {journal.length === 0 ? (
-              <div className='rounded-2xl border border-slate-100 bg-white p-6 text-center sm:p-8 dark:border-slate-800 dark:bg-slate-900'>
-                <p className='text-slate-500 dark:text-slate-400'>
-                  Você ainda não tem registros no diário.
-                </p>
-              </div>
-            ) : (
-              journal.map((entry) => (
-                <article
-                  key={entry.id}
-                  className={`overflow-hidden rounded-2xl border bg-white transition-all duration-300 dark:bg-slate-900 ${
-                    entry.therapistFeedback && !entry.feedbackViewed
-                      ? 'border-emerald-200 shadow-emerald-100/50 shadow-lg ring-1 ring-emerald-100 dark:border-emerald-900/50 dark:shadow-none dark:ring-emerald-900/30'
-                      : 'border-slate-100 shadow-sm hover:shadow-md dark:border-slate-800'
-                  }`}
-                >
-                  <button
-                    onClick={() => handleExpandEntry(entry)}
-                    className='w-full text-left'
-                  >
-                    <div className='flex items-start justify-between p-4 sm:p-5'>
-                      <div className='flex items-center gap-3'>
-                        <div className='flex h-10 w-10 items-center justify-center rounded-xl bg-slate-50 text-2xl dark:bg-slate-800'>
-                          {moods.find((m) => m.id === entry.emotion)?.emoji || '😐'}
-                        </div>
-                        <div>
-                          <div className='flex items-center gap-2'>
-                            <span className='font-bold text-slate-700 text-sm dark:text-slate-300'>
-                              {new Date(entry.timestamp).toLocaleDateString('pt-BR', {
-                                weekday: 'long',
-                                day: 'numeric',
-                                month: 'long',
-                              })}
-                            </span>
-                            {entry.therapistFeedback && !entry.feedbackViewed && (
-                              <span className='rounded-full bg-emerald-100 px-2 py-0.5 font-bold text-[10px] text-emerald-600 uppercase tracking-wider dark:bg-emerald-900/30 dark:text-emerald-400'>
-                                Novo Feedback
-                              </span>
-                            )}
-                          </div>
-                          <p className='mt-1 line-clamp-1 text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
-                            {entry.thought}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-
-                  {expandedEntryId === entry.id && (
-                    <div className='border-slate-100 border-t bg-slate-50/50 p-4 sm:p-5 dark:border-slate-800 dark:bg-slate-900/50'>
-                      <div className='space-y-4'>
-                        <div>
-                          <h4 className='mb-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                            Pensamento
-                          </h4>
-                          <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
-                            {entry.thought}
-                          </p>
-                        </div>
-
-                        {entry.aiAnalysis && (
-                          <div className='rounded-xl bg-violet-50 p-3 dark:bg-violet-900/20'>
-                            <h4 className='mb-1 flex items-center gap-1.5 font-bold text-violet-600 text-xs uppercase tracking-wider dark:text-violet-400'>
-                              <Sparkles size={12} /> Insight da IA
-                            </h4>
-                            <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
-                              {entry.aiAnalysis}
-                            </p>
-                          </div>
-                        )}
-
-                        {entry.therapistFeedback && (
-                          <div className='rounded-xl border border-emerald-100 bg-emerald-50 p-3 dark:border-emerald-900/30 dark:bg-emerald-900/20'>
-                            <h4 className='mb-1 flex items-center gap-1.5 font-bold text-emerald-600 text-xs uppercase tracking-wider dark:text-emerald-400'>
-                              <Brain size={12} /> Feedback do Terapeuta
-                            </h4>
-                            <p className='text-slate-700 text-sm leading-relaxed dark:text-slate-300'>
-                              {entry.therapistFeedback}
-                            </p>
-                            {entry.feedbackAt && (
-                              <p className='mt-2 text-emerald-600/60 text-[10px] dark:text-emerald-400/60'>
-                                Enviado em{' '}
-                                {new Date(entry.feedbackAt).toLocaleString('pt-BR')}
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </article>
-              ))
-            )}
-          </div>
-        </section>
       </main>
     </div>
+    </>
   )
 }

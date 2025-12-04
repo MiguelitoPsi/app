@@ -18,6 +18,8 @@ import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getMeditationRewards } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
+import { useXPAnimation } from '@/hooks/useXPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation'
 
 // Breathing configurations based on physiological parameters
 // Inhale: 3-4s, Exhale: 4-8s (longer exhale for relaxation)
@@ -135,6 +137,9 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   const [completed, setCompleted] = useState(false)
   const [breathProgress, setBreathProgress] = useState(0)
 
+  // XP Animation
+  const { particles, triggerAnimation } = useXPAnimation()
+
   // Custom breathing settings (can be adjusted per mode)
   const [customInhale, setCustomInhale] = useState(4) // seconds
   const [customExhale, setCustomExhale] = useState(6) // seconds
@@ -175,9 +180,21 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
       setCompleted(true)
       const minutesCompleted = Math.ceil(duration / 60)
       completeMeditation(minutesCompleted)
+      
+      // Trigger XP animation from center of screen
+      const centerX = window.innerWidth / 2
+      const centerY = window.innerHeight / 2
+      const rewards = getMeditationRewards(duration)
+      
+      setTimeout(() => {
+        triggerAnimation(rewards.xp, 'xp', centerX, centerY)
+        setTimeout(() => {
+          triggerAnimation(rewards.coins, 'pts', centerX, centerY)
+        }, 100)
+      }, 500)
     }
     return () => clearInterval(interval)
-  }, [isActive, timeLeft, completeMeditation, duration])
+  }, [isActive, timeLeft, completeMeditation, duration, triggerAnimation])
 
   // Smooth breathing animation using requestAnimationFrame
   const animateBreathing = useCallback(
@@ -255,7 +272,9 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   // --- Render Selection Screen ---
   if (!selectedType) {
     return (
-      <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+      <>
+        <XPAnimationContainer particles={particles} />
+        <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
         {/* Header Section */}
         <div className='z-10 rounded-b-[1.5rem] bg-white px-4 pt-safe pb-4 shadow-sm sm:rounded-b-[2rem] sm:px-6 sm:pt-8 sm:pb-6 dark:bg-slate-900'>
           <div className='mb-2 flex items-center justify-between'>
@@ -353,6 +372,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
           </div>
         </div>
       </div>
+      </>
     )
   }
 
@@ -573,7 +593,9 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   }
 
   return (
-    <div className='relative flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
+    <>
+      <XPAnimationContainer particles={particles} />
+      <div className='relative flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
       {/* Background Ambiance - smooth opacity transition */}
       <div
         className={`absolute inset-0 z-0 transition-opacity duration-500 ease-out ${selectedType.bgActive}`}
@@ -797,5 +819,6 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
         </div>
       )}
     </div>
+    </>
   )
 }

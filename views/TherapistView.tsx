@@ -314,6 +314,9 @@ export const TherapistView: React.FC = () => {
     thought: entry.content,
     aiAnalysis: entry.aiAnalysis || undefined,
     isRead: entry.isRead ?? undefined,
+    therapistFeedback: entry.therapistFeedback || undefined,
+    feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
+    feedbackViewed: entry.feedbackViewed ?? undefined,
   }))
 
   // Transform patient rewards data from DB format to component format

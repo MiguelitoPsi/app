@@ -118,7 +118,24 @@ export function getOverduePenaltyMultiplier(
  * ============================================ */
 
 /**
- * XP necessário para subir de nível (100 XP por nível)
+ * XP necessário para atingir cada nível (Acumulado)
+ * Nível 1 começa em 0 XP
+ */
+export const LEVEL_THRESHOLDS: Record<number, number> = {
+  1: 0,
+  2: 300,
+  3: 700,
+  4: 1200,
+  5: 1800,
+  6: 2500,
+  7: 3300,
+  8: 4200,
+  9: 5200,
+  10: 6500,
+}
+
+/**
+ * @deprecated Use LEVEL_THRESHOLDS instead
  */
 export const XP_PER_LEVEL = 100
 
@@ -129,10 +146,16 @@ export const XP_PER_LEVEL = 100
 /**
  * Calcula o nível atual baseado no XP total
  * @param xp - Total de experiência acumulada
- * @returns Nível atual (começa em 1)
+ * @returns Nível atual (1-10)
  */
 export function getLevelFromXP(xp: number): number {
-  return Math.floor(xp / XP_PER_LEVEL) + 1
+  // Iterar de trás para frente para encontrar o maior nível possível
+  for (let level = 10; level >= 1; level--) {
+    if (xp >= LEVEL_THRESHOLDS[level]) {
+      return level
+    }
+  }
+  return 1
 }
 
 /**
@@ -141,7 +164,9 @@ export function getLevelFromXP(xp: number): number {
  * @returns XP mínimo necessário
  */
 export function getXPForLevel(level: number): number {
-  return (level - 1) * XP_PER_LEVEL
+  if (level <= 1) return 0
+  if (level >= 10) return LEVEL_THRESHOLDS[10]
+  return LEVEL_THRESHOLDS[level] || 0
 }
 
 /**
@@ -151,8 +176,12 @@ export function getXPForLevel(level: number): number {
  */
 export function getXPToNextLevel(currentXP: number): number {
   const currentLevel = getLevelFromXP(currentXP)
+  
+  // Se já está no nível máximo (10), retorna 0
+  if (currentLevel >= 10) return 0
+
   const nextLevelXP = getXPForLevel(currentLevel + 1)
-  return nextLevelXP - currentXP
+  return Math.max(0, nextLevelXP - currentXP)
 }
 
 /**
@@ -162,9 +191,19 @@ export function getXPToNextLevel(currentXP: number): number {
  */
 export function getLevelProgress(currentXP: number): number {
   const currentLevel = getLevelFromXP(currentXP)
+  
+  // Se nível máximo, 100%
+  if (currentLevel >= 10) return 100
+
   const currentLevelXP = getXPForLevel(currentLevel)
+  const nextLevelXP = getXPForLevel(currentLevel + 1)
+  
   const xpInCurrentLevel = currentXP - currentLevelXP
-  return Math.min(100, Math.max(0, (xpInCurrentLevel / XP_PER_LEVEL) * 100))
+  const xpNeededForNextLevel = nextLevelXP - currentLevelXP
+  
+  if (xpNeededForNextLevel <= 0) return 100
+
+  return Math.min(100, Math.max(0, (xpInCurrentLevel / xpNeededForNextLevel) * 100))
 }
 
 /* ============================================

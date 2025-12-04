@@ -20,6 +20,8 @@ import {
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { useGame } from '../context/GameContext'
+import { useXPAnimation } from '@/hooks/useXPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation'
 
 export const RoutineView: React.FC = () => {
   const { tasks, toggleTask, addTask, deleteTask, urgentOverdueTasks, dismissUrgentTask } =
@@ -68,6 +70,9 @@ export const RoutineView: React.FC = () => {
     { id: string; x: number; y: number; val: number; type: 'xp' | 'pts' }[]
   >([])
   const [ripples, setRipples] = useState<{ id: string; x: number; y: number }[]>([])
+
+  // XP Animation to bar
+  const { particles, triggerAnimation } = useXPAnimation()
 
   // Helper to format date for display
   const formatDisplayDate = (date: Date) => {
@@ -431,6 +436,14 @@ export const RoutineView: React.FC = () => {
           disableForReducedMotion: true,
         })
 
+        // Trigger particles flying to XP bar
+        setTimeout(() => {
+          triggerAnimation(xp, 'xp', centerX, centerY)
+          setTimeout(() => {
+            triggerAnimation(pts, 'pts', centerX, centerY)
+          }, 100)
+        }, 200)
+
         // Remove animations after 1s
         setTimeout(() => {
           setRewardAnimations((prev) => prev.filter((anim) => !anim.id.startsWith(id)))
@@ -494,7 +507,9 @@ export const RoutineView: React.FC = () => {
   }
 
   return (
-    <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
+    <>
+      <XPAnimationContainer particles={particles} />
+      <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
       {/* Header */}
       <div className='mb-4 flex items-end justify-between sm:mb-6'>
         <div>
@@ -1114,5 +1129,6 @@ export const RoutineView: React.FC = () => {
         </div>
       ))}
     </div>
+    </>
   )
 }
