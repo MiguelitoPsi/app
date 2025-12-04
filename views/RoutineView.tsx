@@ -22,6 +22,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useGame } from '../context/GameContext'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { XPAnimationContainer } from '@/components/XPAnimation'
+import { HelpButton } from '@/components/HelpButton'
 
 export const RoutineView: React.FC = () => {
   const { tasks, toggleTask, addTask, deleteTask, urgentOverdueTasks, dismissUrgentTask } =
@@ -518,17 +519,19 @@ export const RoutineView: React.FC = () => {
             Gerencie suas missões
           </p>
         </div>
-        <button
-          className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
-          onClick={() => {
-            setIsAdding(!isAdding)
-            const yyyy = selectedDate.getFullYear()
-            const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
-            const dd = String(selectedDate.getDate()).padStart(2, '0')
-            setNewTaskDate(`${yyyy}-${mm}-${dd}`)
-          }}
-          type='button'
-        >
+        <div className='flex items-center gap-2'>
+          <HelpButton screenId="routine" />
+          <button
+            className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
+            onClick={() => {
+              setIsAdding(!isAdding)
+              const yyyy = selectedDate.getFullYear()
+              const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
+              const dd = String(selectedDate.getDate()).padStart(2, '0')
+              setNewTaskDate(`${yyyy}-${mm}-${dd}`)
+            }}
+            type='button'
+          >
           {isAdding ? (
             <X className='sm:hidden' size={20} />
           ) : (
@@ -540,6 +543,7 @@ export const RoutineView: React.FC = () => {
             <Plus className='hidden sm:block' size={24} />
           )}
         </button>
+        </div>
       </div>
 
       {/* View Mode Selector */}

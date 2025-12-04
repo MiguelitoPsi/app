@@ -10,6 +10,7 @@ import { analyzeThought } from '../services/geminiService'
 import type { Mood } from '../types'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { XPAnimationContainer } from '@/components/XPAnimation'
+import { HelpButton } from '@/components/HelpButton'
 
 type JournalViewProps = {
   goHome: () => void
@@ -118,15 +119,18 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               </p>
             </div>
           </div>
-          <button
-            aria-label='Ver registros anteriores'
-            className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-300 bg-violet-100 text-violet-700 shadow-md shadow-violet-200/50 transition-all hover:bg-violet-200 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-300/50 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm sm:h-11 sm:w-11 dark:border-violet-700 dark:bg-violet-900/40 dark:text-violet-300 dark:shadow-violet-900/30 dark:hover:bg-violet-900/60 dark:hover:border-violet-600'
-            onClick={() => window.location.href = '/journal/history'}
-            type='button'
-          >
-            <BookOpen className='sm:hidden' size={18} />
-            <BookOpen className='hidden sm:block' size={20} />
-          </button>
+          <div className='flex items-center gap-2'>
+            <HelpButton screenId="journal" />
+            <button
+              aria-label='Ver registros anteriores'
+              className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-300 bg-violet-100 text-violet-700 shadow-md shadow-violet-200/50 transition-all hover:bg-violet-200 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-300/50 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm sm:h-11 sm:w-11 dark:border-violet-700 dark:bg-violet-900/40 dark:text-violet-300 dark:shadow-violet-900/30 dark:hover:bg-violet-900/60 dark:hover:border-violet-600'
+              onClick={() => window.location.href = '/journal/history'}
+              type='button'
+            >
+              <BookOpen className='sm:hidden' size={18} />
+              <BookOpen className='hidden sm:block' size={20} />
+            </button>
+          </div>
         </div>
       </header>
 

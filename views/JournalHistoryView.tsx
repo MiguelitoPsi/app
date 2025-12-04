@@ -4,6 +4,7 @@ import { ArrowLeft, Brain, Calendar, Eye, MessageSquare, Sparkles } from 'lucide
 import type React from 'react'
 import { useState } from 'react'
 import { useGame } from '../context/GameContext'
+import { HelpButton } from '@/components/HelpButton'
 import type { Mood } from '../types'
 
 type JournalHistoryViewProps = {
@@ -55,7 +56,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
       {/* Header */}
       <header className='border-slate-200 border-b bg-white px-4 py-4 dark:border-slate-800 dark:bg-slate-900'>
         <div className='flex items-center justify-between'>
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-3 flex-1'>
             <button
               aria-label='Voltar'
               className='flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all hover:bg-slate-200 active:scale-95 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
@@ -74,6 +75,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
               </p>
             </div>
           </div>
+          <HelpButton screenId="journal-history" />
         </div>
 
         {/* Mood Filter */}

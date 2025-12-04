@@ -29,6 +29,7 @@ import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { XPAnimationContainer } from '@/components/XPAnimation'
+import { HelpButton } from '@/components/HelpButton'
 
 // Dynamically import Recharts components to avoid SSR issues
 const BarChart = dynamic(() => import('recharts').then((mod) => mod.BarChart), {
@@ -268,7 +269,8 @@ export const HomeView: React.FC = () => {
       )}
 
       {/* Header Section */}
-      <div className='mb-3 flex justify-end px-4 sm:mb-4 sm:px-6'>
+      <div className='mb-3 flex justify-end gap-2 px-4 sm:mb-4 sm:px-6'>
+        <HelpButton screenId="home" />
         <button
           aria-label='Abrir configurações'
           className='touch-target p-2 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'

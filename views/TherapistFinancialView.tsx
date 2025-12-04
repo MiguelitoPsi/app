@@ -1,5 +1,7 @@
 'use client'
 
+import confetti from 'canvas-confetti'
+
 import {
   ArrowDownCircle,
   ArrowUpCircle,
@@ -12,12 +14,14 @@ import {
   Eye,
   EyeOff,
   FileText,
+  Filter,
   Key,
   LayoutGrid,
   LogOut,
   Moon,
   Plus,
   RefreshCw,
+  Search,
   Settings,
   Sun,
   Target,
@@ -210,74 +214,6 @@ function PeriodSelector({
   )
 }
 
-// Componente de card de projeção
-function ProjectionCard({
-  projection,
-}: {
-  projection: NonNullable<ReturnType<typeof useFinancialData>['projection']>
-}): React.ReactElement {
-  const confidenceLabels = {
-    low: {
-      text: 'Baixa',
-      color: 'text-amber-600 bg-amber-100 dark:bg-amber-900/30',
-    },
-    medium: {
-      text: 'Média',
-      color: 'text-blue-600 bg-blue-100 dark:bg-blue-900/30',
-    },
-    high: {
-      text: 'Alta',
-      color: 'text-emerald-600 bg-emerald-100 dark:bg-emerald-900/30',
-    },
-  }
-
-  const conf = confidenceLabels[projection.confidence]
-
-  return (
-    <div className='overflow-hidden rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 p-3 text-white sm:rounded-xl sm:p-4'>
-      <div className='mb-2 flex flex-wrap items-center justify-between gap-2 sm:mb-3'>
-        <h3 className='font-semibold text-sm sm:text-base'>Projeção do Período</h3>
-        <span
-          className={`rounded-full px-2 py-0.5 text-[10px] font-medium sm:text-xs ${conf.color}`}
-        >
-          Confiança: {conf.text}
-        </span>
-      </div>
-
-      <div className='grid grid-cols-3 gap-2 sm:gap-4'>
-        <div className='min-w-0'>
-          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Receita</p>
-          <p className='truncate font-bold text-sm sm:text-lg'>
-            {formatCurrency(projection.projectedIncome)}
-          </p>
-        </div>
-        <div className='min-w-0'>
-          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Despesa</p>
-          <p className='truncate font-bold text-sm sm:text-lg'>
-            {formatCurrency(projection.projectedExpenses)}
-          </p>
-        </div>
-        <div className='min-w-0'>
-          <p className='truncate text-indigo-200 text-[10px] sm:text-xs'>Saldo</p>
-          <p
-            className={`truncate font-bold text-sm sm:text-lg ${
-              projection.projectedBalance >= 0 ? 'text-white' : 'text-red-300'
-            }`}
-          >
-            {formatCurrency(projection.projectedBalance)}
-          </p>
-        </div>
-      </div>
-
-      <div className='mt-2 flex flex-wrap items-center gap-1 text-[10px] text-indigo-200 sm:mt-3 sm:gap-2 sm:text-xs'>
-        <span>📊 Média: {formatCurrency(projection.averageDailyIncome)}/dia</span>
-        <span className='hidden sm:inline'>•</span>
-        <span>{projection.daysRemaining} dias restantes</span>
-      </div>
-    </div>
-  )
-}
-
 export default function TherapistFinancialView(): React.ReactElement {
   const { theme, toggleTheme } = useTherapistGame()
 
@@ -305,6 +241,11 @@ export default function TherapistFinancialView(): React.ReactElement {
   const [activeTab, setActiveTab] = useState<'overview' | 'records' | 'goals' | 'evolution'>(
     'overview'
   )
+
+  // Filter states for records
+  const [recordsTypeFilter, setRecordsTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
+  const [recordsSortOrder, setRecordsSortOrder] = useState<'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc'>('date-desc')
+  const [recordsSearchQuery, setRecordsSearchQuery] = useState('')
 
   const utils = trpc.useUtils()
 
@@ -384,6 +325,44 @@ export default function TherapistFinancialView(): React.ReactElement {
 
   const recalculateGoalsMutation = trpc.therapistFinancial.recalculateGoals.useMutation({
     onSuccess: () => {
+      utils.therapistFinancial.getGoals.invalidate()
+    },
+  })
+
+  const toggleGoalCompletionMutation = trpc.therapistFinancial.toggleGoalCompletion.useMutation({
+    onMutate: async (variables) => {
+      // Cancel any outgoing refetches so they don't overwrite our optimistic update
+      await utils.therapistFinancial.getGoals.cancel()
+
+      // Snapshot the previous value
+      const previousGoals = utils.therapistFinancial.getGoals.getData({ autoRecalculate: true })
+
+      // Optimistically update the goal status immediately
+      utils.therapistFinancial.getGoals.setData({ autoRecalculate: true }, (old) => {
+        if (!old) return old
+        return old.map((goal) => {
+          if (goal.id === variables.id) {
+            return {
+              ...goal,
+              status: variables.completed ? 'completed' : 'active',
+              currentValue: variables.completed ? goal.targetValue : goal.currentValue,
+              progress: variables.completed ? 100 : goal.progress,
+            }
+          }
+          return goal
+        })
+      })
+
+      return { previousGoals }
+    },
+    onError: (_err, _variables, context) => {
+      // If the mutation fails, rollback to the previous value
+      if (context?.previousGoals) {
+        utils.therapistFinancial.getGoals.setData({ autoRecalculate: true }, context.previousGoals)
+      }
+    },
+    onSettled: () => {
+      // Sync with server after mutation completes
       utils.therapistFinancial.getGoals.invalidate()
     },
   })
@@ -513,6 +492,49 @@ export default function TherapistFinancialView(): React.ReactElement {
       records: recurringRecords,
     }
   }, [records])
+
+  // Filtered and sorted records
+  const filteredAndSortedRecords = useMemo(() => {
+    if (!records) return []
+
+    let filtered = [...records]
+
+    // Apply type filter
+    if (recordsTypeFilter !== 'all') {
+      filtered = filtered.filter((r) => r.type === recordsTypeFilter)
+    }
+
+    // Apply search query
+    if (recordsSearchQuery.trim()) {
+      const query = recordsSearchQuery.toLowerCase().trim()
+      filtered = filtered.filter((r) => {
+        const categoryInfo = FINANCIAL_CATEGORIES[r.category as keyof typeof FINANCIAL_CATEGORIES]
+        const categoryLabel = categoryInfo?.label ?? r.category
+        return (
+          r.description?.toLowerCase().includes(query) ||
+          categoryLabel.toLowerCase().includes(query)
+        )
+      })
+    }
+
+    // Apply sorting
+    filtered.sort((a, b) => {
+      switch (recordsSortOrder) {
+        case 'date-desc':
+          return new Date(b.date).getTime() - new Date(a.date).getTime()
+        case 'date-asc':
+          return new Date(a.date).getTime() - new Date(b.date).getTime()
+        case 'amount-desc':
+          return b.amount - a.amount
+        case 'amount-asc':
+          return a.amount - b.amount
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [records, recordsTypeFilter, recordsSortOrder, recordsSearchQuery])
 
   const tabs: {
     id: typeof activeTab
@@ -722,10 +744,6 @@ export default function TherapistFinancialView(): React.ReactElement {
               </div>
             ) : currentSummary ? (
               <>
-                {/* Projeção */}
-                {projection && projection.daysRemaining > 0 && (
-                  <ProjectionCard projection={projection} />
-                )}
 
                 {/* Gráfico Circular - Receitas vs Despesas */}
                 {pieChartData.length > 0 && currentSummary && (
@@ -1202,6 +1220,95 @@ export default function TherapistFinancialView(): React.ReactElement {
               </div>
             ) : records && records.length > 0 ? (
               <>
+                {/* Filter Controls */}
+                <div className='space-y-3 rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'>
+                  {/* Search Input */}
+                  <div className='relative'>
+                    <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
+                    <input
+                      className='w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:placeholder:text-slate-500'
+                      onChange={(e) => setRecordsSearchQuery(e.target.value)}
+                      placeholder='Buscar por descrição ou categoria...'
+                      type='text'
+                      value={recordsSearchQuery}
+                    />
+                  </div>
+
+                  {/* Type Filter Buttons */}
+                  <div className='flex gap-2'>
+                    <button
+                      className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                        recordsTypeFilter === 'all'
+                          ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-800'
+                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                      }`}
+                      onClick={() => setRecordsTypeFilter('all')}
+                      type='button'
+                    >
+                      Todos
+                    </button>
+                    <button
+                      className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                        recordsTypeFilter === 'income'
+                          ? 'bg-green-500 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-green-50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-green-900/20'
+                      }`}
+                      onClick={() => setRecordsTypeFilter('income')}
+                      type='button'
+                    >
+                      <ArrowUpCircle className='mr-1 inline h-4 w-4' />
+                      Receitas
+                    </button>
+                    <button
+                      className={`flex-1 rounded-lg py-2 text-sm font-medium transition-colors ${
+                        recordsTypeFilter === 'expense'
+                          ? 'bg-red-500 text-white'
+                          : 'bg-slate-100 text-slate-600 hover:bg-red-50 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-red-900/20'
+                      }`}
+                      onClick={() => setRecordsTypeFilter('expense')}
+                      type='button'
+                    >
+                      <ArrowDownCircle className='mr-1 inline h-4 w-4' />
+                      Despesas
+                    </button>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div className='flex items-center gap-2'>
+                    <Filter className='h-4 w-4 text-slate-400' />
+                    <select
+                      className='flex-1 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                      onChange={(e) => setRecordsSortOrder(e.target.value as typeof recordsSortOrder)}
+                      value={recordsSortOrder}
+                    >
+                      <option value='date-desc'>Data: Mais recente primeiro</option>
+                      <option value='date-asc'>Data: Mais antigo primeiro</option>
+                      <option value='amount-desc'>Valor: Maior primeiro</option>
+                      <option value='amount-asc'>Valor: Menor primeiro</option>
+                    </select>
+                  </div>
+
+                  {/* Summary of filtered results */}
+                  <div className='flex items-center justify-between text-xs text-slate-500'>
+                    <span>
+                      {filteredAndSortedRecords.length} de {records.length} registros
+                    </span>
+                    {(recordsTypeFilter !== 'all' || recordsSearchQuery) && (
+                      <button
+                        className='text-emerald-600 hover:underline dark:text-emerald-400'
+                        onClick={() => {
+                          setRecordsTypeFilter('all')
+                          setRecordsSearchQuery('')
+                        }}
+                        type='button'
+                      >
+                        Limpar filtros
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Add New Record Button */}
                 <button
                   className='flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-emerald-300 bg-emerald-50 p-4 text-emerald-600 hover:border-emerald-400 hover:bg-emerald-100 dark:border-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 dark:hover:border-emerald-600'
                   onClick={() => setShowAddForm(true)}
@@ -1210,81 +1317,90 @@ export default function TherapistFinancialView(): React.ReactElement {
                   <Plus aria-hidden='true' className='h-5 w-5' />
                   <span className='font-medium'>Novo Registro</span>
                 </button>
-                {records.map((record) => {
-                  const info = getCategoryInfo(record.category)
-                  return (
-                    <div
-                      className='flex items-center gap-3 overflow-hidden rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
-                      key={record.id}
-                    >
+
+                {/* Records List */}
+                {filteredAndSortedRecords.length > 0 ? (
+                  filteredAndSortedRecords.map((record) => {
+                    const info = getCategoryInfo(record.category)
+                    return (
                       <div
-                        className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
-                          record.type === 'income'
-                            ? 'bg-green-100 dark:bg-green-900/30'
-                            : 'bg-red-100 dark:bg-red-900/30'
-                        }`}
+                        className='flex items-center gap-3 overflow-hidden rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
+                        key={record.id}
                       >
-                        {record.type === 'income' ? (
-                          <ArrowUpCircle aria-hidden='true' className='h-6 w-6 text-green-600' />
-                        ) : (
-                          <ArrowDownCircle aria-hidden='true' className='h-6 w-6 text-red-600' />
-                        )}
-                        {record.isRecurring && (
-                          <span
-                            className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
-                            title={`Recorrente: ${
-                              record.frequency === 'weekly'
-                                ? 'Semanal'
-                                : record.frequency === 'monthly'
-                                  ? 'Mensal'
-                                  : 'Anual'
-                            }`}
-                          >
-                            🔄
-                          </span>
-                        )}
-                      </div>
-                      <div className='min-w-0 flex-1'>
-                        <div className='flex items-center gap-2'>
-                          <span>{info.icon}</span>
-                          <p className='truncate font-medium text-slate-800 dark:text-slate-200'>
-                            {info.label}
-                          </p>
+                        <div
+                          className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${
+                            record.type === 'income'
+                              ? 'bg-green-100 dark:bg-green-900/30'
+                              : 'bg-red-100 dark:bg-red-900/30'
+                          }`}
+                        >
+                          {record.type === 'income' ? (
+                            <ArrowUpCircle aria-hidden='true' className='h-6 w-6 text-green-600' />
+                          ) : (
+                            <ArrowDownCircle aria-hidden='true' className='h-6 w-6 text-red-600' />
+                          )}
                           {record.isRecurring && (
-                            <span className='rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
-                              {record.frequency === 'weekly' && 'Semanal'}
-                              {record.frequency === 'monthly' && 'Mensal'}
-                              {record.frequency === 'yearly' && 'Anual'}
+                            <span
+                              className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
+                              title={`Recorrente: ${
+                                record.frequency === 'weekly'
+                                  ? 'Semanal'
+                                  : record.frequency === 'monthly'
+                                    ? 'Mensal'
+                                    : 'Anual'
+                              }`}
+                            >
+                              🔄
                             </span>
                           )}
                         </div>
-                        {record.description && (
-                          <p className='text-slate-500 text-sm'>{record.description}</p>
-                        )}
-                        <p className='text-slate-400 text-xs'>{formatDateShort(record.date)}</p>
+                        <div className='min-w-0 flex-1'>
+                          <div className='flex items-center gap-2'>
+                            <span>{info.icon}</span>
+                            <p className='truncate font-medium text-slate-800 dark:text-slate-200'>
+                              {info.label}
+                            </p>
+                            {record.isRecurring && (
+                              <span className='rounded-full bg-blue-100 px-2 py-0.5 text-blue-700 text-xs dark:bg-blue-900/30 dark:text-blue-400'>
+                                {record.frequency === 'weekly' && 'Semanal'}
+                                {record.frequency === 'monthly' && 'Mensal'}
+                                {record.frequency === 'yearly' && 'Anual'}
+                              </span>
+                            )}
+                          </div>
+                          {record.description && (
+                            <p className='text-slate-500 text-sm'>{record.description}</p>
+                          )}
+                          <p className='text-slate-400 text-xs'>{formatDateShort(record.date)}</p>
+                        </div>
+                        <div className='flex shrink-0 items-center gap-1'>
+                          <p
+                            className={`whitespace-nowrap text-sm font-bold ${
+                              record.type === 'income' ? 'text-green-600' : 'text-red-600'
+                            }`}
+                          >
+                            {record.type === 'income' ? '+' : '-'}
+                            {formatCurrency(record.amount)}
+                          </p>
+                          <button
+                            aria-label='Excluir registro'
+                            className='shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
+                            onClick={() => setShowDeleteConfirm(record.id)}
+                            title='Excluir registro'
+                            type='button'
+                          >
+                            <Trash2 aria-hidden='true' className='h-4 w-4' />
+                          </button>
+                        </div>
                       </div>
-                      <div className='flex shrink-0 items-center gap-1'>
-                        <p
-                          className={`whitespace-nowrap text-sm font-bold ${
-                            record.type === 'income' ? 'text-green-600' : 'text-red-600'
-                          }`}
-                        >
-                          {record.type === 'income' ? '+' : '-'}
-                          {formatCurrency(record.amount)}
-                        </p>
-                        <button
-                          aria-label='Excluir registro'
-                          className='shrink-0 rounded-full p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20'
-                          onClick={() => setShowDeleteConfirm(record.id)}
-                          title='Excluir registro'
-                          type='button'
-                        >
-                          <Trash2 aria-hidden='true' className='h-4 w-4' />
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                ) : (
+                  <div className='flex h-32 flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900/50'>
+                    <Search className='mb-2 h-8 w-8 text-slate-300' />
+                    <p className='text-slate-500 text-sm'>Nenhum registro encontrado com os filtros aplicados</p>
+                  </div>
+                )}
               </>
             ) : (
               <div className='flex h-40 flex-col items-center justify-center'>
@@ -1336,24 +1452,78 @@ export default function TherapistFinancialView(): React.ReactElement {
                 </div>
                 {goals.map((goal) => (
                   <div
-                    className='rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900'
+                    className={`rounded-xl bg-white p-4 shadow-sm dark:bg-slate-900 ${
+                      goal.status === 'completed' ? 'opacity-75' : ''
+                    }`}
                     key={goal.id}
                   >
                     <div className='mb-2 flex items-start justify-between'>
-                      <div className='flex items-center gap-2'>
-                        <Target className='h-5 w-5 text-emerald-500' />
-                        <h4 className='font-medium text-slate-800 dark:text-slate-200'>
-                          {goal.title}
-                        </h4>
+                      <div className='flex items-center gap-3'>
+                        {/* Manual Completion Checkbox */}
+                        <button
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                            goal.status === 'completed'
+                              ? 'border-emerald-500 bg-emerald-500 text-white'
+                              : 'border-slate-300 hover:border-emerald-400 dark:border-slate-600'
+                          } ${toggleGoalCompletionMutation.isPending ? 'opacity-50' : ''}`}
+                          disabled={toggleGoalCompletionMutation.isPending}
+                          onClick={(e) => {
+                            const isCompleting = goal.status !== 'completed'
+                            toggleGoalCompletionMutation.mutate({
+                              id: goal.id,
+                              completed: isCompleting,
+                            })
+                            
+                            // Trigger confetti when completing a goal
+                            if (isCompleting) {
+                              const x = e.clientX / window.innerWidth
+                              const y = e.clientY / window.innerHeight
+                              
+                              confetti({
+                                particleCount: 80,
+                                spread: 70,
+                                origin: { x, y },
+                                colors: ['#10b981', '#34d399', '#6ee7b7', '#fbbf24', '#f59e0b'],
+                                ticks: 200,
+                                gravity: 1.2,
+                                decay: 0.94,
+                                startVelocity: 30,
+                                shapes: ['circle', 'square'],
+                                zIndex: 9999,
+                                disableForReducedMotion: true,
+                              })
+                            }
+                          }}
+                          title={goal.status === 'completed' ? 'Marcar como não concluída' : 'Marcar como concluída'}
+                          type='button'
+                        >
+                          {goal.status === 'completed' && (
+                            <CheckCircle2 className='h-4 w-4' />
+                          )}
+                        </button>
+                        <div>
+                          <h4
+                            className={`font-medium ${
+                              goal.status === 'completed'
+                                ? 'text-slate-500 line-through dark:text-slate-400'
+                                : 'text-slate-800 dark:text-slate-200'
+                            }`}
+                          >
+                            {goal.title}
+                          </h4>
+                          {goal.description && (
+                            <p className='text-slate-500 text-sm'>{goal.description}</p>
+                          )}
+                        </div>
                       </div>
                       <div className='flex items-center gap-2'>
                         <span
                           className={`rounded-full px-2 py-0.5 text-xs ${
                             goal.status === 'completed'
-                              ? 'bg-green-100 text-green-700'
+                              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                               : goal.status === 'active'
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'bg-slate-100 text-slate-700'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
                           }`}
                         >
                           {goal.status === 'completed'
@@ -1372,12 +1542,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                         </button>
                       </div>
                     </div>
-                    {goal.description && (
-                      <p className='mb-3 text-slate-500 text-sm'>{goal.description}</p>
-                    )}
-                    <div className='mb-2'>
+                    <div className='ml-9'>
                       <div className='mb-1 flex justify-between text-sm'>
-                        <span className='text-slate-600'>
+                        <span className='text-slate-600 dark:text-slate-400'>
                           {goal.currentValue} / {goal.targetValue} {goal.unit}
                         </span>
                         <span className='font-medium text-emerald-600'>
@@ -1386,18 +1553,22 @@ export default function TherapistFinancialView(): React.ReactElement {
                       </div>
                       <div className='h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800'>
                         <div
-                          className='h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500'
+                          className={`h-full rounded-full ${
+                            goal.status === 'completed'
+                              ? 'bg-emerald-500'
+                              : 'bg-gradient-to-r from-emerald-500 to-teal-500'
+                          }`}
                           style={{
                             width: `${Math.min(100, goal.progress)}%`,
                           }}
                         />
                       </div>
+                      {goal.deadline && (
+                        <p className='mt-1 text-slate-400 text-xs'>
+                          Prazo: {formatDateShort(goal.deadline)}
+                        </p>
+                      )}
                     </div>
-                    {goal.deadline && (
-                      <p className='text-slate-400 text-xs'>
-                        Prazo: {formatDateShort(goal.deadline)}
-                      </p>
-                    )}
                   </div>
                 ))}
               </>

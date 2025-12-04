@@ -84,6 +84,82 @@ export const adminRouter = router({
     return allUsers
   }),
 
+  // Listar psicólogos com seus pacientes
+  getTherapistsWithPatients: protectedProcedure.query(async ({ ctx }) => {
+    // Verificar se é admin
+    const [currentUser] = await ctx.db
+      .select()
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (currentUser?.role !== 'admin') {
+      throw new Error('Acesso não autorizado')
+    }
+
+    // Buscar todos os psicólogos
+    const psychologists = await ctx.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        level: users.level,
+        createdAt: users.createdAt,
+        bannedAt: users.bannedAt,
+      })
+      .from(users)
+      .where(eq(users.role, 'psychologist'))
+      .orderBy(users.name)
+
+    // Para cada psicólogo, buscar seus pacientes
+    const result = await Promise.all(
+      psychologists.map(async (psychologist) => {
+        const linkedPatients = await ctx.db
+          .select({
+            patientId: psychologistPatients.patientId,
+          })
+          .from(psychologistPatients)
+          .where(eq(psychologistPatients.psychologistId, psychologist.id))
+
+        const patientIds = linkedPatients.map((p) => p.patientId)
+
+        let patients: {
+          id: string
+          name: string
+          email: string
+          role: string | null
+          level: number
+          createdAt: Date
+          bannedAt: Date | null
+        }[] = []
+
+        if (patientIds.length > 0) {
+          patients = await ctx.db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+              role: users.role,
+              level: users.level,
+              createdAt: users.createdAt,
+              bannedAt: users.bannedAt,
+            })
+            .from(users)
+            .where(sql`${users.id} IN ${patientIds}`)
+            .orderBy(users.name)
+        }
+
+        return {
+          ...psychologist,
+          patients,
+        }
+      })
+    )
+
+    return result
+  }),
+
   // Criar novo usuário
   createUser: protectedProcedure
     .input(
@@ -735,17 +811,115 @@ export const adminRouter = router({
 
       const now = new Date()
 
-      // Suspender o usuário
       await ctx.db
         .update(users)
-        .set({ bannedAt: now, banReason: input.reason, updatedAt: now })
+        .set({
+          bannedAt: now,
+          banReason: input.reason,
+          updatedAt: now,
+        })
         .where(eq(users.id, input.userId))
 
-      // Invalidar todas as sessões do usuário
+      // Invalidar sessões
       await ctx.db.delete(sessions).where(eq(sessions.userId, input.userId))
 
       return { success: true }
     }),
+
+  // Obter detalhes completos do usuário
+  getUserDetails: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Verificar se é admin
+      const [currentUser] = await ctx.db
+        .select()
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1)
+
+      if (currentUser?.role !== 'admin') {
+        throw new Error('Acesso não autorizado')
+      }
+
+      // Buscar usuário
+      const [user] = await ctx.db
+        .select({
+          id: users.id,
+          name: users.name,
+          email: users.email,
+          role: users.role,
+          level: users.level,
+          experience: users.experience,
+          coins: users.coins,
+          streak: users.streak,
+          createdAt: users.createdAt,
+          emailVerified: users.emailVerified,
+          bannedAt: users.bannedAt,
+          banReason: users.banReason,
+        })
+        .from(users)
+        .where(eq(users.id, input.userId))
+        .limit(1)
+
+      if (!user) {
+        throw new Error('Usuário não encontrado')
+      }
+
+      let subscription = null
+      let linkedPsychologist = null
+      let patientCount = 0
+
+      // Se for psicólogo, buscar assinatura e contagem de pacientes
+      if (user.role === 'psychologist') {
+        const [sub] = await ctx.db
+          .select()
+          .from(psychologistSubscriptions)
+          .where(eq(psychologistSubscriptions.psychologistId, user.id))
+          .limit(1)
+
+        subscription = sub
+
+        const [countResult] = await ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(psychologistPatients)
+          .where(eq(psychologistPatients.psychologistId, user.id))
+
+        patientCount = Number(countResult?.count ?? 0)
+      }
+
+      // Se for paciente, buscar psicólogo vinculado
+      if (user.role === 'patient') {
+        const [link] = await ctx.db
+          .select({
+            psychologistId: psychologistPatients.psychologistId,
+          })
+          .from(psychologistPatients)
+          .where(eq(psychologistPatients.patientId, user.id))
+          .limit(1)
+
+        if (link) {
+          const [psychologist] = await ctx.db
+            .select({
+              id: users.id,
+              name: users.name,
+              email: users.email,
+            })
+            .from(users)
+            .where(eq(users.id, link.psychologistId))
+            .limit(1)
+
+          linkedPsychologist = psychologist
+        }
+      }
+
+      return {
+        ...user,
+        subscription,
+        patientCount,
+        linkedPsychologist,
+      }
+    }),
+
 
   // Reativar um usuário
   reactivateUser: protectedProcedure

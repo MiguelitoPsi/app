@@ -20,6 +20,7 @@ import { getMeditationRewards } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { XPAnimationContainer } from '@/components/XPAnimation'
+import { HelpButton } from '@/components/HelpButton'
 
 // Breathing configurations based on physiological parameters
 // Inhale: 3-4s, Exhale: 4-8s (longer exhale for relaxation)
@@ -300,9 +301,12 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
                 </p>
               </div>
             </div>
-            <div className='flex h-9 w-9 items-center justify-center rounded-full border border-teal-100 bg-teal-50 text-teal-600 sm:h-10 sm:w-10 dark:border-teal-800 dark:bg-teal-900/30 dark:text-teal-400'>
-              <Wind className='sm:hidden' size={18} />
-              <Wind className='hidden sm:block' size={20} />
+            <div className='flex items-center gap-2'>
+              <HelpButton screenId="meditation" />
+              <div className='flex h-9 w-9 items-center justify-center rounded-full border border-teal-100 bg-teal-50 text-teal-600 sm:h-10 sm:w-10 dark:border-teal-800 dark:bg-teal-900/30 dark:text-teal-400'>
+                <Wind className='sm:hidden' size={18} />
+                <Wind className='hidden sm:block' size={20} />
+              </div>
             </div>
           </div>
         </div>

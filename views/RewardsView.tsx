@@ -17,6 +17,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import { useGame } from '../context/GameContext'
+import { HelpButton } from '@/components/HelpButton'
 import type { RewardCategory } from '../types'
 
 export const RewardsView: React.FC = () => {
@@ -89,17 +90,20 @@ export const RewardsView: React.FC = () => {
               Recompense suas conquistas
             </p>
           </div>
-          <button
-            aria-expanded={isAdding}
-            aria-label={
-              isAdding ? 'Fechar formulário de nova recompensa' : 'Adicionar nova recompensa'
-            }
-            className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-violet-100 hover:text-violet-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
-            onClick={() => setIsAdding(!isAdding)}
-            type='button'
-          >
-            {isAdding ? <X aria-hidden='true' size={18} /> : <Plus aria-hidden='true' size={18} />}
-          </button>
+          <div className='flex items-center gap-2'>
+            <HelpButton screenId="rewards" />
+            <button
+              aria-expanded={isAdding}
+              aria-label={
+                isAdding ? 'Fechar formulário de nova recompensa' : 'Adicionar nova recompensa'
+              }
+              className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-violet-100 hover:text-violet-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+              onClick={() => setIsAdding(!isAdding)}
+              type='button'
+            >
+              {isAdding ? <X aria-hidden='true' size={18} /> : <Plus aria-hidden='true' size={18} />}
+            </button>
+          </div>
         </div>
 
         {/* Premium Balance Card */}

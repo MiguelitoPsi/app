@@ -29,6 +29,7 @@ import { authClient } from '@/lib/auth-client'
 import { BADGE_CATEGORIES } from '@/lib/constants'
 import { getXPForLevel, getXPInfo } from '@/lib/xp'
 import { RANKS, useGame } from '../context/GameContext'
+import { HelpButton } from '@/components/HelpButton'
 import type { BadgeDefinition, Tab, UserStats } from '../types'
 
 // Props allow parent navigation
@@ -240,7 +241,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
       ref={containerRef}
     >
       {/* Settings button */}
-      <div className='mb-3 flex justify-end sm:mb-4'>
+      <div className='mb-3 flex justify-end gap-2 sm:mb-4'>
+        <HelpButton screenId="profile" />
         <button
           className='touch-target p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
           onClick={() => setShowSettings(true)}

@@ -34,34 +34,83 @@ export const therapistFinancialRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      const conditions = [eq(therapistFinancial.therapistId, ctx.user.id)]
-
-      if (input.startDate) {
-        conditions.push(gte(therapistFinancial.date, input.startDate))
-      }
-      if (input.endDate) {
-        conditions.push(lte(therapistFinancial.date, input.endDate))
-      }
-      if (input.type) {
-        conditions.push(eq(therapistFinancial.type, input.type))
-      }
-      if (input.category) {
-        conditions.push(
-          eq(
-            therapistFinancial.category,
-            input.category as (typeof therapistFinancial.$inferSelect)['category']
-          )
-        )
-      }
-
-      const records = await db
+      // Fetch all records for this therapist (we'll filter later to include recurring)
+      const allRecords = await db
         .select()
         .from(therapistFinancial)
-        .where(and(...conditions))
+        .where(eq(therapistFinancial.therapistId, ctx.user.id))
         .orderBy(desc(therapistFinancial.date))
-        .limit(input.limit)
 
-      return records
+      const result: typeof allRecords = []
+
+      for (const record of allRecords) {
+        // If no date range specified, just filter normally
+        if (!input.startDate || !input.endDate) {
+          // Apply type and category filters
+          if (input.type && record.type !== input.type) continue
+          if (input.category && record.category !== input.category) continue
+          result.push(record)
+          continue
+        }
+
+        const recordDate = new Date(record.date)
+
+        // Non-recurring records: check if within range
+        if (!record.isRecurring) {
+          if (recordDate >= input.startDate && recordDate <= input.endDate) {
+            if (input.type && record.type !== input.type) continue
+            if (input.category && record.category !== input.category) continue
+            result.push(record)
+          }
+          continue
+        }
+
+        // Recurring records: expand into future periods
+        if (record.isRecurring) {
+          // Apply type and category filters first
+          if (input.type && record.type !== input.type) continue
+          if (input.category && record.category !== input.category) continue
+
+          const frequency = record.frequency
+          const originalDate = new Date(record.date)
+
+          // Generate occurrences within the queried range
+          let currentDate = new Date(originalDate)
+
+          // Limit to prevent infinite loops (max 60 occurrences / 5 years)
+          let iterations = 0
+          const maxIterations = 60
+
+          while (currentDate <= input.endDate && iterations < maxIterations) {
+            if (currentDate >= input.startDate && currentDate <= input.endDate) {
+              // Create a virtual record for this occurrence
+              result.push({
+                ...record,
+                id: `${record.id}_${currentDate.toISOString()}`, // Virtual ID
+                date: new Date(currentDate),
+              })
+            }
+
+            // Move to next occurrence
+            if (frequency === 'weekly') {
+              currentDate.setDate(currentDate.getDate() + 7)
+            } else if (frequency === 'monthly') {
+              currentDate.setMonth(currentDate.getMonth() + 1)
+            } else if (frequency === 'yearly') {
+              currentDate.setFullYear(currentDate.getFullYear() + 1)
+            } else {
+              break // Unknown frequency
+            }
+
+            iterations++
+          }
+        }
+      }
+
+      // Sort by date descending and apply limit
+      result.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+      return result.slice(0, input.limit)
     }),
 
   // Adicionar registro financeiro
@@ -205,29 +254,71 @@ export const therapistFinancialRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      const records = await db
+      // Fetch all records for this therapist
+      const allRecords = await db
         .select()
         .from(therapistFinancial)
-        .where(
-          and(
-            eq(therapistFinancial.therapistId, ctx.user.id),
-            gte(therapistFinancial.date, input.startDate),
-            lte(therapistFinancial.date, input.endDate)
-          )
-        )
+        .where(eq(therapistFinancial.therapistId, ctx.user.id))
 
-      const income = records
+      // Expand recurring records
+      const expandedRecords: typeof allRecords = []
+
+      for (const record of allRecords) {
+        const recordDate = new Date(record.date)
+
+        // Non-recurring records: check if within range
+        if (!record.isRecurring) {
+          if (recordDate >= input.startDate && recordDate <= input.endDate) {
+            expandedRecords.push(record)
+          }
+          continue
+        }
+
+        // Recurring records: expand into the queried range
+        const frequency = record.frequency
+        const originalDate = new Date(record.date)
+        let currentDate = new Date(originalDate)
+
+        // Limit iterations (max 60 occurrences / 5 years)
+        let iterations = 0
+        const maxIterations = 60
+
+        while (currentDate <= input.endDate && iterations < maxIterations) {
+          if (currentDate >= input.startDate && currentDate <= input.endDate) {
+            expandedRecords.push({
+              ...record,
+              id: `${record.id}_${currentDate.toISOString()}`,
+              date: new Date(currentDate),
+            })
+          }
+
+          // Move to next occurrence
+          if (frequency === 'weekly') {
+            currentDate.setDate(currentDate.getDate() + 7)
+          } else if (frequency === 'monthly') {
+            currentDate.setMonth(currentDate.getMonth() + 1)
+          } else if (frequency === 'yearly') {
+            currentDate.setFullYear(currentDate.getFullYear() + 1)
+          } else {
+            break
+          }
+
+          iterations++
+        }
+      }
+
+      const income = expandedRecords
         .filter((r) => r.type === 'income')
         .reduce((total, r) => total + r.amount, 0)
 
-      const expenses = records
+      const expenses = expandedRecords
         .filter((r) => r.type === 'expense')
         .reduce((total, r) => total + r.amount, 0)
 
       const balance = income - expenses
 
       // Agrupar por categoria
-      const byCategory = records.reduce(
+      const byCategory = expandedRecords.reduce(
         (acc, r) => {
           if (!acc[r.category]) {
             acc[r.category] = { income: 0, expense: 0 }
@@ -726,6 +817,53 @@ export const therapistFinancialRouter = router({
         .returning()
 
       return goal
+    }),
+
+  // Toggle goal completion manually
+  toggleGoalCompletion: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        completed: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [goal] = await db
+        .select()
+        .from(therapistGoals)
+        .where(and(eq(therapistGoals.id, input.id), eq(therapistGoals.therapistId, ctx.user.id)))
+        .limit(1)
+
+      if (!goal) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Meta não encontrada' })
+      }
+
+      const wasNotCompleted = goal.status !== 'completed'
+
+      const [updated] = await db
+        .update(therapistGoals)
+        .set({
+          status: input.completed ? 'completed' : 'active',
+          currentValue: input.completed ? goal.targetValue : goal.currentValue,
+          completedAt: input.completed ? new Date() : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(therapistGoals.id, input.id))
+        .returning()
+
+      // If completing the goal for the first time, give XP
+      if (input.completed && wasNotCompleted) {
+        await awardTherapistXP(db, ctx.user.id, 'achieveGoal')
+      }
+
+      return {
+        goal: updated,
+        completed: input.completed,
+      }
     }),
 
   // Excluir meta

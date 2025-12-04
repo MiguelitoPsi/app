@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 import { broadcastSuspension } from '@/lib/utils/suspension-broadcast'
+import { UserProfileModal } from './UserProfileModal'
 
 type UserRole = 'admin' | 'psychologist' | 'patient'
 
@@ -21,6 +22,7 @@ const roleColors: Record<UserRole, string> = {
 export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [expandedPsychologistIds, setExpandedPsychologistIds] = useState<Set<string>>(new Set())
   const [selectedPsychologist, setSelectedPsychologist] = useState<{
     id: string
     name: string
@@ -32,8 +34,24 @@ export default function UsersPage() {
     role: 'patient' | 'psychologist' | 'admin'
     action: 'suspend' | 'delete' | 'reactivate'
   } | null>(null)
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false)
 
-  const { data: users, isLoading, refetch } = trpc.admin.getAllUsers.useQuery()
+  const {
+    data: psychologists,
+    isLoading,
+    refetch,
+  } = trpc.admin.getTherapistsWithPatients.useQuery()
+
+  const toggleExpand = (psychologistId: string) => {
+    const newExpanded = new Set(expandedPsychologistIds)
+    if (newExpanded.has(psychologistId)) {
+      newExpanded.delete(psychologistId)
+    } else {
+      newExpanded.add(psychologistId)
+    }
+    setExpandedPsychologistIds(newExpanded)
+  }
 
   const suspendPsychologist = trpc.admin.suspendPsychologist.useMutation({
     onSuccess: (data) => {
@@ -136,10 +154,20 @@ export default function UsersPage() {
     }
   }
 
-  const filteredUsers = users?.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const handleOpenProfile = (userId: string) => {
+    setSelectedUserId(userId)
+    setIsProfileModalOpen(true)
+  }
+
+  const filteredPsychologists = psychologists?.filter(
+    (psychologist) =>
+      psychologist.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      psychologist.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      psychologist.patients.some(
+        (patient) =>
+          patient.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          patient.email.toLowerCase().includes(searchQuery.toLowerCase())
+      )
   )
 
   return (
@@ -148,7 +176,7 @@ export default function UsersPage() {
       <div className='flex items-center justify-between'>
         <div>
           <h1 className='text-3xl font-bold text-white'>Usuários</h1>
-          <p className='mt-1 text-slate-400'>Gerencie todos os usuários do sistema</p>
+          <p className='mt-1 text-slate-400'>Gerencie psicólogos e seus pacientes</p>
         </div>
         <button
           className='flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-700'
@@ -166,20 +194,21 @@ export default function UsersPage() {
         <input
           className='w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder='Buscar por nome ou email...'
+          placeholder='Buscar por nome ou email (psicólogo ou paciente)...'
           type='text'
           value={searchQuery}
         />
       </div>
 
-      {/* Table */}
-      <div className='overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50'>
+      {/* Desktop Table View */}
+      <div className='hidden overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50 md:block'>
         <div className='overflow-x-auto'>
           <table className='w-full'>
             <thead>
               <tr className='border-b border-slate-700 bg-slate-800'>
+                <th className='w-10 px-6 py-4'></th>
                 <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
-                  Usuário
+                  Psicólogo / Paciente
                 </th>
                 <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Email
@@ -205,79 +234,97 @@ export default function UsersPage() {
               {isLoading ? (
                 [...new Array(5)].map((_, i) => (
                   <tr key={i}>
-                    <td className='px-6 py-4' colSpan={7}>
+                    <td className='px-6 py-4' colSpan={8}>
                       <div className='h-10 animate-pulse rounded bg-slate-700' />
                     </td>
                   </tr>
                 ))
-              ) : filteredUsers?.length === 0 ? (
+              ) : filteredPsychologists?.length === 0 ? (
                 <tr>
-                  <td className='px-6 py-12 text-center text-slate-400' colSpan={7}>
-                    Nenhum usuário encontrado
+                  <td className='px-6 py-12 text-center text-slate-400' colSpan={8}>
+                    Nenhum psicólogo encontrado
                   </td>
                 </tr>
               ) : (
-                filteredUsers?.map((user) => (
-                  <tr
-                    className={`transition-colors hover:bg-slate-800/50 ${user.bannedAt ? 'opacity-60' : ''}`}
-                    key={user.id}
-                  >
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center gap-3'>
-                        <div
-                          className={`flex h-10 w-10 items-center justify-center rounded-full ${user.bannedAt ? 'bg-red-600/20 text-red-400' : 'bg-violet-600/20 text-violet-400'}`}
+                filteredPsychologists?.map((psychologist) => (
+                  <React.Fragment key={psychologist.id}>
+                    {/* Psychologist Row */}
+                    <tr
+                      className={`transition-colors hover:bg-slate-800/50 ${psychologist.bannedAt ? 'opacity-60' : ''}`}
+                    >
+                      <td className='px-6 py-4'>
+                        <button
+                          className='flex h-6 w-6 items-center justify-center rounded text-slate-400 hover:bg-slate-700 hover:text-white'
+                          onClick={() => toggleExpand(psychologist.id)}
+                          type='button'
                         >
-                          {user.name.charAt(0).toUpperCase()}
+                          <svg
+                            className={`h-4 w-4 transition-transform ${expandedPsychologistIds.has(psychologist.id) ? 'rotate-90' : ''}`}
+                            fill='none'
+                            stroke='currentColor'
+                            viewBox='0 0 24 24'
+                          >
+                            <path
+                              d='M9 5l7 7-7 7'
+                              strokeLinecap='round'
+                              strokeLinejoin='round'
+                              strokeWidth={2}
+                            />
+                          </svg>
+                        </button>
+                      </td>
+                      <td className='px-6 py-4'>
+                        <div className='flex items-center gap-3'>
+                          <div
+                            className={`flex h-10 w-10 items-center justify-center rounded-full ${psychologist.bannedAt ? 'bg-red-600/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}
+                          >
+                            {psychologist.name.charAt(0).toUpperCase()}
+                          </div>
+                          <button
+                            className='font-medium text-white hover:underline'
+                            onClick={() => handleOpenProfile(psychologist.id)}
+                            type='button'
+                          >
+                            {psychologist.name}
+                          </button>
                         </div>
-                        <span className='font-medium text-white'>{user.name}</span>
-                      </div>
-                    </td>
-                    <td className='px-6 py-4 text-slate-300'>{user.email}</td>
-                    <td className='px-6 py-4'>
-                      <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                          roleColors[user.role as UserRole]
-                        }`}
-                      >
-                        {roleLabels[user.role as UserRole]}
-                      </span>
-                    </td>
-                    <td className='px-6 py-4'>
-                      {user.bannedAt ? (
-                        <span className='inline-flex rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-400'>
-                          Suspenso
+                      </td>
+                      <td className='px-6 py-4 text-slate-300'>{psychologist.email}</td>
+                      <td className='px-6 py-4'>
+                        <span
+                          className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${roleColors.psychologist}`}
+                        >
+                          {roleLabels.psychologist}
                         </span>
-                      ) : (
-                        <span className='inline-flex rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-400'>
-                          Ativo
-                        </span>
-                      )}
-                    </td>
-                    <td className='px-6 py-4 text-slate-300'>{user.level}</td>
-                    <td className='px-6 py-4 text-slate-300'>
-                      {new Date(user.createdAt).toLocaleDateString('pt-BR')}
-                    </td>
-                    <td className='px-6 py-4'>
-                      {(user.role === 'psychologist' || user.role === 'patient') && (
+                      </td>
+                      <td className='px-6 py-4'>
+                        {psychologist.bannedAt ? (
+                          <span className='inline-flex rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-400'>
+                            Suspenso
+                          </span>
+                        ) : (
+                          <span className='inline-flex rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-400'>
+                            Ativo
+                          </span>
+                        )}
+                      </td>
+                      <td className='px-6 py-4 text-slate-300'>{psychologist.level}</td>
+                      <td className='px-6 py-4 text-slate-300'>
+                        {new Date(psychologist.createdAt).toLocaleDateString('pt-BR')}
+                      </td>
+                      <td className='px-6 py-4'>
                         <div className='flex items-center gap-2'>
-                          {user.bannedAt ? (
+                          {psychologist.bannedAt ? (
                             <button
                               className='rounded-lg bg-green-600/20 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-600/30'
                               onClick={() =>
-                                user.role === 'psychologist'
-                                  ? setSelectedPsychologist({
-                                      id: user.id,
-                                      name: user.name,
-                                      action: 'reactivate',
-                                    })
-                                  : setSelectedUser({
-                                      id: user.id,
-                                      name: user.name,
-                                      role: user.role as 'patient' | 'psychologist',
-                                      action: 'reactivate',
-                                    })
+                                setSelectedPsychologist({
+                                  id: psychologist.id,
+                                  name: psychologist.name,
+                                  action: 'reactivate',
+                                })
                               }
-                              title={`Reativar ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
+                              title='Reativar psicólogo e pacientes'
                               type='button'
                             >
                               <ReactivateIcon />
@@ -286,20 +333,13 @@ export default function UsersPage() {
                             <button
                               className='rounded-lg bg-amber-600/20 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-600/30'
                               onClick={() =>
-                                user.role === 'psychologist'
-                                  ? setSelectedPsychologist({
-                                      id: user.id,
-                                      name: user.name,
-                                      action: 'suspend',
-                                    })
-                                  : setSelectedUser({
-                                      id: user.id,
-                                      name: user.name,
-                                      role: user.role as 'patient' | 'psychologist',
-                                      action: 'suspend',
-                                    })
+                                setSelectedPsychologist({
+                                  id: psychologist.id,
+                                  name: psychologist.name,
+                                  action: 'suspend',
+                                })
                               }
-                              title={`Suspender ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
+                              title='Suspender psicólogo e pacientes'
                               type='button'
                             >
                               <SuspendIcon />
@@ -308,33 +348,354 @@ export default function UsersPage() {
                           <button
                             className='rounded-lg bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30'
                             onClick={() =>
-                              user.role === 'psychologist'
-                                ? setSelectedPsychologist({
-                                    id: user.id,
-                                    name: user.name,
-                                    action: 'delete',
-                                  })
-                                : setSelectedUser({
-                                    id: user.id,
-                                    name: user.name,
-                                    role: user.role as 'patient' | 'psychologist',
-                                    action: 'delete',
-                                  })
+                              setSelectedPsychologist({
+                                  id: psychologist.id,
+                                  name: psychologist.name,
+                                  action: 'delete',
+                                })
                             }
-                            title={`Excluir ${user.role === 'psychologist' ? 'psicólogo e pacientes' : 'paciente'}`}
+                            title='Excluir psicólogo e pacientes'
                             type='button'
                           >
                             <TrashIcon />
                           </button>
                         </div>
-                      )}
-                    </td>
-                  </tr>
+                      </td>
+                    </tr>
+
+                    {/* Patients Rows (Expanded) */}
+                    {expandedPsychologistIds.has(psychologist.id) &&
+                      (psychologist.patients.length === 0 ? (
+                        <tr className='bg-slate-800/30'>
+                          <td className='px-6 py-4 text-center text-sm text-slate-500' colSpan={8}>
+                            Nenhum paciente vinculado
+                          </td>
+                        </tr>
+                      ) : (
+                        psychologist.patients.map((patient) => (
+                          <tr
+                            className={`bg-slate-800/30 transition-colors hover:bg-slate-800/50 ${patient.bannedAt ? 'opacity-60' : ''}`}
+                            key={patient.id}
+                          >
+                            <td className='px-6 py-4'></td>
+                            <td className='px-6 py-4 pl-12'>
+                              <div className='flex items-center gap-3'>
+                                <div
+                                  className={`flex h-8 w-8 items-center justify-center rounded-full ${patient.bannedAt ? 'bg-red-600/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}
+                                >
+                                  <span className='text-xs'>
+                                    {patient.name.charAt(0).toUpperCase()}
+                                  </span>
+                                </div>
+                                <button
+                                  className='text-sm font-medium text-slate-300 hover:text-white hover:underline'
+                                  onClick={() => handleOpenProfile(patient.id)}
+                                  type='button'
+                                >
+                                  {patient.name}
+                                </button>
+                              </div>
+                            </td>
+                            <td className='px-6 py-4 text-sm text-slate-400'>{patient.email}</td>
+                            <td className='px-6 py-4'>
+                              <span
+                                className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${roleColors.patient}`}
+                              >
+                                {roleLabels.patient}
+                              </span>
+                            </td>
+                            <td className='px-6 py-4'>
+                              {patient.bannedAt ? (
+                                <span className='inline-flex rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-400'>
+                                  Suspenso
+                                </span>
+                              ) : (
+                                <span className='inline-flex rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-400'>
+                                  Ativo
+                                </span>
+                              )}
+                            </td>
+                            <td className='px-6 py-4 text-sm text-slate-400'>{patient.level}</td>
+                            <td className='px-6 py-4 text-sm text-slate-400'>
+                              {new Date(patient.createdAt).toLocaleDateString('pt-BR')}
+                            </td>
+                            <td className='px-6 py-4'>
+                              <div className='flex items-center gap-2'>
+                                {patient.bannedAt ? (
+                                  <button
+                                    className='rounded-lg bg-green-600/20 px-3 py-1.5 text-xs font-medium text-green-400 transition-colors hover:bg-green-600/30'
+                                    onClick={() =>
+                                      setSelectedUser({
+                                        id: patient.id,
+                                        name: patient.name,
+                                        role: 'patient',
+                                        action: 'reactivate',
+                                      })
+                                    }
+                                    title='Reativar paciente'
+                                    type='button'
+                                  >
+                                    <ReactivateIcon />
+                                  </button>
+                                ) : (
+                                  <button
+                                    className='rounded-lg bg-amber-600/20 px-3 py-1.5 text-xs font-medium text-amber-400 transition-colors hover:bg-amber-600/30'
+                                    onClick={() =>
+                                      setSelectedUser({
+                                        id: patient.id,
+                                        name: patient.name,
+                                        role: 'patient',
+                                        action: 'suspend',
+                                      })
+                                    }
+                                    title='Suspender paciente'
+                                    type='button'
+                                  >
+                                    <SuspendIcon />
+                                  </button>
+                                )}
+                                <button
+                                  className='rounded-lg bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30'
+                                  onClick={() =>
+                                    setSelectedUser({
+                                      id: patient.id,
+                                      name: patient.name,
+                                      role: 'patient',
+                                      action: 'delete',
+                                    })
+                                  }
+                                  title='Excluir paciente'
+                                  type='button'
+                                >
+                                  <TrashIcon />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      ))}
+                  </React.Fragment>
                 ))
               )}
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className='space-y-4 md:hidden'>
+        {isLoading ? (
+          [...new Array(3)].map((_, i) => (
+            <div key={i} className='h-40 animate-pulse rounded-xl bg-slate-800/50' />
+          ))
+        ) : filteredPsychologists?.length === 0 ? (
+          <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-8 text-center text-slate-400'>
+            Nenhum psicólogo encontrado
+          </div>
+        ) : (
+          filteredPsychologists?.map((psychologist) => (
+            <div
+              key={psychologist.id}
+              className={`rounded-xl border border-slate-700 bg-slate-800/50 p-4 ${psychologist.bannedAt ? 'opacity-60' : ''}`}
+            >
+              {/* Psychologist Header */}
+              <div className='flex items-start justify-between'>
+                <div className='flex items-center gap-3'>
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-full ${psychologist.bannedAt ? 'bg-red-600/20 text-red-400' : 'bg-emerald-500/20 text-emerald-400'}`}
+                  >
+                    {psychologist.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <button
+                      className='font-medium text-white hover:underline'
+                      onClick={() => handleOpenProfile(psychologist.id)}
+                      type='button'
+                    >
+                      {psychologist.name}
+                    </button>
+                    <p className='text-sm text-slate-400'>{psychologist.email}</p>
+                  </div>
+                </div>
+                <button
+                  className='rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white'
+                  onClick={() => toggleExpand(psychologist.id)}
+                  type='button'
+                >
+                  <svg
+                    className={`h-5 w-5 transition-transform ${expandedPsychologistIds.has(psychologist.id) ? 'rotate-90' : ''}`}
+                    fill='none'
+                    stroke='currentColor'
+                    viewBox='0 0 24 24'
+                  >
+                    <path
+                      d='M9 5l7 7-7 7'
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      strokeWidth={2}
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Psychologist Details */}
+              <div className='mt-4 flex flex-wrap gap-2'>
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${roleColors.psychologist}`}
+                >
+                  {roleLabels.psychologist}
+                </span>
+                {psychologist.bannedAt ? (
+                  <span className='inline-flex rounded-full bg-red-500/20 px-2.5 py-1 text-xs font-medium text-red-400'>
+                    Suspenso
+                  </span>
+                ) : (
+                  <span className='inline-flex rounded-full bg-green-500/20 px-2.5 py-1 text-xs font-medium text-green-400'>
+                    Ativo
+                  </span>
+                )}
+                <span className='inline-flex rounded-full bg-slate-700 px-2.5 py-1 text-xs font-medium text-slate-300'>
+                  Nível {psychologist.level}
+                </span>
+              </div>
+
+              {/* Psychologist Actions */}
+              <div className='mt-4 flex gap-2 border-t border-slate-700 pt-4'>
+                {psychologist.bannedAt ? (
+                  <button
+                    className='flex-1 rounded-lg bg-green-600/20 px-3 py-2 text-sm font-medium text-green-400 transition-colors hover:bg-green-600/30'
+                    onClick={() =>
+                      setSelectedPsychologist({
+                        id: psychologist.id,
+                        name: psychologist.name,
+                        action: 'reactivate',
+                      })
+                    }
+                    type='button'
+                  >
+                    Reativar
+                  </button>
+                ) : (
+                  <button
+                    className='flex-1 rounded-lg bg-amber-600/20 px-3 py-2 text-sm font-medium text-amber-400 transition-colors hover:bg-amber-600/30'
+                    onClick={() =>
+                      setSelectedPsychologist({
+                        id: psychologist.id,
+                        name: psychologist.name,
+                        action: 'suspend',
+                      })
+                    }
+                    type='button'
+                  >
+                    Suspender
+                  </button>
+                )}
+                <button
+                  className='flex-1 rounded-lg bg-red-600/20 px-3 py-2 text-sm font-medium text-red-400 transition-colors hover:bg-red-600/30'
+                  onClick={() =>
+                    setSelectedPsychologist({
+                      id: psychologist.id,
+                      name: psychologist.name,
+                      action: 'delete',
+                    })
+                  }
+                  type='button'
+                >
+                  Excluir
+                </button>
+              </div>
+
+              {/* Expanded Patients List */}
+              {expandedPsychologistIds.has(psychologist.id) && (
+                <div className='mt-4 space-y-3 border-t border-slate-700 pt-4'>
+                  <h4 className='text-sm font-medium text-slate-400'>Pacientes Vinculados</h4>
+                  {psychologist.patients.length === 0 ? (
+                    <p className='text-sm text-slate-500'>Nenhum paciente vinculado</p>
+                  ) : (
+                    psychologist.patients.map((patient) => (
+                      <div
+                        key={patient.id}
+                        className={`rounded-lg bg-slate-900/50 p-3 ${patient.bannedAt ? 'opacity-60' : ''}`}
+                      >
+                        <div className='flex items-center justify-between'>
+                          <div className='flex items-center gap-2'>
+                            <div
+                              className={`flex h-8 w-8 items-center justify-center rounded-full ${patient.bannedAt ? 'bg-red-600/20 text-red-400' : 'bg-blue-500/20 text-blue-400'}`}
+                            >
+                              <span className='text-xs'>
+                                {patient.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <button
+                                className='text-sm font-medium text-white hover:underline'
+                                onClick={() => handleOpenProfile(patient.id)}
+                                type='button'
+                              >
+                                {patient.name}
+                              </button>
+                              <p className='text-xs text-slate-400'>{patient.email}</p>
+                            </div>
+                          </div>
+                          <div className='flex gap-1'>
+                            {patient.bannedAt ? (
+                              <button
+                                className='rounded p-1.5 text-green-400 hover:bg-green-600/20'
+                                onClick={() =>
+                                  setSelectedUser({
+                                    id: patient.id,
+                                    name: patient.name,
+                                    role: 'patient',
+                                    action: 'reactivate',
+                                  })
+                                }
+                                title='Reativar'
+                                type='button'
+                              >
+                                <ReactivateIcon />
+                              </button>
+                            ) : (
+                              <button
+                                className='rounded p-1.5 text-amber-400 hover:bg-amber-600/20'
+                                onClick={() =>
+                                  setSelectedUser({
+                                    id: patient.id,
+                                    name: patient.name,
+                                    role: 'patient',
+                                    action: 'suspend',
+                                  })
+                                }
+                                title='Suspender'
+                                type='button'
+                              >
+                                <SuspendIcon />
+                              </button>
+                            )}
+                            <button
+                              className='rounded p-1.5 text-red-400 hover:bg-red-600/20'
+                              onClick={() =>
+                                setSelectedUser({
+                                  id: patient.id,
+                                  name: patient.name,
+                                  role: 'patient',
+                                  action: 'delete',
+                                })
+                              }
+                              title='Excluir'
+                              type='button'
+                            >
+                              <TrashIcon />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          ))
+        )}
       </div>
 
       {/* Create User Modal */}
@@ -373,6 +734,15 @@ export default function UsersPage() {
           onConfirm={handleUserAction}
           userName={selectedUser.name}
           userRole={selectedUser.role as 'patient' | 'psychologist'}
+        />
+      )}
+
+      {/* User Profile Modal */}
+      {selectedUserId && (
+        <UserProfileModal
+          isOpen={isProfileModalOpen}
+          onClose={() => setIsProfileModalOpen(false)}
+          userId={selectedUserId}
         />
       )}
     </div>
