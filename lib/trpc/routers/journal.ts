@@ -187,9 +187,7 @@ export const journalRouter = router({
       }
 
       // Check if already read to avoid double XP
-      if (entry.isRead) {
-        return { success: true, xpAwarded: 0 }
-      }
+      const wasAlreadyRead = entry.isRead
 
       // Mark as read
       await ctx.db
@@ -197,10 +195,24 @@ export const journalRouter = router({
         .set({ isRead: true })
         .where(eq(journalEntries.id, input.id))
 
-      // Award XP to patient
-      const { experience, level } = await addRawXP(ctx.db, entry.userId, 5)
+      // If already read, don't award XP again
+      if (wasAlreadyRead) {
+        return { success: true, therapistXpAwarded: 0, patientXpAwarded: 0 }
+      }
 
-      return { success: true, xpAwarded: 5, newLevel: level, newExperience: experience }
+      // Award XP to patient (5 XP for having entry read)
+      const patientResult = await addRawXP(ctx.db, entry.userId, 5)
+
+      // Award XP to therapist (5 XP for reading)
+      const therapistResult = await addRawXP(ctx.db, ctx.user.id, 5)
+
+      return {
+        success: true,
+        therapistXpAwarded: 5,
+        patientXpAwarded: 5,
+        therapistLevel: therapistResult.level,
+        therapistExperience: therapistResult.experience,
+      }
     }),
 
   addFeedback: protectedProcedure
@@ -239,6 +251,9 @@ export const journalRouter = router({
         throw new Error('Unauthorized: No relationship with this patient')
       }
 
+      // Check if this is a new feedback or an edit
+      const isNewFeedback = !entry.therapistFeedback
+
       // Update entry with feedback
       await ctx.db
         .update(journalEntries)
@@ -250,7 +265,24 @@ export const journalRouter = router({
         })
         .where(eq(journalEntries.id, input.entryId))
 
-      return { success: true }
+      // Award XP to therapist only for new feedback (10 XP)
+      let therapistXpAwarded = 0
+      let therapistLevel = 0
+      let therapistExperience = 0
+      if (isNewFeedback) {
+        const therapistResult = await addRawXP(ctx.db, ctx.user.id, 10)
+        therapistXpAwarded = 10
+        therapistLevel = therapistResult.level
+        therapistExperience = therapistResult.experience
+      }
+
+      return {
+        success: true,
+        therapistXpAwarded,
+        therapistLevel,
+        therapistExperience,
+        isNewFeedback,
+      }
     }),
 
   getUnviewedFeedbackCount: protectedProcedure.query(async ({ ctx }) => {

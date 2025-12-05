@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import { RoleGuard } from '@/components/RoleGuard'
-import { SuspendedAccountModal } from '@/components/SuspendedAccountModal'
 import { TherapistBottomNav } from '@/components/TherapistBottomNav'
 import { TherapistHeader } from '@/components/TherapistHeader'
 import { TherapistLevelUpManager } from '@/components/TherapistLevelUpManager'
@@ -48,9 +47,6 @@ function SpecialistContent({ children }: { children: ReactNode }) {
 
   return (
     <div className='min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 transition-colors duration-300 dark:from-slate-900 dark:to-slate-800'>
-      {/* Suspended Account Modal */}
-      <SuspendedAccountModal />
-
       {/* Terms Modal - shown first */}
       <TherapistTermsModal isOpen={showTerms} />
 

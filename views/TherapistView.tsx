@@ -24,6 +24,7 @@ import {
   Save,
   Search,
   Settings,
+  Sparkles,
   Sun,
   User,
   UserCircle,
@@ -76,6 +77,9 @@ export const TherapistView: React.FC = () => {
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [selectedFeedbackEntry, setSelectedFeedbackEntry] = useState<JournalEntry | null>(null)
   const [feedbackText, setFeedbackText] = useState('')
+
+  // XP notification state
+  const [xpNotification, setXpNotification] = useState<{ amount: number; action: string } | null>(null)
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -184,9 +188,21 @@ export const TherapistView: React.FC = () => {
   const [isJournalFilterOpen, setIsJournalFilterOpen] = useState(false)
 
   const utils = trpc.useUtils()
+  
+  // Helper to show XP notification
+  const showXpNotification = (amount: number, action: string) => {
+    if (amount > 0) {
+      setXpNotification({ amount, action })
+      setTimeout(() => setXpNotification(null), 3000)
+    }
+  }
+  
   const markAsReadMutation = trpc.journal.markAsRead.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.journal.getAll.invalidate()
+      if (data.therapistXpAwarded && data.therapistXpAwarded > 0) {
+        showXpNotification(data.therapistXpAwarded, 'Leitura')
+      }
     },
   })
 
@@ -196,11 +212,14 @@ export const TherapistView: React.FC = () => {
 
   // Feedback mutation
   const addFeedbackMutation = trpc.journal.addFeedback.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       utils.journal.getAll.invalidate()
       setShowFeedbackModal(false)
       setSelectedFeedbackEntry(null)
       setFeedbackText('')
+      if (data.therapistXpAwarded && data.therapistXpAwarded > 0) {
+        showXpNotification(data.therapistXpAwarded, 'Feedback')
+      }
     },
   })
 
@@ -1094,15 +1113,22 @@ export const TherapistView: React.FC = () => {
                                 Revisar
                               </>
                             ) : (
-                              'Feedback'
+                              <>
+                                <MessageSquare size={12} />
+                                Feedback
+                                <span className='rounded-full bg-emerald-200 px-1.5 py-0.5 text-[8px] text-emerald-700 dark:bg-emerald-800 dark:text-emerald-300'>
+                                  +10 XP
+                                </span>
+                              </>
                             )}
                           </button>
                           <button
-                            className='flex-1 shrink-0 rounded-lg bg-white px-3 py-1.5 font-bold text-indigo-600 text-[10px] shadow-sm transition-colors hover:bg-indigo-50 sm:flex-initial sm:text-xs dark:bg-slate-800 dark:text-indigo-400 dark:hover:bg-slate-700'
+                            className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 shadow-sm transition-colors hover:bg-indigo-200 sm:h-8 sm:w-8 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
                             onClick={() => toggleJournalRead(entry.id)}
                             type='button'
+                            title='Marcar como não lido'
                           >
-                            Lido
+                            <CheckCircle2 size={16} />
                           </button>
                         </div>
                       </div>
@@ -1116,7 +1142,7 @@ export const TherapistView: React.FC = () => {
                     key={entry.id}
                     style={{ animationDelay: `${index * 100}ms` }}
                   >
-                    <div className='mb-3 flex items-start justify-between sm:mb-4'>
+                    <div className='mb-3 flex flex-col gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between'>
                       <div
                         className={`flex items-center gap-2 rounded-xl border px-3 py-1.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-2 ${getMoodColor(
                           entry.emotion
@@ -1134,18 +1160,10 @@ export const TherapistView: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      <div className='flex items-center gap-2'>
+                      <div className='flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end'>
                         <span className='rounded-full bg-slate-50 px-2 py-1 font-bold text-slate-400 text-[10px] sm:px-3 sm:text-xs dark:bg-slate-800'>
                           {new Date(entry.timestamp).toLocaleDateString('pt-BR')}
                         </span>
-                        <button
-                          className='flex items-center gap-1.5 rounded-full bg-emerald-600 px-3 py-1 font-bold text-white text-[10px] shadow-emerald-200 shadow-sm transition-all hover:bg-emerald-700 hover:shadow-md sm:px-4 sm:py-1.5 sm:text-xs dark:shadow-none'
-                          onClick={() => openFeedbackModal(entry)}
-                          type='button'
-                        >
-                          {entry.therapistFeedback ? <Eye size={12} /> : <MessageSquare size={12} />}
-                          {entry.therapistFeedback ? 'Revisar' : 'Feedback'}
-                        </button>
                         <button
                           className='flex items-center gap-1.5 rounded-full bg-indigo-600 px-3 py-1 font-bold text-white text-[10px] shadow-indigo-200 shadow-sm transition-all hover:bg-indigo-700 hover:shadow-md sm:px-4 sm:py-1.5 sm:text-xs dark:shadow-none'
                           onClick={() => toggleJournalRead(entry.id)}
@@ -1153,6 +1171,9 @@ export const TherapistView: React.FC = () => {
                         >
                           <CheckCircle2 size={12} />
                           Lido
+                          <span className='rounded-full bg-indigo-500 px-1.5 py-0.5 text-[8px] text-white'>
+                            +5 XP
+                          </span>
                         </button>
                       </div>
                     </div>
@@ -2374,6 +2395,21 @@ export const TherapistView: React.FC = () => {
                     : 'Enviar'}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* XP Notification */}
+      {xpNotification && (
+        <div className='pointer-events-none fixed inset-0 z-[100] flex items-start justify-center pt-20'>
+          <div className='animate-in fade-in slide-in-from-top-4 zoom-in-95 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-white shadow-2xl shadow-indigo-500/30 duration-300'>
+            <Sparkles className='animate-pulse text-yellow-300' size={20} />
+            <span className='font-bold text-sm'>
+              +{xpNotification.amount} XP
+            </span>
+            <span className='text-indigo-200 text-xs'>
+              ({xpNotification.action})
+            </span>
           </div>
         </div>
       )}

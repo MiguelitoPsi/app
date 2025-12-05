@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
+import { SuspensionCheck } from '@/components/SuspensionCheck'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -54,7 +55,10 @@ export default function RootLayout({
   return (
     <html lang='pt-BR'>
       <body className={inter.className}>
-        <TRPCProvider>{children}</TRPCProvider>
+        <TRPCProvider>
+          <SuspensionCheck />
+          {children}
+        </TRPCProvider>
         <ServiceWorkerRegister />
       </body>
     </html>

@@ -119,7 +119,7 @@ export function SuspendedAccountModal() {
   const isSuspendedByTherapist = Boolean(suspensionData.suspendedByTherapistId)
 
   return (
-    <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm'>
+    <div className='fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-md'>
       <div className='mx-4 w-full max-w-md rounded-xl border border-red-500/50 bg-slate-900 p-6 shadow-2xl'>
         <div className='mb-4 flex items-center justify-center'>
           <div className='flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20'>
@@ -161,11 +161,11 @@ export function SuspendedAccountModal() {
 
         {isSuspendedByTherapist ? (
           <div className='mb-6 rounded-lg bg-amber-500/10 p-4'>
-            <p className='mb-1 text-sm font-medium text-amber-300'>
-              Entre em contato com seu psicólogo
+            <p className='mb-2 text-sm font-medium text-amber-300'>
+              Sua conta foi suspensa temporariamente
             </p>
             <p className='text-sm text-slate-300'>
-              Para desbloquear seu acesso, entre em contato com seu psicólogo responsável.
+              Entre em contato com seu psicólogo para mais informações sobre o acesso à sua conta.
             </p>
           </div>
         ) : (
@@ -177,12 +177,26 @@ export function SuspendedAccountModal() {
               </div>
             )}
 
-            <div className='rounded-lg bg-amber-500/10 p-4 mb-6'>
-              <p className='text-sm text-amber-300'>
-                <span className='font-medium'>Precisa de ajuda?</span> Entre em contato com o
-                suporte para mais informações sobre a suspensão da sua conta.
-              </p>
-            </div>
+            <a
+              className='mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700'
+              href='mailto:suporte@nepsis.com.br?subject=Conta%20Suspensa%20-%20Solicita%C3%A7%C3%A3o%20de%20Suporte'
+            >
+              <svg
+                className='h-4 w-4'
+                fill='none'
+                stroke='currentColor'
+                viewBox='0 0 24 24'
+              >
+                <title>Email</title>
+                <path
+                  d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                />
+              </svg>
+              Entrar em Contato com Suporte
+            </a>
           </>
         )}
 
@@ -191,7 +205,7 @@ export function SuspendedAccountModal() {
           onClick={handleLogout}
           type='button'
         >
-          Sair da Conta
+          {isSuspendedByTherapist ? 'Fechar Aplicativo' : 'Sair da Conta'}
         </button>
       </div>
     </div>

@@ -4,7 +4,7 @@ import { getHomeRouteForRole, isPathAllowedForRole, type UserRole } from '@/lib/
 /**
  * Rotas públicas que não requerem autenticação
  */
-const PUBLIC_PATHS = ['/', '/auth/signin', '/auth/signup', '/invite', '/therapist-invite']
+const PUBLIC_PATHS = ['/', '/auth/signin', '/auth/signup', '/invite', '/therapist-invite', '/psychologists']
 
 /**
  * Regex para arquivos estáticos (definida no top-level para performance)

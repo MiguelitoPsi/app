@@ -1,5 +1,6 @@
 'use client'
 
+import { motion } from 'framer-motion'
 import { Eye, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -100,9 +101,30 @@ function SignInForm() {
     <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
       {/* Subtle gradient orbs */}
       <div className='pointer-events-none absolute inset-0'>
-        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
-        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
-        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+        <motion.div 
+          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
+          animate={{ 
+            x: [0, 80, 0, -60, 0],
+            y: [0, -50, 40, 0, 0],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div 
+          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
+          animate={{ 
+            x: [0, -70, 40, 0],
+            y: [0, 60, -40, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div 
+          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl'
+          animate={{ 
+            x: [0, 60, -50, 0],
+            y: [0, -70, 50, 0],
+          }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        />
       </div>
 
       <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>

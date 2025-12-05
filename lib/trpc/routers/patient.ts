@@ -462,10 +462,10 @@ export const patientRouter = router({
         where: eq(users.id, ctx.user.id),
       })
 
-      // Deletar o relacionamento
-      await db.delete(psychologistPatients).where(eq(psychologistPatients.id, relationship.id))
+      // NÃO deletar o relacionamento - manter o paciente vinculado ao terapeuta
+      // A conta será excluída manualmente por admin
 
-      // Suspender a conta do paciente
+      // Suspender a conta do paciente (mantendo o vínculo)
       await db
         .update(users)
         .set({
@@ -486,7 +486,7 @@ export const patientRouter = router({
         title: 'Alta do Tratamento',
         message: `Você recebeu alta do terapeuta ${
           therapist?.name || 'seu terapeuta'
-        }. Sua conta está suspensa até que você se vincule a um novo terapeuta ou o admin exclua sua conta.`,
+        }. Parabéns pela sua jornada!`,
         metadata: {
           therapistId: ctx.user.id,
           therapistName: therapist?.name,

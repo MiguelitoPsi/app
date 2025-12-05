@@ -6,7 +6,7 @@ import { TRPCError } from '@trpc/server'
 import { and, eq, ne } from 'drizzle-orm'
 import { z } from 'zod'
 import { therapistProfiles, users } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
+import { protectedProcedure, publicProcedure, router, suspensionCheckProcedure } from '../trpc'
 
 // Validation schemas
 const attendanceTypeSchema = z.enum(['online', 'presential', 'both'])
@@ -234,7 +234,8 @@ export const therapistProfileRouter = router({
   }),
 
   // Listar todos os terapeutas disponíveis (para pacientes buscando novo terapeuta)
-  getAvailableTherapists: protectedProcedure.query(async ({ ctx }) => {
+  // Usa suspensionCheckProcedure para permitir que pacientes desvinculados (suspensos) busquem novo terapeuta
+  getAvailableTherapists: suspensionCheckProcedure.query(async ({ ctx }) => {
     const profiles = await ctx.db
       .select({
         therapistId: therapistProfiles.therapistId,
@@ -251,7 +252,7 @@ export const therapistProfileRouter = router({
       .where(
         and(
           eq(users.role, 'psychologist'),
-          ne(users.id, ctx.user.id) // Exclude current therapist
+          ne(users.id, ctx.user.id) // Exclude current user (if they are a therapist)
         )
       )
 
@@ -266,4 +267,34 @@ export const therapistProfileRouter = router({
       phone: profile.phone,
     }))
   }),
+
+  // Public endpoint - Listar todos os terapeutas para a página pública (sem autenticação)
+  getPublicTherapists: publicProcedure.query(async ({ ctx }) => {
+    const profiles = await ctx.db
+      .select({
+        therapistId: therapistProfiles.therapistId,
+        fullName: therapistProfiles.fullName,
+        crp: therapistProfiles.crp,
+        education: therapistProfiles.education,
+        city: therapistProfiles.city,
+        attendanceType: therapistProfiles.attendanceType,
+        clinicAddress: therapistProfiles.clinicAddress,
+        phone: therapistProfiles.phone,
+      })
+      .from(therapistProfiles)
+      .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
+      .where(eq(users.role, 'psychologist'))
+
+    return profiles.map((profile) => ({
+      id: profile.therapistId,
+      fullName: profile.fullName,
+      crp: profile.crp,
+      education: profile.education,
+      city: profile.city,
+      attendanceType: profile.attendanceType,
+      clinicAddress: profile.clinicAddress,
+      phone: profile.phone,
+    }))
+  }),
 })
+

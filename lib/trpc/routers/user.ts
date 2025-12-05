@@ -13,7 +13,7 @@ import {
 } from '@/lib/db/schema'
 import { formatDateSP } from '@/lib/utils/timezone'
 import { addCoins, addRawXP, awardXPAndCoins } from '@/lib/xp'
-import { protectedProcedure, router } from '../trpc'
+import { protectedProcedure, router, suspensionCheckProcedure } from '../trpc'
 
 export const userRouter = router({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
@@ -354,8 +354,8 @@ export const userRouter = router({
     return { success: true }
   }),
 
-  // Verificar se a conta está suspensa
-  checkSuspension: protectedProcedure.query(async ({ ctx }) => {
+  // Verificar se a conta está suspensa - usa procedimento especial que NÃO bloqueia suspensos
+  checkSuspension: suspensionCheckProcedure.query(async ({ ctx }) => {
     const [user] = await ctx.db
       .select({
         bannedAt: users.bannedAt,

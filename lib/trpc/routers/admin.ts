@@ -602,12 +602,12 @@ export const adminRouter = router({
         }
       }
 
-      // Invalidar todas as sessões do psicólogo e pacientes
-      await ctx.db.delete(sessions).where(eq(sessions.userId, input.psychologistId))
-
-      for (const patientId of patientIds) {
-        await ctx.db.delete(sessions).where(eq(sessions.userId, patientId))
-      }
+      // NÃO invalidar sessões para que o usuário possa ver o modal de suspensão
+      // A verificação de bannedAt no protectedProcedure vai bloquear outras ações
+      // await ctx.db.delete(sessions).where(eq(sessions.userId, input.psychologistId))
+      // for (const patientId of patientIds) {
+      //   await ctx.db.delete(sessions).where(eq(sessions.userId, patientId))
+      // }
 
       return { success: true, affectedPatients: patientIds.length }
     }),
@@ -820,8 +820,8 @@ export const adminRouter = router({
         })
         .where(eq(users.id, input.userId))
 
-      // Invalidar sessões
-      await ctx.db.delete(sessions).where(eq(sessions.userId, input.userId))
+      // NÃO invalidar sessões para que o usuário possa ver o modal de suspensão
+      // await ctx.db.delete(sessions).where(eq(sessions.userId, input.userId))
 
       return { success: true }
     }),

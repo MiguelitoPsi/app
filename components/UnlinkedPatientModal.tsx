@@ -356,23 +356,7 @@ export function UnlinkedPatientModal() {
             <p className='text-center text-emerald-100 italic'>"{encouragingMessage}"</p>
           </div>
 
-          <div className='mb-4 rounded-lg bg-slate-800/50 p-4'>
-            <p className='text-slate-300 text-sm'>Para continuar usando o Nepsis, você pode:</p>
-            <ul className='mt-2 list-inside list-disc text-slate-400 text-sm'>
-              <li>Buscar um novo terapeuta se desejar continuar o acompanhamento</li>
-              <li>Entrar em contato com o suporte para outras opções</li>
-            </ul>
-          </div>
-
           <div className='space-y-3'>
-            <button
-              className='w-full rounded-lg bg-emerald-600 px-4 py-3 font-medium text-white transition-colors hover:bg-emerald-700'
-              onClick={handleFindNewTherapist}
-              type='button'
-            >
-              Buscar Novo Terapeuta
-            </button>
-
             <button
               className='w-full rounded-lg border border-slate-600 bg-slate-800 px-4 py-3 font-medium text-slate-300 transition-colors hover:bg-slate-700'
               onClick={handleCloseApp}

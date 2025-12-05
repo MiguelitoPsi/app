@@ -6,8 +6,6 @@ import { BottomNav } from '@/components/BottomNav'
 import LevelUpManager from '@/components/LevelUpManager'
 import { RoleGuard } from '@/components/RoleGuard'
 import { SkipLink } from '@/components/SkipLink'
-import { SuspendedAccountModal } from '@/components/SuspendedAccountModal'
-import { UnlinkedPatientModal } from '@/components/UnlinkedPatientModal'
 import { GameProvider, RANKS, useGame } from '@/context/GameContext'
 
 function AppHeader() {
@@ -83,8 +81,6 @@ function AppHeader() {
 function AppLayoutContent({ children }: { children: ReactNode }) {
   return (
     <RoleGuard allowedRoles={['patient']}>
-      <SuspendedAccountModal />
-      <UnlinkedPatientModal />
       <SkipLink />
       <LevelUpManager />
       <AchievementManager />

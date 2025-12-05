@@ -1,6 +1,5 @@
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { eq } from 'drizzle-orm'
 import { db } from './db'
 import * as schema from './db/schema'
 
@@ -29,26 +28,8 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
   },
-  databaseHooks: {
-    session: {
-      create: {
-        before: async (session) => {
-          // Verificar se o usuário está suspenso antes de criar a sessão
-          const [user] = await db
-            .select({ bannedAt: schema.users.bannedAt })
-            .from(schema.users)
-            .where(eq(schema.users.id, session.userId))
-            .limit(1)
-
-          if (user?.bannedAt) {
-            throw new Error('Sua conta foi suspensa. Entre em contato com o suporte.')
-          }
-
-          return { data: session }
-        },
-      },
-    },
-  },
+  // databaseHooks removido - a verificação de suspensão é feita no protectedProcedure
+  // Isso permite que usuários suspensos vejam o modal de suspensão
   user: {
     additionalFields: {
       role: {

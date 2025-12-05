@@ -24,7 +24,34 @@ import Link from 'next/link'
 
 export default function LandingPage() {
   return (
-    <div className='min-h-screen bg-slate-950 text-slate-200 selection:bg-violet-500/30'>
+    <div className='min-h-screen bg-slate-950 text-slate-200 selection:bg-violet-500/30 relative overflow-hidden'>
+      {/* Animated gradient orbs */}
+      <div className='pointer-events-none fixed inset-0 z-0'>
+        <motion.div 
+          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
+          animate={{ 
+            x: [0, 80, 0, -60, 0],
+            y: [0, -50, 40, 0, 0],
+          }}
+          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div 
+          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
+          animate={{ 
+            x: [0, -70, 40, 0],
+            y: [0, 60, -40, 0],
+          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <motion.div 
+          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl'
+          animate={{ 
+            x: [0, 60, -50, 0],
+            y: [0, -70, 50, 0],
+          }}
+          transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      </div>
       {/* Header Profissional */}
       <header className='fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl'>
         <div className='mx-auto flex max-w-6xl items-center justify-between px-4 py-3'>
@@ -106,7 +133,7 @@ export default function LandingPage() {
             </Link>
             <Link
               className='flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-600/50 bg-emerald-600/10 px-8 py-4 font-medium text-emerald-300 transition-all hover:bg-emerald-600/20 hover:border-emerald-500 sm:w-auto'
-              href='#pacientes'
+              href='/psychologists'
             >
               Buscar Psicólogo
             </Link>
