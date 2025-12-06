@@ -4,7 +4,10 @@ import {
   AlertCircle,
   ArrowRight,
   BarChart2,
+  Bell,
+  BellOff,
   BookOpen,
+  FileText,
   Heart,
   Key,
   LogOut,
@@ -24,6 +27,7 @@ import AvatarOficial from '@/components/Avatar-oficial'
 import { HelpButton } from '@/components/HelpButton'
 import { PatientConsentModal } from '@/components/PatientConsentModal'
 import { XPAnimationContainer } from '@/components/XPAnimation'
+import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
@@ -58,6 +62,7 @@ export const HomeView: React.FC = () => {
     amount: number
   } | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [showConsent, setShowConsent] = useState(false)
   // Local state for immediate UI feedback
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood)
   const [_, setIsScrolled] = useState(false)
@@ -78,6 +83,30 @@ export const HomeView: React.FC = () => {
 
   // Check for unviewed feedback
   const { data: unviewedFeedbackCount = 0 } = trpc.journal.getUnviewedFeedbackCount.useQuery()
+
+  // Push notifications hook
+  const {
+    isSupported: isPushSupported,
+    permissionState,
+    isSubscribed: isPushSubscribed,
+    isLoading: isPushLoading,
+    toggle: togglePush,
+  } = usePushNotifications()
+
+  // Helper para formatar data/hora completa
+  const formatDateTime = (timestamp: number) => {
+    if (!timestamp) return ''
+    const date = new Date(timestamp)
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -272,7 +301,7 @@ export const HomeView: React.FC = () => {
           <HelpButton screenId='home' />
           <button
             aria-label='Abrir configurações'
-            className='touch-target p-2 text-slate-400 transition-colors hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
+            className='touch-target p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
             onClick={() => setShowSettings(true)}
             type='button'
           >
@@ -545,6 +574,38 @@ export const HomeView: React.FC = () => {
                 </button>
               </div>
               <div className='space-y-3 sm:space-y-4'>
+                {/* Botão para visualizar termo de consentimento */}
+                <button
+                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                  onClick={() => setShowConsent(true)}
+                  type='button'
+                >
+                  <div className='flex items-center gap-2 sm:gap-3'>
+                    <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <FileText size={18} />
+                    </div>
+                    <div className='text-left'>
+                      <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                        Termo de Consentimento
+                      </h4>
+                      <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                        Visualizar termo assinado e data/hora
+                      </p>
+                    </div>
+                  </div>
+                  <div className='w-full mt-1'>
+                    {termsData?.termsAcceptedAt ? (
+                      <span className='block text-xs text-green-600 dark:text-green-400 font-semibold'>
+                        Assinado
+                      </span>
+                    ) : (
+                      <span className='block text-xs text-slate-400 dark:text-slate-500 font-semibold'>
+                        Não assinado
+                      </span>
+                    )}
+                  </div>
+                </button>
+
                 <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                     <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
@@ -579,6 +640,61 @@ export const HomeView: React.FC = () => {
                     />
                   </div>
                 </div>
+
+                {/* Push Notifications Toggle */}
+                {isPushSupported && (
+                  <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                    <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                        {isPushSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
+                      </div>
+                      <div className='min-w-0'>
+                        <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                          Notificações Push
+                        </h4>
+                        <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                          {permissionState === 'denied'
+                            ? 'Bloqueado pelo navegador'
+                            : 'Receber lembretes e alertas'}
+                        </p>
+                      </div>
+                    </div>
+                    <div
+                      aria-checked={isPushSubscribed}
+                      aria-disabled={isPushLoading || permissionState === 'denied'}
+                      aria-label={
+                        isPushSubscribed
+                          ? 'Desativar notificações push'
+                          : 'Ativar notificações push'
+                      }
+                      className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                        isPushSubscribed ? 'bg-violet-600' : 'bg-slate-300'
+                      } ${
+                        isPushLoading || permissionState === 'denied'
+                          ? 'cursor-not-allowed opacity-50'
+                          : ''
+                      }`}
+                      onClick={() => {
+                        if (!isPushLoading && permissionState !== 'denied') {
+                          togglePush()
+                        }
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !isPushLoading && permissionState !== 'denied') {
+                          togglePush()
+                        }
+                      }}
+                      role='switch'
+                      tabIndex={0}
+                    >
+                      <div
+                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                          isPushSubscribed ? 'left-[22px]' : 'left-0.5'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                )}
                 {/* Change Password Button */}
                 <button
                   className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'

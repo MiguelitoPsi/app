@@ -4,7 +4,8 @@ import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import { notifications, patientInvites, psychologistPatients, users } from '@/lib/db/schema'
-import { sendInviteEmail } from '@/lib/email'
+import { sendInviteEmail, sendNudgeEmail } from '@/lib/email'
+import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 import { protectedProcedure, publicProcedure, router } from '../trpc'
 
 export const patientRouter = router({
@@ -592,6 +593,99 @@ export const patientRouter = router({
         },
       })
 
+      return { success: true }
+    }),
+
+  // Send nudge to patient
+  sendNudge: protectedProcedure
+    .input(z.object({ patientId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      console.log('--- sendNudge started ---')
+      console.log('User:', ctx.user.id, ctx.user.role)
+      console.log('Target Patient:', input.patientId)
+
+      if (ctx.user.role !== 'psychologist') {
+        console.error('sendNudge: Not a psychologist')
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Check relationship
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.patientId, input.patientId),
+          eq(psychologistPatients.psychologistId, ctx.user.id)
+        ),
+      })
+
+      if (!relationship) {
+        console.error('sendNudge: Relationship not found')
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Vínculo não encontrado',
+        })
+      }
+      console.log('sendNudge: Relationship verified')
+
+      const therapistName = ctx.user.name || 'Seu terapeuta'
+
+      // Send push notification
+      try {
+        console.log('sendNudge: Attempting to send push')
+        await sendPushToUser(db, input.patientId, PUSH_TEMPLATES.inactiveReminder())
+        console.log('sendNudge: Push sent successfully (or skipped if no sub)')
+      } catch (err) {
+        console.error('sendNudge: Push failed', err)
+        // Don't block flow for push failure
+      }
+
+      // Create internal notification
+      try {
+        console.log('sendNudge: Creating internal notification')
+        await db.insert(notifications).values({
+          id: nanoid(),
+          userId: input.patientId,
+          type: 'inactive_reminder',
+          title: 'Sentimos sua falta!',
+          message: `${therapistName} enviou um lembrete para você retomar sua rotina de autocuidado.`,
+          metadata: {
+            therapistId: ctx.user.id,
+            therapistName,
+          },
+        })
+        console.log('sendNudge: Internal notification created')
+      } catch (err) {
+        console.error('sendNudge: Database insert failed', err)
+        throw err // This is critical, we should probably throw
+      }
+
+      // Send email if patient has one
+      try {
+        console.log('sendNudge: Fetching patient email')
+        const patient = await db.query.users.findFirst({
+          where: eq(users.id, input.patientId),
+          columns: {
+            name: true,
+            email: true,
+          },
+        })
+        console.log('sendNudge: Patient found', patient)
+
+        if (patient?.email) {
+          console.log('sendNudge: Sending email to', patient.email)
+          const emailResult = await sendNudgeEmail(
+            patient.email,
+            patient.name || 'Paciente',
+            therapistName
+          )
+          console.log('sendNudge: Email result', emailResult)
+        } else {
+          console.log('sendNudge: No email found for patient')
+        }
+      } catch (err) {
+        console.error('sendNudge: Email flow failed', err)
+      }
+
+      console.log('--- sendNudge completed ---')
       return { success: true }
     }),
 })

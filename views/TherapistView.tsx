@@ -4,6 +4,7 @@ import {
   Activity,
   ArrowRightLeft,
   BarChart2,
+  Bell,
   Brain,
   Calendar,
   CheckCircle2,
@@ -21,6 +22,7 @@ import {
   MessageSquare,
   Moon,
   Phone,
+  Plus,
   Save,
   Search,
   Settings,
@@ -46,7 +48,7 @@ import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
 export const TherapistView: React.FC = () => {
   // Buscar dados do terapeuta via tRPC
   const { data: therapistProfile } = trpc.user.getProfile.useQuery()
-  const { theme, toggleTheme } = useTherapistGame()
+  const { theme, toggleTheme, refreshStats } = useTherapistGame()
 
   const [selectedPatientId, setSelectedPatientId] = useState<string>('')
   const [activeSection, setActiveSection] = useState<
@@ -202,6 +204,7 @@ export const TherapistView: React.FC = () => {
   const markAsReadMutation = trpc.journal.markAsRead.useMutation({
     onSuccess: (data) => {
       utils.journal.getAll.invalidate()
+      refreshStats()
       if (data.therapistXpAwarded && data.therapistXpAwarded > 0) {
         showXpNotification(data.therapistXpAwarded, 'Leitura')
       }
@@ -216,6 +219,7 @@ export const TherapistView: React.FC = () => {
   const addFeedbackMutation = trpc.journal.addFeedback.useMutation({
     onSuccess: (data) => {
       utils.journal.getAll.invalidate()
+      refreshStats()
       setShowFeedbackModal(false)
       setSelectedFeedbackEntry(null)
       setFeedbackText('')
@@ -248,6 +252,19 @@ export const TherapistView: React.FC = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [inviteLink, setInviteLink] = useState<string>('')
   const [isLinkCopied, setIsLinkCopied] = useState(false)
+  const [nudgeSent, setNudgeSent] = useState(false)
+
+  const sendNudgeMutation = trpc.patient.sendNudge.useMutation({
+    onSuccess: () => {
+      setNudgeSent(true)
+      setTimeout(() => setNudgeSent(false), 3000)
+    },
+  })
+
+  const handleSendNudge = () => {
+    if (!selectedPatientId) return
+    sendNudgeMutation.mutate({ patientId: selectedPatientId })
+  }
 
   const openCostModal = (reward: Reward) => {
     setEditingReward(reward)
@@ -528,13 +545,13 @@ export const TherapistView: React.FC = () => {
           </p>
         </div>
         <button
-          className='flex items-center gap-1.5 rounded-lg bg-indigo-500 px-3 py-2 font-medium text-sm text-white transition-colors hover:bg-indigo-600'
+          className='touch-target group flex items-center justify-center rounded-full bg-violet-600 p-3 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:p-4 sm:hover:scale-105 dark:shadow-none'
           onClick={handleInvite}
           title='Convidar Paciente'
           type='button'
         >
-          <UserPlus size={16} />
-          <span className='hidden sm:inline'>Convidar</span>
+          <Plus className='sm:hidden' size={20} />
+          <Plus className='hidden sm:block' size={24} />
         </button>
       </div>
 
@@ -725,6 +742,44 @@ export const TherapistView: React.FC = () => {
         {selectedPatientId ? (
           activeSection === 'overview' && (
             <div className='fade-in slide-in-from-bottom-4 animate-in space-y-4 duration-500 sm:space-y-6'>
+              {/* Quick Action Banner */}
+              <div className='flex items-center justify-between rounded-xl border border-orange-100 bg-orange-50 p-4 dark:border-orange-900/20 dark:bg-orange-900/10'>
+                <div className='flex items-center gap-3'>
+                  <div className='rounded-lg bg-orange-100 p-2 text-orange-600 dark:bg-orange-900/30'>
+                    <Bell size={20} />
+                  </div>
+                  <div>
+                    <h3 className='font-semibold text-orange-900 text-sm dark:text-orange-100'>
+                      O paciente está ausente?
+                    </h3>
+                    <p className='text-orange-700 text-xs dark:text-orange-300'>
+                      Envie uma notificação para lembrá-lo de continuar sua jornada.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  className={`flex items-center gap-2 rounded-lg py-2 px-4 text-sm font-semibold transition-all ${
+                    nudgeSent
+                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 cursor-default'
+                      : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95 shadow-lg shadow-orange-200 dark:shadow-none'
+                  } disabled:opacity-70 disabled:cursor-not-allowed`}
+                  disabled={sendNudgeMutation.isPending || nudgeSent}
+                  onClick={handleSendNudge}
+                  type='button'
+                >
+                  {nudgeSent ? (
+                    <>
+                      <CheckCircle2 size={16} />
+                      <span>Enviado!</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Enviar Lembrete</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
               {/* Key Metrics */}
               <div className='grid grid-cols-2 gap-3 sm:gap-4'>
                 <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>

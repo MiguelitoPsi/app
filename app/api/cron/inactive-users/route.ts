@@ -1,29 +1,29 @@
-import { and, eq, isNotNull, lt, sql } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { pushSubscriptions, users } from "@/lib/db/schema";
-import { PUSH_TEMPLATES, sendPushToUser } from "@/lib/push";
+import { and, eq, isNotNull, lt, sql } from 'drizzle-orm'
+import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { pushSubscriptions, users } from '@/lib/db/schema'
+import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 
 // This endpoint checks for users who haven't been active in 16 hours
 // and sends them a reminder push notification
 // Should be called by a cron job every hour
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // Secret to protect the cron endpoint
-const CRON_SECRET = process.env.CRON_SECRET;
+const CRON_SECRET = process.env.CRON_SECRET
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const now = new Date();
-    const sixteenHoursAgo = new Date(now.getTime() - 16 * 60 * 60 * 1000);
+    const now = new Date()
+    const sixteenHoursAgo = new Date(now.getTime() - 16 * 60 * 60 * 1000)
 
     // Find users who:
     // 1. Have push notifications enabled (have subscriptions)
@@ -42,27 +42,23 @@ export async function GET(request: Request) {
           isNotNull(users.lastActiveAt),
           lt(users.lastActiveAt, sixteenHoursAgo),
           // Only send to patients (not therapists/admins)
-          eq(users.role, "patient"),
+          eq(users.role, 'patient'),
           // Not banned
           sql`${users.bannedAt} IS NULL`
         )
       )
-      .groupBy(users.id);
+      .groupBy(users.id)
 
-    let sent = 0;
-    let failed = 0;
+    let sent = 0
+    let failed = 0
 
     for (const user of inactiveUsers) {
-      const result = await sendPushToUser(
-        db,
-        user.userId,
-        PUSH_TEMPLATES.inactiveReminder()
-      );
+      const result = await sendPushToUser(db, user.userId, PUSH_TEMPLATES.inactiveReminder())
 
       if (result.sent > 0) {
-        sent++;
+        sent++
       } else {
-        failed++;
+        failed++
       }
     }
 
@@ -72,12 +68,12 @@ export async function GET(request: Request) {
       sent,
       failed,
       timestamp: now.toISOString(),
-    });
+    })
   } catch (error) {
-    console.error("Error in inactive-users cron:", error);
+    console.error('Error in inactive-users cron:', error)
     return NextResponse.json(
-      { error: "Internal server error", details: String(error) },
+      { error: 'Internal server error', details: String(error) },
       { status: 500 }
-    );
+    )
   }
 }

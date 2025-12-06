@@ -1,28 +1,28 @@
-import { and, eq, gte, sql } from "drizzle-orm";
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { pushSubscriptions, rewards, users } from "@/lib/db/schema";
-import { PUSH_TEMPLATES, sendPushToUser } from "@/lib/push";
+import { and, eq, gte, sql } from 'drizzle-orm'
+import { NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { pushSubscriptions, rewards, users } from '@/lib/db/schema'
+import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 
 // This endpoint checks for users who have enough coins to claim a reward
 // and sends them a notification
 // Should be called by a cron job periodically (e.g., every 6 hours)
 
-export const runtime = "edge";
-export const dynamic = "force-dynamic";
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 // Secret to protect the cron endpoint
-const CRON_SECRET = process.env.CRON_SECRET;
+const CRON_SECRET = process.env.CRON_SECRET
 
 export async function GET(request: Request) {
   // Verify cron secret
-  const authHeader = request.headers.get("authorization");
+  const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${CRON_SECRET}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   try {
-    const now = new Date();
+    const now = new Date()
 
     // Find users who:
     // 1. Have push notifications enabled
@@ -47,38 +47,34 @@ export async function GET(request: Request) {
           // User can afford it (coins >= cost)
           gte(users.coins, rewards.cost),
           // Only patients
-          eq(users.role, "patient"),
+          eq(users.role, 'patient'),
           // Not banned
           sql`${users.bannedAt} IS NULL`
         )
       )
-      .groupBy(users.id, rewards.id);
+      .groupBy(users.id, rewards.id)
 
     // Group by user to avoid duplicate notifications
-    const userRewards = new Map<string, { title: string; cost: number }>();
+    const userRewards = new Map<string, { title: string; cost: number }>()
     for (const row of usersWithAvailableRewards) {
       if (!userRewards.has(row.userId)) {
         userRewards.set(row.userId, {
           title: row.rewardTitle,
           cost: row.rewardCost,
-        });
+        })
       }
     }
 
-    let sent = 0;
-    let failed = 0;
+    let sent = 0
+    let failed = 0
 
     for (const [userId, reward] of userRewards) {
-      const result = await sendPushToUser(
-        db,
-        userId,
-        PUSH_TEMPLATES.rewardAvailable(reward.title)
-      );
+      const result = await sendPushToUser(db, userId, PUSH_TEMPLATES.rewardAvailable(reward.title))
 
       if (result.sent > 0) {
-        sent++;
+        sent++
       } else {
-        failed++;
+        failed++
       }
     }
 
@@ -88,12 +84,12 @@ export async function GET(request: Request) {
       sent,
       failed,
       timestamp: now.toISOString(),
-    });
+    })
   } catch (error) {
-    console.error("Error in available-rewards cron:", error);
+    console.error('Error in available-rewards cron:', error)
     return NextResponse.json(
-      { error: "Internal server error", details: String(error) },
+      { error: 'Internal server error', details: String(error) },
       { status: 500 }
-    );
+    )
   }
 }

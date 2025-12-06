@@ -1,5 +1,6 @@
 'use client'
 
+import { Check, Copy } from 'lucide-react'
 import React, { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 import { broadcastSuspension } from '@/lib/utils/suspension-broadcast'
@@ -750,43 +751,56 @@ export default function UsersPage() {
 }
 
 function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [role, setRole] = useState<UserRole>('patient')
+  // Invitation State
+  const [inviteRole, setInviteRole] = useState<'admin' | 'psychologist'>('psychologist')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteLink, setInviteLink] = useState('')
+  const [isCopied, setIsCopied] = useState(false)
   const [error, setError] = useState('')
 
-  const createUser = trpc.admin.createUser.useMutation({
-    onSuccess: () => {
+  const createInvite = trpc.admin.createInvite.useMutation({
+    onSuccess: (data) => {
+      console.log('✅ Invite created successfully:', data)
+      alert(`Convite criado com sucesso! Token: ${data.token}`)
+      const link = `${window.location.origin}/admin-invite/${data.token}`
+      setInviteLink(link)
       onSuccess()
     },
     onError: (err) => {
+      console.error('❌ Invite creation error:', err)
+      alert(`Erro ao criar convite: ${err.message}`)
       setError(err.message)
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleInviteSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
 
-    if (email === '' || password === '') {
-      setError('Preencha todos os campos')
+    if (inviteEmail === '') {
+      setError('Preencha o email')
       return
     }
 
-    if (password.length < 8) {
-      setError('A senha deve ter no mínimo 8 caracteres')
-      return
-    }
+    alert(`Tentando criar convite para ${inviteEmail} como ${inviteRole}`)
+    createInvite.mutate({ role: inviteRole, email: inviteEmail })
+  }
 
-    createUser.mutate({ email, password, role })
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    } catch (err) {
+      console.error('Failed to copy:', err)
+    }
   }
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
       <div className='w-full max-w-md rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl'>
         <div className='mb-6 flex items-center justify-between'>
-          <h2 className='text-xl font-semibold text-white'>Criar Novo Usuário</h2>
+          <h2 className='text-xl font-semibold text-white'>Adicionar Usuário</h2>
           <button
             aria-label='Fechar modal'
             className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-slate-700 hover:text-white hover:scale-110 active:scale-95'
@@ -797,117 +811,116 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
           </button>
         </div>
 
-        <form className='space-y-4' onSubmit={handleSubmit}>
+        <form className='space-y-4' onSubmit={handleInviteSubmit}>
           {error && (
-            <div className='rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400'>{error}</div>
+            <div className='rounded-lg bg-red-500/10 p-3 text-sm text-red-500'>{error}</div>
           )}
 
-          <div>
-            <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='email'>
-              Email
-            </label>
-            <input
-              className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-              id='email'
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder='email@exemplo.com'
-              type='email'
-              value={email}
-            />
-          </div>
+          {inviteLink ? (
+            <div className='space-y-4 animate-in fade-in zoom-in duration-300'>
+              <div className='rounded-lg bg-emerald-500/10 p-4 border border-emerald-500/20 text-center'>
+                <div className='mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20'>
+                  <Check className='h-5 w-5 text-emerald-500' />
+                </div>
+                <h3 className='font-medium text-white'>Link Gerado com Sucesso!</h3>
+                <p className='text-sm text-slate-400 mt-1'>
+                  Envie este link para o novo{' '}
+                  {inviteRole === 'admin' ? 'administrador' : 'psicólogo'}.
+                </p>
+              </div>
 
-          <div>
-            <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='password'>
-              Senha
-            </label>
-            <div className='relative'>
-              <input
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 pr-12 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='password'
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder='Mínimo 8 caracteres'
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-              />
+              <div>
+                <label className='mb-1.5 block text-sm font-medium text-slate-300'>
+                  Link de Convite
+                </label>
+                <div className='flex gap-2'>
+                  <code className='flex-1 rounded-lg border border-slate-700 bg-slate-950 px-3 py-2.5 text-sm text-slate-300 overflow-x-auto whitespace-nowrap scrollbar-hide'>
+                    {inviteLink}
+                  </code>
+                  <button
+                    className={`flex items-center justify-center rounded-lg px-3 py-2.5 transition-colors ${
+                      isCopied
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white'
+                    }`}
+                    onClick={copyToClipboard}
+                    title='Copiar Link'
+                    type='button'
+                  >
+                    {isCopied ? <Check className='h-5 w-5' /> : <Copy className='h-5 w-5' />}
+                  </button>
+                </div>
+              </div>
+
               <button
-                aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                className='absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors'
-                onClick={() => setShowPassword(!showPassword)}
+                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 font-medium text-white transition-colors hover:bg-slate-700'
+                onClick={() => {
+                  setInviteLink('')
+                  setIsCopied(false)
+                  setInviteEmail('')
+                }}
                 type='button'
               >
-                {showPassword ? (
-                  <svg
-                    className='h-5 w-5'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className='h-5 w-5'
-                    fill='none'
-                    stroke='currentColor'
-                    viewBox='0 0 24 24'
-                    xmlns='http://www.w3.org/2000/svg'
-                  >
-                    <path
-                      d='M15 12a3 3 0 11-6 0 3 3 0 016 0z'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                    />
-                    <path
-                      d='M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z'
-                      strokeLinecap='round'
-                      strokeLinejoin='round'
-                      strokeWidth={2}
-                    />
-                  </svg>
-                )}
+                Gerar Outro Convite
               </button>
             </div>
-          </div>
+          ) : (
+            <>
+              <div>
+                <label
+                  className='mb-1.5 block text-sm font-medium text-slate-300'
+                  htmlFor='invite-role'
+                >
+                  Função do Convidado
+                </label>
+                <select
+                  className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
+                  id='invite-role'
+                  onChange={(e) => setInviteRole(e.target.value as 'admin' | 'psychologist')}
+                  value={inviteRole}
+                >
+                  <option value='psychologist'>Psicólogo</option>
+                  <option value='admin'>Administrador</option>
+                </select>
+              </div>
 
-          <div>
-            <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='role'>
-              Tipo de Usuário
-            </label>
-            <select
-              className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-              id='role'
-              onChange={(e) => setRole(e.target.value as UserRole)}
-              value={role}
-            >
-              <option value='patient'>Paciente</option>
-              <option value='psychologist'>Psicólogo</option>
-              <option value='admin'>Administrador</option>
-            </select>
-          </div>
+              <div>
+                <label
+                  className='mb-1.5 block text-sm font-medium text-slate-300'
+                  htmlFor='invite-email'
+                >
+                  Email
+                </label>
+                <input
+                  className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
+                  id='invite-email'
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder='email@exemplo.com'
+                  required
+                  type='email'
+                  value={inviteEmail}
+                />
+                <p className='mt-1 text-xs text-slate-500'>
+                  Usado para registrar quem foi convidado.
+                </p>
+              </div>
 
-          <div className='flex gap-3 pt-4'>
-            <button
-              className='flex-1 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800'
-              onClick={onClose}
-              type='button'
-            >
-              Cancelar
-            </button>
-            <button
-              className='flex-1 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50'
-              disabled={createUser.isPending}
-              type='submit'
-            >
-              {createUser.isPending ? 'Criando...' : 'Criar Usuário'}
-            </button>
-          </div>
+              <button
+                className='mt-6 w-full rounded-lg bg-violet-600 px-4 py-2.5 font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50'
+                disabled={createInvite.isPending}
+                type='submit'
+              >
+                {createInvite.isPending ? (
+                  <span className='flex items-center justify-center gap-2'>
+                    <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' />{' '}
+                    Gerando...
+                  </span>
+                ) : (
+                  'Gerar Link de Convite'
+                )}
+              </button>
+            </>
+          )}
         </form>
       </div>
     </div>

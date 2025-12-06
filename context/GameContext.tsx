@@ -221,7 +221,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       name: userProfile.name || '',
       role: userProfile.role as 'admin' | 'psychologist' | 'patient',
       xp: userProfile.experience || 0,
-      level: userProfile.level || 1,
+      level:
+        RANKS.slice()
+          .reverse()
+          .find((rank) => (userProfile.experience || 0) >= rank.xpRequired)?.level || 1,
       points: userProfile.coins || 0,
       streak: userProfile.streak || 0,
       longestStreak: dbStats.longestStreak || userProfile.streak || 0,
@@ -391,7 +394,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (!old) return old
       const newExperience = Math.max(0, (old.experience || 0) + xpDelta)
       const newCoins = Math.max(0, (old.coins || 0) + coinsDelta)
-      const newLevel = Math.floor(newExperience / 100) + 1
+
+      // Calculate correct level based on RANKS
+      const newLevel =
+        RANKS.slice()
+          .reverse()
+          .find((rank) => newExperience >= rank.xpRequired)?.level || 1
+
       return {
         ...old,
         experience: newExperience,

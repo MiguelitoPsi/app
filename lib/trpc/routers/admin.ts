@@ -2,8 +2,13 @@ import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
-import { psychologistPatients, psychologistSubscriptions, users } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
+import {
+  adminInvites,
+  psychologistPatients,
+  psychologistSubscriptions,
+  users,
+} from '@/lib/db/schema'
+import { protectedProcedure, publicProcedure, router } from '../trpc'
 
 export const adminRouter = router({
   // Verificar se o usuário é admin
@@ -263,6 +268,74 @@ export const adminRouter = router({
       await ctx.db.delete(users).where(eq(users.id, input.userId))
 
       return { success: true }
+    }),
+
+  // ============================================
+  // INVITE MANAGEMENT
+  // ============================================
+
+  // Criar convite para admin ou psicólogo
+  createInvite: protectedProcedure
+    .input(
+      z.object({
+        role: z.enum(['admin', 'psychologist']),
+        email: z.string().email(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      console.log('🔄 createInvite called with:', input)
+
+      const token = nanoid(32)
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dias
+
+      const inviteId = nanoid()
+      console.log('📝 Creating invite with token:', token.substring(0, 8) + '...')
+
+      await ctx.db.insert(adminInvites).values({
+        id: inviteId,
+        token,
+        role: input.role,
+        email: input.email,
+        createdBy: ctx.user?.id || 'system',
+        status: 'pending',
+        expiresAt,
+      })
+
+      console.log('✅ Invite saved to database')
+      return { success: true, token, inviteId }
+    }),
+
+  // Obter convite por token (público)
+  getInviteByToken: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const [invite] = await ctx.db
+        .select({
+          id: adminInvites.id,
+          role: adminInvites.role,
+          email: adminInvites.email,
+          status: adminInvites.status,
+          expiresAt: adminInvites.expiresAt,
+          creatorName: users.name,
+        })
+        .from(adminInvites)
+        .leftJoin(users, eq(adminInvites.createdBy, users.id))
+        .where(eq(adminInvites.token, input.token))
+        .limit(1)
+
+      if (!invite) {
+        throw new Error('Convite não encontrado')
+      }
+
+      if (invite.status !== 'pending') {
+        throw new Error('Este convite não está mais válido')
+      }
+
+      if (new Date() > invite.expiresAt) {
+        throw new Error('Este convite expirou')
+      }
+
+      return invite
     }),
 
   // ============================================

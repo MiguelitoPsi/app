@@ -10,6 +10,7 @@ function SignUpForm() {
   const searchParams = useSearchParams()
   const therapistId = searchParams.get('therapistId')
   const inviteToken = searchParams.get('invite')
+  const adminInviteToken = searchParams.get('adminInviteToken')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -29,7 +30,7 @@ function SignUpForm() {
   const errorId = useId()
 
   // Require invitation link
-  if (!(therapistId || inviteToken)) {
+  if (!(therapistId || inviteToken || adminInviteToken)) {
     return (
       <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
         {/* Subtle gradient orbs */}
@@ -126,6 +127,20 @@ function SignUpForm() {
         }
       }
 
+      // If admin invite token is present, accept the invite
+      if (adminInviteToken) {
+        try {
+          await fetch('/api/accept-admin-invite', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: adminInviteToken }),
+          })
+        } catch (linkError) {
+          console.error('Failed to accept admin invite:', linkError)
+          // Don't fail the signup if accepting invite fails
+        }
+      }
+
       router.push('/home')
       router.refresh()
     } catch (err) {
@@ -154,7 +169,9 @@ function SignUpForm() {
               <p className='mt-2 text-violet-400'>
                 {therapistId || inviteToken
                   ? 'Complete seu cadastro para vincular-se ao seu terapeuta'
-                  : 'Comece sua jornada de bem-estar'}
+                  : adminInviteToken
+                    ? 'Complete seu cadastro para acessar a plataforma'
+                    : 'Comece sua jornada de bem-estar'}
               </p>
               {(therapistId || inviteToken) && (
                 <div className='mt-4 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-400 text-sm'>
