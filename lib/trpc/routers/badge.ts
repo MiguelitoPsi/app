@@ -98,7 +98,7 @@ export async function autoCheckBadges(
 
   const existingBadgeIds = new Set(existingBadges.map((b: { badgeId: string }) => b.badgeId))
 
-  const newBadges: Array<typeof badges.$inferInsert> = []
+  const newBadges: (typeof badges.$inferInsert)[] = []
 
   // Check each badge definition
   for (const badge of BADGE_DEFINITIONS) {

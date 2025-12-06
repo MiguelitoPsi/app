@@ -4,14 +4,17 @@ import { createContext } from '@/lib/trpc/trpc'
 
 export const dynamic = 'force-dynamic'
 
-const handler = async (req: Request, props: { params: Promise<any> }) => {
+const handler = async (
+  req: Request,
+  props: { params: Promise<Record<string, string | string[]>> }
+) => {
   await props.params
 
   // Debug: log request cookies
   const cookieHeader = req.headers.get('cookie')
   console.log(
     '[tRPC API] Request cookies:',
-    cookieHeader ? cookieHeader.substring(0, 100) + '...' : 'NONE'
+    cookieHeader ? `${cookieHeader.substring(0, 100)}...` : 'NONE'
   )
 
   try {

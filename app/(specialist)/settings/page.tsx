@@ -20,7 +20,7 @@ import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 
 export default function SettingsPage() {
-  const router = useRouter()
+  const _router = useRouter()
   const { theme, toggleTheme } = useTherapistGame()
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)

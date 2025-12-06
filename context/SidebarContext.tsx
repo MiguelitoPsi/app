@@ -2,7 +2,7 @@
 
 import { createContext, type ReactNode, useContext, useState } from 'react'
 
-interface SidebarContextType {
+type SidebarContextType = {
   isOpen: boolean
   setIsOpen: (open: boolean) => void
   toggle: () => void

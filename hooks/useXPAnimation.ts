@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type ParticleType = 'xp' | 'pts'
 
-export interface Particle {
+export type Particle = {
   id: string
   amount: number
   type: ParticleType
@@ -12,7 +12,7 @@ export interface Particle {
   target: { x: number; y: number }
 }
 
-export interface UseXPAnimationReturn {
+export type UseXPAnimationReturn = {
   particles: Particle[]
   triggerAnimation: (amount: number, type: ParticleType, originX: number, originY: number) => void
   clearParticles: () => void
@@ -82,7 +82,7 @@ export function useXPAnimation(): UseXPAnimationReturn {
 }
 
 // Debounce utility
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

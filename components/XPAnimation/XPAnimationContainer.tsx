@@ -6,7 +6,7 @@ import { createPortal } from 'react-dom'
 import type { Particle } from '@/hooks/useXPAnimation'
 import { XPParticle } from './XPParticle'
 
-interface XPAnimationContainerProps {
+type XPAnimationContainerProps = {
   particles: Particle[]
 }
 

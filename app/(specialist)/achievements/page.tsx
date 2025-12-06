@@ -6,7 +6,7 @@ import {
   TherapistPageHeader,
   TherapistPageLayout,
 } from '@/components/TherapistPageLayout'
-import { AchievementsList } from '@/components/therapist'
+import { AchievementsList } from '@/components/therapist/AchievementsList'
 
 export default function AchievementsPage() {
   return (

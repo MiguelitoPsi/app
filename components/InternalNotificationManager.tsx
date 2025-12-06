@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 export function InternalNotificationManager() {
-  const router = useRouter()
+  const _router = useRouter()
   const [lastCount, setLastCount] = useState(0)
   const [activeNotification, setActiveNotification] = useState<{
     id: string
@@ -15,9 +15,12 @@ export function InternalNotificationManager() {
   } | null>(null)
 
   // Poll for unread count every 30 seconds
-  const { data: unreadCount = 0, refetch } = trpc.notification.getUnreadCount.useQuery(undefined, {
-    refetchInterval: 30_000,
-  })
+  const { data: unreadCount = 0, refetch: _refetch } = trpc.notification.getUnreadCount.useQuery(
+    undefined,
+    {
+      refetchInterval: 30_000,
+    }
+  )
 
   // Poll for latest notification if count increased
   const { data: latestNotifications } = trpc.notification.getAll.useQuery(undefined, {
@@ -84,6 +87,7 @@ export function InternalNotificationManager() {
               e.stopPropagation()
               setActiveNotification(null)
             }}
+            type='button'
           >
             <span className='sr-only'>Fechar</span>
             <svg
@@ -97,6 +101,7 @@ export function InternalNotificationManager() {
               width='16'
               xmlns='http://www.w3.org/2000/svg'
             >
+              <title>Close</title>
               <line x1='18' x2='6' y1='6' y2='18' />
               <line x1='6' x2='18' y1='6' y2='18' />
             </svg>

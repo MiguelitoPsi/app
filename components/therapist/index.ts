@@ -1,5 +1,0 @@
-export { AchievementsList } from './AchievementsList'
-export { TherapistAchievementModal } from './TherapistAchievementModal'
-export { TherapistDueNowSection } from './TherapistDueNowSection'
-export { TherapistProfileCard } from './TherapistProfileCard'
-export { WeeklyChallengeCard } from './WeeklyChallengeCard'

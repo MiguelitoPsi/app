@@ -194,7 +194,7 @@ export const taskRouter = router({
         // Recalculate level based on new XP
         const newLevel = Math.floor(newExperience / 100) + 1
 
-        const updateData: any = {
+        const updateData = {
           coins: newCoins,
           experience: newExperience,
           level: newLevel,
@@ -278,17 +278,17 @@ export const taskRouter = router({
         .where(eq(tasks.id, input.id))
 
       // Update stats
-      const [stats] = await ctx.db
+      const [currentStats] = await ctx.db
         .select()
         .from(userStats)
         .where(eq(userStats.userId, ctx.user.id))
         .limit(1)
 
-      if (stats) {
+      if (currentStats) {
         await ctx.db
           .update(userStats)
           .set({
-            completedTasks: stats.completedTasks + 1,
+            completedTasks: currentStats.completedTasks + 1,
             updatedAt: now,
           })
           .where(eq(userStats.userId, ctx.user.id))

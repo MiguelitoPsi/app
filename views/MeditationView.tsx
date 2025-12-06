@@ -17,7 +17,7 @@ import {
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
-import { XPAnimationContainer } from '@/components/XPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { getMeditationRewards } from '@/lib/xp'
 import { useGame } from '../context/GameContext'

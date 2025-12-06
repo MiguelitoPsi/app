@@ -78,7 +78,7 @@ export const protectedProcedure = t.procedure.use(async ({ ctx, next }) => {
 })
 
 // Procedimento especial para verificação de suspensão - NÃO bloqueia usuários suspensos
-export const suspensionCheckProcedure = t.procedure.use(async ({ ctx, next }) => {
+export const suspensionCheckProcedure = t.procedure.use(({ ctx, next }) => {
   if (!(ctx.session && ctx.user)) {
     throw new TRPCError({ code: 'UNAUTHORIZED' })
   }

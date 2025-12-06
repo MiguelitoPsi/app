@@ -13,7 +13,7 @@ type ScreenId =
   | 'rewards'
   | 'profile'
 
-interface TutorialContent {
+type TutorialContent = {
   title: string
   sections: {
     heading: string
@@ -222,7 +222,7 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
   },
 }
 
-interface HelpButtonProps {
+type HelpButtonProps = {
   screenId: ScreenId
 }
 

@@ -47,6 +47,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
             >
               {isSidebarOpen ? (
                 <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <title>Close sidebar</title>
                   <path
                     d='M6 18L18 6M6 6l12 12'
                     strokeLinecap='round'
@@ -56,6 +57,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 </svg>
               ) : (
                 <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                  <title>Open sidebar</title>
                   <path
                     d='M4 6h16M4 12h16M4 18h16'
                     strokeLinecap='round'
@@ -99,6 +101,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                   type='button'
                 >
                   <svg className='h-6 w-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+                    <title>Close menu</title>
                     <path
                       d='M6 18L18 6M6 6l12 12'
                       strokeLinecap='round'

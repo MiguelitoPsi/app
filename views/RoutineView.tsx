@@ -20,7 +20,7 @@ import {
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
-import { XPAnimationContainer } from '@/components/XPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { useGame } from '../context/GameContext'
 
@@ -415,8 +415,8 @@ export const RoutineView: React.FC = () => {
         // Add Reward Text (Split XP and Pts)
         setRewardAnimations((prev) => [
           ...prev,
-          { id: id + '-xp', x: centerX, y: centerY, val: xp, type: 'xp' },
-          { id: id + '-pts', x: centerX, y: centerY, val: pts, type: 'pts' },
+          { id: `${id}-xp`, x: centerX, y: centerY, val: xp, type: 'xp' },
+          { id: `${id}-pts`, x: centerX, y: centerY, val: pts, type: 'pts' },
         ])
 
         // Trigger Fireworks

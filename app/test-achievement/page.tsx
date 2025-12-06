@@ -54,6 +54,7 @@ export default function TestAchievementPage() {
               className='flex w-full items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-left transition-all hover:border-violet-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-violet-500/10'
               key={index}
               onClick={() => showAchievement(badge)}
+              type='button'
             >
               <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl'>
                 {badge.icon}

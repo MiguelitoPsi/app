@@ -149,6 +149,7 @@ export default function PsychologistsPage() {
                   }`}
                   key={type}
                   onClick={() => setFilterType(type)}
+                  type='button'
                 >
                   {attendanceLabels[type]}
                 </button>
@@ -251,6 +252,7 @@ export default function PsychologistsPage() {
                   <button
                     className='mt-4 sm:mt-6 flex w-full items-center justify-center gap-2 rounded-lg sm:rounded-xl border border-emerald-500/50 bg-emerald-500/10 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-emerald-300 transition-all hover:bg-emerald-500/20 group-hover:border-emerald-500'
                     onClick={() => handleContactTherapist(therapist)}
+                    type='button'
                   >
                     <Phone className='h-4 w-4' />
                     Entrar em contato

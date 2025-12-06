@@ -21,7 +21,7 @@ export const BottomNav: React.FC = () => {
     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 rounded-lg
   `
 
-  const activeIndicator = (
+  const _activeIndicator = (
     <span
       aria-hidden='true'
       className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-violet-600 shadow-[0_2px_8px_rgba(139,92,246,0.5)] duration-300 dark:bg-violet-400 dark:shadow-[0_2px_8px_rgba(167,139,250,0.3)]'

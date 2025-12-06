@@ -289,7 +289,7 @@ export const adminRouter = router({
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 dias
 
       const inviteId = nanoid()
-      console.log('📝 Creating invite with token:', token.substring(0, 8) + '...')
+      console.log('📝 Creating invite with token:', `${token.substring(0, 8)}...`)
 
       await ctx.db.insert(adminInvites).values({
         id: inviteId,
@@ -938,8 +938,8 @@ export const adminRouter = router({
         throw new Error('Usuário não encontrado')
       }
 
-      let subscription = null
-      let linkedPsychologist = null
+      let subscription: unknown = null
+      let linkedPsychologist: unknown = null
       let patientCount = 0
 
       // Se for psicólogo, buscar assinatura e contagem de pacientes

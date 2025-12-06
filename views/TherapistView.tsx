@@ -773,9 +773,7 @@ export const TherapistView: React.FC = () => {
                       <span>Enviado!</span>
                     </>
                   ) : (
-                    <>
-                      <span>Enviar Lembrete</span>
-                    </>
+                    <span>Enviar Lembrete</span>
                   )}
                 </button>
               </div>
@@ -1787,6 +1785,7 @@ export const TherapistView: React.FC = () => {
                 <button
                   className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
                   onClick={() => setShowReferralModal(false)}
+                  type='button'
                 >
                   <X size={24} />
                 </button>
@@ -1815,6 +1814,7 @@ export const TherapistView: React.FC = () => {
                     }`}
                     key={therapist.id}
                     onClick={() => setSelectedNewTherapistId(therapist.id)}
+                    type='button'
                   >
                     <div className='flex items-center gap-4 text-left'>
                       <div className='h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-lg'>

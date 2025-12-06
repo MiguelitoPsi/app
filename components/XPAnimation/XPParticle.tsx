@@ -4,7 +4,7 @@ import type React from 'react'
 import { useEffect, useState } from 'react'
 import type { Particle } from '@/hooks/useXPAnimation'
 
-interface XPParticleProps {
+type XPParticleProps = {
   particle: Particle
 }
 
@@ -20,8 +20,8 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
   const { origin, target, amount, type } = particle
 
   // Calculate control point for bezier curve (creates arc effect)
-  const midX = (origin.x + target.x) / 2
-  const midY = Math.min(origin.y, target.y) - 100 // Arc upward
+  const _midX = (origin.x + target.x) / 2
+  const _midY = Math.min(origin.y, target.y) - 100 // Arc upward
 
   return (
     <div

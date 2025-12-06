@@ -257,7 +257,6 @@ export default function TherapistFinancialView(): React.ReactElement {
     currentSummary,
     previousSummary,
     comparison,
-    projection,
     metrics,
     chartData,
     records,

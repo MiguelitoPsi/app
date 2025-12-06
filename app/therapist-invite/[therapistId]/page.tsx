@@ -111,6 +111,7 @@ export default function TherapistInvitePage() {
               <button
                 className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                 onClick={handleAccept}
+                type='button'
               >
                 Aceitar Convite e Criar Conta
               </button>
@@ -118,6 +119,7 @@ export default function TherapistInvitePage() {
               <button
                 className='w-full rounded-xl border border-slate-700 bg-slate-800/50 py-4 font-semibold text-white transition-all hover:bg-slate-800 active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                 onClick={handleLogin}
+                type='button'
               >
                 Já tenho conta - Fazer Login
               </button>

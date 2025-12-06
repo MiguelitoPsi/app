@@ -436,12 +436,6 @@ export const TASK_LIMITS = {
   medium: 5,
 } as const
 
-/**
- * Helper function to calculate level from XP
- * Re-exported from lib/xp for backwards compatibility
- */
-export { getLevelFromXP } from './xp'
-
 // Helper function to get rank definition for a level
 export function getRankForLevel(level: number): RankDefinition {
   for (let i = RANKS.length - 1; i >= 0; i--) {

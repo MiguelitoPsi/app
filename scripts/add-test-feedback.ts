@@ -37,7 +37,7 @@ async function addTestFeedback() {
 
     console.log('\n✅ Feedback adicionado com sucesso!')
     console.log('📱 Agora:')
-    console.log('   1. Faça login como PACIENTE (userId: ' + targetEntry.userId + ')')
+    console.log(`   1. Faça login como PACIENTE (userId: ${targetEntry.userId})`)
     console.log('   2. Acesse a página /home')
     console.log('   3. Você deve ver o alerta verde de "Novo Feedback Recebido"')
     console.log('   4. Clique no alerta para ir ao diário')

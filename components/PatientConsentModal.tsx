@@ -4,7 +4,7 @@ import { Check, FileText } from 'lucide-react'
 import { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
-interface PatientConsentModalProps {
+type PatientConsentModalProps = {
   onSuccess: () => void
 }
 
@@ -23,7 +23,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
     },
   })
 
-  const handleAccept = async () => {
+  const handleAccept = () => {
     setIsAccepting(true)
     acceptTermsMutation.mutate()
   }

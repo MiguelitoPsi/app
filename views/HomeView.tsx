@@ -26,7 +26,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import AvatarOficial from '@/components/Avatar-oficial'
 import { HelpButton } from '@/components/HelpButton'
 import { PatientConsentModal } from '@/components/PatientConsentModal'
-import { XPAnimationContainer } from '@/components/XPAnimation'
+import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { authClient } from '@/lib/auth-client'
@@ -62,7 +62,7 @@ export const HomeView: React.FC = () => {
     amount: number
   } | null>(null)
   const [isMounted, setIsMounted] = useState(false)
-  const [showConsent, setShowConsent] = useState(false)
+  const [_showConsent, setShowConsent] = useState(false)
   // Local state for immediate UI feedback
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood)
   const [_, setIsScrolled] = useState(false)
@@ -94,7 +94,7 @@ export const HomeView: React.FC = () => {
   } = usePushNotifications()
 
   // Helper para formatar data/hora completa
-  const formatDateTime = (timestamp: number) => {
+  const _formatDateTime = (timestamp: number) => {
     if (!timestamp) return ''
     const date = new Date(timestamp)
     return date.toLocaleString('pt-BR', {

@@ -201,7 +201,7 @@ export const journalRouter = router({
       }
 
       // Award XP to patient (5 XP for having entry read)
-      const patientResult = await addRawXP(ctx.db, entry.userId, 5)
+      const _patientResult = await addRawXP(ctx.db, entry.userId, 5)
 
       // Award XP to therapist (5 XP for reading)
       const therapistResult = await addRawXP(ctx.db, ctx.user.id, 5)
