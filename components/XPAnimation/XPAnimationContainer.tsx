@@ -23,7 +23,7 @@ export const XPAnimationContainer: React.FC<XPAnimationContainerProps> = ({ part
   }
 
   return createPortal(
-    <div className="pointer-events-none fixed inset-0 z-[9999]" aria-hidden="true">
+    <div aria-hidden='true' className='pointer-events-none fixed inset-0 z-[9999]'>
       {particles.map((particle) => (
         <XPParticle key={particle.id} particle={particle} />
       ))}

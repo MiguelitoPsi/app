@@ -341,7 +341,7 @@ export default function TherapistRoutineView() {
     if (taskForm.dueDate) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
       // Parse the date string to avoid timezone issues
       // taskForm.dueDate is in format "YYYY-MM-DD"
       const [year, month, day] = taskForm.dueDate.split('-').map(Number)

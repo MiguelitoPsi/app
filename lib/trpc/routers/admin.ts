@@ -2,7 +2,7 @@ import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
-import { psychologistPatients, psychologistSubscriptions, sessions, users } from '@/lib/db/schema'
+import { psychologistPatients, psychologistSubscriptions, users } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
 
 export const adminRouter = router({
@@ -919,7 +919,6 @@ export const adminRouter = router({
         linkedPsychologist,
       }
     }),
-
 
   // Reativar um usuário
   reactivateUser: protectedProcedure

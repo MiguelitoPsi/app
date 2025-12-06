@@ -3,8 +3,8 @@
 import { ArrowLeft, Brain, Calendar, Eye, MessageSquare, Sparkles } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { useGame } from '../context/GameContext'
 import { HelpButton } from '@/components/HelpButton'
+import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
 
 type JournalHistoryViewProps = {
@@ -45,9 +45,8 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
     return map[mood] || '😕'
   }
 
-  const filteredJournal = filterMood === 'all' 
-    ? journal 
-    : journal.filter(entry => entry.emotion === filterMood)
+  const filteredJournal =
+    filterMood === 'all' ? journal : journal.filter((entry) => entry.emotion === filterMood)
 
   const sortedJournal = [...filteredJournal].sort((a, b) => b.timestamp - a.timestamp)
 
@@ -75,7 +74,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
               </p>
             </div>
           </div>
-          <HelpButton screenId="journal-history" />
+          <HelpButton screenId='journal-history' />
         </div>
 
         {/* Mood Filter */}
@@ -120,7 +119,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
               Nenhum registro encontrado
             </h4>
             <p className='text-slate-400 text-xs sm:text-sm dark:text-slate-500'>
-              {filterMood === 'all' 
+              {filterMood === 'all'
                 ? 'Você ainda não fez nenhum registro.'
                 : 'Nenhum registro com esta emoção.'}
             </p>

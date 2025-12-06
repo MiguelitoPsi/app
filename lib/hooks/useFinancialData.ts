@@ -263,7 +263,12 @@ export type UseFinancialDataOptions = {
  * Hook centralizado para dados financeiros do terapeuta
  */
 export function useFinancialData(options: UseFinancialDataOptions) {
-  const { period, enableComparison = true, historyMonths = 12, referenceDate = new Date() } = options
+  const {
+    period,
+    enableComparison = true,
+    historyMonths = 12,
+    referenceDate = new Date(),
+  } = options
 
   const currentRange = useMemo(() => getPeriodRange(period, referenceDate), [period, referenceDate])
   const previousRange = useMemo(

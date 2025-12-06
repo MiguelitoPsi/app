@@ -45,7 +45,7 @@ export const therapistFinancialRouter = router({
 
       for (const record of allRecords) {
         // If no date range specified, just filter normally
-        if (!input.startDate || !input.endDate) {
+        if (!(input.startDate && input.endDate)) {
           // Apply type and category filters
           if (input.type && record.type !== input.type) continue
           if (input.category && record.category !== input.category) continue
@@ -75,7 +75,7 @@ export const therapistFinancialRouter = router({
           const originalDate = new Date(record.date)
 
           // Generate occurrences within the queried range
-          let currentDate = new Date(originalDate)
+          const currentDate = new Date(originalDate)
 
           // Limit to prevent infinite loops (max 60 occurrences / 5 years)
           let iterations = 0
@@ -277,7 +277,7 @@ export const therapistFinancialRouter = router({
         // Recurring records: expand into the queried range
         const frequency = record.frequency
         const originalDate = new Date(record.date)
-        let currentDate = new Date(originalDate)
+        const currentDate = new Date(originalDate)
 
         // Limit iterations (max 60 occurrences / 5 years)
         let iterations = 0

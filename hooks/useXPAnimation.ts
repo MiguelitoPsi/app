@@ -51,7 +51,7 @@ export function useXPAnimation(): UseXPAnimationReturn {
   const triggerAnimation = useCallback(
     (amount: number, type: ParticleType, originX: number, originY: number) => {
       const id = `${type}-${Date.now()}-${Math.random()}`
-      
+
       const newParticle: Particle = {
         id,
         amount,

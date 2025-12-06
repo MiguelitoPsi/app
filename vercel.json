@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/inactive-users",
+      "schedule": "0 */4 * * *"
+    },
+    {
+      "path": "/api/cron/pending-tasks",
+      "schedule": "0 8 * * *"
+    },
+    {
+      "path": "/api/cron/available-rewards",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}

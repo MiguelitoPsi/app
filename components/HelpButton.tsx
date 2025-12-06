@@ -234,53 +234,53 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
     <>
       {/* Help Button */}
       <button
-        aria-label="Abrir tutorial de ajuda"
-        className="touch-target p-2 text-slate-400 transition-colors hover:text-slate-600 active:scale-95 dark:text-slate-500 dark:hover:text-slate-300"
+        aria-label='Abrir tutorial de ajuda'
+        className='touch-target p-2 text-slate-400 transition-colors hover:text-slate-600 active:scale-95 dark:text-slate-500 dark:hover:text-slate-300'
         onClick={() => setIsOpen(true)}
-        type="button"
+        type='button'
       >
-        <HelpCircle className="sm:hidden" size={22} />
-        <HelpCircle className="hidden sm:block" size={24} />
+        <HelpCircle className='sm:hidden' size={22} />
+        <HelpCircle className='hidden sm:block' size={24} />
       </button>
 
       {/* Tutorial Modal */}
       {isOpen && (
-        <div className="fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200">
+        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
           <div
-            className="zoom-in-95 relative w-full max-w-md max-h-[85vh] overflow-hidden animate-in rounded-2xl border border-slate-100 bg-white shadow-2xl duration-300 sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900"
+            className='zoom-in-95 relative w-full max-w-md max-h-[85vh] overflow-hidden animate-in rounded-2xl border border-slate-100 bg-white shadow-2xl duration-300 sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800">
-              <h3 className="flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white">
-                <HelpCircle className="text-violet-500" size={20} />
+            <div className='flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800'>
+              <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                <HelpCircle className='text-violet-500' size={20} />
                 Como usar: {tutorial.title}
               </h3>
               <button
-                aria-label="Fechar tutorial"
-                className="touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200"
+                aria-label='Fechar tutorial'
+                className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
                 onClick={() => setIsOpen(false)}
-                type="button"
+                type='button'
               >
                 <X size={16} />
               </button>
             </div>
 
             {/* Content */}
-            <div className="overflow-y-auto p-4 sm:p-5 max-h-[calc(85vh-80px)]">
-              <div className="space-y-5">
+            <div className='overflow-y-auto p-4 sm:p-5 max-h-[calc(85vh-80px)]'>
+              <div className='space-y-5'>
                 {tutorial.sections.map((section, idx) => (
                   <div key={idx}>
-                    <h4 className="mb-2 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-200">
+                    <h4 className='mb-2 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-200'>
                       {section.heading}
                     </h4>
-                    <ul className="space-y-1.5">
+                    <ul className='space-y-1.5'>
                       {section.items.map((item, itemIdx) => (
                         <li
+                          className='flex items-start gap-2 text-slate-600 text-xs sm:text-sm dark:text-slate-400'
                           key={itemIdx}
-                          className="flex items-start gap-2 text-slate-600 text-xs sm:text-sm dark:text-slate-400"
                         >
-                          <span className="mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400" />
+                          <span className='mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400' />
                           {item}
                         </li>
                       ))}
@@ -291,11 +291,11 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-slate-100 p-4 sm:p-5 dark:border-slate-800">
+            <div className='border-t border-slate-100 p-4 sm:p-5 dark:border-slate-800'>
               <button
-                className="w-full rounded-xl bg-violet-600 py-2.5 font-bold text-sm text-white transition-all hover:bg-violet-700 active:scale-[0.98] sm:py-3"
+                className='w-full rounded-xl bg-violet-600 py-2.5 font-bold text-sm text-white transition-all hover:bg-violet-700 active:scale-[0.98] sm:py-3'
                 onClick={() => setIsOpen(false)}
-                type="button"
+                type='button'
               >
                 Entendi!
               </button>
@@ -303,10 +303,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
           </div>
 
           {/* Backdrop click to close */}
-          <div
-            className="absolute inset-0 -z-10"
-            onClick={() => setIsOpen(false)}
-          />
+          <div className='absolute inset-0 -z-10' onClick={() => setIsOpen(false)} />
         </div>
       )}
     </>

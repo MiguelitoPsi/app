@@ -244,7 +244,9 @@ export default function TherapistFinancialView(): React.ReactElement {
 
   // Filter states for records
   const [recordsTypeFilter, setRecordsTypeFilter] = useState<'all' | 'income' | 'expense'>('all')
-  const [recordsSortOrder, setRecordsSortOrder] = useState<'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc'>('date-desc')
+  const [recordsSortOrder, setRecordsSortOrder] = useState<
+    'date-desc' | 'date-asc' | 'amount-desc' | 'amount-asc'
+  >('date-desc')
   const [recordsSearchQuery, setRecordsSearchQuery] = useState('')
 
   const utils = trpc.useUtils()
@@ -744,7 +746,6 @@ export default function TherapistFinancialView(): React.ReactElement {
               </div>
             ) : currentSummary ? (
               <>
-
                 {/* Gráfico Circular - Receitas vs Despesas */}
                 {pieChartData.length > 0 && currentSummary && (
                   <div className='rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 p-5 shadow-lg dark:from-slate-900 dark:to-slate-800'>
@@ -1278,7 +1279,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                     <Filter className='h-4 w-4 text-slate-400' />
                     <select
                       className='flex-1 rounded-lg border border-slate-200 bg-slate-50 py-2 px-3 text-sm text-slate-700 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300'
-                      onChange={(e) => setRecordsSortOrder(e.target.value as typeof recordsSortOrder)}
+                      onChange={(e) =>
+                        setRecordsSortOrder(e.target.value as typeof recordsSortOrder)
+                      }
                       value={recordsSortOrder}
                     >
                       <option value='date-desc'>Data: Mais recente primeiro</option>
@@ -1398,7 +1401,9 @@ export default function TherapistFinancialView(): React.ReactElement {
                 ) : (
                   <div className='flex h-32 flex-col items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-900/50'>
                     <Search className='mb-2 h-8 w-8 text-slate-300' />
-                    <p className='text-slate-500 text-sm'>Nenhum registro encontrado com os filtros aplicados</p>
+                    <p className='text-slate-500 text-sm'>
+                      Nenhum registro encontrado com os filtros aplicados
+                    </p>
                   </div>
                 )}
               </>
@@ -1473,12 +1478,12 @@ export default function TherapistFinancialView(): React.ReactElement {
                               id: goal.id,
                               completed: isCompleting,
                             })
-                            
+
                             // Trigger confetti when completing a goal
                             if (isCompleting) {
                               const x = e.clientX / window.innerWidth
                               const y = e.clientY / window.innerHeight
-                              
+
                               confetti({
                                 particleCount: 80,
                                 spread: 70,
@@ -1494,12 +1499,14 @@ export default function TherapistFinancialView(): React.ReactElement {
                               })
                             }
                           }}
-                          title={goal.status === 'completed' ? 'Marcar como não concluída' : 'Marcar como concluída'}
+                          title={
+                            goal.status === 'completed'
+                              ? 'Marcar como não concluída'
+                              : 'Marcar como concluída'
+                          }
                           type='button'
                         >
-                          {goal.status === 'completed' && (
-                            <CheckCircle2 className='h-4 w-4' />
-                          )}
+                          {goal.status === 'completed' && <CheckCircle2 className='h-4 w-4' />}
                         </button>
                         <div>
                           <h4

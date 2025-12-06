@@ -181,12 +181,7 @@ export function SuspendedAccountModal() {
               className='mb-3 flex w-full items-center justify-center gap-2 rounded-lg bg-amber-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-amber-700'
               href='mailto:suporte@nepsis.com.br?subject=Conta%20Suspensa%20-%20Solicita%C3%A7%C3%A3o%20de%20Suporte'
             >
-              <svg
-                className='h-4 w-4'
-                fill='none'
-                stroke='currentColor'
-                viewBox='0 0 24 24'
-              >
+              <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
                 <title>Email</title>
                 <path
                   d='M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z'

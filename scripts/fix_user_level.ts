@@ -7,11 +7,7 @@ import { getLevelFromXP, LEVEL_THRESHOLDS } from '@/lib/xp'
 async function main() {
   console.log('🔍 Buscando usuário "Miguel Paciente"...')
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.name, 'Miguel Paciente'))
-    .limit(1)
+  const [user] = await db.select().from(users).where(eq(users.name, 'Miguel Paciente')).limit(1)
 
   if (!user) {
     console.error('❌ Usuário não encontrado!')
@@ -24,7 +20,7 @@ async function main() {
   // Recalcular nível baseado no XP atual e na nova tabela
   const correctLevel = getLevelFromXP(user.experience)
 
-  console.log(`🔄 Recalculando nível com base na nova curva...`)
+  console.log('🔄 Recalculando nível com base na nova curva...')
   console.log(`📈 XP Atual: ${user.experience}`)
   console.log(`🎯 Nível Correto: ${correctLevel}`)
 
@@ -36,14 +32,14 @@ async function main() {
   // Atualizar no banco
   await db
     .update(users)
-    .set({ 
+    .set({
       level: correctLevel,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .where(eq(users.id, user.id))
 
   console.log(`✅ Nível atualizado com sucesso de ${user.level} para ${correctLevel}!`)
-  
+
   // Mostrar próximo nível
   const nextLevel = correctLevel + 1
   const xpForNext = LEVEL_THRESHOLDS[nextLevel] || 'MAX'

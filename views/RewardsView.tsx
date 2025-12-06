@@ -16,8 +16,8 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { useGame } from '../context/GameContext'
 import { HelpButton } from '@/components/HelpButton'
+import { useGame } from '../context/GameContext'
 import type { RewardCategory } from '../types'
 
 export const RewardsView: React.FC = () => {
@@ -91,7 +91,7 @@ export const RewardsView: React.FC = () => {
             </p>
           </div>
           <div className='flex items-center gap-2'>
-            <HelpButton screenId="rewards" />
+            <HelpButton screenId='rewards' />
             <button
               aria-expanded={isAdding}
               aria-label={
@@ -101,7 +101,11 @@ export const RewardsView: React.FC = () => {
               onClick={() => setIsAdding(!isAdding)}
               type='button'
             >
-              {isAdding ? <X aria-hidden='true' size={18} /> : <Plus aria-hidden='true' size={18} />}
+              {isAdding ? (
+                <X aria-hidden='true' size={18} />
+              ) : (
+                <Plus aria-hidden='true' size={18} />
+              )}
             </button>
           </div>
         </div>

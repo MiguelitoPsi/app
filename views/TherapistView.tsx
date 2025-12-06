@@ -72,14 +72,16 @@ export const TherapistView: React.FC = () => {
   const [referralReason, setReferralReason] = useState('')
   const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
   const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
-  
+
   // Feedback modal state
   const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const [selectedFeedbackEntry, setSelectedFeedbackEntry] = useState<JournalEntry | null>(null)
   const [feedbackText, setFeedbackText] = useState('')
 
   // XP notification state
-  const [xpNotification, setXpNotification] = useState<{ amount: number; action: string } | null>(null)
+  const [xpNotification, setXpNotification] = useState<{ amount: number; action: string } | null>(
+    null
+  )
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -188,7 +190,7 @@ export const TherapistView: React.FC = () => {
   const [isJournalFilterOpen, setIsJournalFilterOpen] = useState(false)
 
   const utils = trpc.useUtils()
-  
+
   // Helper to show XP notification
   const showXpNotification = (amount: number, action: string) => {
     if (amount > 0) {
@@ -196,7 +198,7 @@ export const TherapistView: React.FC = () => {
       setTimeout(() => setXpNotification(null), 3000)
     }
   }
-  
+
   const markAsReadMutation = trpc.journal.markAsRead.useMutation({
     onSuccess: (data) => {
       utils.journal.getAll.invalidate()
@@ -230,7 +232,7 @@ export const TherapistView: React.FC = () => {
   }
 
   const handleSubmitFeedback = () => {
-    if (!selectedFeedbackEntry || !feedbackText.trim()) return
+    if (!(selectedFeedbackEntry && feedbackText.trim())) return
     addFeedbackMutation.mutate({
       entryId: selectedFeedbackEntry.id,
       feedback: feedbackText.trim(),
@@ -1125,8 +1127,8 @@ export const TherapistView: React.FC = () => {
                           <button
                             className='flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-600 shadow-sm transition-colors hover:bg-indigo-200 sm:h-8 sm:w-8 dark:bg-indigo-900/30 dark:text-indigo-400 dark:hover:bg-indigo-900/50'
                             onClick={() => toggleJournalRead(entry.id)}
-                            type='button'
                             title='Marcar como não lido'
+                            type='button'
                           >
                             <CheckCircle2 size={16} />
                           </button>
@@ -1667,166 +1669,168 @@ export const TherapistView: React.FC = () => {
         )}
 
         {/* Modal de confirmação - Dar Alta */}
-      {showDischargeConfirm && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
-          <div className='mx-4 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800'>
-            <div className='mb-6 flex items-center justify-center'>
-              <div className='flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
-                <LogOut className='h-8 w-8 text-green-600 dark:text-green-400' />
+        {showDischargeConfirm && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+            <div className='mx-4 w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800'>
+              <div className='mb-6 flex items-center justify-center'>
+                <div className='flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                  <LogOut className='h-8 w-8 text-green-600 dark:text-green-400' />
+                </div>
               </div>
-            </div>
-            <h3 className='mb-2 text-center font-bold text-xl text-slate-800 dark:text-white'>
-              Dar Alta ao Paciente?
-            </h3>
-            <p className='mb-8 text-center text-slate-500 dark:text-slate-400'>
-              Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>? A conta do
-              paciente será suspensa.
-            </p>
-            <div className='flex gap-3'>
-              <button
-                className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                onClick={() => setShowDischargeConfirm(false)}
-                type='button'
-              >
-                Cancelar
-              </button>
-              <button
-                className='flex-1 rounded-xl bg-green-500 px-4 py-3 font-bold text-white transition-colors hover:bg-green-600 disabled:opacity-50'
-                disabled={dischargePatientMutation.isPending}
-                onClick={() => {
-                  if (selectedPatientId) {
-                    dischargePatientMutation.mutate({
-                      patientId: selectedPatientId,
-                    })
-                  }
-                }}
-                type='button'
-              >
-                {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
-              </button>
+              <h3 className='mb-2 text-center font-bold text-xl text-slate-800 dark:text-white'>
+                Dar Alta ao Paciente?
+              </h3>
+              <p className='mb-8 text-center text-slate-500 dark:text-slate-400'>
+                Tem certeza que deseja dar alta a <strong>{selectedPatient?.name}</strong>? A conta
+                do paciente será suspensa.
+              </p>
+              <div className='flex gap-3'>
+                <button
+                  className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  onClick={() => setShowDischargeConfirm(false)}
+                  type='button'
+                >
+                  Cancelar
+                </button>
+                <button
+                  className='flex-1 rounded-xl bg-green-500 px-4 py-3 font-bold text-white transition-colors hover:bg-green-600 disabled:opacity-50'
+                  disabled={dischargePatientMutation.isPending}
+                  onClick={() => {
+                    if (selectedPatientId) {
+                      dischargePatientMutation.mutate({
+                        patientId: selectedPatientId,
+                      })
+                    }
+                  }}
+                  type='button'
+                >
+                  {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Modal de Encaminhamento */}
-      {showReferralModal && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
-          <div className='mx-4 w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800 flex flex-col max-h-[90vh]'>
-            <div className='mb-6 flex items-center justify-between'>
-              <div className='flex items-center gap-4'>
-                <div className='flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30'>
-                  <ArrowRightLeft className='h-6 w-6 text-blue-600 dark:text-blue-400' />
+        {/* Modal de Encaminhamento */}
+        {showReferralModal && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+            <div className='mx-4 w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl sm:p-8 dark:bg-slate-800 flex flex-col max-h-[90vh]'>
+              <div className='mb-6 flex items-center justify-between'>
+                <div className='flex items-center gap-4'>
+                  <div className='flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/30'>
+                    <ArrowRightLeft className='h-6 w-6 text-blue-600 dark:text-blue-400' />
+                  </div>
+                  <div>
+                    <h3 className='font-bold text-xl text-slate-800 dark:text-white'>
+                      Encaminhar Paciente
+                    </h3>
+                    <p className='text-slate-500 dark:text-slate-400'>
+                      Selecione um novo terapeuta para <strong>{selectedPatient?.name}</strong>
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className='font-bold text-xl text-slate-800 dark:text-white'>
-                    Encaminhar Paciente
-                  </h3>
-                  <p className='text-slate-500 dark:text-slate-400'>
-                    Selecione um novo terapeuta para <strong>{selectedPatient?.name}</strong>
-                  </p>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowReferralModal(false)}
-                className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
-              >
-                <X size={24} />
-              </button>
-            </div>
-
-            <div className='mb-6'>
-              <div className='relative'>
-                <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400' />
-                <input
-                  type='text'
-                  placeholder='Buscar por nome, cidade ou especialidade...'
-                  className='w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 py-3 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                  value={therapistSearchQuery}
-                  onChange={(e) => setTherapistSearchQuery(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className='flex-1 overflow-y-auto mb-6 space-y-3 pr-2'>
-              {filteredTherapists.map((therapist) => (
                 <button
-                  key={therapist.id}
-                  onClick={() => setSelectedNewTherapistId(therapist.id)}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
-                    selectedNewTherapistId === therapist.id
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
-                      : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700'
-                  }`}
+                  className='text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                  onClick={() => setShowReferralModal(false)}
                 >
-                  <div className='flex items-center gap-4 text-left'>
-                    <div className='h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-lg'>
-                      {therapist.fullName.charAt(0)}
-                    </div>
-                    <div>
-                      <p className='font-bold text-lg text-slate-800 dark:text-white'>
-                        {therapist.fullName}
-                      </p>
-                      <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
-                        <span className='font-medium'>CRP: {therapist.crp}</span>
-                        <span>•</span>
-                        <span>{therapist.city}</span>
+                  <X size={24} />
+                </button>
+              </div>
+
+              <div className='mb-6'>
+                <div className='relative'>
+                  <Search className='absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400' />
+                  <input
+                    className='w-full rounded-xl border border-slate-200 bg-slate-50 pl-12 pr-4 py-3 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                    onChange={(e) => setTherapistSearchQuery(e.target.value)}
+                    placeholder='Buscar por nome, cidade ou especialidade...'
+                    type='text'
+                    value={therapistSearchQuery}
+                  />
+                </div>
+              </div>
+
+              <div className='flex-1 overflow-y-auto mb-6 space-y-3 pr-2'>
+                {filteredTherapists.map((therapist) => (
+                  <button
+                    className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                      selectedNewTherapistId === therapist.id
+                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                        : 'border-slate-100 hover:border-blue-200 hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-700'
+                    }`}
+                    key={therapist.id}
+                    onClick={() => setSelectedNewTherapistId(therapist.id)}
+                  >
+                    <div className='flex items-center gap-4 text-left'>
+                      <div className='h-12 w-12 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-lg'>
+                        {therapist.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className='font-bold text-lg text-slate-800 dark:text-white'>
+                          {therapist.fullName}
+                        </p>
+                        <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
+                          <span className='font-medium'>CRP: {therapist.crp}</span>
+                          <span>•</span>
+                          <span>{therapist.city}</span>
+                        </div>
                       </div>
                     </div>
+                    {selectedNewTherapistId === therapist.id && (
+                      <CheckCircle2 className='h-6 w-6 text-blue-500' />
+                    )}
+                  </button>
+                ))}
+                {filteredTherapists.length === 0 && (
+                  <div className='text-center py-12 text-slate-500'>
+                    Nenhum terapeuta encontrado.
                   </div>
-                  {selectedNewTherapistId === therapist.id && (
-                    <CheckCircle2 className='h-6 w-6 text-blue-500' />
-                  )}
+                )}
+              </div>
+
+              <div className='mb-6'>
+                <label className='block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2'>
+                  Motivo do Encaminhamento (Opcional)
+                </label>
+                <textarea
+                  className='w-full rounded-xl border border-slate-200 bg-white p-4 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                  onChange={(e) => setReferralReason(e.target.value)}
+                  placeholder='Ex: Especialidade mais adequada, mudança de cidade...'
+                  rows={2}
+                  value={referralReason}
+                />
+              </div>
+
+              <div className='flex gap-3 pt-6 border-t border-slate-100 dark:border-slate-700'>
+                <button
+                  className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                  onClick={() => setShowReferralModal(false)}
+                  type='button'
+                >
+                  Cancelar
                 </button>
-              ))}
-              {filteredTherapists.length === 0 && (
-                <div className='text-center py-12 text-slate-500'>
-                  Nenhum terapeuta encontrado.
-                </div>
-              )}
-            </div>
-
-            <div className='mb-6'>
-              <label className='block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2'>
-                Motivo do Encaminhamento (Opcional)
-              </label>
-              <textarea
-                className='w-full rounded-xl border border-slate-200 bg-white p-4 text-base focus:border-blue-500 focus:outline-none dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                rows={2}
-                placeholder='Ex: Especialidade mais adequada, mudança de cidade...'
-                value={referralReason}
-                onChange={(e) => setReferralReason(e.target.value)}
-              />
-            </div>
-
-            <div className='flex gap-3 pt-6 border-t border-slate-100 dark:border-slate-700'>
-              <button
-                className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
-                onClick={() => setShowReferralModal(false)}
-                type='button'
-              >
-                Cancelar
-              </button>
-              <button
-                className='flex-1 rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
-                disabled={!selectedNewTherapistId || transferPatientMutation.isPending}
-                onClick={() => {
-                  if (selectedPatientId && selectedNewTherapistId) {
-                    transferPatientMutation.mutate({
-                      patientId: selectedPatientId,
-                      newTherapistId: selectedNewTherapistId,
-                      reason: referralReason || undefined,
-                    })
-                  }
-                }}
-                type='button'
-              >
-                {transferPatientMutation.isPending ? 'Processando...' : 'Confirmar Encaminhamento'}
-              </button>
+                <button
+                  className='flex-1 rounded-xl bg-blue-600 px-4 py-3 font-bold text-white transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed'
+                  disabled={!selectedNewTherapistId || transferPatientMutation.isPending}
+                  onClick={() => {
+                    if (selectedPatientId && selectedNewTherapistId) {
+                      transferPatientMutation.mutate({
+                        patientId: selectedPatientId,
+                        newTherapistId: selectedNewTherapistId,
+                        reason: referralReason || undefined,
+                      })
+                    }
+                  }}
+                  type='button'
+                >
+                  {transferPatientMutation.isPending
+                    ? 'Processando...'
+                    : 'Confirmar Encaminhamento'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
         {/* Cost Modal */}
         {isCostModalOpen && (
           <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6 backdrop-blur-sm sm:p-6'>
@@ -2316,61 +2320,61 @@ export const TherapistView: React.FC = () => {
                 onClick={() => setShowFeedbackModal(false)}
                 type='button'
               >
-                <X size={20} className='sm:hidden' />
-                <X size={24} className='hidden sm:block' />
+                <X className='sm:hidden' size={20} />
+                <X className='hidden sm:block' size={24} />
               </button>
             </div>
 
             {/* Scrollable Content */}
             <div className='flex-1 space-y-4 overflow-y-auto p-4 sm:p-6'>
-            <div className='mb-4 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50'>
-              <div className='mb-3 flex items-center gap-2'>
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ${getMoodColor(
-                    selectedFeedbackEntry.emotion
-                  )} bg-opacity-20`}
-                >
-                  {getMoodEmoji(selectedFeedbackEntry.emotion)}
+              <div className='mb-4 rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-800/50'>
+                <div className='mb-3 flex items-center gap-2'>
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-lg text-xl ${getMoodColor(
+                      selectedFeedbackEntry.emotion
+                    )} bg-opacity-20`}
+                  >
+                    {getMoodEmoji(selectedFeedbackEntry.emotion)}
+                  </div>
+                  <div>
+                    <span className='block font-bold text-slate-700 text-xs uppercase dark:text-slate-300'>
+                      {selectedFeedbackEntry.emotion}
+                    </span>
+                    <span className='text-slate-500 text-xs dark:text-slate-400'>
+                      Intensidade: {selectedFeedbackEntry.intensity}
+                    </span>
+                  </div>
                 </div>
-                <div>
-                  <span className='block font-bold text-slate-700 text-xs uppercase dark:text-slate-300'>
-                    {selectedFeedbackEntry.emotion}
-                  </span>
-                  <span className='text-slate-500 text-xs dark:text-slate-400'>
-                    Intensidade: {selectedFeedbackEntry.intensity}
-                  </span>
+                <div className='border-slate-200 border-l-2 pl-3 dark:border-slate-700'>
+                  <p className='mb-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                    Pensamento Automático
+                  </p>
+                  <p className='text-slate-700 text-sm italic leading-relaxed dark:text-slate-300'>
+                    "{selectedFeedbackEntry.thought}"
+                  </p>
                 </div>
               </div>
-              <div className='border-slate-200 border-l-2 pl-3 dark:border-slate-700'>
-                <p className='mb-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                  Pensamento Automático
-                </p>
-                <p className='text-slate-700 text-sm italic leading-relaxed dark:text-slate-300'>
-                  "{selectedFeedbackEntry.thought}"
-                </p>
-              </div>
-            </div>
 
-            {/* Feedback Textarea */}
-            <div className='mb-4'>
-              <label
-                className='mb-2 block font-bold text-slate-700 text-sm dark:text-slate-300'
-                htmlFor='feedbackText'
-              >
-                Sua Mensagem de Feedback
-              </label>
-              <textarea
-                className='w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-800 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
-                id='feedbackText'
-                onChange={(e) => setFeedbackText(e.target.value)}
-                placeholder='Escreva aqui sua mensagem de feedback para o paciente...'
-                rows={6}
-                value={feedbackText}
-              />
-              <p className='mt-2 text-slate-400 text-xs dark:text-slate-500'>
-                Esta mensagem será visível para o paciente junto com o registro de pensamento.
-              </p>
-            </div>
+              {/* Feedback Textarea */}
+              <div className='mb-4'>
+                <label
+                  className='mb-2 block font-bold text-slate-700 text-sm dark:text-slate-300'
+                  htmlFor='feedbackText'
+                >
+                  Sua Mensagem de Feedback
+                </label>
+                <textarea
+                  className='w-full rounded-xl border border-slate-300 bg-white p-3 text-slate-800 text-sm placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 dark:border-slate-600 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
+                  id='feedbackText'
+                  onChange={(e) => setFeedbackText(e.target.value)}
+                  placeholder='Escreva aqui sua mensagem de feedback para o paciente...'
+                  rows={6}
+                  value={feedbackText}
+                />
+                <p className='mt-2 text-slate-400 text-xs dark:text-slate-500'>
+                  Esta mensagem será visível para o paciente junto com o registro de pensamento.
+                </p>
+              </div>
             </div>
 
             {/* Action Buttons */}
@@ -2404,12 +2408,8 @@ export const TherapistView: React.FC = () => {
         <div className='pointer-events-none fixed inset-0 z-[100] flex items-start justify-center pt-20'>
           <div className='animate-in fade-in slide-in-from-top-4 zoom-in-95 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-white shadow-2xl shadow-indigo-500/30 duration-300'>
             <Sparkles className='animate-pulse text-yellow-300' size={20} />
-            <span className='font-bold text-sm'>
-              +{xpNotification.amount} XP
-            </span>
-            <span className='text-indigo-200 text-xs'>
-              ({xpNotification.action})
-            </span>
+            <span className='font-bold text-sm'>+{xpNotification.amount} XP</span>
+            <span className='text-indigo-200 text-xs'>({xpNotification.action})</span>
           </div>
         </div>
       )}

@@ -25,7 +25,7 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
 
   return (
     <div
-      className="pointer-events-none fixed z-[9999] transition-all duration-[1200ms] ease-out"
+      className='pointer-events-none fixed z-[9999] transition-all duration-[1200ms] ease-out'
       style={{
         left: isAnimating ? target.x : origin.x,
         top: isAnimating ? target.y : origin.y,
@@ -45,12 +45,12 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
       >
         {type === 'xp' ? (
           <>
-            <span className="text-lg">✨</span>
+            <span className='text-lg'>✨</span>
             <span>+{amount} XP</span>
           </>
         ) : (
           <>
-            <span className="text-lg">💎</span>
+            <span className='text-lg'>💎</span>
             <span>+{amount} Pts</span>
           </>
         )}

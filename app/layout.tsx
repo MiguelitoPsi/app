@@ -57,9 +57,9 @@ export default function RootLayout({
       <body className={inter.className}>
         <TRPCProvider>
           <SuspensionCheck />
+          <ServiceWorkerRegister />
           {children}
         </TRPCProvider>
-        <ServiceWorkerRegister />
       </body>
     </html>
   )

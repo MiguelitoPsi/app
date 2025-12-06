@@ -176,7 +176,7 @@ export function getXPForLevel(level: number): number {
  */
 export function getXPToNextLevel(currentXP: number): number {
   const currentLevel = getLevelFromXP(currentXP)
-  
+
   // Se já está no nível máximo (10), retorna 0
   if (currentLevel >= 10) return 0
 
@@ -191,16 +191,16 @@ export function getXPToNextLevel(currentXP: number): number {
  */
 export function getLevelProgress(currentXP: number): number {
   const currentLevel = getLevelFromXP(currentXP)
-  
+
   // Se nível máximo, 100%
   if (currentLevel >= 10) return 100
 
   const currentLevelXP = getXPForLevel(currentLevel)
   const nextLevelXP = getXPForLevel(currentLevel + 1)
-  
+
   const xpInCurrentLevel = currentXP - currentLevelXP
   const xpNeededForNextLevel = nextLevelXP - currentLevelXP
-  
+
   if (xpNeededForNextLevel <= 0) return 100
 
   return Math.min(100, Math.max(0, (xpInCurrentLevel / xpNeededForNextLevel) * 100))

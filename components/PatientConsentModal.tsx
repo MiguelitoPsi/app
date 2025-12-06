@@ -51,39 +51,41 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
         {/* Content */}
         <div className='max-h-[60vh] overflow-y-auto p-6 sm:p-8'>
           <div className='prose prose-slate max-w-none dark:prose-invert prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-800 dark:prose-p:text-slate-200 prose-li:text-slate-800 dark:prose-li:text-slate-200 prose-strong:text-slate-900 dark:prose-strong:text-white'>
-            <p className="text-slate-800 dark:text-slate-200 font-medium">
+            <p className='text-slate-800 dark:text-slate-200 font-medium'>
               Este Termo de Consentimento Livre e Esclarecido (TCLE) tem como objetivo fornecer
               informações sobre a utilização da plataforma de acompanhamento terapêutico.
             </p>
 
-            <h3 className="text-slate-900 dark:text-white font-bold">1. Objetivo da Plataforma</h3>
-            <p className="text-slate-800 dark:text-slate-200">
+            <h3 className='text-slate-900 dark:text-white font-bold'>1. Objetivo da Plataforma</h3>
+            <p className='text-slate-800 dark:text-slate-200'>
               Esta plataforma foi desenvolvida para auxiliar no acompanhamento do seu processo
               terapêutico, permitindo o registro de humor, diário de pensamentos, realização de
               tarefas e meditações.
             </p>
 
-            <h3 className="text-slate-900 dark:text-white font-bold">2. Confidencialidade e Privacidade</h3>
-            <p className="text-slate-800 dark:text-slate-200">
+            <h3 className='text-slate-900 dark:text-white font-bold'>
+              2. Confidencialidade e Privacidade
+            </h3>
+            <p className='text-slate-800 dark:text-slate-200'>
               Todas as informações registradas na plataforma são confidenciais e protegidas. Apenas
               você e seu terapeuta vinculado terão acesso aos dados inseridos.
             </p>
 
-            <h3 className="text-slate-900 dark:text-white font-bold">3. Uso de Dados</h3>
-            <p className="text-slate-800 dark:text-slate-200">
+            <h3 className='text-slate-900 dark:text-white font-bold'>3. Uso de Dados</h3>
+            <p className='text-slate-800 dark:text-slate-200'>
               Os dados coletados serão utilizados exclusivamente para fins terapêuticos e de
               melhoria do seu acompanhamento. Dados anonimizados poderão ser utilizados para fins
               estatísticos e de pesquisa.
             </p>
 
-            <h3 className="text-slate-900 dark:text-white font-bold">4. Compromisso do Usuário</h3>
-            <p className="text-slate-800 dark:text-slate-200">
+            <h3 className='text-slate-900 dark:text-white font-bold'>4. Compromisso do Usuário</h3>
+            <p className='text-slate-800 dark:text-slate-200'>
               Ao utilizar a plataforma, você se compromete a fornecer informações verídicas e a
               utilizar os recursos de forma responsável.
             </p>
 
-            <h3 className="text-slate-900 dark:text-white font-bold">5. Desistência</h3>
-            <p className="text-slate-800 dark:text-slate-200">
+            <h3 className='text-slate-900 dark:text-white font-bold'>5. Desistência</h3>
+            <p className='text-slate-800 dark:text-slate-200'>
               Você pode deixar de utilizar a plataforma a qualquer momento, sem prejuízo ao seu
               atendimento terapêutico presencial ou online.
             </p>

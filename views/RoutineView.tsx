@@ -19,10 +19,10 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
-import { useGame } from '../context/GameContext'
-import { useXPAnimation } from '@/hooks/useXPAnimation'
-import { XPAnimationContainer } from '@/components/XPAnimation'
 import { HelpButton } from '@/components/HelpButton'
+import { XPAnimationContainer } from '@/components/XPAnimation'
+import { useXPAnimation } from '@/hooks/useXPAnimation'
+import { useGame } from '../context/GameContext'
 
 export const RoutineView: React.FC = () => {
   const { tasks, toggleTask, addTask, deleteTask, urgentOverdueTasks, dismissUrgentTask } =
@@ -511,576 +511,576 @@ export const RoutineView: React.FC = () => {
     <>
       <XPAnimationContainer particles={particles} />
       <div className='h-full overflow-y-auto bg-slate-50 px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 dark:bg-slate-950'>
-      {/* Header */}
-      <div className='mb-4 flex items-end justify-between sm:mb-6'>
-        <div>
-          <h2 className='font-bold text-xl text-slate-800 sm:text-2xl dark:text-white'>Rotina</h2>
-          <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
-            Gerencie suas missões
-          </p>
+        {/* Header */}
+        <div className='mb-4 flex items-end justify-between sm:mb-6'>
+          <div>
+            <h2 className='font-bold text-xl text-slate-800 sm:text-2xl dark:text-white'>Rotina</h2>
+            <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+              Gerencie suas missões
+            </p>
+          </div>
+          <div className='flex items-center gap-2'>
+            <HelpButton screenId='routine' />
+            <button
+              className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
+              onClick={() => {
+                setIsAdding(!isAdding)
+                const yyyy = selectedDate.getFullYear()
+                const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
+                const dd = String(selectedDate.getDate()).padStart(2, '0')
+                setNewTaskDate(`${yyyy}-${mm}-${dd}`)
+              }}
+              type='button'
+            >
+              {isAdding ? (
+                <X className='sm:hidden' size={20} />
+              ) : (
+                <Plus className='sm:hidden' size={20} />
+              )}
+              {isAdding ? (
+                <X className='hidden sm:block' size={24} />
+              ) : (
+                <Plus className='hidden sm:block' size={24} />
+              )}
+            </button>
+          </div>
         </div>
-        <div className='flex items-center gap-2'>
-          <HelpButton screenId="routine" />
+
+        {/* View Mode Selector */}
+        <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
           <button
-            className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
-            onClick={() => {
-              setIsAdding(!isAdding)
-              const yyyy = selectedDate.getFullYear()
-              const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
-              const dd = String(selectedDate.getDate()).padStart(2, '0')
-              setNewTaskDate(`${yyyy}-${mm}-${dd}`)
-            }}
+            className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'day' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+            onClick={() => setViewMode('day')}
             type='button'
           >
-          {isAdding ? (
-            <X className='sm:hidden' size={20} />
-          ) : (
-            <Plus className='sm:hidden' size={20} />
-          )}
-          {isAdding ? (
-            <X className='hidden sm:block' size={24} />
-          ) : (
-            <Plus className='hidden sm:block' size={24} />
-          )}
-        </button>
-        </div>
-      </div>
-
-      {/* View Mode Selector */}
-      <div className='mb-3 grid grid-cols-3 gap-2 sm:mb-4 sm:gap-3'>
-        <button
-          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'day' ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
-          onClick={() => setViewMode('day')}
-          type='button'
-        >
-          <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
-          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
-            <CalendarIcon className='h-5 w-5 sm:h-7 sm:w-7' />
-            <span className='font-semibold text-[9px] sm:text-xs'>Hoje</span>
-          </div>
-        </button>
-        <button
-          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'week' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
-          onClick={() => setViewMode('week')}
-          type='button'
-        >
-          <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
-          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
-            <Repeat className='h-5 w-5 sm:h-7 sm:w-7' />
-            <span className='font-semibold text-[9px] sm:text-xs'>Semana</span>
-          </div>
-        </button>
-        <button
-          className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'month' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
-          onClick={() => setViewMode('month')}
-          type='button'
-        >
-          <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
-          <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
-            <Target className='h-5 w-5 sm:h-7 sm:w-7' />
-            <span className='font-semibold text-[9px] sm:text-xs'>Mês</span>
-          </div>
-        </button>
-      </div>
-
-      {/* Date Navigation Card */}
-      <div className='mb-4 flex items-center justify-between rounded-xl border border-slate-100 bg-white p-1 shadow-sm sm:mb-6 sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'>
-        <button
-          className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
-          onClick={() => changeDate(-1)}
-          type='button'
-        >
-          <ChevronLeft className='sm:hidden' size={18} />
-          <ChevronLeft className='hidden sm:block' size={20} />
-        </button>
-        <div className='flex flex-col items-center'>
-          <span className='font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
-            {viewMode === 'day' ? 'Dia' : viewMode === 'week' ? 'Semana' : 'Mês'}
-          </span>
-          <div className='flex items-center gap-2 text-center font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-            {formatDisplayDate(selectedDate)}
-          </div>
-        </div>
-        <button
-          className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
-          onClick={() => changeDate(1)}
-          type='button'
-        >
-          <ChevronRight className='sm:hidden' size={18} />
-          <ChevronRight className='hidden sm:block' size={20} />
-        </button>
-      </div>
-
-      {/* Progress Card - Only visible if < 100% and has tasks */}
-      {showProgressBar && (
-        <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 p-4 text-white shadow-lg shadow-violet-200 sm:mb-8 sm:rounded-3xl sm:p-5 dark:shadow-none'>
-          <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
-
-          <div className='relative z-10 mb-2 flex items-end justify-between'>
-            <div>
-              <p className='mb-1 font-bold text-violet-100 text-[10px] uppercase tracking-wider sm:text-xs'>
-                {viewMode === 'day'
-                  ? 'Progresso do Dia'
-                  : viewMode === 'week'
-                    ? 'Progresso da Semana'
-                    : 'Progresso do Mês'}
-              </p>
-              <h3 className='font-bold text-xl sm:text-2xl'>{dayProgress}% Concluído</h3>
+            <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+              <CalendarIcon className='h-5 w-5 sm:h-7 sm:w-7' />
+              <span className='font-semibold text-[9px] sm:text-xs'>Hoje</span>
             </div>
-            <div className='rounded-lg bg-white/20 p-1.5 backdrop-blur-sm sm:rounded-xl sm:p-2'>
-              <Target className='text-white' size={20} />
+          </button>
+          <button
+            className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'week' ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+            onClick={() => setViewMode('week')}
+            type='button'
+          >
+            <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+              <Repeat className='h-5 w-5 sm:h-7 sm:w-7' />
+              <span className='font-semibold text-[9px] sm:text-xs'>Semana</span>
+            </div>
+          </button>
+          <button
+            className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${viewMode === 'month' ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900' : 'hover:scale-[1.02]'}`}
+            onClick={() => setViewMode('month')}
+            type='button'
+          >
+            <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+              <Target className='h-5 w-5 sm:h-7 sm:w-7' />
+              <span className='font-semibold text-[9px] sm:text-xs'>Mês</span>
+            </div>
+          </button>
+        </div>
+
+        {/* Date Navigation Card */}
+        <div className='mb-4 flex items-center justify-between rounded-xl border border-slate-100 bg-white p-1 shadow-sm sm:mb-6 sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'>
+          <button
+            className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+            onClick={() => changeDate(-1)}
+            type='button'
+          >
+            <ChevronLeft className='sm:hidden' size={18} />
+            <ChevronLeft className='hidden sm:block' size={20} />
+          </button>
+          <div className='flex flex-col items-center'>
+            <span className='font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
+              {viewMode === 'day' ? 'Dia' : viewMode === 'week' ? 'Semana' : 'Mês'}
+            </span>
+            <div className='flex items-center gap-2 text-center font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+              {formatDisplayDate(selectedDate)}
             </div>
           </div>
-
-          <div className='relative z-10 h-1.5 w-full overflow-hidden rounded-full bg-black/20 backdrop-blur-sm sm:h-2'>
-            <div
-              className='h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-1000 ease-out'
-              style={{ width: `${dayProgress}%` }}
-            />
-          </div>
+          <button
+            className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+            onClick={() => changeDate(1)}
+            type='button'
+          >
+            <ChevronRight className='sm:hidden' size={18} />
+            <ChevronRight className='hidden sm:block' size={20} />
+          </button>
         </div>
-      )}
 
-      {/* Add Task Form */}
-      {isAdding && (
-        <div className='mb-6 sm:mb-8'>
-          <div className='slide-in-from-top-2 zoom-in-95 relative animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-xl transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
-            <div className='absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500' />
+        {/* Progress Card - Only visible if < 100% and has tasks */}
+        {showProgressBar && (
+          <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 p-4 text-white shadow-lg shadow-violet-200 sm:mb-8 sm:rounded-3xl sm:p-5 dark:shadow-none'>
+            <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
 
-            <h3 className='mb-3 flex items-center gap-2 font-bold text-base text-slate-800 sm:mb-4 sm:text-lg dark:text-white'>
-              <Plus className='text-violet-500' size={16} />
-              Nova Missão
-            </h3>
+            <div className='relative z-10 mb-2 flex items-end justify-between'>
+              <div>
+                <p className='mb-1 font-bold text-violet-100 text-[10px] uppercase tracking-wider sm:text-xs'>
+                  {viewMode === 'day'
+                    ? 'Progresso do Dia'
+                    : viewMode === 'week'
+                      ? 'Progresso da Semana'
+                      : 'Progresso do Mês'}
+                </p>
+                <h3 className='font-bold text-xl sm:text-2xl'>{dayProgress}% Concluído</h3>
+              </div>
+              <div className='rounded-lg bg-white/20 p-1.5 backdrop-blur-sm sm:rounded-xl sm:p-2'>
+                <Target className='text-white' size={20} />
+              </div>
+            </div>
 
-            <form onSubmit={handleAddTask}>
-              <input
-                autoFocus
-                className='mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 sm:mb-4 sm:rounded-xl sm:p-4 sm:text-base dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/30'
-                onChange={(e) => setNewTaskTitle(e.target.value)}
-                placeholder='Qual é o objetivo?'
-                type='text'
-                value={newTaskTitle}
+            <div className='relative z-10 h-1.5 w-full overflow-hidden rounded-full bg-black/20 backdrop-blur-sm sm:h-2'>
+              <div
+                className='h-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)] transition-all duration-1000 ease-out'
+                style={{ width: `${dayProgress}%` }}
               />
-
-              <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2'>
-                {/* Date Picker */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                    <CalendarIcon size={12} /> Data
-                  </label>
-                  <input
-                    className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                    onChange={(e) => setNewTaskDate(e.target.value)}
-                    type='date'
-                    value={newTaskDate}
-                  />
-                </div>
-
-                {/* Priority Selector */}
-                <div className='space-y-2'>
-                  <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                    <Flag size={12} /> Prioridade
-                  </label>
-                  <div className='flex gap-2'>
-                    {(['low', 'medium', 'high'] as const).map((p) => {
-                      const styles = getPriorityStyles(p)
-                      return (
-                        <button
-                          className={`flex-1 rounded-lg border-2 py-2 font-bold text-xs capitalize transition-all ${
-                            newTaskPriority === p
-                              ? `${styles.bg} border-${styles.text.split('-')[1]}-500 ${styles.text}`
-                              : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                          }
-                                            `}
-                          key={p}
-                          onClick={() => setNewTaskPriority(p)}
-                          type='button'
-                        >
-                          {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {/* Frequency Selector */}
-              <div className='mb-6 space-y-3'>
-                <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                  <Repeat size={12} /> Frequência
-                </label>
-                <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
-                  {(['once', 'daily', 'weekly', 'monthly'] as const).map((freq) => (
-                    <button
-                      className={`rounded-lg border-2 px-3 py-2 font-bold text-xs capitalize transition-all ${
-                        newTaskFrequency === freq
-                          ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
-                          : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                      }`}
-                      key={freq}
-                      onClick={() => setNewTaskFrequency(freq)}
-                      type='button'
-                    >
-                      {freq === 'once'
-                        ? 'Uma vez'
-                        : freq === 'daily'
-                          ? 'Diário'
-                          : freq === 'weekly'
-                            ? 'Semanal'
-                            : 'Mensal'}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Weekly Day Selector */}
-                {newTaskFrequency === 'weekly' && (
-                  <div className='fade-in slide-in-from-top-2 animate-in space-y-2'>
-                    <p className='text-slate-500 text-xs dark:text-slate-400'>
-                      Selecione os dias da semana:
-                    </p>
-                    <div className='grid grid-cols-7 gap-1'>
-                      {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
-                        const isSelected = selectedWeekDays.includes(index)
-                        return (
-                          <button
-                            className={`aspect-square rounded-lg font-bold text-xs transition-all ${
-                              isSelected
-                                ? 'bg-violet-500 text-white'
-                                : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'
-                            }`}
-                            key={index}
-                            onClick={() => {
-                              if (isSelected) {
-                                setSelectedWeekDays(selectedWeekDays.filter((d) => d !== index))
-                              } else {
-                                setSelectedWeekDays([...selectedWeekDays, index])
-                              }
-                            }}
-                            type='button'
-                          >
-                            {day}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Monthly Day Selector */}
-                {newTaskFrequency === 'monthly' && (
-                  <div className='fade-in slide-in-from-top-2 animate-in space-y-2'>
-                    <p className='text-slate-500 text-xs dark:text-slate-400'>
-                      Selecione os dias do mês:
-                    </p>
-                    <div className='grid max-h-32 grid-cols-7 gap-1 overflow-y-auto'>
-                      {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                        const isSelected = selectedMonthDays.includes(day)
-                        return (
-                          <button
-                            className={`aspect-square rounded-lg font-bold text-xs transition-all ${
-                              isSelected
-                                ? 'bg-violet-500 text-white'
-                                : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'
-                            }`}
-                            key={day}
-                            onClick={() => {
-                              if (isSelected) {
-                                setSelectedMonthDays(selectedMonthDays.filter((d) => d !== day))
-                              } else {
-                                setSelectedMonthDays([...selectedMonthDays, day])
-                              }
-                            }}
-                            type='button'
-                          >
-                            {day}
-                          </button>
-                        )
-                      })}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className='flex gap-3'>
-                <button
-                  className='flex-1 rounded-xl py-3 font-bold text-slate-500 text-sm transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700'
-                  onClick={() => setIsAdding(false)}
-                  type='button'
-                >
-                  Cancelar
-                </button>
-                <button
-                  className={`flex-[2] rounded-xl py-3 font-bold text-sm shadow-lg transition-opacity ${
-                    isFormInvalid
-                      ? 'cursor-not-allowed bg-slate-300 text-slate-500 dark:bg-slate-600 dark:text-slate-400'
-                      : 'bg-slate-900 text-white hover:opacity-90 dark:bg-white dark:text-slate-900'
-                  }`}
-                  disabled={isFormInvalid}
-                  type='submit'
-                >
-                  Adicionar Missão
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Tasks List */}
-      <div className='space-y-2 sm:space-y-3'>
-        {displayTasks.length === 0 && (
-          <div className='mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-6 text-center sm:mt-12 sm:rounded-3xl sm:p-8 dark:border-slate-800 dark:bg-slate-900/50'>
-            <div className='mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-300 sm:mb-4 sm:h-16 sm:w-16 dark:bg-slate-800 dark:text-slate-600'>
-              <Trophy className='sm:hidden' size={28} />
-              <Trophy className='hidden sm:block' size={32} />
             </div>
-            <h4 className='mb-1 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-300'>
-              Nenhuma missão encontrada
-            </h4>
-            <p className='max-w-[200px] text-slate-400 text-[11px] sm:text-xs dark:text-slate-500'>
-              {viewMode === 'day' ? 'Seu dia está livre!' : 'Nenhuma tarefa neste período.'}{' '}
-              Aproveite para adicionar novos objetivos.
-            </p>
           </div>
         )}
 
-        {displayTasks.map((task, index) => {
-          const styles = getPriorityStyles(task.priority)
-          const { xp, pts } = getRewardValues(task)
+        {/* Add Task Form */}
+        {isAdding && (
+          <div className='mb-6 sm:mb-8'>
+            <div className='slide-in-from-top-2 zoom-in-95 relative animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-xl transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
+              <div className='absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500' />
 
-          // Format date for card if not in day view
-          const taskDate = new Date(task.dueDate)
-          const displayDate =
-            viewMode !== 'day' ? `${taskDate.getDate()}/${taskDate.getMonth() + 1}` : null
+              <h3 className='mb-3 flex items-center gap-2 font-bold text-base text-slate-800 sm:mb-4 sm:text-lg dark:text-white'>
+                <Plus className='text-violet-500' size={16} />
+                Nova Missão
+              </h3>
 
-          return (
-            <div
-              className={`group slide-in-from-bottom-2 relative flex animate-in items-center justify-between rounded-xl border-t border-r border-b border-l-4 bg-white fill-mode-backwards p-3 transition-all duration-300 sm:rounded-2xl sm:border-l-[6px] sm:p-4 dark:bg-slate-800 ${
-                task.completed
-                  ? 'border-slate-200 border-l-slate-300 opacity-60 grayscale-[0.5] dark:border-slate-700 dark:border-l-slate-600'
-                  : `${styles.border} border-slate-100 shadow-sm sm:hover:translate-x-1 sm:hover:shadow-md dark:border-slate-700`
-              }
-                `}
-              key={task.id}
-              style={{ animationDelay: `${index * 50}ms` }}
-            >
-              <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
-                <button
-                  className={`touch-target flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-8 sm:w-8 ${
-                    task.completed
-                      ? 'scale-110 border-violet-500 bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]'
-                      : 'border-slate-300 hover:border-violet-400 hover:bg-violet-50 dark:border-slate-600 dark:hover:bg-violet-900/20'
-                  }
-                    `}
-                  onClick={(e) => handleToggleTask(task, e)}
-                  type='button'
-                >
-                  {task.completed && (
-                    <Check
-                      className='animate-in zoom-in duration-300 stroke-[3] text-white'
-                      size={14}
+              <form onSubmit={handleAddTask}>
+                <input
+                  autoFocus
+                  className='mb-3 w-full rounded-lg border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 sm:mb-4 sm:rounded-xl sm:p-4 sm:text-base dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/30'
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
+                  placeholder='Qual é o objetivo?'
+                  type='text'
+                  value={newTaskTitle}
+                />
+
+                <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2'>
+                  {/* Date Picker */}
+                  <div className='space-y-2'>
+                    <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                      <CalendarIcon size={12} /> Data
+                    </label>
+                    <input
+                      className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                      onChange={(e) => setNewTaskDate(e.target.value)}
+                      type='date'
+                      value={newTaskDate}
                     />
-                  )}
-                </button>
-
-                <div className='flex min-w-0 flex-1 flex-col'>
-                  <div className='flex flex-wrap items-center gap-1 sm:gap-2'>
-                    <span
-                      className={`truncate font-bold text-sm transition-all sm:text-base ${task.completed ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
-                    >
-                      {task.title}
-                    </span>
-                    {displayDate && (
-                      <span className='shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-bold text-[10px] text-slate-500 dark:bg-slate-700 dark:text-slate-400'>
-                        {displayDate}
-                      </span>
-                    )}
-                    {task.originalDueDate && !task.completed && (
-                      <span
-                        className='flex shrink-0 items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 font-bold text-[10px] text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
-                        title={`Originalmente agendada para ${new Date(task.originalDueDate).toLocaleDateString('pt-BR')}`}
-                      >
-                        <Clock size={10} />
-                        Transferida
-                      </span>
-                    )}
-                    {task.frequency && task.frequency !== 'once' && (
-                      <span className='flex shrink-0 items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
-                        <Repeat size={10} />
-                        {task.frequency === 'daily'
-                          ? 'Diário'
-                          : task.frequency === 'weekly'
-                            ? 'Semanal'
-                            : 'Mensal'}
-                      </span>
-                    )}
                   </div>
 
-                  {!task.completed && (
-                    <div className='mt-1 flex items-center gap-2'>
-                      <span
-                        className={`flex items-center gap-1 font-extrabold text-[10px] uppercase tracking-wider ${styles.text}`}
+                  {/* Priority Selector */}
+                  <div className='space-y-2'>
+                    <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                      <Flag size={12} /> Prioridade
+                    </label>
+                    <div className='flex gap-2'>
+                      {(['low', 'medium', 'high'] as const).map((p) => {
+                        const styles = getPriorityStyles(p)
+                        return (
+                          <button
+                            className={`flex-1 rounded-lg border-2 py-2 font-bold text-xs capitalize transition-all ${
+                              newTaskPriority === p
+                                ? `${styles.bg} border-${styles.text.split('-')[1]}-500 ${styles.text}`
+                                : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                            }
+                                            `}
+                            key={p}
+                            onClick={() => setNewTaskPriority(p)}
+                            type='button'
+                          >
+                            {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Frequency Selector */}
+                <div className='mb-6 space-y-3'>
+                  <label className='flex items-center gap-1 font-bold text-slate-400 text-xs uppercase tracking-wider'>
+                    <Repeat size={12} /> Frequência
+                  </label>
+                  <div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+                    {(['once', 'daily', 'weekly', 'monthly'] as const).map((freq) => (
+                      <button
+                        className={`rounded-lg border-2 px-3 py-2 font-bold text-xs capitalize transition-all ${
+                          newTaskFrequency === freq
+                            ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                            : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                        }`}
+                        key={freq}
+                        onClick={() => setNewTaskFrequency(freq)}
+                        type='button'
                       >
-                        <Flag fill='currentColor' size={10} />
-                        {task.priority === 'high'
-                          ? 'Urgente'
-                          : task.priority === 'medium'
-                            ? 'Normal'
-                            : 'Baixa'}
-                      </span>
+                        {freq === 'once'
+                          ? 'Uma vez'
+                          : freq === 'daily'
+                            ? 'Diário'
+                            : freq === 'weekly'
+                              ? 'Semanal'
+                              : 'Mensal'}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Weekly Day Selector */}
+                  {newTaskFrequency === 'weekly' && (
+                    <div className='fade-in slide-in-from-top-2 animate-in space-y-2'>
+                      <p className='text-slate-500 text-xs dark:text-slate-400'>
+                        Selecione os dias da semana:
+                      </p>
+                      <div className='grid grid-cols-7 gap-1'>
+                        {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                          const isSelected = selectedWeekDays.includes(index)
+                          return (
+                            <button
+                              className={`aspect-square rounded-lg font-bold text-xs transition-all ${
+                                isSelected
+                                  ? 'bg-violet-500 text-white'
+                                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'
+                              }`}
+                              key={index}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedWeekDays(selectedWeekDays.filter((d) => d !== index))
+                                } else {
+                                  setSelectedWeekDays([...selectedWeekDays, index])
+                                }
+                              }}
+                              type='button'
+                            >
+                              {day}
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Monthly Day Selector */}
+                  {newTaskFrequency === 'monthly' && (
+                    <div className='fade-in slide-in-from-top-2 animate-in space-y-2'>
+                      <p className='text-slate-500 text-xs dark:text-slate-400'>
+                        Selecione os dias do mês:
+                      </p>
+                      <div className='grid max-h-32 grid-cols-7 gap-1 overflow-y-auto'>
+                        {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
+                          const isSelected = selectedMonthDays.includes(day)
+                          return (
+                            <button
+                              className={`aspect-square rounded-lg font-bold text-xs transition-all ${
+                                isSelected
+                                  ? 'bg-violet-500 text-white'
+                                  : 'bg-slate-100 text-slate-400 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700'
+                              }`}
+                              key={day}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedMonthDays(selectedMonthDays.filter((d) => d !== day))
+                                } else {
+                                  setSelectedMonthDays([...selectedMonthDays, day])
+                                }
+                              }}
+                              type='button'
+                            >
+                              {day}
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className='flex shrink-0 items-center gap-1 pl-2'>
-                {!task.completed && (
-                  <div className='flex flex-col items-end gap-1'>
-                    <span className='rounded-lg bg-violet-50 px-2 py-0.5 font-black text-[10px] text-violet-600 dark:bg-violet-900/20 dark:text-violet-400'>
-                      +{xp} XP
-                    </span>
-                    <div className='flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-0.5 dark:bg-emerald-900/20'>
-                      <Gem className='text-emerald-500' size={10} />
-                      <span className='font-black text-[10px] text-emerald-600 dark:text-emerald-400'>
-                        +{pts}
-                      </span>
-                    </div>
-                  </div>
-                )}
-                <button
-                  className={`rounded-lg p-2 transition-all sm:focus:opacity-100 sm:group-hover:opacity-100 ${
-                    task.completed
-                      ? 'cursor-not-allowed text-slate-300 hover:bg-slate-100 hover:text-slate-400 sm:opacity-0 dark:hover:bg-slate-800'
-                      : 'text-slate-400 hover:bg-red-50 hover:text-red-500 sm:opacity-0 dark:text-slate-500 dark:hover:bg-red-900/20'
-                  }`}
-                  onClick={() => {
-                    if (task.completed) {
-                      setAlertTitle('Ação Bloqueada')
-                      setAlertMessage(
-                        'Você não pode excluir uma tarefa concluída.\nDesmarque-a primeiro se precisar excluí-la.'
-                      )
-                      setShowAlert(true)
-                      return
-                    }
-                    deleteTask(task.id)
-                  }}
-                  type='button'
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          )
-        })}
-      </div>
-
-      {/* Alert Modal */}
-      {showAlert && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
-          <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
-            <div className='bg-gradient-to-r from-red-500 to-orange-500 p-6 text-white'>
-              <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
-                <Flag className='text-white' size={24} />
-              </div>
-              <h3 className='font-bold text-xl'>{alertTitle}</h3>
-            </div>
-
-            <div className='p-6'>
-              <p className='whitespace-pre-line text-slate-700 dark:text-slate-300'>
-                {alertMessage}
-              </p>
-            </div>
-
-            <div className='border-slate-100 border-t p-4 dark:border-slate-700'>
-              <button
-                className='w-full rounded-xl bg-slate-900 py-3 font-bold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
-                onClick={() => setShowAlert(false)}
-                type='button'
-              >
-                Entendi
-              </button>
+                <div className='flex gap-3'>
+                  <button
+                    className='flex-1 rounded-xl py-3 font-bold text-slate-500 text-sm transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700'
+                    onClick={() => setIsAdding(false)}
+                    type='button'
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className={`flex-[2] rounded-xl py-3 font-bold text-sm shadow-lg transition-opacity ${
+                      isFormInvalid
+                        ? 'cursor-not-allowed bg-slate-300 text-slate-500 dark:bg-slate-600 dark:text-slate-400'
+                        : 'bg-slate-900 text-white hover:opacity-90 dark:bg-white dark:text-slate-900'
+                    }`}
+                    disabled={isFormInvalid}
+                    type='submit'
+                  >
+                    Adicionar Missão
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Overdue Tasks Alert Modal */}
-      {showOverdueAlert && urgentOverdueTasks.length > 0 && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
-          <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-2xl dark:border-amber-700 dark:bg-slate-800'>
-            <div className='bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white'>
-              <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
-                <AlertTriangle className='text-white' size={24} />
+        {/* Tasks List */}
+        <div className='space-y-2 sm:space-y-3'>
+          {displayTasks.length === 0 && (
+            <div className='mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-6 text-center sm:mt-12 sm:rounded-3xl sm:p-8 dark:border-slate-800 dark:bg-slate-900/50'>
+              <div className='mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-300 sm:mb-4 sm:h-16 sm:w-16 dark:bg-slate-800 dark:text-slate-600'>
+                <Trophy className='sm:hidden' size={28} />
+                <Trophy className='hidden sm:block' size={32} />
               </div>
-              <h3 className='font-bold text-xl'>Tarefas Pendentes!</h3>
-              <p className='mt-1 text-white/80 text-sm'>
-                Você tem {urgentOverdueTasks.length} tarefa
-                {urgentOverdueTasks.length > 1 ? 's' : ''} aguardando há mais de 2 dias
+              <h4 className='mb-1 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-300'>
+                Nenhuma missão encontrada
+              </h4>
+              <p className='max-w-[200px] text-slate-400 text-[11px] sm:text-xs dark:text-slate-500'>
+                {viewMode === 'day' ? 'Seu dia está livre!' : 'Nenhuma tarefa neste período.'}{' '}
+                Aproveite para adicionar novos objetivos.
               </p>
             </div>
+          )}
 
-            <div className='max-h-64 overflow-y-auto p-4'>
-              {urgentOverdueTasks.map((task) => (
-                <div
-                  className='mb-3 rounded-xl border border-amber-100 bg-amber-50 p-3 last:mb-0 dark:border-amber-900/30 dark:bg-amber-900/20'
-                  key={task.id}
-                >
-                  <div className='flex items-start justify-between'>
-                    <div className='flex-1'>
-                      <p className='font-semibold text-slate-800 dark:text-slate-200'>
+          {displayTasks.map((task, index) => {
+            const styles = getPriorityStyles(task.priority)
+            const { xp, pts } = getRewardValues(task)
+
+            // Format date for card if not in day view
+            const taskDate = new Date(task.dueDate)
+            const displayDate =
+              viewMode !== 'day' ? `${taskDate.getDate()}/${taskDate.getMonth() + 1}` : null
+
+            return (
+              <div
+                className={`group slide-in-from-bottom-2 relative flex animate-in items-center justify-between rounded-xl border-t border-r border-b border-l-4 bg-white fill-mode-backwards p-3 transition-all duration-300 sm:rounded-2xl sm:border-l-[6px] sm:p-4 dark:bg-slate-800 ${
+                  task.completed
+                    ? 'border-slate-200 border-l-slate-300 opacity-60 grayscale-[0.5] dark:border-slate-700 dark:border-l-slate-600'
+                    : `${styles.border} border-slate-100 shadow-sm sm:hover:translate-x-1 sm:hover:shadow-md dark:border-slate-700`
+                }
+                `}
+                key={task.id}
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
+                  <button
+                    className={`touch-target flex h-7 w-7 shrink-0 items-center justify-center rounded-full border-2 transition-all duration-300 sm:h-8 sm:w-8 ${
+                      task.completed
+                        ? 'scale-110 border-violet-500 bg-violet-500 shadow-[0_0_15px_rgba(139,92,246,0.5)]'
+                        : 'border-slate-300 hover:border-violet-400 hover:bg-violet-50 dark:border-slate-600 dark:hover:bg-violet-900/20'
+                    }
+                    `}
+                    onClick={(e) => handleToggleTask(task, e)}
+                    type='button'
+                  >
+                    {task.completed && (
+                      <Check
+                        className='animate-in zoom-in duration-300 stroke-[3] text-white'
+                        size={14}
+                      />
+                    )}
+                  </button>
+
+                  <div className='flex min-w-0 flex-1 flex-col'>
+                    <div className='flex flex-wrap items-center gap-1 sm:gap-2'>
+                      <span
+                        className={`truncate font-bold text-sm transition-all sm:text-base ${task.completed ? 'text-slate-400 line-through dark:text-slate-600' : 'text-slate-800 dark:text-slate-200'}`}
+                      >
                         {task.title}
-                      </p>
-                      <div className='mt-1 flex items-center gap-2 text-xs'>
+                      </span>
+                      {displayDate && (
+                        <span className='shrink-0 rounded bg-slate-100 px-1.5 py-0.5 font-bold text-[10px] text-slate-500 dark:bg-slate-700 dark:text-slate-400'>
+                          {displayDate}
+                        </span>
+                      )}
+                      {task.originalDueDate && !task.completed && (
                         <span
-                          className={`rounded-full px-2 py-0.5 font-bold ${
-                            task.priority === 'high'
-                              ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : task.priority === 'medium'
-                                ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
-                                : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
-                          }`}
+                          className='flex shrink-0 items-center gap-0.5 rounded bg-amber-100 px-1.5 py-0.5 font-bold text-[10px] text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'
+                          title={`Originalmente agendada para ${new Date(task.originalDueDate).toLocaleDateString('pt-BR')}`}
                         >
+                          <Clock size={10} />
+                          Transferida
+                        </span>
+                      )}
+                      {task.frequency && task.frequency !== 'once' && (
+                        <span className='flex shrink-0 items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                          <Repeat size={10} />
+                          {task.frequency === 'daily'
+                            ? 'Diário'
+                            : task.frequency === 'weekly'
+                              ? 'Semanal'
+                              : 'Mensal'}
+                        </span>
+                      )}
+                    </div>
+
+                    {!task.completed && (
+                      <div className='mt-1 flex items-center gap-2'>
+                        <span
+                          className={`flex items-center gap-1 font-extrabold text-[10px] uppercase tracking-wider ${styles.text}`}
+                        >
+                          <Flag fill='currentColor' size={10} />
                           {task.priority === 'high'
                             ? 'Urgente'
                             : task.priority === 'medium'
                               ? 'Normal'
                               : 'Baixa'}
                         </span>
-                        <span className='flex items-center gap-1 text-amber-600 dark:text-amber-400'>
-                          <Clock size={12} />
-                          {task.daysOverdue} dias de atraso
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className='flex shrink-0 items-center gap-1 pl-2'>
+                  {!task.completed && (
+                    <div className='flex flex-col items-end gap-1'>
+                      <span className='rounded-lg bg-violet-50 px-2 py-0.5 font-black text-[10px] text-violet-600 dark:bg-violet-900/20 dark:text-violet-400'>
+                        +{xp} XP
+                      </span>
+                      <div className='flex items-center gap-1 rounded-lg bg-emerald-50 px-2 py-0.5 dark:bg-emerald-900/20'>
+                        <Gem className='text-emerald-500' size={10} />
+                        <span className='font-black text-[10px] text-emerald-600 dark:text-emerald-400'>
+                          +{pts}
                         </span>
                       </div>
                     </div>
-                  </div>
+                  )}
+                  <button
+                    className={`rounded-lg p-2 transition-all sm:focus:opacity-100 sm:group-hover:opacity-100 ${
+                      task.completed
+                        ? 'cursor-not-allowed text-slate-300 hover:bg-slate-100 hover:text-slate-400 sm:opacity-0 dark:hover:bg-slate-800'
+                        : 'text-slate-400 hover:bg-red-50 hover:text-red-500 sm:opacity-0 dark:text-slate-500 dark:hover:bg-red-900/20'
+                    }`}
+                    onClick={() => {
+                      if (task.completed) {
+                        setAlertTitle('Ação Bloqueada')
+                        setAlertMessage(
+                          'Você não pode excluir uma tarefa concluída.\nDesmarque-a primeiro se precisar excluí-la.'
+                        )
+                        setShowAlert(true)
+                        return
+                      }
+                      deleteTask(task.id)
+                    }}
+                    type='button'
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-              ))}
-            </div>
+              </div>
+            )
+          })}
+        </div>
 
-            <div className='border-amber-100 border-t p-4 dark:border-amber-900/30'>
-              <p className='mb-3 text-center text-slate-500 text-xs dark:text-slate-400'>
-                Complete essas tarefas hoje para manter sua rotina em dia! 💪
-              </p>
-              <button
-                className='w-full rounded-xl bg-amber-500 py-3 font-bold text-white transition-opacity hover:bg-amber-600 hover:opacity-90'
-                onClick={() => {
-                  setShowOverdueAlert(false)
-                  // Dismiss all urgent tasks after viewing
-                  for (const t of urgentOverdueTasks) {
-                    dismissUrgentTask(t.id)
-                  }
-                }}
-                type='button'
-              >
-                Vou completar agora!
-              </button>
+        {/* Alert Modal */}
+        {showAlert && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+            <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
+              <div className='bg-gradient-to-r from-red-500 to-orange-500 p-6 text-white'>
+                <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
+                  <Flag className='text-white' size={24} />
+                </div>
+                <h3 className='font-bold text-xl'>{alertTitle}</h3>
+              </div>
+
+              <div className='p-6'>
+                <p className='whitespace-pre-line text-slate-700 dark:text-slate-300'>
+                  {alertMessage}
+                </p>
+              </div>
+
+              <div className='border-slate-100 border-t p-4 dark:border-slate-700'>
+                <button
+                  className='w-full rounded-xl bg-slate-900 py-3 font-bold text-white transition-opacity hover:opacity-90 dark:bg-white dark:text-slate-900'
+                  onClick={() => setShowAlert(false)}
+                  type='button'
+                >
+                  Entendi
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Custom Styles for Animations */}
-      <style>{`
+        {/* Overdue Tasks Alert Modal */}
+        {showOverdueAlert && urgentOverdueTasks.length > 0 && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
+            <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-2xl dark:border-amber-700 dark:bg-slate-800'>
+              <div className='bg-gradient-to-r from-amber-500 to-orange-500 p-6 text-white'>
+                <div className='mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm'>
+                  <AlertTriangle className='text-white' size={24} />
+                </div>
+                <h3 className='font-bold text-xl'>Tarefas Pendentes!</h3>
+                <p className='mt-1 text-white/80 text-sm'>
+                  Você tem {urgentOverdueTasks.length} tarefa
+                  {urgentOverdueTasks.length > 1 ? 's' : ''} aguardando há mais de 2 dias
+                </p>
+              </div>
+
+              <div className='max-h-64 overflow-y-auto p-4'>
+                {urgentOverdueTasks.map((task) => (
+                  <div
+                    className='mb-3 rounded-xl border border-amber-100 bg-amber-50 p-3 last:mb-0 dark:border-amber-900/30 dark:bg-amber-900/20'
+                    key={task.id}
+                  >
+                    <div className='flex items-start justify-between'>
+                      <div className='flex-1'>
+                        <p className='font-semibold text-slate-800 dark:text-slate-200'>
+                          {task.title}
+                        </p>
+                        <div className='mt-1 flex items-center gap-2 text-xs'>
+                          <span
+                            className={`rounded-full px-2 py-0.5 font-bold ${
+                              task.priority === 'high'
+                                ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                                : task.priority === 'medium'
+                                  ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                                  : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                            }`}
+                          >
+                            {task.priority === 'high'
+                              ? 'Urgente'
+                              : task.priority === 'medium'
+                                ? 'Normal'
+                                : 'Baixa'}
+                          </span>
+                          <span className='flex items-center gap-1 text-amber-600 dark:text-amber-400'>
+                            <Clock size={12} />
+                            {task.daysOverdue} dias de atraso
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className='border-amber-100 border-t p-4 dark:border-amber-900/30'>
+                <p className='mb-3 text-center text-slate-500 text-xs dark:text-slate-400'>
+                  Complete essas tarefas hoje para manter sua rotina em dia! 💪
+                </p>
+                <button
+                  className='w-full rounded-xl bg-amber-500 py-3 font-bold text-white transition-opacity hover:bg-amber-600 hover:opacity-90'
+                  onClick={() => {
+                    setShowOverdueAlert(false)
+                    // Dismiss all urgent tasks after viewing
+                    for (const t of urgentOverdueTasks) {
+                      dismissUrgentTask(t.id)
+                    }
+                  }}
+                  type='button'
+                >
+                  Vou completar agora!
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Custom Styles for Animations */}
+        <style>{`
         @keyframes float-up-left {
           0% { transform: translate(0, 0) scale(0.5); opacity: 0; }
           20% { transform: translate(-15px, -25px) scale(1.2); opacity: 1; }
@@ -1093,46 +1093,46 @@ export const RoutineView: React.FC = () => {
         }
       `}</style>
 
-      {/* Ripples */}
-      {ripples.map((r) => (
-        <div
-          className='pointer-events-none fixed z-40 h-12 w-12 animate-ping rounded-full border-2 border-violet-500 opacity-75'
-          key={r.id}
-          style={{
-            left: r.x - 24,
-            top: r.y - 24,
-            animationDuration: '0.8s',
-          }}
-        />
-      ))}
+        {/* Ripples */}
+        {ripples.map((r) => (
+          <div
+            className='pointer-events-none fixed z-40 h-12 w-12 animate-ping rounded-full border-2 border-violet-500 opacity-75'
+            key={r.id}
+            style={{
+              left: r.x - 24,
+              top: r.y - 24,
+              animationDuration: '0.8s',
+            }}
+          />
+        ))}
 
-      {/* Reward Animations */}
-      {rewardAnimations.map((anim) => (
-        <div
-          className='pointer-events-none fixed z-50 flex flex-col items-center gap-1 font-black text-sm'
-          key={anim.id}
-          style={{
-            left: anim.x,
-            top: anim.y,
-            animation:
-              anim.type === 'xp'
-                ? 'float-up-left 1s ease-out forwards'
-                : 'float-up-right 1s ease-out forwards',
-          }}
-        >
-          {anim.type === 'xp' ? (
-            <div className='flex items-center gap-1 rounded-full bg-violet-600 px-3 py-1 text-white shadow-lg shadow-violet-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
-              <span>+{anim.val} XP</span>
-            </div>
-          ) : (
-            <div className='flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
-              <Gem size={12} />
-              <span>+{anim.val}</span>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
+        {/* Reward Animations */}
+        {rewardAnimations.map((anim) => (
+          <div
+            className='pointer-events-none fixed z-50 flex flex-col items-center gap-1 font-black text-sm'
+            key={anim.id}
+            style={{
+              left: anim.x,
+              top: anim.y,
+              animation:
+                anim.type === 'xp'
+                  ? 'float-up-left 1s ease-out forwards'
+                  : 'float-up-right 1s ease-out forwards',
+            }}
+          >
+            {anim.type === 'xp' ? (
+              <div className='flex items-center gap-1 rounded-full bg-violet-600 px-3 py-1 text-white shadow-lg shadow-violet-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
+                <span>+{anim.val} XP</span>
+              </div>
+            ) : (
+              <div className='flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
+                <Gem size={12} />
+                <span>+{anim.val}</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
     </>
   )
 }

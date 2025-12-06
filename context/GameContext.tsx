@@ -16,12 +16,42 @@ import type {
 const GameContext = createContext<GameContextType | undefined>(undefined)
 
 export const RANKS = [
-  { level: 1, name: 'Primeiro Passo', xpRequired: 0, description: 'O começo de uma grande jornada.' },
-  { level: 2, name: 'Observador de Si', xpRequired: 300, description: 'Aprendendo os fundamentos.' },
-  { level: 3, name: 'Cultivador da Clareza', xpRequired: 700, description: 'Descobrindo novos horizontes.' },
-  { level: 4, name: 'Construtor de Hábitos', xpRequired: 1200, description: 'Enfrentando desafios maiores.' },
-  { level: 5, name: 'Navegador Emocional', xpRequired: 1800, description: 'Experiência acumulada.' },
-  { level: 6, name: 'Praticante da Presença', xpRequired: 2500, description: 'Domínio sobre a mente.' },
+  {
+    level: 1,
+    name: 'Primeiro Passo',
+    xpRequired: 0,
+    description: 'O começo de uma grande jornada.',
+  },
+  {
+    level: 2,
+    name: 'Observador de Si',
+    xpRequired: 300,
+    description: 'Aprendendo os fundamentos.',
+  },
+  {
+    level: 3,
+    name: 'Cultivador da Clareza',
+    xpRequired: 700,
+    description: 'Descobrindo novos horizontes.',
+  },
+  {
+    level: 4,
+    name: 'Construtor de Hábitos',
+    xpRequired: 1200,
+    description: 'Enfrentando desafios maiores.',
+  },
+  {
+    level: 5,
+    name: 'Navegador Emocional',
+    xpRequired: 1800,
+    description: 'Experiência acumulada.',
+  },
+  {
+    level: 6,
+    name: 'Praticante da Presença',
+    xpRequired: 2500,
+    description: 'Domínio sobre a mente.',
+  },
   { level: 7, name: 'Artífice da Mente', xpRequired: 3300, description: 'Um exemplo para todos.' },
   { level: 8, name: 'Alinhado ao Propósito', xpRequired: 4200, description: 'Enxergando além.' },
   { level: 9, name: 'Integrado', xpRequired: 5200, description: 'Além dos limites.' },

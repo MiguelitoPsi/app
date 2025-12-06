@@ -206,7 +206,7 @@ export default function UsersPage() {
           <table className='w-full'>
             <thead>
               <tr className='border-b border-slate-700 bg-slate-800'>
-                <th className='w-10 px-6 py-4'></th>
+                <th className='w-10 px-6 py-4' />
                 <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Psicólogo / Paciente
                 </th>
@@ -349,10 +349,10 @@ export default function UsersPage() {
                             className='rounded-lg bg-red-600/20 px-3 py-1.5 text-xs font-medium text-red-400 transition-colors hover:bg-red-600/30'
                             onClick={() =>
                               setSelectedPsychologist({
-                                  id: psychologist.id,
-                                  name: psychologist.name,
-                                  action: 'delete',
-                                })
+                                id: psychologist.id,
+                                name: psychologist.name,
+                                action: 'delete',
+                              })
                             }
                             title='Excluir psicólogo e pacientes'
                             type='button'
@@ -377,7 +377,7 @@ export default function UsersPage() {
                             className={`bg-slate-800/30 transition-colors hover:bg-slate-800/50 ${patient.bannedAt ? 'opacity-60' : ''}`}
                             key={patient.id}
                           >
-                            <td className='px-6 py-4'></td>
+                            <td className='px-6 py-4' />
                             <td className='px-6 py-4 pl-12'>
                               <div className='flex items-center gap-3'>
                                 <div
@@ -486,7 +486,7 @@ export default function UsersPage() {
       <div className='space-y-4 md:hidden'>
         {isLoading ? (
           [...new Array(3)].map((_, i) => (
-            <div key={i} className='h-40 animate-pulse rounded-xl bg-slate-800/50' />
+            <div className='h-40 animate-pulse rounded-xl bg-slate-800/50' key={i} />
           ))
         ) : filteredPsychologists?.length === 0 ? (
           <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-8 text-center text-slate-400'>
@@ -495,8 +495,8 @@ export default function UsersPage() {
         ) : (
           filteredPsychologists?.map((psychologist) => (
             <div
-              key={psychologist.id}
               className={`rounded-xl border border-slate-700 bg-slate-800/50 p-4 ${psychologist.bannedAt ? 'opacity-60' : ''}`}
+              key={psychologist.id}
             >
               {/* Psychologist Header */}
               <div className='flex items-start justify-between'>
@@ -614,8 +614,8 @@ export default function UsersPage() {
                   ) : (
                     psychologist.patients.map((patient) => (
                       <div
-                        key={patient.id}
                         className={`rounded-lg bg-slate-900/50 p-3 ${patient.bannedAt ? 'opacity-60' : ''}`}
+                        key={patient.id}
                       >
                         <div className='flex items-center justify-between'>
                           <div className='flex items-center gap-2'>
