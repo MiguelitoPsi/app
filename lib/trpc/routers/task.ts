@@ -199,11 +199,7 @@ export const taskRouter = router({
           experience: newExperience,
           level: newLevel,
           updatedAt: now,
-        }
-
-        if (shouldResetXpDate) {
-          // Reset to null so they can earn again today if they complete another task
-          updateData.lastTaskXpDate = null
+          ...(shouldResetXpDate && { lastTaskXpDate: null }),
         }
 
         await ctx.db.update(users).set(updateData).where(eq(users.id, ctx.user.id))

@@ -4,11 +4,18 @@ import { z } from 'zod'
 import { auth } from '@/lib/auth'
 import {
   adminInvites,
+  type PsychologistSubscription,
   psychologistPatients,
   psychologistSubscriptions,
   users,
 } from '@/lib/db/schema'
 import { protectedProcedure, publicProcedure, router } from '../trpc'
+
+type LinkedPsychologist = {
+  id: string
+  name: string
+  email: string
+} | null
 
 export const adminRouter = router({
   // Verificar se o usuário é admin
@@ -938,8 +945,8 @@ export const adminRouter = router({
         throw new Error('Usuário não encontrado')
       }
 
-      let subscription: unknown = null
-      let linkedPsychologist: unknown = null
+      let subscription: PsychologistSubscription | null = null
+      let linkedPsychologist: LinkedPsychologist = null
       let patientCount = 0
 
       // Se for psicólogo, buscar assinatura e contagem de pacientes
