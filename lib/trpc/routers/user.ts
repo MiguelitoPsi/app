@@ -222,6 +222,9 @@ export const userRouter = router({
         xpAwarded,
       })
 
+      // Update lastActiveAt on user action
+      await ctx.db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, ctx.user.id))
+
       return { xp: xpAwarded, saved: true }
     }),
 

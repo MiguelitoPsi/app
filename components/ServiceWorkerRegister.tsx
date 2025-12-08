@@ -1,20 +1,8 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { trpc } from '@/lib/trpc/client'
+import { useEffect } from 'react'
 
 export function ServiceWorkerRegister() {
-  const updateLastActiveMutation = trpc.push.updateLastActive.useMutation()
-  const hasUpdatedRef = useRef(false)
-
-  useEffect(() => {
-    // Update last active timestamp only once
-    if (!hasUpdatedRef.current) {
-      hasUpdatedRef.current = true
-      updateLastActiveMutation.mutate()
-    }
-  }, [updateLastActiveMutation])
-
   useEffect(() => {
     if ('serviceWorker' in navigator && typeof window !== 'undefined') {
       // Registrar o Service Worker após o carregamento da página

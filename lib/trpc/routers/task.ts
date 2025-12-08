@@ -293,6 +293,9 @@ export const taskRouter = router({
       // Check for new badges
       const newBadges = await autoCheckBadges(ctx.user.id, ctx.db)
 
+      // Update lastActiveAt on user action
+      await ctx.db.update(users).set({ lastActiveAt: now }).where(eq(users.id, ctx.user.id))
+
       return {
         xp: xpAwarded,
         coins: coinsAwarded,
@@ -380,6 +383,9 @@ export const taskRouter = router({
           updatedAt: now,
         })
         .where(eq(patientTasksFromTherapist.id, input.taskId))
+
+      // Update lastActiveAt on user action
+      await ctx.db.update(users).set({ lastActiveAt: now }).where(eq(users.id, ctx.user.id))
 
       return {
         success: true,

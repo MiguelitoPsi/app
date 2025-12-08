@@ -1,7 +1,7 @@
 import { desc, eq, sum } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { meditationSessions, userStats } from '@/lib/db/schema'
+import { meditationSessions, userStats, users } from '@/lib/db/schema'
 import { awardXPAndCoins } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
 
@@ -49,6 +49,9 @@ export const meditationRouter = router({
           })
           .where(eq(userStats.userId, ctx.user.id))
       }
+
+      // Update lastActiveAt on user action
+      await ctx.db.update(users).set({ lastActiveAt: now }).where(eq(users.id, ctx.user.id))
 
       return {
         id,

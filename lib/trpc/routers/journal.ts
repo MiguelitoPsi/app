@@ -1,7 +1,7 @@
 import { and, desc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { journalEntries, psychologistPatients, userStats } from '@/lib/db/schema'
+import { journalEntries, psychologistPatients, userStats, users } from '@/lib/db/schema'
 import { addRawXP, awardXPAndCoins } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
@@ -101,6 +101,9 @@ export const journalRouter = router({
 
       // Check for new badges
       const newBadges = await autoCheckBadges(ctx.user.id, ctx.db)
+
+      // Update lastActiveAt on user action
+      await ctx.db.update(users).set({ lastActiveAt: now }).where(eq(users.id, ctx.user.id))
 
       return {
         id,

@@ -21,7 +21,6 @@ export function usePushNotifications() {
   const { data: pushStatus, refetch: refetchStatus } = trpc.push.getStatus.useQuery()
   const subscribeMutation = trpc.push.subscribe.useMutation()
   const unsubscribeMutation = trpc.push.unsubscribe.useMutation()
-  const updateLastActiveMutation = trpc.push.updateLastActive.useMutation()
 
   // Check if push notifications are supported
   const isSupported =
@@ -48,13 +47,6 @@ export function usePushNotifications() {
       setIsSubscribed(pushStatus.enabled && pushStatus.subscriptionCount > 0)
     }
   }, [pushStatus])
-
-  // Update last active on mount
-  useEffect(() => {
-    if (isSupported) {
-      updateLastActiveMutation.mutate()
-    }
-  }, [isSupported, updateLastActiveMutation])
 
   // Convert VAPID key to Uint8Array
   const urlBase64ToUint8Array = useCallback((base64String: string): Uint8Array => {
