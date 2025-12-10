@@ -22,6 +22,7 @@ const profileInputSchema = z.object({
   attendanceType: attendanceTypeSchema,
   clinicAddress: z.string().optional(),
   phone: z.string().min(10, 'Telefone deve ter pelo menos 10 caracteres'),
+  bio: z.string().max(500, 'Biografia deve ter no máximo 500 caracteres').optional(),
 })
 
 export const therapistProfileRouter = router({
@@ -140,6 +141,7 @@ export const therapistProfileRouter = router({
       attendanceType: input.attendanceType,
       clinicAddress: input.clinicAddress || null,
       phone: input.phone,
+      bio: input.bio || null,
     })
 
     // Also update the user name to match
@@ -217,6 +219,7 @@ export const therapistProfileRouter = router({
         attendanceType: input.attendanceType,
         clinicAddress: input.clinicAddress || null,
         phone: input.phone,
+        bio: input.bio || null,
         updatedAt: new Date(),
       })
       .where(eq(therapistProfiles.therapistId, ctx.user.id))
@@ -246,6 +249,7 @@ export const therapistProfileRouter = router({
         attendanceType: therapistProfiles.attendanceType,
         clinicAddress: therapistProfiles.clinicAddress,
         phone: therapistProfiles.phone,
+        bio: therapistProfiles.bio,
       })
       .from(therapistProfiles)
       .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
@@ -265,6 +269,7 @@ export const therapistProfileRouter = router({
       attendanceType: profile.attendanceType,
       clinicAddress: profile.clinicAddress,
       phone: profile.phone,
+      bio: profile.bio,
     }))
   }),
 
@@ -280,6 +285,7 @@ export const therapistProfileRouter = router({
         attendanceType: therapistProfiles.attendanceType,
         clinicAddress: therapistProfiles.clinicAddress,
         phone: therapistProfiles.phone,
+        bio: therapistProfiles.bio,
       })
       .from(therapistProfiles)
       .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
@@ -294,6 +300,7 @@ export const therapistProfileRouter = router({
       attendanceType: profile.attendanceType,
       clinicAddress: profile.clinicAddress,
       phone: profile.phone,
+      bio: profile.bio,
     }))
   }),
 })

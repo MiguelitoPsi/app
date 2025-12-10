@@ -80,7 +80,6 @@ export function TherapistProfileModal({
 }: TherapistProfileModalProps) {
   const [formData, setFormData] = useState({
     fullName: '',
-    username: '',
     cpf: '',
     birthDate: '',
     crp: '',
@@ -89,11 +88,10 @@ export function TherapistProfileModal({
     attendanceType: 'online' as AttendanceType,
     clinicAddress: '',
     phone: '',
+    bio: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [usernameChecking, setUsernameChecking] = useState(false)
-  const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null)
 
   const utils = trpc.useUtils()
 
@@ -101,13 +99,6 @@ export function TherapistProfileModal({
     trpc.therapistProfile.getProfile.useQuery(undefined, {
       enabled: mode === 'edit',
     })
-
-  const checkUsername = trpc.therapistProfile.checkUsername.useQuery(
-    { username: formData.username },
-    {
-      enabled: formData.username.length >= 3,
-    }
-  )
 
   const createProfile = trpc.therapistProfile.createProfile.useMutation({
     onSuccess: () => {
@@ -137,7 +128,6 @@ export function TherapistProfileModal({
     if (mode === 'edit' && existingProfile) {
       setFormData({
         fullName: existingProfile.fullName,
-        username: existingProfile.username,
         cpf: existingProfile.cpf,
         birthDate: formatDateFromTimestamp(existingProfile.birthDate),
         crp: existingProfile.crp,
@@ -146,35 +136,16 @@ export function TherapistProfileModal({
         attendanceType: existingProfile.attendanceType,
         clinicAddress: existingProfile.clinicAddress || '',
         phone: existingProfile.phone,
+        bio: existingProfile.bio || '',
       })
     }
   }, [existingProfile, mode])
-
-  // Check username availability
-  useEffect(() => {
-    if (formData.username.length >= 3) {
-      setUsernameChecking(true)
-    }
-  }, [formData.username])
-
-  useEffect(() => {
-    if (checkUsername.data !== undefined) {
-      setUsernameAvailable(checkUsername.data.available)
-      setUsernameChecking(false)
-    }
-  }, [checkUsername.data])
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {}
 
     if (!formData.fullName.trim() || formData.fullName.length < 3) {
       newErrors.fullName = 'Nome completo deve ter pelo menos 3 caracteres'
-    }
-
-    if (!formData.username.trim() || formData.username.length < 3) {
-      newErrors.username = 'Nome de usuário deve ter pelo menos 3 caracteres'
-    } else if (usernameAvailable === false) {
-      newErrors.username = 'Nome de usuário já está em uso'
     }
 
     if (!CPF_REGEX.test(formData.cpf)) {
@@ -227,9 +198,12 @@ export function TherapistProfileModal({
       return
     }
 
+    // Generate username from CPF (unique identifier)
+    const generatedUsername = formData.cpf.replace(/\D/g, '')
+
     const profileData = {
       fullName: formData.fullName.trim(),
-      username: formData.username.trim().toLowerCase(),
+      username: existingProfile?.username || generatedUsername,
       cpf: formData.cpf,
       birthDate,
       crp: formData.crp.trim(),
@@ -238,6 +212,7 @@ export function TherapistProfileModal({
       attendanceType: formData.attendanceType,
       clinicAddress: formData.clinicAddress.trim() || undefined,
       phone: formData.phone,
+      bio: formData.bio.trim() || undefined,
     }
 
     if (mode === 'edit') {
@@ -317,40 +292,6 @@ export function TherapistProfileModal({
                   value={formData.fullName}
                 />
                 {errors.fullName && <p className='mt-1 text-sm text-red-500'>{errors.fullName}</p>}
-              </div>
-
-              {/* Username */}
-              <div>
-                <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <User className='h-4 w-4 text-violet-500' />
-                  Nome de Usuário *
-                </label>
-                <div className='relative'>
-                  <input
-                    className={`w-full rounded-xl border ${errors.username ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        username: e.target.value.toLowerCase().replace(/\s/g, ''),
-                      })
-                    }
-                    placeholder='seu_usuario'
-                    type='text'
-                    value={formData.username}
-                  />
-                  {formData.username.length >= 3 && (
-                    <div className='absolute top-1/2 right-3 -translate-y-1/2'>
-                      {usernameChecking ? (
-                        <div className='h-4 w-4 animate-spin rounded-full border-2 border-violet-500 border-t-transparent' />
-                      ) : usernameAvailable ? (
-                        <CheckCircle className='h-5 w-5 text-green-500' />
-                      ) : (
-                        <X className='h-5 w-5 text-red-500' />
-                      )}
-                    </div>
-                  )}
-                </div>
-                {errors.username && <p className='mt-1 text-sm text-red-500'>{errors.username}</p>}
               </div>
 
               {/* CPF */}
@@ -437,6 +378,28 @@ export function TherapistProfileModal({
                   value={formData.city}
                 />
                 {errors.city && <p className='mt-1 text-sm text-red-500'>{errors.city}</p>}
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
+                  <BookOpen className='h-4 w-4 text-violet-500' />
+                  Biografia
+                </label>
+                <textarea
+                  className={`w-full rounded-xl border ${errors.bio ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200 resize-none`}
+                  maxLength={500}
+                  onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+                  placeholder='Conte um pouco sobre você, sua experiência e abordagem terapêutica...'
+                  rows={4}
+                  value={formData.bio}
+                />
+                <div className='mt-1 flex items-center justify-between'>
+                  {errors.bio && <p className='text-sm text-red-500'>{errors.bio}</p>}
+                  <p className='ml-auto text-xs text-slate-400'>
+                    {formData.bio.length}/500 caracteres
+                  </p>
+                </div>
               </div>
 
               {/* Attendance Type */}

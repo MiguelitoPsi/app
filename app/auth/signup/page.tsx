@@ -127,14 +127,29 @@ function SignUpForm() {
         }
       }
 
-      // If admin invite token is present, accept the invite
+      // If admin invite token is present, accept the invite and redirect based on role
       if (adminInviteToken) {
         try {
-          await fetch('/api/accept-admin-invite', {
+          const acceptResponse = await fetch('/api/accept-admin-invite', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ token: adminInviteToken }),
           })
+
+          if (acceptResponse.ok) {
+            const data = await acceptResponse.json()
+            // Redirect based on role
+            if (data.role === 'psychologist') {
+              router.push('/dashboard')
+              router.refresh()
+              return
+            }
+            if (data.role === 'admin') {
+              router.push('/admin')
+              router.refresh()
+              return
+            }
+          }
         } catch (linkError) {
           console.error('Failed to accept admin invite:', linkError)
           // Don't fail the signup if accepting invite fails

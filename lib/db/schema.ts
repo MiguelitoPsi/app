@@ -40,6 +40,9 @@ export const users = sqliteTable('users', {
   unlinkReason: text('unlink_reason', { enum: ['unlinked', 'discharged'] }),
   unlinkedByTherapistId: text('unlinked_by_therapist_id'),
   unlinkedByTherapistName: text('unlinked_by_therapist_name'),
+  // Soft delete - conta excluída pelo admin
+  deletedAt: integer('deleted_at', { mode: 'timestamp' }),
+  deletedReason: text('deleted_reason'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })
@@ -697,6 +700,7 @@ export const therapistProfiles = sqliteTable('therapist_profiles', {
   }).notNull(),
   clinicAddress: text('clinic_address'),
   phone: text('phone').notNull(),
+  bio: text('bio'),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
 })

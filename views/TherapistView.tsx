@@ -38,8 +38,10 @@ import {
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
+
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
+
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
@@ -537,7 +539,7 @@ export const TherapistView: React.FC = () => {
   return (
     <div className='h-full overflow-y-auto px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8'>
       {/* Header */}
-      <div className='mb-6 flex items-start justify-between'>
+      <div className='mb-6 flex items-start justify-between gap-2'>
         <div>
           <h2 className='font-bold text-slate-800 text-xl dark:text-white'>Acompanhamento</h2>
           <p className='text-slate-500 text-xs dark:text-slate-400'>
@@ -1829,6 +1831,11 @@ export const TherapistView: React.FC = () => {
                           <span>•</span>
                           <span>{therapist.city}</span>
                         </div>
+                        {therapist.bio && (
+                          <p className='mt-1 text-sm text-slate-500 dark:text-slate-400 line-clamp-2'>
+                            {therapist.bio}
+                          </p>
+                        )}
                       </div>
                     </div>
                     {selectedNewTherapistId === therapist.id && (

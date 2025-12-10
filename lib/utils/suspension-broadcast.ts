@@ -43,3 +43,44 @@ export function broadcastSuspension(userIds?: string[]) {
     // Silently fail se localStorage não estiver disponível
   }
 }
+
+const DELETION_CHANNEL = 'nepsis-deletion-channel'
+
+/**
+ * Notifica todas as abas/janelas sobre uma exclusão de conta
+ * Isso faz com que o DeletedAccountModal verifique imediatamente
+ */
+export function broadcastDeletion(userIds?: string[]) {
+  if (typeof window === 'undefined') return
+
+  // Método 1: BroadcastChannel (funciona entre abas do mesmo navegador)
+  if ('BroadcastChannel' in window) {
+    try {
+      const channel = new BroadcastChannel(DELETION_CHANNEL)
+      channel.postMessage({
+        type: 'USER_DELETED',
+        userIds,
+        timestamp: Date.now(),
+      })
+      channel.close()
+    } catch {
+      // Silently fail se BroadcastChannel não funcionar
+    }
+  }
+
+  // Método 2: localStorage (fallback para navegadores sem BroadcastChannel)
+  try {
+    localStorage.setItem(
+      'deletion-event',
+      JSON.stringify({
+        userIds,
+        timestamp: Date.now(),
+      })
+    )
+    setTimeout(() => {
+      localStorage.removeItem('deletion-event')
+    }, 100)
+  } catch {
+    // Silently fail se localStorage não estiver disponível
+  }
+}

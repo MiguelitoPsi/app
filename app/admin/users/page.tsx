@@ -2,8 +2,9 @@
 
 import { Check, Copy } from 'lucide-react'
 import React, { useState } from 'react'
+import { InviteTherapistModal } from '@/components/InviteTherapistModal'
 import { trpc } from '@/lib/trpc/client'
-import { broadcastSuspension } from '@/lib/utils/suspension-broadcast'
+import { broadcastDeletion, broadcastSuspension } from '@/lib/utils/suspension-broadcast'
 import { UserProfileModal } from './UserProfileModal'
 
 type UserRole = 'admin' | 'psychologist' | 'patient'
@@ -22,6 +23,10 @@ const roleColors: Record<UserRole, string> = {
 
 export default function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [forceInviteRole, setForceInviteRole] = useState<'psychologist' | 'admin' | null>(null)
+  const [isInviteTherapistModalOpen, setIsInviteTherapistModalOpen] = useState(false)
+  const [therapistInviteLink, setTherapistInviteLink] = useState('')
+  const [isGeneratingInvite, setIsGeneratingInvite] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [expandedPsychologistIds, setExpandedPsychologistIds] = useState<Set<string>>(new Set())
   const [selectedPsychologist, setSelectedPsychologist] = useState<{
@@ -80,6 +85,7 @@ export default function UsersPage() {
 
   const deletePsychologist = trpc.admin.deletePsychologistWithPatients.useMutation({
     onSuccess: (data) => {
+      broadcastDeletion()
       alert(`Psicólogo excluído com sucesso. ${data.deletedPatients} pacientes foram excluídos.`)
       setSelectedPsychologist(null)
       refetch()
@@ -114,6 +120,7 @@ export default function UsersPage() {
 
   const deleteUser = trpc.admin.deleteUser.useMutation({
     onSuccess: () => {
+      broadcastDeletion()
       alert('Usuário excluído com sucesso.')
       setSelectedUser(null)
       refetch()
@@ -179,14 +186,78 @@ export default function UsersPage() {
           <h1 className='text-3xl font-bold text-white'>Usuários</h1>
           <p className='mt-1 text-slate-400'>Gerencie psicólogos e seus pacientes</p>
         </div>
-        <button
-          className='flex items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-700'
-          onClick={() => setIsCreateModalOpen(true)}
-          type='button'
-        >
-          <PlusIcon />
-          Novo Usuário
-        </button>
+        <div className='flex items-center gap-3'>
+          <button
+            className='touch-target group flex items-center justify-center rounded-full bg-fuchsia-600 p-3 text-white shadow-lg shadow-fuchsia-500/25 transition-all active:scale-95 hover:bg-fuchsia-700 sm:p-4 sm:hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed'
+            disabled={isGeneratingInvite}
+            onClick={async () => {
+              // Abre o modal imediatamente para feedback rápido
+              setTherapistInviteLink('')
+              setIsInviteTherapistModalOpen(true)
+              setIsGeneratingInvite(true)
+
+              // Gera o token em background
+              try {
+                const res = await fetch('/api/admin/create-invite', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ role: 'psychologist' }),
+                })
+                const data = await res.json()
+                if (data?.token) {
+                  setTherapistInviteLink(`${window.location.origin}/admin-invite/${data.token}`)
+                } else {
+                  setIsInviteTherapistModalOpen(false)
+                  alert('Erro ao gerar link de convite.')
+                }
+              } catch {
+                setIsInviteTherapistModalOpen(false)
+                alert('Erro ao gerar link de convite.')
+              } finally {
+                setIsGeneratingInvite(false)
+              }
+            }}
+            title='Convidar Terapeuta'
+            type='button'
+          >
+            <svg
+              aria-hidden='true'
+              className='lucide lucide-user-plus sm:hidden'
+              fill='none'
+              height='20'
+              stroke='currentColor'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              viewBox='0 0 24 24'
+              width='20'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
+              <circle cx='9' cy='7' r='4' />
+              <line x1='19' x2='19' y1='8' y2='14' />
+              <line x1='22' x2='16' y1='11' y2='11' />
+            </svg>
+            <svg
+              aria-hidden='true'
+              className='lucide lucide-user-plus hidden sm:block'
+              fill='none'
+              height='24'
+              stroke='currentColor'
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              strokeWidth='2'
+              viewBox='0 0 24 24'
+              width='24'
+              xmlns='http://www.w3.org/2000/svg'
+            >
+              <path d='M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2' />
+              <circle cx='9' cy='7' r='4' />
+              <line x1='19' x2='19' y1='8' y2='14' />
+              <line x1='22' x2='16' y1='11' y2='11' />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Search */}
@@ -701,12 +772,26 @@ export default function UsersPage() {
         )}
       </div>
 
+      {/* Modal de convite de terapeuta */}
+      {isInviteTherapistModalOpen && (
+        <InviteTherapistModal
+          inviteLink={therapistInviteLink}
+          isOpen={isInviteTherapistModalOpen}
+          onClose={() => setIsInviteTherapistModalOpen(false)}
+        />
+      )}
+
       {/* Create User Modal */}
       {isCreateModalOpen && (
         <CreateUserModal
-          onClose={() => setIsCreateModalOpen(false)}
+          forceRole={forceInviteRole}
+          onClose={() => {
+            setIsCreateModalOpen(false)
+            setForceInviteRole(null)
+          }}
           onSuccess={() => {
             setIsCreateModalOpen(false)
+            setForceInviteRole(null)
             refetch()
           }}
         />
@@ -752,9 +837,19 @@ export default function UsersPage() {
   )
 }
 
-function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSuccess: () => void }) {
+function CreateUserModal({
+  onClose,
+  onSuccess,
+  forceRole,
+}: {
+  onClose: () => void
+  onSuccess: () => void
+  forceRole?: 'psychologist' | 'admin' | null
+}) {
   // Invitation State
-  const [inviteRole, setInviteRole] = useState<'admin' | 'psychologist'>('psychologist')
+  const [inviteRole, setInviteRole] = useState<'admin' | 'psychologist'>(
+    forceRole ?? 'psychologist'
+  )
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteLink, setInviteLink] = useState('')
   const [isCopied, setIsCopied] = useState(false)
@@ -797,6 +892,11 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
       console.error('Failed to copy:', err)
     }
   }
+
+  // Atualiza o inviteRole se o forceRole mudar
+  React.useEffect(() => {
+    if (forceRole) setInviteRole(forceRole)
+  }, [forceRole])
 
   return (
     <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
@@ -877,6 +977,7 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
                 </label>
                 <select
                   className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
+                  disabled={!!forceRole}
                   id='invite-role'
                   onChange={(e) => setInviteRole(e.target.value as 'admin' | 'psychologist')}
                   value={inviteRole}
@@ -926,15 +1027,6 @@ function CreateUserModal({ onClose, onSuccess }: { onClose: () => void; onSucces
         </form>
       </div>
     </div>
-  )
-}
-
-function PlusIcon() {
-  return (
-    <svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-      <title>Adicionar</title>
-      <path d='M12 4v16m8-8H4' strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} />
-    </svg>
   )
 }
 
