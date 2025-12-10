@@ -1,5 +1,6 @@
 import { Sparkles, Star, Trophy } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSound } from '@/hooks/useSound'
 
 type LevelUpModalProps = {
   newLevel: number
@@ -9,11 +10,13 @@ type LevelUpModalProps = {
 const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
   const [show, setShow] = useState(false)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const { playLevelUp, playClick } = useSound()
 
   const handleClose = useCallback(() => {
+    playClick()
     setShow(false)
     setTimeout(onClose, 300) // Wait for exit animation
-  }, [onClose])
+  }, [onClose, playClick])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -23,6 +26,8 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
     }
 
     setShow(true)
+    // Play level up sound
+    playLevelUp()
     // Focus the close button when modal opens
     setTimeout(() => closeButtonRef.current?.focus(), 100)
 
@@ -36,7 +41,7 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
-  }, [handleClose])
+  }, [handleClose, playLevelUp])
 
   if (!(show || newLevel)) return null
 

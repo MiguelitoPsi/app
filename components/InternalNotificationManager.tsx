@@ -3,6 +3,7 @@
 import { Bell } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { useSound } from '@/hooks/useSound'
 import { trpc } from '@/lib/trpc/client'
 
 export function InternalNotificationManager() {
@@ -13,6 +14,7 @@ export function InternalNotificationManager() {
     title: string
     message: string
   } | null>(null)
+  const { playNotification } = useSound()
 
   // Poll for unread count every 30 seconds
   const { data: unreadCount = 0, refetch: _refetch } = trpc.notification.getUnreadCount.useQuery(
@@ -40,6 +42,8 @@ export function InternalNotificationManager() {
 
       if (isRecent && !newest.isRead) {
         console.log('InternalNotificationManager: Displaying toast')
+        // Play notification sound
+        playNotification()
         setActiveNotification({
           id: newest.id,
           title: newest.title,
@@ -56,7 +60,7 @@ export function InternalNotificationManager() {
       }
     }
     setLastCount(unreadCount)
-  }, [unreadCount, lastCount, latestNotifications])
+  }, [unreadCount, lastCount, latestNotifications, playNotification])
 
   if (!activeNotification) return null
 

@@ -17,6 +17,8 @@ import {
   Sparkles,
   Stethoscope,
   Sun,
+  Volume2,
+  VolumeX,
   X,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
@@ -28,6 +30,7 @@ import { HelpButton } from '@/components/HelpButton'
 import { PatientConsentModal } from '@/components/PatientConsentModal'
 import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
+import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
@@ -72,6 +75,9 @@ export const HomeView: React.FC = () => {
 
   // XP Animation
   const { particles, triggerAnimation } = useXPAnimation()
+
+  // Sound effects
+  const { playMood, playToggle, playPop, playNavigation, soundEnabled, toggleSound } = useSound()
 
   // Fetch mood history from backend
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
@@ -161,6 +167,9 @@ export const HomeView: React.FC = () => {
     if (!isXPAvailable) return
     // Update local state immediately for instant UI feedback
     setSelectedMood(mood)
+
+    // Play mood sound
+    playMood()
 
     if (isXPAvailable) {
       setXpFeedback({ id: Date.now(), amount: 10 })
@@ -302,7 +311,10 @@ export const HomeView: React.FC = () => {
           <button
             aria-label='Abrir configurações'
             className='touch-target p-2 text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
-            onClick={() => setShowSettings(true)}
+            onClick={() => {
+              playPop()
+              setShowSettings(true)
+            }}
             type='button'
           >
             <Settings className='sm:hidden' size={18} />
@@ -456,7 +468,10 @@ export const HomeView: React.FC = () => {
             <button
               aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
               className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
-              onClick={() => router.push('/journal')}
+              onClick={() => {
+                playNavigation()
+                router.push('/journal')
+              }}
               type='button'
             >
               <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
@@ -481,7 +496,10 @@ export const HomeView: React.FC = () => {
             <button
               aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
               className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
-              onClick={() => router.push('/meditation')}
+              onClick={() => {
+                playNavigation()
+                router.push('/meditation')
+              }}
               type='button'
             >
               <div className='absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600' />
@@ -628,8 +646,16 @@ export const HomeView: React.FC = () => {
                     className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
                       stats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
                     }`}
-                    onClick={toggleTheme}
-                    onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+                    onClick={() => {
+                      playToggle()
+                      toggleTheme()
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        playToggle()
+                        toggleTheme()
+                      }
+                    }}
                     role='switch'
                     tabIndex={0}
                   >
@@ -676,11 +702,13 @@ export const HomeView: React.FC = () => {
                       }`}
                       onClick={() => {
                         if (!isPushLoading && permissionState !== 'denied') {
+                          playToggle()
                           togglePush()
                         }
                       }}
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && !isPushLoading && permissionState !== 'denied') {
+                          playToggle()
                           togglePush()
                         }
                       }}
@@ -695,6 +723,52 @@ export const HomeView: React.FC = () => {
                     </div>
                   </div>
                 )}
+                {/* Sound Toggle */}
+                <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
+                  <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                      {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+                    </div>
+                    <div className='min-w-0'>
+                      <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                        Sons do App
+                      </h4>
+                      <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                        Efeitos sonoros e feedback
+                      </p>
+                    </div>
+                  </div>
+                  <div
+                    aria-checked={soundEnabled}
+                    aria-label={soundEnabled ? 'Desativar sons' : 'Ativar sons'}
+                    className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+                      soundEnabled ? 'bg-violet-600' : 'bg-slate-300'
+                    }`}
+                    onClick={() => {
+                      toggleSound()
+                      // Play toggle sound only when enabling
+                      if (!soundEnabled) {
+                        setTimeout(() => playToggle(), 50)
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        toggleSound()
+                        if (!soundEnabled) {
+                          setTimeout(() => playToggle(), 50)
+                        }
+                      }
+                    }}
+                    role='switch'
+                    tabIndex={0}
+                  >
+                    <div
+                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                        soundEnabled ? 'left-[22px]' : 'left-0.5'
+                      }`}
+                    />
+                  </div>
+                </div>
                 {/* Change Password Button */}
                 <button
                   className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'

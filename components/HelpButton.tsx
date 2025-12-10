@@ -245,9 +245,9 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
 
       {/* Tutorial Modal */}
       {isOpen && (
-        <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+        <div className='fade-in fixed inset-0 z-[100] isolate flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
           <div
-            className='zoom-in-95 relative w-full max-w-md max-h-[85vh] overflow-hidden animate-in rounded-2xl border border-slate-100 bg-white shadow-2xl duration-300 sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'
+            className='zoom-in-95 relative z-10 w-full max-w-md max-h-[85vh] overflow-hidden animate-in rounded-2xl border border-slate-100 bg-white shadow-2xl duration-300 sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -303,7 +303,11 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
           </div>
 
           {/* Backdrop click to close */}
-          <div className='absolute inset-0 -z-10' onClick={() => setIsOpen(false)} />
+          <div
+            aria-hidden='true'
+            className='absolute inset-0 z-0'
+            onClick={() => setIsOpen(false)}
+          />
         </div>
       )}
     </>

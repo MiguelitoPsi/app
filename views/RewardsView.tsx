@@ -17,6 +17,7 @@ import {
 import type React from 'react'
 import { useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
+import { useSound } from '@/hooks/useSound'
 import { useGame } from '../context/GameContext'
 import type { RewardCategory } from '../types'
 
@@ -24,6 +25,9 @@ export const RewardsView: React.FC = () => {
   const { stats, addRewardRequest, redeemReward, deleteReward } = useGame()
   const [isAdding, setIsAdding] = useState(false)
   const [activeCategory, setActiveCategory] = useState<RewardCategory | 'all'>('all')
+
+  // Sound effects
+  const { playReward, playClick } = useSound()
 
   // New Reward Form State
   const [newRewardTitle, setNewRewardTitle] = useState('')
@@ -42,6 +46,7 @@ export const RewardsView: React.FC = () => {
       return
     }
 
+    playClick()
     addRewardRequest(newRewardTitle, newRewardCategory)
     setNewRewardTitle('')
     setIsAdding(false)
@@ -354,6 +359,7 @@ export const RewardsView: React.FC = () => {
                         disabled={!canAfford}
                         onClick={(e) => {
                           if (canAfford) {
+                            playReward()
                             const rect = e.currentTarget.getBoundingClientRect()
                             const x = (rect.left + rect.width / 2) / window.innerWidth
                             const y = (rect.top + rect.height / 2) / window.innerHeight
