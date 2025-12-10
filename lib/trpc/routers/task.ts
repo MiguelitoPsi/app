@@ -519,13 +519,19 @@ export const taskRouter = router({
       }
 
       // Validate that the date is not in the past
+      // Parse date as local time (YYYY-MM-DD) to avoid timezone issues
+      let parsedDueDate: Date | null = null;
       if (input.dueDate) {
+        const [year, month, day] = input.dueDate.split("-").map(Number);
+        parsedDueDate = new Date(year, month - 1, day);
+        parsedDueDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone edge cases
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const taskDate = new Date(input.dueDate);
-        taskDate.setHours(0, 0, 0, 0);
+        const taskDateForValidation = new Date(year, month - 1, day);
+        taskDateForValidation.setHours(0, 0, 0, 0);
 
-        if (taskDate < today) {
+        if (taskDateForValidation < today) {
           throw new Error(
             "Não é possível criar tarefas para datas que já passaram"
           );
@@ -541,7 +547,7 @@ export const taskRouter = router({
         description: input.description,
         frequency: input.frequency,
         priority: input.priority,
-        dueDate: input.dueDate ? new Date(input.dueDate) : null,
+        dueDate: parsedDueDate,
         status: "pending",
       });
 
