@@ -1,52 +1,52 @@
-import { GoogleGenAI } from '@google/genai'
-import { NextResponse } from 'next/server'
+import { GoogleGenAI } from "@google/genai";
+import { NextResponse } from "next/server";
 
 // API key validation helper
 function getGeminiClient(): GoogleGenAI | null {
-  const apiKey = process.env.GEMINI_API_KEY
-  if (!apiKey || apiKey === 'PLACEHOLDER_API_KEY' || apiKey.trim() === '') {
-    return null
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey || apiKey === "PLACEHOLDER_API_KEY" || apiKey.trim() === "") {
+    return null;
   }
-  return new GoogleGenAI({ apiKey })
+  return new GoogleGenAI({ apiKey });
 }
 
 // Regex pattern for JSON extraction (defined at module level for performance)
-const JSON_EXTRACT_REGEX = /\{[\s\S]*\}/
+const JSON_EXTRACT_REGEX = /\{[\s\S]*\}/;
 
 type SituationData = {
-  situation: string
-  automaticThought: string
-  meaningOfAT: string
-  emotion: string
-  behavior: string
-}
+  situation: string;
+  automaticThought: string;
+  meaningOfAT: string;
+  emotion: string;
+  behavior: string;
+};
 
 type CognitiveConceptualizationInput = {
-  patientName?: string
-  childhoodData?: string
-  coreBelief?: string
-  conditionalAssumptions?: string
-  compensatoryStrategies?: string
+  patientName?: string;
+  childhoodData?: string;
+  coreBelief?: string;
+  conditionalAssumptions?: string;
+  compensatoryStrategies?: string;
   situations?: {
-    situation1?: SituationData
-    situation2?: SituationData
-    situation3?: SituationData
-  }
-  notes?: string
-}
+    situation1?: SituationData;
+    situation2?: SituationData;
+    situation3?: SituationData;
+  };
+  notes?: string;
+};
 
 type TherapeuticPlanResponse = {
-  objectives: string[]
+  objectives: string[];
   interventions: Array<{
-    technique: string
-    description: string
-    targetBelief?: string
-  }>
-  suggestedActivities: string[]
-  estimatedDuration: string
-  observations: string
-  generatedAt: string
-}
+    technique: string;
+    description: string;
+    targetBelief?: string;
+  }>;
+  suggestedActivities: string[];
+  estimatedDuration: string;
+  observations: string;
+  generatedAt: string;
+};
 
 /**
  * POST /api/generate-therapeutic-plan
@@ -55,32 +55,32 @@ type TherapeuticPlanResponse = {
 export async function POST(request: Request) {
   try {
     // Validate API key first
-    const ai = getGeminiClient()
+    const ai = getGeminiClient();
     if (!ai) {
-      console.error('GEMINI_API_KEY is not configured or is a placeholder')
+      console.error("GEMINI_API_KEY is not configured or is a placeholder");
       return NextResponse.json(
         {
           error:
-            'A API do Gemini não está configurada. Por favor, configure a GEMINI_API_KEY no arquivo .env.local',
+            "A API do Gemini não está configurada. Por favor, configure a GEMINI_API_KEY no arquivo .env.local",
         },
         { status: 503 }
-      )
+      );
     }
 
-    const data: CognitiveConceptualizationInput = await request.json()
+    const data: CognitiveConceptualizationInput = await request.json();
 
     // Validate required fields
-    const hasCoreBelief = Boolean(data.coreBelief)
-    const hasChildhoodData = Boolean(data.childhoodData)
-    const hasRequiredData = hasCoreBelief || hasChildhoodData
+    const hasCoreBelief = Boolean(data.coreBelief);
+    const hasChildhoodData = Boolean(data.childhoodData);
+    const hasRequiredData = hasCoreBelief || hasChildhoodData;
     if (!hasRequiredData) {
       return NextResponse.json(
         {
           error:
-            'A conceituação cognitiva precisa ter pelo menos a crença central ou dados de infância preenchidos',
+            "A conceituação cognitiva precisa ter pelo menos a crença central ou dados de infância preenchidos",
         },
         { status: 400 }
-      )
+      );
     }
 
     // Build the prompt with all available data
@@ -90,51 +90,57 @@ export async function POST(request: Request) {
           .map(
             ([_key, sit], index) => `
           Situação ${index + 1}:
-          - Situação: ${sit?.situation || 'Não informado'}
-          - Pensamento Automático: ${sit?.automaticThought || 'Não informado'}
-          - Significado do PA: ${sit?.meaningOfAT || 'Não informado'}
-          - Emoção: ${sit?.emotion || 'Não informado'}
-          - Comportamento: ${sit?.behavior || 'Não informado'}
+          - Situação: ${sit?.situation || "Não informado"}
+          - Pensamento Automático: ${sit?.automaticThought || "Não informado"}
+          - Significado do PA: ${sit?.meaningOfAT || "Não informado"}
+          - Emoção: ${sit?.emotion || "Não informado"}
+          - Comportamento: ${sit?.behavior || "Não informado"}
         `
           )
-          .join('\n')
-      : 'Nenhuma situação registrada'
+          .join("\n")
+      : "Nenhuma situação registrada";
 
     const prompt = `
-Você é um psicólogo especialista em Terapia Cognitivo-Comportamental (TCC) com vasta experiência clínica.
-Com base na conceituação cognitiva de um paciente, você deve criar um plano terapêutico estruturado e personalizado.
+Você é um psicólogo especialista em Terapia Cognitiva Baseada em Recuperação (CT-R) com vasta experiência clínica.
+
+A CT-R é uma adaptação da TCC tradicional que mantém os fundamentos do modelo cognitivo, mas acrescenta ênfase na:
+- Formulação cognitiva das CRENÇAS ADAPTATIVAS e estratégias comportamentais saudáveis do paciente
+- Identificação dos fatores que MANTÊM um humor positivo
+- PONTOS FORTES, qualidades pessoais, habilidades e recursos do paciente (em vez de focar apenas em sintomas e psicopatologia)
+
+Com base na conceituação cognitiva de um paciente, você deve criar um plano terapêutico que fortaleça as capacidades existentes e promova o florescimento.
 
 ## DADOS DA CONCEITUAÇÃO COGNITIVA:
 
-**Nome do Paciente:** ${data.patientName || 'Não informado'}
+**Nome do Paciente:** ${data.patientName || "Não informado"}
 
 **Dados Relevantes da Infância:**
-${data.childhoodData || 'Não informado'}
+${data.childhoodData || "Não informado"}
 
 **Crença Central:**
-${data.coreBelief || 'Não informada'}
+${data.coreBelief || "Não informada"}
 
 **Suposições Condicionais/Regras:**
-${data.conditionalAssumptions || 'Não informadas'}
+${data.conditionalAssumptions || "Não informadas"}
 
 **Estratégias Compensatórias:**
-${data.compensatoryStrategies || 'Não informadas'}
+${data.compensatoryStrategies || "Não informadas"}
 
 **Situações Registradas:**
 ${situationsText}
 
 **Observações Adicionais:**
-${data.notes || 'Nenhuma'}
+${data.notes || "Nenhuma"}
 
-## INSTRUÇÕES:
+## INSTRUÇÕES (Abordagem CT-R):
 
 Crie um plano terapêutico detalhado e prático que inclua:
 
-1. **Objetivos Terapêuticos**: 3-5 objetivos específicos, mensuráveis e alcançáveis baseados na conceituação
-2. **Intervenções e Técnicas**: 4-6 técnicas de TCC específicas para trabalhar as crenças e padrões identificados
-3. **Atividades Sugeridas**: 3-5 atividades práticas que o paciente pode realizar entre as sessões
+1. **Objetivos Terapêuticos**: 3-5 objetivos específicos, mensuráveis e alcançáveis que FORTALEÇAM os recursos e capacidades do paciente
+2. **Intervenções e Técnicas**: 4-6 técnicas de CT-R/TCC que trabalhem TANTO as crenças limitantes QUANTO fortaleçam as crenças adaptativas e recursos existentes
+3. **Atividades Sugeridas**: 3-5 atividades práticas que ampliem os pontos fortes do paciente e promovam experiências de sucesso
 4. **Duração Estimada**: Uma estimativa do tempo de tratamento
-5. **Observações**: Considerações importantes para o tratamento
+5. **Observações**: Considerações importantes, incluindo pontos fortes identificados e como utilizá-los no tratamento
 
 ## FORMATO DE RESPOSTA (JSON ESTRITO):
 
@@ -165,55 +171,58 @@ IMPORTANTE:
 - Responda APENAS em português brasileiro
 - O JSON deve ser válido e completo
 - Seja específico e prático nas recomendações
-- Baseie-se nas técnicas comprovadas de TCC (reestruturação cognitiva, registro de pensamentos, experimentos comportamentais, etc.)
-`
+- Utilize técnicas de CT-R e TCC (reestruturação cognitiva, registro de pensamentos, experimentos comportamentais, ativação comportamental baseada em valores, identificação de forças, etc.)
+- Enfatize SEMPRE os pontos fortes, recursos e crenças adaptativas do paciente
+- O plano deve ser orientado para RECUPERAÇÃO e FLORESCIMENTO, não apenas redução de sintomas
+`;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: "gemini-2.5-flash",
       contents: prompt,
       config: {
-        responseMimeType: 'application/json',
+        responseMimeType: "application/json",
         thinkingConfig: { thinkingBudget: 1024 },
       },
-    })
+    });
 
-    const responseText = response.text || ''
+    const responseText = response.text || "";
 
     // Parse the JSON response
-    let plan: Omit<TherapeuticPlanResponse, 'generatedAt'>
+    let plan: Omit<TherapeuticPlanResponse, "generatedAt">;
     try {
       // Try to extract JSON from the response
-      const jsonMatch = responseText.match(JSON_EXTRACT_REGEX)
+      const jsonMatch = responseText.match(JSON_EXTRACT_REGEX);
       if (jsonMatch) {
-        plan = JSON.parse(jsonMatch[0])
+        plan = JSON.parse(jsonMatch[0]);
       } else {
-        throw new Error('No JSON found in response')
+        throw new Error("No JSON found in response");
       }
     } catch {
-      console.error('Failed to parse Gemini response:', responseText)
+      console.error("Failed to parse Gemini response:", responseText);
       return NextResponse.json(
         {
-          error: 'Não foi possível processar a resposta da IA. Tente novamente.',
+          error:
+            "Não foi possível processar a resposta da IA. Tente novamente.",
         },
         { status: 500 }
-      )
+      );
     }
 
     // Add generation timestamp
     const fullPlan: TherapeuticPlanResponse = {
       ...plan,
       generatedAt: new Date().toISOString(),
-    }
+    };
 
-    return NextResponse.json(fullPlan)
+    return NextResponse.json(fullPlan);
   } catch (error) {
-    console.error('Error generating therapeutic plan:', error)
+    console.error("Error generating therapeutic plan:", error);
     return NextResponse.json(
       {
         error:
-          'Desculpe, não foi possível gerar o plano terapêutico. Por favor, tente novamente mais tarde.',
+          "Desculpe, não foi possível gerar o plano terapêutico. Por favor, tente novamente mais tarde.",
       },
       { status: 500 }
-    )
+    );
   }
 }
