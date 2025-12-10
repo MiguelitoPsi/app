@@ -1250,6 +1250,11 @@ export const TherapistDashboardView: React.FC = () => {
                                   <span>•</span>
                                   <span>{therapist.city}</span>
                                 </div>
+                                {therapist.bio && (
+                                  <p className='mt-1 text-xs text-slate-500 line-clamp-2'>
+                                    {therapist.bio}
+                                  </p>
+                                )}
                               </div>
                             </div>
                             {selectedNewTherapistId === therapist.id && (

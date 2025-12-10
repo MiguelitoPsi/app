@@ -252,9 +252,9 @@ export const adminRouter = router({
       return { success: true }
     }),
 
-  // Deletar usuário
+  // Deletar usuário (soft delete para permitir que o usuário veja o modal antes de ser deslogado)
   deleteUser: protectedProcedure
-    .input(z.object({ userId: z.string() }))
+    .input(z.object({ userId: z.string(), reason: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       // Verificar se é admin
       const [currentUser] = await ctx.db
@@ -272,7 +272,17 @@ export const adminRouter = router({
         throw new Error('Você não pode deletar sua própria conta')
       }
 
-      await ctx.db.delete(users).where(eq(users.id, input.userId))
+      const now = new Date()
+
+      // Soft delete: marca como deletado em vez de remover fisicamente
+      await ctx.db
+        .update(users)
+        .set({
+          deletedAt: now,
+          deletedReason: input.reason || 'Conta excluída pelo administrador',
+          updatedAt: now,
+        })
+        .where(eq(users.id, input.userId))
 
       return { success: true }
     }),
@@ -754,9 +764,9 @@ export const adminRouter = router({
       return { success: true, affectedPatients: patientIds.length }
     }),
 
-  // Deletar psicólogo e todos os pacientes vinculados
+  // Deletar psicólogo e todos os pacientes vinculados (soft delete)
   deletePsychologistWithPatients: protectedProcedure
-    .input(z.object({ psychologistId: z.string() }))
+    .input(z.object({ psychologistId: z.string(), reason: z.string().optional() }))
     .mutation(async ({ ctx, input }) => {
       // Verificar se é admin
       const [currentUser] = await ctx.db
@@ -780,6 +790,8 @@ export const adminRouter = router({
         throw new Error('Psicólogo não encontrado')
       }
 
+      const now = new Date()
+
       // Buscar todos os pacientes vinculados a este psicólogo
       const linkedPatients = await ctx.db
         .select({ patientId: psychologistPatients.patientId })
@@ -788,13 +800,27 @@ export const adminRouter = router({
 
       const patientIds = linkedPatients.map((p) => p.patientId)
 
-      // Deletar os pacientes vinculados (o cascade cuida das tabelas relacionadas)
+      // Soft delete dos pacientes vinculados
       for (const patientId of patientIds) {
-        await ctx.db.delete(users).where(eq(users.id, patientId))
+        await ctx.db
+          .update(users)
+          .set({
+            deletedAt: now,
+            deletedReason: 'Conta excluída junto com o terapeuta',
+            updatedAt: now,
+          })
+          .where(eq(users.id, patientId))
       }
 
-      // Deletar o psicólogo (o cascade cuida das tabelas relacionadas)
-      await ctx.db.delete(users).where(eq(users.id, input.psychologistId))
+      // Soft delete do psicólogo
+      await ctx.db
+        .update(users)
+        .set({
+          deletedAt: now,
+          deletedReason: input.reason || 'Conta excluída pelo administrador',
+          updatedAt: now,
+        })
+        .where(eq(users.id, input.psychologistId))
 
       return { success: true, deletedPatients: patientIds.length }
     }),

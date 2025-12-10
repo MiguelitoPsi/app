@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     }
 
     if (invite.status === 'accepted') {
-      return NextResponse.json({ success: true, message: 'Already accepted' })
+      return NextResponse.json({ success: true, role: invite.role, message: 'Already accepted' })
     }
 
     if (invite.status === 'expired' || new Date() > invite.expiresAt) {
@@ -55,7 +55,19 @@ export async function POST(request: Request) {
       })
       .where(eq(adminInvites.id, invite.id))
 
-    return NextResponse.json({ success: true })
+    // Create response with cookie
+    const response = NextResponse.json({ success: true, role: invite.role })
+
+    // Set role cookie for middleware
+    response.cookies.set('user-role', invite.role, {
+      httpOnly: false,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30, // 30 days
+    })
+
+    return response
   } catch (error) {
     console.error('Error accepting admin invite:', error)
     return NextResponse.json({ error: 'Failed to accept invite' }, { status: 500 })

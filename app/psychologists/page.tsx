@@ -228,6 +228,11 @@ export default function PsychologistsPage() {
                     <p className='text-xs sm:text-sm text-slate-400 line-clamp-2'>
                       {therapist.education}
                     </p>
+                    {therapist.bio && (
+                      <p className='text-xs sm:text-sm text-slate-300 line-clamp-3'>
+                        {therapist.bio}
+                      </p>
+                    )}
                     <div className='flex items-center gap-2 text-xs sm:text-sm text-slate-500'>
                       <MapPin className='h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0' />
                       <span className='truncate'>{therapist.city}</span>

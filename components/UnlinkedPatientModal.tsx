@@ -253,6 +253,11 @@ export function UnlinkedPatientModal() {
                       <p>
                         <span className='text-slate-400'>Formação:</span> {therapist.education}
                       </p>
+                      {therapist.bio && (
+                        <p className='line-clamp-2'>
+                          <span className='text-slate-400'>Sobre:</span> {therapist.bio}
+                        </p>
+                      )}
                       <p>
                         <span className='text-slate-400'>Cidade:</span> {therapist.city}
                       </p>
