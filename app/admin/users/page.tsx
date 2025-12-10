@@ -210,7 +210,7 @@ export default function UsersPage() {
                   setIsInviteTherapistModalOpen(false)
                   alert('Erro ao gerar link de convite.')
                 }
-              } catch (e) {
+              } catch {
                 setIsInviteTherapistModalOpen(false)
                 alert('Erro ao gerar link de convite.')
               } finally {
@@ -1027,15 +1027,6 @@ function CreateUserModal({
         </form>
       </div>
     </div>
-  )
-}
-
-function PlusIcon() {
-  return (
-    <svg className='h-5 w-5' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-      <title>Adicionar</title>
-      <path d='M12 4v16m8-8H4' strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} />
-    </svg>
   )
 }
 
