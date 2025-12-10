@@ -1,5 +1,6 @@
 import { Sparkles } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSound } from '@/hooks/useSound'
 
 type AchievementModalProps = {
   badge: {
@@ -14,11 +15,13 @@ const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
   const [show, setShow] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const { playAchievement, playClick } = useSound()
 
   const handleClose = useCallback(() => {
+    playClick()
     setShow(false)
     setTimeout(onClose, 300) // Wait for exit animation
-  }, [onClose])
+  }, [onClose, playClick])
 
   // Handle escape key
   useEffect(() => {
@@ -29,6 +32,8 @@ const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
     }
 
     setShow(true)
+    // Play achievement sound
+    playAchievement()
     // Focus the close button when modal opens
     setTimeout(() => closeButtonRef.current?.focus(), 100)
 
@@ -42,7 +47,7 @@ const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = ''
     }
-  }, [handleClose])
+  }, [handleClose, playAchievement])
 
   if (!badge) return null
 

@@ -21,6 +21,7 @@ import type React from 'react'
 import { useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
 import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
+import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { useGame } from '../context/GameContext'
 
@@ -74,6 +75,9 @@ export const RoutineView: React.FC = () => {
 
   // XP Animation to bar
   const { particles, triggerAnimation } = useXPAnimation()
+
+  // Sound effects
+  const { playSuccess, playClick, playDelete, playError } = useSound()
 
   // Helper to format date for display
   const formatDisplayDate = (date: Date) => {
@@ -152,6 +156,7 @@ export const RoutineView: React.FC = () => {
     selectedTaskDate.setHours(0, 0, 0, 0)
 
     if (selectedTaskDate < today) {
+      playError()
       const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
       setAlertMessage(
         `⚠️ Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
@@ -266,6 +271,9 @@ export const RoutineView: React.FC = () => {
         })
       )
     )
+
+    // Play success sound
+    playClick()
 
     // Reset form
     setNewTaskTitle('')
@@ -393,6 +401,7 @@ export const RoutineView: React.FC = () => {
       taskDate.setHours(0, 0, 0, 0)
 
       if (taskDate.getTime() > today.getTime()) {
+        playError()
         setAlertMessage(
           '⏳ Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
         )
@@ -400,6 +409,9 @@ export const RoutineView: React.FC = () => {
         setShowAlert(true)
         return
       }
+
+      // Play success sound
+      playSuccess()
 
       // Trigger Reward Animation
       if (e) {
@@ -955,6 +967,7 @@ export const RoutineView: React.FC = () => {
                     }`}
                     onClick={() => {
                       if (task.completed) {
+                        playError()
                         setAlertTitle('Ação Bloqueada')
                         setAlertMessage(
                           'Você não pode excluir uma tarefa concluída.\nDesmarque-a primeiro se precisar excluí-la.'
@@ -962,6 +975,7 @@ export const RoutineView: React.FC = () => {
                         setShowAlert(true)
                         return
                       }
+                      playDelete()
                       deleteTask(task.id)
                     }}
                     type='button'

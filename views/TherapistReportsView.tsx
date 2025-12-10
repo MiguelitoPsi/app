@@ -515,11 +515,21 @@ export default function TherapistReportsView(): React.ReactElement {
   return (
     <div className='h-full overflow-y-auto px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8'>
       {/* Header */}
-      <div className='mb-6'>
-        <h2 className='font-bold text-slate-800 text-xl dark:text-white'>Relatórios</h2>
-        <p className='text-slate-500 text-xs dark:text-slate-400'>
-          Documentos e conceituação do paciente
-        </p>
+      <div className='mb-6 flex items-end justify-between'>
+        <div>
+          <h2 className='font-bold text-slate-800 text-xl dark:text-white'>Relatórios</h2>
+          <p className='text-slate-500 text-xs dark:text-slate-400'>
+            Documentos e conceituação do paciente
+          </p>
+        </div>
+        <button
+          aria-label='Configurações'
+          className='touch-target group rounded-xl bg-slate-100 p-2.5 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 sm:rounded-2xl sm:p-3 lg:hidden dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+          onClick={() => setShowSettings(true)}
+          type='button'
+        >
+          <Settings className='h-5 w-5 sm:h-6 sm:w-6' />
+        </button>
       </div>
 
       {/* Patient Selector */}

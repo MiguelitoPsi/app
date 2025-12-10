@@ -5,6 +5,7 @@ import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
 import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
+import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { trpc } from '@/lib/trpc/client'
 import { XP_REWARDS } from '@/lib/xp'
@@ -17,8 +18,7 @@ type JournalViewProps = {
 }
 
 export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
-  const { addJournalEntry, journal } = useGame()
-  console.log('JournalView journal data:', journal)
+  const { addJournalEntry } = useGame()
   const _utils = trpc.useUtils()
   const thoughtId = useId()
   const emotionId = useId()
@@ -39,16 +39,24 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const saveButtonRef = useRef<HTMLButtonElement>(null)
   const analyzeButtonRef = useRef<HTMLButtonElement>(null)
 
+  // Sound effects
+  const { playJournal, playClick, playSuccess } = useSound()
+
   const handleAnalyze = async () => {
+    playClick()
     setIsAnalyzing(true)
     // Situation removed, passing only emotion and thought
     const analysis = await analyzeThought(emotion, thought)
     setAiResult(analysis)
     setIsAnalyzing(false)
+    playSuccess()
     setStep(2) // Move to result view
   }
 
-  const handleSave = (e?: React.MouseEvent<HTMLButtonElement>) => {
+  const handleSave = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Play journal save sound
+    playJournal()
+
     // Trigger animation from button position
     if (e?.currentTarget) {
       const rect = e.currentTarget.getBoundingClientRect()
@@ -62,7 +70,8 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
       }, 100)
     }
 
-    addJournalEntry({
+    // Save journal entry with AI analysis (if available)
+    await addJournalEntry({
       emotion,
       intensity,
       thought,

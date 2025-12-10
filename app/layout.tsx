@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 import { SuspensionCheck } from '@/components/SuspensionCheck'
+import { SoundProvider } from '@/context/SoundContext'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -56,9 +57,11 @@ export default function RootLayout({
     <html lang='pt-BR'>
       <body className={inter.className}>
         <TRPCProvider>
-          <SuspensionCheck />
-          <ServiceWorkerRegister />
-          {children}
+          <SoundProvider>
+            <SuspensionCheck />
+            <ServiceWorkerRegister />
+            {children}
+          </SoundProvider>
         </TRPCProvider>
       </body>
     </html>

@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type React from 'react'
 import { memo } from 'react'
+import { useSound } from '@/hooks/useSound'
 
 const navItems = [
   { path: '/dashboard', label: 'Início', icon: Home },
@@ -15,6 +16,7 @@ const navItems = [
 
 export const TherapistBottomNav: React.FC = memo(function TherapistBottomNavComponent() {
   const pathname = usePathname()
+  const { playNavigation } = useSound()
 
   const isActive = (path: string): boolean => pathname === path
 
@@ -31,6 +33,7 @@ export const TherapistBottomNav: React.FC = memo(function TherapistBottomNavComp
             }`}
             href={item.path}
             key={item.path}
+            onClick={() => playNavigation()}
             prefetch={true}
           >
             <item.icon aria-hidden='true' className='h-6 w-6' />

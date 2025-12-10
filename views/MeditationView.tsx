@@ -18,6 +18,7 @@ import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
 import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContainer'
+import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { getMeditationRewards } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
@@ -130,6 +131,9 @@ const MEDITATION_TYPES: MeditationType[] = [
 
 export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   const { completeMeditation, stats } = useGame()
+
+  // Sound effects
+  const { playMeditation, playMeditationComplete, playClick } = useSound()
   const [selectedType, setSelectedType] = useState<MeditationType | null>(null)
   const [isActive, setIsActive] = useState(false)
   const [timeLeft, setTimeLeft] = useState(60)
@@ -179,6 +183,8 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
     } else if (timeLeft === 0 && isActive) {
       setIsActive(false)
       setCompleted(true)
+      // Play meditation complete sound
+      playMeditationComplete()
       const minutesCompleted = Math.ceil(duration / 60)
       completeMeditation(minutesCompleted)
 
@@ -195,7 +201,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
       }, 500)
     }
     return () => clearInterval(interval)
-  }, [isActive, timeLeft, completeMeditation, duration, triggerAnimation])
+  }, [isActive, timeLeft, completeMeditation, duration, triggerAnimation, playMeditationComplete])
 
   // Smooth breathing animation using requestAnimationFrame
   const animateBreathing = useCallback(
@@ -236,6 +242,12 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
   }, [isActive, animateBreathing])
 
   const toggleTimer = () => {
+    // Play click sound
+    playClick()
+    // Play meditation start sound when starting
+    if (!isActive) {
+      playMeditation()
+    }
     setIsActive(!isActive)
     if (!isActive && timeLeft === 0) {
       setTimeLeft(duration)

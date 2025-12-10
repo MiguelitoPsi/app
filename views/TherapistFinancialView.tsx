@@ -687,23 +687,46 @@ export default function TherapistFinancialView(): React.ReactElement {
         </div>
       )}
 
-      {/* Tabs - Grid de botões coloridos */}
-      <div className='mb-6 grid grid-cols-4 gap-2 sm:gap-3 lg:mb-8 lg:flex lg:gap-4'>
+      {/* Tabs - Mobile: cards coloridos, Desktop: tabs horizontais */}
+      {/* Mobile tabs */}
+      <div className='mb-6 grid grid-cols-4 gap-2 sm:gap-3 lg:hidden'>
         {tabs.map((tab) => (
           <button
-            className={`relative flex aspect-square flex-col items-center justify-center gap-1 rounded-xl text-white transition-all duration-200 sm:gap-2 sm:rounded-2xl lg:aspect-auto lg:flex-row lg:px-6 lg:py-3 ${
+            className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
               activeTab === tab.id
-                ? 'scale-105 bg-emerald-500 shadow-xl ring-2 ring-white/30 sm:ring-4'
-                : 'bg-teal-500 shadow-lg hover:scale-[1.02] hover:bg-teal-600'
+                ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
+                : 'hover:scale-[1.02]'
             }`}
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             type='button'
           >
-            <tab.icon className='h-5 w-5 sm:h-6 sm:w-6 lg:h-5 lg:w-5' />
-            <span className='px-0.5 text-center font-semibold text-[9px] leading-tight sm:px-1 sm:text-xs lg:text-sm'>
-              {tab.label}
-            </span>
+            <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
+            <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+              <tab.icon className='h-5 w-5 sm:h-7 sm:w-7' />
+              <span className='px-0.5 text-center font-semibold text-[9px] leading-tight sm:text-xs'>
+                {tab.label}
+              </span>
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Desktop tabs */}
+      <div className='mb-8 hidden lg:flex lg:gap-2 lg:rounded-xl lg:bg-white lg:p-1.5 lg:shadow-sm dark:lg:bg-slate-800'>
+        {tabs.map((tab) => (
+          <button
+            className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+              activeTab === tab.id
+                ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md'
+                : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+            }`}
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            type='button'
+          >
+            <tab.icon className='h-5 w-5' />
+            <span>{tab.label}</span>
           </button>
         ))}
       </div>

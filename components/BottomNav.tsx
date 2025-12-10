@@ -3,10 +3,12 @@
 import { Calendar, Gift, Home, Plus, User } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import type React from 'react'
+import { useSound } from '@/hooks/useSound'
 
 export const BottomNav: React.FC = () => {
   const router = useRouter()
   const pathname = usePathname()
+  const { playNavigation } = useSound()
 
   const isActive = (path: string) => pathname === path
 
@@ -39,7 +41,10 @@ export const BottomNav: React.FC = () => {
           aria-current={isActive('/home') ? 'page' : undefined}
           aria-label='Ir para página inicial'
           className={navItemClass('/home')}
-          onClick={() => router.push('/home')}
+          onClick={() => {
+            playNavigation()
+            router.push('/home')
+          }}
           type='button'
         >
           <div
@@ -68,7 +73,10 @@ export const BottomNav: React.FC = () => {
           aria-current={isActive('/routine') ? 'page' : undefined}
           aria-label='Ir para rotina de tarefas'
           className={navItemClass('/routine')}
-          onClick={() => router.push('/routine')}
+          onClick={() => {
+            playNavigation()
+            router.push('/routine')
+          }}
           type='button'
         >
           <div
@@ -101,7 +109,10 @@ export const BottomNav: React.FC = () => {
           <button
             aria-label='Abrir diário de pensamentos'
             className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-violet-300/50 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4'
-            onClick={() => router.push('/journal')}
+            onClick={() => {
+              playNavigation()
+              router.push('/journal')
+            }}
             type='button'
           >
             <Plus aria-hidden='true' className='sm:hidden' size={28} strokeWidth={2.5} />
@@ -115,7 +126,10 @@ export const BottomNav: React.FC = () => {
           aria-current={isActive('/rewards') ? 'page' : undefined}
           aria-label='Ir para loja de prêmios'
           className={navItemClass('/rewards')}
-          onClick={() => router.push('/rewards')}
+          onClick={() => {
+            playNavigation()
+            router.push('/rewards')
+          }}
           type='button'
         >
           <div
@@ -144,7 +158,10 @@ export const BottomNav: React.FC = () => {
           aria-current={isActive('/profile') ? 'page' : undefined}
           aria-label='Ir para seu perfil'
           className={navItemClass('/profile')}
-          onClick={() => router.push('/profile')}
+          onClick={() => {
+            playNavigation()
+            router.push('/profile')
+          }}
           type='button'
         >
           <div

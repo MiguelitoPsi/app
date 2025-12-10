@@ -4,7 +4,6 @@ import {
   Activity,
   ArrowRightLeft,
   BarChart2,
-  Bell,
   Brain,
   Calendar,
   CheckCircle2,
@@ -546,15 +545,25 @@ export const TherapistView: React.FC = () => {
             Visão detalhada dos pacientes
           </p>
         </div>
-        <button
-          className='touch-target group flex items-center justify-center rounded-full bg-violet-600 p-3 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:p-4 sm:hover:scale-105 dark:shadow-none'
-          onClick={handleInvite}
-          title='Convidar Paciente'
-          type='button'
-        >
-          <Plus className='sm:hidden' size={20} />
-          <Plus className='hidden sm:block' size={24} />
-        </button>
+        <div className='flex items-center gap-2'>
+          <button
+            aria-label='Configurações'
+            className='touch-target group rounded-xl bg-slate-100 p-2.5 text-slate-600 transition-all active:scale-95 hover:bg-slate-200 sm:rounded-2xl sm:p-3 lg:hidden dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+            onClick={() => setShowSettings(true)}
+            type='button'
+          >
+            <Settings className='h-5 w-5 sm:h-6 sm:w-6' />
+          </button>
+          <button
+            className='touch-target group flex items-center justify-center rounded-full bg-violet-600 p-3 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:p-4 sm:hover:scale-105 dark:shadow-none'
+            onClick={handleInvite}
+            title='Convidar Paciente'
+            type='button'
+          >
+            <Plus className='sm:hidden' size={20} />
+            <Plus className='hidden sm:block' size={24} />
+          </button>
+        </div>
       </div>
 
       {/* Patient Selector */}
@@ -663,10 +672,11 @@ export const TherapistView: React.FC = () => {
       <div className='space-y-4 sm:space-y-6'>
         {selectedPatientId ? (
           <>
-            {/* Navigation Tabs - Only shown when patient is selected */}
-            <div className='grid grid-cols-4 gap-2 sm:gap-3 lg:flex lg:gap-4'>
+            {/* Navigation Tabs - Mobile: cards coloridos, Desktop: tabs horizontais */}
+            {/* Mobile tabs */}
+            <div className='grid grid-cols-4 gap-2 sm:gap-3 lg:hidden'>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
                   activeSection === 'overview'
                     ? 'ring-2 ring-emerald-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
@@ -675,15 +685,13 @@ export const TherapistView: React.FC = () => {
                 type='button'
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
-                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3'>
-                  <BarChart2 className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
-                  <span className='font-semibold text-[9px] sm:text-xs lg:text-sm'>
-                    Visão Geral
-                  </span>
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <BarChart2 className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>Visão Geral</span>
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
                   activeSection === 'journal'
                     ? 'ring-2 ring-rose-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
@@ -692,9 +700,9 @@ export const TherapistView: React.FC = () => {
                 type='button'
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
-                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3'>
-                  <FileText className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
-                  <span className='font-semibold text-[9px] sm:text-xs lg:text-sm'>
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <FileText className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>
                     Diário{' '}
                     {journalData.filter((e) => !e.isRead).length > 0 &&
                       `(${journalData.filter((e) => !e.isRead).length})`}
@@ -702,7 +710,7 @@ export const TherapistView: React.FC = () => {
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
                   activeSection === 'rewards'
                     ? 'ring-2 ring-cyan-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
@@ -711,20 +719,18 @@ export const TherapistView: React.FC = () => {
                 type='button'
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-cyan-400 to-cyan-600' />
-                <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2 lg:flex-row lg:gap-3'>
-                  <Gift className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
-                  <span className='truncate font-semibold text-[8px] sm:text-xs lg:text-sm'>
-                    Prêmios
-                  </span>
+                <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
+                  <Gift className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='truncate font-semibold text-[8px] sm:text-xs'>Prêmios</span>
                   {rewardsData.filter((r) => r.status === 'pending').length > 0 && (
-                    <span className='font-bold text-[10px] sm:text-xs lg:text-sm'>
+                    <span className='font-bold text-[10px] sm:text-xs'>
                       ({rewardsData.filter((r) => r.status === 'pending').length})
                     </span>
                   )}
                 </div>
               </button>
               <button
-                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:flex-1 lg:py-4 ${
+                className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
                   activeSection === 'profile'
                     ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
@@ -733,10 +739,70 @@ export const TherapistView: React.FC = () => {
                 type='button'
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
-                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2 lg:flex-row lg:gap-3'>
-                  <User className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
-                  <span className='font-semibold text-[9px] sm:text-xs lg:text-sm'>Perfil</span>
+                <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
+                  <User className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <span className='font-semibold text-[9px] sm:text-xs'>Perfil</span>
                 </div>
+              </button>
+            </div>
+
+            {/* Desktop tabs */}
+            <div className='hidden lg:flex lg:gap-2 lg:rounded-xl lg:bg-white lg:p-1.5 lg:shadow-sm dark:lg:bg-slate-800'>
+              <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+                  activeSection === 'overview'
+                    ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => setActiveSection('overview')}
+                type='button'
+              >
+                <BarChart2 className='h-5 w-5' />
+                <span>Visão Geral</span>
+              </button>
+              <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+                  activeSection === 'journal'
+                    ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => setActiveSection('journal')}
+                type='button'
+              >
+                <FileText className='h-5 w-5' />
+                <span>
+                  Diário{' '}
+                  {journalData.filter((e) => !e.isRead).length > 0 &&
+                    `(${journalData.filter((e) => !e.isRead).length})`}
+                </span>
+              </button>
+              <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+                  activeSection === 'rewards'
+                    ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => setActiveSection('rewards')}
+                type='button'
+              >
+                <Gift className='h-5 w-5' />
+                <span>
+                  Prêmios{' '}
+                  {rewardsData.filter((r) => r.status === 'pending').length > 0 &&
+                    `(${rewardsData.filter((r) => r.status === 'pending').length})`}
+                </span>
+              </button>
+              <button
+                className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
+                  activeSection === 'profile'
+                    ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-md'
+                    : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
+                }`}
+                onClick={() => setActiveSection('profile')}
+                type='button'
+              >
+                <User className='h-5 w-5' />
+                <span>Perfil</span>
               </button>
             </div>
           </>
@@ -744,42 +810,6 @@ export const TherapistView: React.FC = () => {
         {selectedPatientId ? (
           activeSection === 'overview' && (
             <div className='fade-in slide-in-from-bottom-4 animate-in space-y-4 duration-500 sm:space-y-6'>
-              {/* Quick Action Banner */}
-              <div className='flex items-center justify-between rounded-xl border border-orange-100 bg-orange-50 p-4 dark:border-orange-900/20 dark:bg-orange-900/10'>
-                <div className='flex items-center gap-3'>
-                  <div className='rounded-lg bg-orange-100 p-2 text-orange-600 dark:bg-orange-900/30'>
-                    <Bell size={20} />
-                  </div>
-                  <div>
-                    <h3 className='font-semibold text-orange-900 text-sm dark:text-orange-100'>
-                      O paciente está ausente?
-                    </h3>
-                    <p className='text-orange-700 text-xs dark:text-orange-300'>
-                      Envie uma notificação para lembrá-lo de continuar sua jornada.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  className={`flex items-center gap-2 rounded-lg py-2 px-4 text-sm font-semibold transition-all ${
-                    nudgeSent
-                      ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 cursor-default'
-                      : 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95 shadow-lg shadow-orange-200 dark:shadow-none'
-                  } disabled:opacity-70 disabled:cursor-not-allowed`}
-                  disabled={sendNudgeMutation.isPending || nudgeSent}
-                  onClick={handleSendNudge}
-                  type='button'
-                >
-                  {nudgeSent ? (
-                    <>
-                      <CheckCircle2 size={16} />
-                      <span>Enviado!</span>
-                    </>
-                  ) : (
-                    <span>Enviar Lembrete</span>
-                  )}
-                </button>
-              </div>
-
               {/* Key Metrics */}
               <div className='grid grid-cols-2 gap-3 sm:gap-4'>
                 <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
@@ -1962,11 +1992,12 @@ export const TherapistView: React.FC = () => {
                 <Settings className='text-slate-400' size={18} /> Configurações
               </h3>
               <button
-                className='touch-target rounded-full bg-slate-50 p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:bg-slate-800 dark:hover:text-slate-200'
+                aria-label='Fechar modal'
+                className='flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 dark:hover:text-slate-200'
                 onClick={() => setShowSettings(false)}
                 type='button'
               >
-                <X size={18} />
+                <X className='h-5 w-5' />
               </button>
             </div>
             <div className='space-y-3 sm:space-y-4'>

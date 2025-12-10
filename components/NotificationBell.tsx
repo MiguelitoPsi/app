@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import { useSound } from '@/hooks/useSound'
 import { trpc } from '@/lib/trpc/client'
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
+  const { playClick } = useSound()
 
   const { data: notifications = [] } = trpc.notification.getAll.useQuery()
   const { data: unreadCount = 0 } = trpc.notification.getUnreadCount.useQuery()
@@ -48,7 +50,10 @@ export default function NotificationBell() {
         aria-haspopup='true'
         aria-label={`Notificações${unreadCount > 0 ? `, ${unreadCount} não lidas` : ''}`}
         className='relative p-2 text-gray-600 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 rounded-full'
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          playClick()
+          setIsOpen(!isOpen)
+        }}
         type='button'
       >
         <svg
