@@ -1404,7 +1404,7 @@ export const HomeView: React.FC = () => {
                 <div className='mt-6 rounded-xl bg-violet-50 p-4 text-slate-700 text-sm dark:bg-violet-900/20 dark:text-slate-200'>
                   <strong>Data/hora da assinatura:</strong>{' '}
                   {termsData?.termsAcceptedAt ? (
-                    <span className='font-mono'>{formatDateTime(termsData.termsAcceptedAt)}</span>
+                    <span className='font-mono'>{formatDateTime(termsData.termsAcceptedAt.getTime())}</span>
                   ) : (
                     <span className='italic text-slate-400'>Não assinado</span>
                   )}
