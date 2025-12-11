@@ -22,6 +22,12 @@ export const TherapistAchievementModal: React.FC<TherapistAchievementModalProps>
   useEffect(() => {
     if (achievement) {
       setIsVisible(true)
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
     }
   }, [achievement])
 

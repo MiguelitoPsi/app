@@ -16,6 +16,7 @@ export const users = sqliteTable('users', {
   coins: integer('coins').notNull().default(0),
   lastTaskXpDate: integer('last_task_xp_date', { mode: 'timestamp' }),
   lastJournalXpDate: integer('last_journal_xp_date', { mode: 'timestamp' }),
+  journalXpCountToday: integer('journal_xp_count_today').notNull().default(0),
   lastMeditationXpDate: integer('last_meditation_xp_date', {
     mode: 'timestamp',
   }),

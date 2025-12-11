@@ -158,6 +158,7 @@ export type GameContextType = {
   redeemReward: (id: string) => void
   deleteReward: (id: string) => void
   updateReward: (id: string, updates: Partial<Reward>) => void
+  refreshJournal: () => void
 }
 
 export const Tab = {

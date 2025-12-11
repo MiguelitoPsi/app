@@ -87,8 +87,19 @@ export const HomeView: React.FC = () => {
   // Check if user needs to accept terms
   const { data: termsData, refetch: refetchTerms } = trpc.user.checkTermsAccepted.useQuery()
 
-  // Check for unviewed feedback
-  const { data: unviewedFeedbackCount = 0 } = trpc.journal.getUnviewedFeedbackCount.useQuery()
+  // Check for unviewed feedback - always refetch to ensure updated count
+  const { data: unviewedFeedbackCount = 0, refetch: refetchFeedbackCount } =
+    trpc.journal.getUnviewedFeedbackCount.useQuery(undefined, {
+      refetchOnMount: 'always',
+      refetchOnWindowFocus: 'always',
+      staleTime: 0,
+      gcTime: 0,
+    })
+
+  // Refetch feedback count on every render (when coming back from history page)
+  useEffect(() => {
+    refetchFeedbackCount()
+  }, [refetchFeedbackCount])
 
   // Push notifications hook
   const {
@@ -139,6 +150,18 @@ export const HomeView: React.FC = () => {
   useEffect(() => {
     setSelectedMood(currentMood)
   }, [currentMood])
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (showSettings) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [showSettings])
 
   useEffect(() => {
     const lastXP = stats.lastMoodXPTimestamp || 0
@@ -333,7 +356,7 @@ export const HomeView: React.FC = () => {
             <button
               aria-label={`Você tem ${unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta. Clique para ver.`}
               className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
-              onClick={() => router.push('/journal')}
+              onClick={() => router.push('/journal/history')}
               type='button'
             >
               <div className='flex items-center gap-2 sm:gap-3'>

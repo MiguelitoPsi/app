@@ -1,7 +1,7 @@
 'use client'
 
 import { AlertTriangle, CheckCircle, CreditCard, FileText, Scale, Shield, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 type TherapistTermsModalProps = {
@@ -23,6 +23,18 @@ export function TherapistTermsModal({
   const [isAccepting, setIsAccepting] = useState(false)
 
   const utils = trpc.useUtils()
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   const acceptTerms = trpc.user.acceptTerms.useMutation({
     onSuccess: () => {

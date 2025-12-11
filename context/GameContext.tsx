@@ -630,17 +630,40 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }
 
-  const toggleTheme = async () => {
-    try {
-      // Get current user to toggle theme
-      const user = await utils.client.user.getProfile.query()
-      const newTheme = user.preferences?.theme === 'light' ? 'dark' : 'light'
-      await utils.client.user.updateTheme.mutate({ theme: newTheme })
-      // Background invalidation
+  const toggleTheme = () => {
+    // Calculate new theme from current stats (already in memory)
+    const newTheme = stats.theme === 'light' ? 'dark' : 'light'
+
+    // Add transition class for smooth animation
+    document.documentElement.classList.add('theme-transition')
+
+    // Immediately update DOM for instant visual feedback
+    document.documentElement.classList.toggle('dark', newTheme === 'dark')
+
+    // Remove transition class after animation completes
+    setTimeout(() => {
+      document.documentElement.classList.remove('theme-transition')
+    }, 150)
+
+    // Optimistic update of React Query cache
+    utils.user.getProfile.setData(undefined, (old) => {
+      if (!old) return old
+      return {
+        ...old,
+        preferences: {
+          ...((old.preferences as Record<string, unknown>) || {}),
+          theme: newTheme,
+        },
+      }
+    })
+
+    // Save to backend in background (non-blocking)
+    utils.client.user.updateTheme.mutate({ theme: newTheme }).catch((error) => {
+      console.error('Error saving theme:', error)
+      // Revert on error
+      document.documentElement.classList.toggle('dark', newTheme !== 'dark')
       utils.user.getProfile.invalidate()
-    } catch (error) {
-      console.error('Error toggling theme:', error)
-    }
+    })
   }
 
   const addRewardRequest = async (title: string, category: string) => {
@@ -726,6 +749,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }
 
+  // Refresh journal entries
+  const refreshJournal = () => {
+    utils.journal.getAll.invalidate()
+  }
+
   // Apply theme to document
   useEffect(() => {
     if (stats.theme === 'dark') {
@@ -761,6 +789,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         redeemReward,
         deleteReward,
         updateReward,
+        refreshJournal,
       }}
     >
       {children}

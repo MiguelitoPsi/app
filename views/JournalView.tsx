@@ -19,7 +19,7 @@ type JournalViewProps = {
 
 export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const { addJournalEntry } = useGame()
-  const _utils = trpc.useUtils()
+  const utils = trpc.useUtils()
   const thoughtId = useId()
   const emotionId = useId()
   const customEmotionId = useId()
@@ -32,7 +32,12 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   const [thought, setThought] = useState('')
 
   const [isAnalyzing, setIsAnalyzing] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [aiResult, setAiResult] = useState<string | null>(null)
+
+  // Query para verificar se pode ganhar XP
+  const { data: xpStatus } = trpc.journal.getXpStatus.useQuery()
+  const canEarnXp = xpStatus?.canEarnXp ?? true
 
   // XP Animation
   const { particles, triggerAnimation } = useXPAnimation()
@@ -54,11 +59,15 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   }
 
   const handleSave = async (e?: React.MouseEvent<HTMLButtonElement>) => {
+    // Prevent multiple clicks
+    if (isSaving) return
+    setIsSaving(true)
+
     // Play journal save sound
     playJournal()
 
-    // Trigger animation from button position
-    if (e?.currentTarget) {
+    // Trigger animation from button position only if user can earn XP
+    if (canEarnXp && e?.currentTarget) {
       const rect = e.currentTarget.getBoundingClientRect()
       const centerX = rect.left + rect.width / 2
       const centerY = rect.top + rect.height / 2
@@ -78,10 +87,16 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
       aiAnalysis: aiResult || undefined,
     })
 
-    // Delay navigation to show animation
-    setTimeout(() => {
-      goHome()
-    }, 400)
+    // Invalidate XP status after saving
+    await utils.journal.getXpStatus.invalidate()
+
+    // Delay navigation to show animation (or less delay if no animation)
+    setTimeout(
+      () => {
+        goHome()
+      },
+      canEarnXp ? 400 : 200
+    )
   }
 
   const moods: { id: Mood; emoji: string; label: string }[] = [
@@ -276,7 +291,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                 <button
                   aria-describedby='analyze-hint'
                   className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-violet-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
-                  disabled={!thought || isAnalyzing}
+                  disabled={!thought || isAnalyzing || isSaving}
                   ref={analyzeButtonRef}
                   type='submit'
                 >
@@ -288,7 +303,11 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                   ) : (
                     <>
                       <Brain aria-hidden='true' size={18} />
-                      <span>Analisar com IA (+{XP_REWARDS.journal} XP & Pts.)</span>
+                      <span>
+                        {canEarnXp
+                          ? `Analisar com IA (+${XP_REWARDS.journal} XP & Pts.)`
+                          : 'Analisar com IA'}
+                      </span>
                     </>
                   )}
                 </button>
@@ -298,13 +317,20 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                 </p>
 
                 <button
-                  className='touch-target flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-sm text-slate-600 transition-all active:scale-[0.98] hover:bg-slate-50 sm:rounded-2xl sm:py-4 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
+                  className='touch-target flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-sm text-slate-600 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:bg-slate-50 sm:rounded-2xl sm:py-4 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
+                  disabled={!(thought.trim() && emotion && intensity) || isSaving || isAnalyzing}
                   onClick={(e) => handleSave(e)}
                   ref={saveButtonRef}
                   type='button'
                 >
                   <Save aria-hidden='true' size={16} />
-                  <span>Salvar sem análise (+{XP_REWARDS.journal} XP & Pts.)</span>
+                  <span>
+                    {isSaving
+                      ? 'Salvando...'
+                      : canEarnXp
+                        ? `Salvar sem análise (+${XP_REWARDS.journal} XP & Pts.)`
+                        : 'Salvar sem análise'}
+                  </span>
                 </button>
               </div>
             </form>
@@ -342,12 +368,19 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               </article>
 
               <button
-                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 font-bold text-sm text-white shadow-lg transition-transform active:scale-[0.98] hover:scale-[1.02] sm:rounded-2xl sm:py-4 sm:text-base dark:bg-white dark:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
+                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-slate-900 py-3.5 font-bold text-sm text-white shadow-lg transition-transform active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:scale-[1.02] sm:rounded-2xl sm:py-4 sm:text-base dark:bg-white dark:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2'
+                disabled={isSaving}
                 onClick={(e) => handleSave(e)}
                 type='button'
               >
                 <Save aria-hidden='true' size={18} />
-                <span>Salvar Insight (+{XP_REWARDS.journal} XP)</span>
+                <span>
+                  {isSaving
+                    ? 'Salvando...'
+                    : canEarnXp
+                      ? `Salvar Insight (+${XP_REWARDS.journal} XP)`
+                      : 'Salvar Insight'}
+                </span>
               </button>
             </div>
           )}

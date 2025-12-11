@@ -1,7 +1,7 @@
 'use client'
 
 import { Check, FileText } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 type PatientConsentModalProps = {
@@ -11,6 +11,14 @@ type PatientConsentModalProps = {
 export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
   const [isAccepting, setIsAccepting] = useState(false)
   const utils = trpc.useUtils()
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [])
 
   const acceptTermsMutation = trpc.user.acceptTerms.useMutation({
     onSuccess: () => {

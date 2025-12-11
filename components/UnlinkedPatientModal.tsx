@@ -115,6 +115,18 @@ export function UnlinkedPatientModal() {
     }
   }, [suspensionData])
 
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
+
   const handleCloseApp = async () => {
     try {
       await authClient.signOut()

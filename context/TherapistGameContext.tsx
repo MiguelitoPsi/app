@@ -60,7 +60,7 @@ export type TherapistGameContextType = {
   refreshStats: () => Promise<void>
   addXPGain: (amount: number, action: string) => void
   clearLevelUp: () => void
-  toggleTheme: () => Promise<void>
+  toggleTheme: () => void
 }
 
 const defaultStats: TherapistGameStats = {
@@ -238,14 +238,34 @@ export const TherapistGameProvider: React.FC<{ children: ReactNode }> = ({ child
     setLevelUp({ triggered: false, newLevel: 0 })
   }, [])
 
-  // Toggle theme
-  const toggleTheme = useCallback(async () => {
+  // Toggle theme - optimistic update for instant feedback
+  const toggleTheme = useCallback(() => {
     const newTheme = theme === 'dark' ? 'light' : 'dark'
+
+    // Add transition class for smooth animation
+    document.documentElement.classList.add('theme-transition')
+
+    // Immediate visual update
     setTheme(newTheme)
     document.documentElement.classList.toggle('dark', newTheme === 'dark')
-    await updateThemeMutation.mutateAsync({ theme: newTheme })
-    utils.user.getProfile.invalidate()
-  }, [theme, updateThemeMutation, utils])
+
+    // Remove transition class after animation completes
+    setTimeout(() => {
+      document.documentElement.classList.remove('theme-transition')
+    }, 150)
+
+    // Save to backend in background (non-blocking)
+    updateThemeMutation.mutate(
+      { theme: newTheme },
+      {
+        onError: () => {
+          // Revert on error
+          setTheme(theme)
+          document.documentElement.classList.toggle('dark', theme === 'dark')
+        },
+      }
+    )
+  }, [theme, updateThemeMutation])
 
   const value: TherapistGameContextType = {
     stats,

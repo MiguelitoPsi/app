@@ -213,6 +213,11 @@ export function getLevelProgress(currentXP: number): number {
 export type XPAction = 'task' | 'session' | 'journal' | 'meditation' | 'mood'
 
 /**
+ * Limite máximo de registros de journal com XP por dia
+ */
+export const JOURNAL_XP_DAILY_LIMIT = 3
+
+/**
  * Mapeia ações para os campos de timestamp no banco de dados
  */
 const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
@@ -227,7 +232,8 @@ const COOLDOWN_FIELDS: Record<XPAction, keyof typeof users.$inferSelect> = {
  * Verifica se o usuário pode ganhar XP para uma ação específica
  * - Tasks: Sempre dão XP (sem cooldown)
  * - Mood: Limite de 1 vez por hora
- * - Outras ações (journal, meditation): Limite de 1 vez por dia
+ * - Journal: Limite de 3 vezes por dia
+ * - Outras ações (meditation): Limite de 1 vez por dia
  *
  * @param user - Objeto do usuário do banco de dados
  * @param action - Tipo de ação
@@ -241,6 +247,17 @@ export function canAwardXP(user: InferSelectModel<typeof users>, action: XPActio
 
   const field = COOLDOWN_FIELDS[action]
   const lastDate = user[field] as Date | null
+
+  // Para journal, verificar limite de 3 registros por dia
+  if (action === 'journal') {
+    // Se nunca registrou ou é um novo dia, pode ganhar XP
+    if (!(lastDate && isSameDay(lastDate, new Date()))) {
+      return true
+    }
+    // Se é o mesmo dia, verificar se ainda não atingiu o limite
+    const countToday = (user.journalXpCountToday as number) || 0
+    return countToday < JOURNAL_XP_DAILY_LIMIT
+  }
 
   if (!lastDate) {
     return true
@@ -437,6 +454,16 @@ export async function awardXPAndCoins(
     updateData.experience = newExperience
     updateData.level = newLevel
     updateData[COOLDOWN_FIELDS[action]] = now
+
+    // Para journal, atualizar contador diário
+    if (action === 'journal') {
+      const lastJournalDate = user.lastJournalXpDate as Date | null
+      const isNewDay = !(lastJournalDate && isSameDay(lastJournalDate, new Date()))
+      // Se é um novo dia, resetar contador para 1; senão, incrementar
+      updateData.journalXpCountToday = isNewDay
+        ? 1
+        : ((user.journalXpCountToday as number) || 0) + 1
+    }
   }
 
   // Atualizar streak se mudou
@@ -444,10 +471,18 @@ export async function awardXPAndCoins(
     updateData.streak = newStreak
   }
 
-  // Sempre aplicar coins (independente do cooldown de XP)
-  coinsAwarded = coinReward
-  newCoins = user.coins + coinsAwarded
-  updateData.coins = newCoins
+  // Aplicar coins apenas se XP também foi concedido (para manter consistência)
+  // Para journal, só dá coins se ainda pode ganhar XP
+  if (canGainXP) {
+    coinsAwarded = coinReward
+    newCoins = user.coins + coinsAwarded
+    updateData.coins = newCoins
+  } else if (action !== 'journal') {
+    // Para outras ações que não são journal, comportamento anterior
+    coinsAwarded = coinReward
+    newCoins = user.coins + coinsAwarded
+    updateData.coins = newCoins
+  }
 
   // Atualizar banco de dados (users)
   await db.update(users).set(updateData).where(eq(users.id, userId))

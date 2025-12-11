@@ -1,5 +1,5 @@
 import { Check, Copy, Loader2, X } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export function InviteTherapistModal({
   isOpen,
@@ -12,6 +12,18 @@ export function InviteTherapistModal({
 }) {
   const [isCopied, setIsCopied] = useState(false)
   const isLoading = !inviteLink
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   if (!isOpen) return null
 

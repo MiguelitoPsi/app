@@ -2,7 +2,7 @@
 
 import { HelpCircle, X } from 'lucide-react'
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type ScreenId =
   | 'home'
@@ -229,6 +229,18 @@ type HelpButtonProps = {
 export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
   const [isOpen, setIsOpen] = useState(false)
   const tutorial = TUTORIALS[screenId]
+
+  // Block body scroll when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isOpen])
 
   return (
     <>

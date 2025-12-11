@@ -42,6 +42,18 @@ body {
   line-height: 1.5;
 }
 
+/* Theme transition - applied temporarily during theme change */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    color 75ms ease-out !important;
+  transition-delay: 0ms !important;
+}
+
 /* Smooth scrolling for iOS */
 .scroll-smooth {
   -webkit-overflow-scrolling: touch;

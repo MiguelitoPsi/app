@@ -2,11 +2,40 @@ import { and, desc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { journalEntries, psychologistPatients, userStats, users } from '@/lib/db/schema'
-import { addRawXP, awardXPAndCoins } from '@/lib/xp'
+import { isSameDay } from '@/lib/utils/timezone'
+import { addRawXP, awardXPAndCoins, JOURNAL_XP_DAILY_LIMIT } from '@/lib/xp'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
 
 export const journalRouter = router({
+  // Verifica quantos registros com XP restam para o dia
+  getXpStatus: protectedProcedure.query(async ({ ctx }) => {
+    const [user] = await ctx.db
+      .select({
+        lastJournalXpDate: users.lastJournalXpDate,
+        journalXpCountToday: users.journalXpCountToday,
+      })
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (!user) {
+      return { canEarnXp: true, remainingToday: JOURNAL_XP_DAILY_LIMIT, countToday: 0 }
+    }
+
+    const lastDate = user.lastJournalXpDate
+    const isNewDay = !(lastDate && isSameDay(lastDate, new Date()))
+    const countToday = isNewDay ? 0 : user.journalXpCountToday || 0
+    const remainingToday = Math.max(0, JOURNAL_XP_DAILY_LIMIT - countToday)
+
+    return {
+      canEarnXp: remainingToday > 0,
+      remainingToday,
+      countToday,
+      dailyLimit: JOURNAL_XP_DAILY_LIMIT,
+    }
+  }),
+
   getAll: protectedProcedure
     .input(
       z
@@ -331,4 +360,23 @@ export const journalRouter = router({
 
       return { success: true }
     }),
+
+  markAllFeedbackAsViewed: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== 'patient') {
+      throw new Error('Unauthorized: Only patients can mark feedback as viewed')
+    }
+
+    await ctx.db
+      .update(journalEntries)
+      .set({ feedbackViewed: true })
+      .where(
+        and(
+          eq(journalEntries.userId, ctx.user.id),
+          isNotNull(journalEntries.therapistFeedback),
+          eq(journalEntries.feedbackViewed, false)
+        )
+      )
+
+    return { success: true }
+  }),
 })
