@@ -47,7 +47,10 @@ export default function UsersPage() {
     data: psychologists,
     isLoading,
     refetch,
-  } = trpc.admin.getTherapistsWithPatients.useQuery()
+  } = trpc.admin.getTherapistsWithPatients.useQuery(undefined, {
+    refetchInterval: 10 * 1000, // Auto-refresh every 10 seconds
+    staleTime: 5 * 1000,
+  })
 
   const toggleExpand = (psychologistId: string) => {
     const newExpanded = new Set(expandedPsychologistIds)

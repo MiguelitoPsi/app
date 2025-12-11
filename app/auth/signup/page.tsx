@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useId, useState } from 'react'
@@ -158,9 +158,9 @@ function SignUpForm() {
 
       router.push('/home')
       router.refresh()
+      // Mantém loading=true até o redirect completar
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao criar conta')
-    } finally {
       setLoading(false)
     }
   }
@@ -312,12 +312,13 @@ function SignUpForm() {
 
               <button
                 aria-busy={loading}
-                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 flex items-center justify-center gap-2'
                 disabled={loading}
                 type='submit'
               >
                 {loading ? (
                   <>
+                    <Loader2 aria-hidden='true' className='h-5 w-5 animate-spin' />
                     <span className='sr-only'>Carregando...</span>
                     <span aria-hidden='true'>Criando conta...</span>
                   </>

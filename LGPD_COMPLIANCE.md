@@ -165,7 +165,7 @@ Não compartilhamos dados com:
 Nepsis Tecnologia em Saúde Mental LTDA
 
 **Encarregado de Dados (DPO):**
-- E-mail: privacidade@nepsis.app
+- E-mail: psijmrodrigues@gmail.com
 - Prazo de resposta: até 15 dias úteis
 
 ---

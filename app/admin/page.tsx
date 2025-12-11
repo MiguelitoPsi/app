@@ -4,7 +4,10 @@ import Link from 'next/link'
 import { trpc } from '@/lib/trpc/client'
 
 export default function AdminPage() {
-  const { data: stats, isLoading } = trpc.admin.getStats.useQuery()
+  const { data: stats, isLoading } = trpc.admin.getStats.useQuery(undefined, {
+    refetchInterval: 10 * 1000, // Auto-refresh every 10 seconds
+    staleTime: 5 * 1000,
+  })
 
   return (
     <div className='space-y-8'>

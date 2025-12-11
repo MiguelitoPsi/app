@@ -49,6 +49,12 @@ const formatDate = (value: string) => {
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`
 }
 
+const formatCRP = (value: string) => {
+  const digits = value.replace(/\D/g, '').slice(0, 7)
+  if (digits.length <= 2) return digits
+  return `${digits.slice(0, 2)}/${digits.slice(2)}`
+}
+
 const parseDateString = (dateStr: string): Date | null => {
   const parts = dateStr.split('/')
   if (parts.length !== 3) return null
@@ -350,7 +356,7 @@ export function TherapistProfileModal({
                 </label>
                 <input
                   className={`w-full rounded-xl border ${errors.crp ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                  onChange={(e) => setFormData({ ...formData, crp: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, crp: formatCRP(e.target.value) })}
                   placeholder='00/00000'
                   type='text'
                   value={formData.crp}

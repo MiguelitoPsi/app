@@ -14,6 +14,8 @@ const PUBLIC_PATHS = [
   '/therapist-invite',
   '/admin-invite',
   '/psychologists',
+  '/privacy',
+  '/terms',
 ]
 
 /**
