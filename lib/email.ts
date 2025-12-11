@@ -14,6 +14,130 @@ const getResend = () => {
   return _resend
 }
 
+export async function sendPasswordResetEmail(
+  to: string,
+  userName: string,
+  resetToken: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const resetUrl = `${
+      process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+    }/auth/reset-password?token=${resetToken}`
+
+    await getResend().emails.send({
+      from: 'Nepsis <noreply@miguelitopsi.com>',
+      to,
+      subject: 'Recuperação de Senha - Nepsis',
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <meta charset="utf-8">
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+                max-width: 600px;
+                margin: 0 auto;
+                padding: 20px;
+              }
+              .header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 30px;
+                border-radius: 10px;
+                text-align: center;
+              }
+              .content {
+                background: #f9fafb;
+                padding: 30px;
+                border-radius: 10px;
+                margin-top: 20px;
+              }
+              .button {
+                display: inline-block;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white !important;
+                padding: 14px 30px;
+                text-decoration: none;
+                border-radius: 8px;
+                font-weight: bold;
+                margin: 20px 0;
+              }
+              .footer {
+                text-align: center;
+                color: #666;
+                font-size: 12px;
+                margin-top: 30px;
+              }
+              .warning {
+                background: #fef3cd;
+                border: 1px solid #ffc107;
+                padding: 15px;
+                border-radius: 8px;
+                margin: 20px 0;
+                color: #856404;
+              }
+            </style>
+          </head>
+          <body>
+            <div class="header">
+              <h1 style="margin: 0; font-size: 28px;">🔐 Nepsis</h1>
+              <p style="margin: 10px 0 0 0; opacity: 0.9;">Recuperação de Senha</p>
+            </div>
+            
+            <div class="content">
+              <h2 style="color: #667eea; margin-top: 0;">Olá, ${userName}!</h2>
+              
+              <p>Recebemos uma solicitação para redefinir a senha da sua conta no <strong>Nepsis</strong>.</p>
+              
+              <p>Clique no botão abaixo para criar uma nova senha:</p>
+              
+              <div style="text-align: center;">
+                <a href="${resetUrl}" class="button">
+                  Redefinir Minha Senha
+                </a>
+              </div>
+              
+              <div class="warning">
+                <strong>⚠️ Importante:</strong>
+                <ul style="margin: 10px 0 0 0; padding-left: 20px;">
+                  <li>Este link é válido por <strong>1 hora</strong></li>
+                  <li>Se você não solicitou esta alteração, ignore este e-mail</li>
+                  <li>Nunca compartilhe este link com outras pessoas</li>
+                </ul>
+              </div>
+              
+              <p style="font-size: 14px; color: #666; margin-top: 20px;">
+                Ou copie e cole este link no seu navegador:<br>
+                <code style="background: #e5e7eb; padding: 5px 10px; border-radius: 4px; display: inline-block; margin-top: 5px; word-break: break-all;">${resetUrl}</code>
+              </p>
+            </div>
+            
+            <div class="footer">
+              <p>© 2025 Nepsis. Todos os direitos reservados.</p>
+              <p>Este é um e-mail automático. Por favor, não responda.</p>
+              <p style="margin-top: 10px;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/privacy" style="color: #667eea;">Política de Privacidade</a> |
+                <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/terms" style="color: #667eea;">Termos de Uso</a>
+              </p>
+            </div>
+          </body>
+        </html>
+      `,
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error('Error sending password reset email:', error)
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to send email',
+    }
+  }
+}
+
 export async function sendInviteEmail(
   to: string,
   patientName: string,

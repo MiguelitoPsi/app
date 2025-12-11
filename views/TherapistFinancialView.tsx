@@ -368,6 +368,40 @@ export default function TherapistFinancialView(): React.ReactElement {
     },
   })
 
+  const incrementGoalProgressMutation = trpc.therapistFinancial.incrementGoalProgress.useMutation({
+    onMutate: async (variables) => {
+      await utils.therapistFinancial.getGoals.cancel()
+      const previousGoals = utils.therapistFinancial.getGoals.getData({ autoRecalculate: true })
+
+      utils.therapistFinancial.getGoals.setData({ autoRecalculate: true }, (old) => {
+        if (!old) return old
+        return old.map((goal) => {
+          if (goal.id === variables.id) {
+            const newValue = goal.currentValue + (variables.incrementBy ?? 1)
+            const newProgress = Math.min(100, (newValue / goal.targetValue) * 100)
+            return {
+              ...goal,
+              currentValue: newValue,
+              progress: newProgress,
+              status: newProgress >= 100 ? 'completed' : goal.status,
+            }
+          }
+          return goal
+        })
+      })
+
+      return { previousGoals }
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousGoals) {
+        utils.therapistFinancial.getGoals.setData({ autoRecalculate: true }, context.previousGoals)
+      }
+    },
+    onSettled: () => {
+      utils.therapistFinancial.getGoals.invalidate()
+    },
+  })
+
   const deleteRecordMutation = trpc.therapistFinancial.deleteRecord.useMutation({
     onSuccess: () => {
       setShowDeleteConfirm(null)
@@ -1572,10 +1606,30 @@ export default function TherapistFinancialView(): React.ReactElement {
                       </div>
                     </div>
                     <div className='ml-9'>
-                      <div className='mb-1 flex justify-between text-sm'>
-                        <span className='text-slate-600 dark:text-slate-400'>
-                          {goal.currentValue} / {goal.targetValue} {goal.unit}
-                        </span>
+                      <div className='mb-1 flex items-center justify-between text-sm'>
+                        <div className='flex items-center gap-2'>
+                          <span className='text-slate-600 dark:text-slate-400'>
+                            {goal.currentValue} / {goal.targetValue} {goal.unit}
+                          </span>
+                          {goal.status !== 'completed' && (
+                            <button
+                              className={`flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 transition-all hover:bg-emerald-200 hover:scale-110 active:scale-95 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50 ${
+                                incrementGoalProgressMutation.isPending ? 'opacity-50' : ''
+                              }`}
+                              disabled={incrementGoalProgressMutation.isPending}
+                              onClick={() =>
+                                incrementGoalProgressMutation.mutate({
+                                  id: goal.id,
+                                  incrementBy: 1,
+                                })
+                              }
+                              title='Incrementar progresso (+1)'
+                              type='button'
+                            >
+                              <Plus className='h-3.5 w-3.5' />
+                            </button>
+                          )}
+                        </div>
                         <span className='font-medium text-emerald-600'>
                           {Math.round(goal.progress)}%
                         </span>

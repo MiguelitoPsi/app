@@ -210,6 +210,14 @@ function SignInForm() {
                     {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
                   </button>
                 </div>
+                <div className='mt-2 text-right'>
+                  <Link
+                    className='text-violet-400 text-sm hover:text-violet-300 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    href='/auth/forgot-password'
+                  >
+                    Esqueci minha senha
+                  </Link>
+                </div>
               </div>
 
               <button

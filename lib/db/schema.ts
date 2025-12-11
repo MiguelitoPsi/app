@@ -922,3 +922,22 @@ export const psychologistSubscriptionsRelations = relations(
     }),
   })
 )
+
+// Password reset tokens - LGPD compliant
+export const passwordResetTokens = sqliteTable('password_reset_tokens', {
+  id: text('id').primaryKey(),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp' }).notNull(),
+  usedAt: integer('used_at', { mode: 'timestamp' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
+})
+
+export const passwordResetTokensRelations = relations(passwordResetTokens, ({ one }) => ({
+  user: one(users, {
+    fields: [passwordResetTokens.userId],
+    references: [users.id],
+  }),
+}))

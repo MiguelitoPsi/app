@@ -2,11 +2,16 @@
 
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowRight,
   BarChart2,
   Bell,
   BellOff,
   BookOpen,
+  CheckCircle2,
+  Download,
+  Eye,
+  EyeOff,
   FileText,
   Heart,
   Key,
@@ -14,9 +19,11 @@ import {
   MessageSquare,
   Moon,
   Settings,
+  Shield,
   Sparkles,
   Stethoscope,
   Sun,
+  Trash2,
   Volume2,
   VolumeX,
   X,
@@ -65,13 +72,36 @@ export const HomeView: React.FC = () => {
     amount: number
   } | null>(null)
   const [isMounted, setIsMounted] = useState(false)
-  const [_showConsent, setShowConsent] = useState(false)
   // Local state for immediate UI feedback
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood)
   const [_, setIsScrolled] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showSettings, setShowSettings] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
+  // Change password states
+  const [showChangePassword, setShowChangePassword] = useState(false)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
+  const [passwordSuccess, setPasswordSuccess] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false)
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+
+  // LGPD States
+  const [showConsentModal, setShowConsentModal] = useState(false)
+  const [showDeleteAccountModal, setShowDeleteAccountModal] = useState(false)
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('')
+  const [deleteReason, setDeleteReason] = useState('')
+  const [isExportingData, setIsExportingData] = useState(false)
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false)
+
+  // LGPD Mutations
+  const exportDataMutation = trpc.user.exportMyData.useMutation()
+  const deleteAccountMutation = trpc.user.requestAccountDeletion.useMutation()
 
   // XP Animation
   const { particles, triggerAnimation } = useXPAnimation()
@@ -234,6 +264,152 @@ export const HomeView: React.FC = () => {
     } catch (error) {
       console.error('Error during logout:', error)
       setIsLoggingOut(false)
+    }
+  }
+
+  // Reset password form state
+  const resetPasswordForm = () => {
+    setCurrentPassword('')
+    setNewPassword('')
+    setConfirmPassword('')
+    setPasswordError('')
+    setPasswordSuccess(false)
+    setShowCurrentPassword(false)
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
+  }
+
+  // Change password handler
+  const handleChangePassword = async () => {
+    setPasswordError('')
+    setPasswordSuccess(false)
+
+    const allFieldsFilled = currentPassword && newPassword && confirmPassword
+    if (!allFieldsFilled) {
+      setPasswordError('Preencha todos os campos')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordError('A nova senha deve ter pelo menos 8 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      setPasswordError('As senhas não coincidem')
+      return
+    }
+
+    if (currentPassword === newPassword) {
+      setPasswordError('A nova senha deve ser diferente da atual')
+      return
+    }
+
+    setIsChangingPassword(true)
+    try {
+      const { error } = await authClient.changePassword({
+        currentPassword,
+        newPassword,
+        revokeOtherSessions: true,
+      })
+
+      if (error) {
+        if (error.message?.includes('Invalid password') || error.message?.includes('incorrect')) {
+          setPasswordError('Senha atual incorreta')
+        } else {
+          setPasswordError(error.message || 'Erro ao alterar senha')
+        }
+        return
+      }
+
+      setPasswordSuccess(true)
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+
+      setTimeout(() => {
+        setShowChangePassword(false)
+        setPasswordSuccess(false)
+      }, 2000)
+    } catch (error) {
+      console.error('Error changing password:', error)
+      setPasswordError('Erro ao alterar senha. Tente novamente.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  // Helper para formatar data/hora completa
+  const formatDateTime = (timestamp: number) => {
+    if (!timestamp) return ''
+    const date = new Date(timestamp)
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      hour12: false,
+    })
+  }
+
+  // LGPD: Export user data (Portability)
+  const handleExportData = async () => {
+    setIsExportingData(true)
+    try {
+      const data = await exportDataMutation.mutateAsync()
+      // Create downloadable JSON file
+      const blob = new Blob([JSON.stringify(data, null, 2)], {
+        type: 'application/json',
+      })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `nepsis_meus_dados_${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Error exporting data:', error)
+      alert('Erro ao exportar dados. Tente novamente.')
+    } finally {
+      setIsExportingData(false)
+    }
+  }
+
+  // LGPD: Request account deletion
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirmEmail) {
+      alert('Por favor, confirme seu e-mail para prosseguir.')
+      return
+    }
+
+    setIsDeletingAccount(true)
+    try {
+      const result = await deleteAccountMutation.mutateAsync({
+        confirmEmail: deleteConfirmEmail,
+        reason: deleteReason || undefined,
+      })
+
+      alert(result.message)
+
+      // Logout user after account deletion request
+      await authClient.signOut({
+        fetchOptions: {
+          onSuccess: async () => {
+            await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+            window.location.href = '/auth/signin'
+          },
+        },
+      })
+    } catch (error) {
+      console.error('Error requesting account deletion:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido'
+      alert(`Erro: ${errorMessage}`)
+    } finally {
+      setIsDeletingAccount(false)
     }
   }
 
@@ -615,38 +791,6 @@ export const HomeView: React.FC = () => {
                 </button>
               </div>
               <div className='space-y-3 sm:space-y-4'>
-                {/* Botão para visualizar termo de consentimento */}
-                <button
-                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
-                  onClick={() => setShowConsent(true)}
-                  type='button'
-                >
-                  <div className='flex items-center gap-2 sm:gap-3'>
-                    <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
-                      <FileText size={18} />
-                    </div>
-                    <div className='text-left'>
-                      <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
-                        Termo de Consentimento
-                      </h4>
-                      <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
-                        Visualizar termo assinado e data/hora
-                      </p>
-                    </div>
-                  </div>
-                  <div className='w-full mt-1'>
-                    {termsData?.termsAcceptedAt ? (
-                      <span className='block text-xs text-green-600 dark:text-green-400 font-semibold'>
-                        Assinado
-                      </span>
-                    ) : (
-                      <span className='block text-xs text-slate-400 dark:text-slate-500 font-semibold'>
-                        Não assinado
-                      </span>
-                    )}
-                  </div>
-                </button>
-
                 <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
                     <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
@@ -797,7 +941,7 @@ export const HomeView: React.FC = () => {
                   className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
                   onClick={() => {
                     setShowSettings(false)
-                    router.push('/profile')
+                    setShowChangePassword(true)
                   }}
                   type='button'
                 >
@@ -815,6 +959,95 @@ export const HomeView: React.FC = () => {
                     </div>
                   </div>
                 </button>
+
+                {/* LGPD Section - Meus Dados */}
+                <div className='mt-4 pt-4 border-t border-slate-100 dark:border-slate-800'>
+                  <p className='text-xs font-semibold text-slate-500 dark:text-slate-400 mb-3 flex items-center gap-1'>
+                    <Shield size={12} /> LGPD - Meus Dados
+                  </p>
+
+                  {/* Botão para visualizar termo de consentimento */}
+                  <button
+                    className='touch-target flex w-full items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20 mb-3'
+                    onClick={() => setShowConsentModal(true)}
+                    type='button'
+                  >
+                    <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
+                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                        <FileText size={18} />
+                      </div>
+                      <div className='min-w-0 text-left'>
+                        <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                          Termo de Consentimento
+                        </h4>
+                        <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                          Visualizar termo assinado e data/hora
+                        </p>
+                      </div>
+                    </div>
+                    <div className='flex-shrink-0'>
+                      {termsData?.termsAcceptedAt ? (
+                        <span className='text-xs text-green-600 dark:text-green-400 font-semibold'>
+                          Assinado
+                        </span>
+                      ) : (
+                        <span className='text-xs text-slate-400 dark:text-slate-500 font-semibold'>
+                          Não assinado
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Export Data Button */}
+                  <button
+                    className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-emerald-200 hover:bg-emerald-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-800 dark:hover:bg-emerald-900/20 mb-3'
+                    disabled={isExportingData}
+                    onClick={handleExportData}
+                    type='button'
+                  >
+                    <div className='flex items-center gap-2 sm:gap-3'>
+                      <div className='rounded-lg bg-emerald-100 p-1.5 text-emerald-600 sm:p-2 dark:bg-emerald-900/30 dark:text-emerald-400'>
+                        <Download size={18} />
+                      </div>
+                      <div className='text-left'>
+                        <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
+                          Exportar Meus Dados
+                        </h4>
+                        <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
+                          Baixar todos os seus dados (JSON)
+                        </p>
+                      </div>
+                    </div>
+                    {isExportingData && (
+                      <div className='h-4 w-4 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent' />
+                    )}
+                  </button>
+
+                  {/* Delete Account Button */}
+                  <button
+                    className='touch-target flex w-full items-center justify-between rounded-xl border border-red-100 bg-red-50/50 p-3 transition-all hover:border-red-200 hover:bg-red-50 sm:p-4 dark:border-red-900/30 dark:bg-red-900/10 dark:hover:border-red-800 dark:hover:bg-red-900/20'
+                    onClick={() => {
+                      setShowSettings(false)
+                      setShowDeleteAccountModal(true)
+                    }}
+                    type='button'
+                  >
+                    <div className='flex items-center gap-2 sm:gap-3'>
+                      <div className='rounded-lg bg-red-100 p-1.5 text-red-600 sm:p-2 dark:bg-red-900/30 dark:text-red-400'>
+                        <Trash2 size={18} />
+                      </div>
+                      <div className='text-left'>
+                        <h4 className='font-bold text-red-700 text-xs sm:text-sm dark:text-red-400'>
+                          Excluir Minha Conta
+                        </h4>
+                        <p className='text-red-500/70 text-[10px] sm:text-xs dark:text-red-400/60'>
+                          Solicitar exclusão permanente
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+
                 {stats.role === 'psychologist' && (
                   <button
                     className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
@@ -856,6 +1089,341 @@ export const HomeView: React.FC = () => {
 
         {/* Patient Consent Modal */}
         {termsData?.needsToAcceptTerms && <PatientConsentModal onSuccess={() => refetchTerms()} />}
+
+        {/* Change Password Modal */}
+        {showChangePassword && (
+          <div className='fade-in fixed inset-0 z-[100] flex animate-in items-center justify-center bg-slate-900/60 px-4 py-6 backdrop-blur-sm duration-200'>
+            <div
+              className='zoom-in-95 relative w-full max-w-sm animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-300 sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className='mb-4 flex items-center justify-between sm:mb-6'>
+                <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
+                  <Key className='text-violet-500' size={18} /> Alterar Senha
+                </h3>
+                <button
+                  aria-label='Fechar modal'
+                  className='touch-target flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition-all duration-200 hover:bg-slate-200 hover:text-slate-700 hover:scale-110 active:scale-95 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700 dark:hover:text-slate-200'
+                  onClick={() => {
+                    setShowChangePassword(false)
+                    resetPasswordForm()
+                  }}
+                  type='button'
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              {passwordSuccess ? (
+                <div className='flex flex-col items-center py-6 text-center'>
+                  <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
+                    <CheckCircle2 className='h-8 w-8 text-green-600 dark:text-green-400' />
+                  </div>
+                  <h4 className='mb-2 font-bold text-lg text-slate-800 dark:text-white'>
+                    Senha alterada!
+                  </h4>
+                  <p className='text-slate-500 text-sm dark:text-slate-400'>
+                    Sua senha foi atualizada com sucesso.
+                  </p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault()
+                    handleChangePassword()
+                  }}
+                >
+                  <div className='space-y-4'>
+                    <div>
+                      <label
+                        className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                        htmlFor='currentPassword'
+                      >
+                        Senha atual
+                      </label>
+                      <div className='relative'>
+                        <input
+                          autoComplete='current-password'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          id='currentPassword'
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder='••••••••'
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          value={currentPassword}
+                        />
+                        <button
+                          aria-label={showCurrentPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                          className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          type='button'
+                        >
+                          {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label
+                        className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                        htmlFor='newPassword'
+                      >
+                        Nova senha
+                      </label>
+                      <div className='relative'>
+                        <input
+                          autoComplete='new-password'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          id='newPassword'
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder='••••••••'
+                          type={showNewPassword ? 'text' : 'password'}
+                          value={newPassword}
+                        />
+                        <button
+                          aria-label={showNewPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                          className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          type='button'
+                        >
+                          {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                      <p className='mt-1 text-slate-400 text-[10px] sm:text-xs dark:text-slate-500'>
+                        Mínimo de 8 caracteres
+                      </p>
+                    </div>
+
+                    <div>
+                      <label
+                        className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'
+                        htmlFor='confirmPassword'
+                      >
+                        Confirmar nova senha
+                      </label>
+                      <div className='relative'>
+                        <input
+                          autoComplete='new-password'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          id='confirmPassword'
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          placeholder='••••••••'
+                          type={showConfirmPassword ? 'text' : 'password'}
+                          value={confirmPassword}
+                        />
+                        <button
+                          aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
+                          className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-600 dark:hover:text-slate-300'
+                          onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                          type='button'
+                        >
+                          {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {passwordError && (
+                      <div className='rounded-lg bg-red-50 p-3 text-center text-red-600 text-sm dark:bg-red-900/20 dark:text-red-400'>
+                        {passwordError}
+                      </div>
+                    )}
+
+                    <button
+                      className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                      disabled={isChangingPassword}
+                      type='submit'
+                    >
+                      {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+            <div
+              className='-z-10 absolute inset-0'
+              onClick={() => {
+                setShowChangePassword(false)
+                resetPasswordForm()
+              }}
+            />
+          </div>
+        )}
+
+        {/* Modal de Exclusão de Conta (LGPD) */}
+        {showDeleteAccountModal && (
+          <div className='fade-in fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/80 px-4 backdrop-blur-sm'>
+            <div className='w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900'>
+              <div className='border-slate-100 border-b bg-red-50 px-6 py-6 dark:border-slate-800 dark:bg-red-900/20'>
+                <div className='flex items-center gap-4'>
+                  <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+                    <AlertTriangle size={24} />
+                  </div>
+                  <div>
+                    <h2 className='font-bold text-xl text-red-700 sm:text-2xl dark:text-red-400'>
+                      Excluir Conta
+                    </h2>
+                    <p className='text-red-600/70 text-sm dark:text-red-400/70'>
+                      Esta ação é irreversível
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className='p-6 sm:p-8'>
+                <div className='mb-6 rounded-xl bg-amber-50 border border-amber-200 p-4 dark:bg-amber-900/20 dark:border-amber-800'>
+                  <p className='text-amber-800 text-sm dark:text-amber-300'>
+                    <strong>Atenção:</strong> Ao excluir sua conta, todos os seus dados serão
+                    marcados para remoção. Conforme nossa política de privacidade, seus dados serão
+                    anonimizados/excluídos em até 30 dias.
+                  </p>
+                </div>
+
+                <div className='space-y-4'>
+                  <div>
+                    <label className='block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2'>
+                      Confirme seu e-mail para continuar:
+                    </label>
+                    <input
+                      className='w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-white'
+                      onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                      placeholder='seu@email.com'
+                      type='email'
+                      value={deleteConfirmEmail}
+                    />
+                  </div>
+
+                  <div>
+                    <label className='block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2'>
+                      Motivo (opcional):
+                    </label>
+                    <textarea
+                      className='w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-800 placeholder:text-slate-400 focus:border-red-500 focus:ring-2 focus:ring-red-500/20 outline-none transition-all resize-none dark:border-slate-700 dark:bg-slate-800 dark:text-white'
+                      onChange={(e) => setDeleteReason(e.target.value)}
+                      placeholder='Conte-nos por que está saindo...'
+                      rows={3}
+                      value={deleteReason}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className='border-slate-100 border-t bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50'>
+                <div className='flex flex-col gap-3 sm:flex-row sm:justify-end'>
+                  <button
+                    className='flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 font-bold text-slate-700 transition-all hover:bg-slate-100 active:scale-95 sm:w-auto dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                    onClick={() => {
+                      setShowDeleteAccountModal(false)
+                      setDeleteConfirmEmail('')
+                      setDeleteReason('')
+                    }}
+                    type='button'
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className='flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-6 py-3 font-bold text-white transition-all hover:bg-red-700 active:scale-95 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed'
+                    disabled={isDeletingAccount || !deleteConfirmEmail}
+                    onClick={handleDeleteAccount}
+                    type='button'
+                  >
+                    {isDeletingAccount ? (
+                      <>
+                        <div className='h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent' />
+                        Excluindo...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 size={18} />
+                        Excluir Permanentemente
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal do termo de consentimento */}
+        {showConsentModal && (
+          <div className='fade-in fixed inset-0 z-[110] flex items-center justify-center bg-slate-900/80 px-4 backdrop-blur-sm'>
+            <div className='w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900'>
+              <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
+                <div className='flex items-center gap-4'>
+                  <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <FileText size={24} />
+                  </div>
+                  <div>
+                    <h2 className='font-bold text-xl text-slate-900 sm:text-2xl dark:text-white'>
+                      Termo de Consentimento
+                    </h2>
+                    <p className='text-slate-500 text-sm dark:text-slate-400'>
+                      Abaixo está o termo assinado e a data/hora do aceite.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className='max-h-[60vh] overflow-y-auto p-6 sm:p-8'>
+                <div className='prose prose-slate max-w-none dark:prose-invert prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-800 dark:prose-p:text-slate-200 prose-li:text-slate-800 dark:prose-li:text-slate-200 prose-strong:text-slate-900 dark:prose-strong:text-white'>
+                  <p className='text-slate-800 dark:text-slate-200 font-medium'>
+                    Este Termo de Consentimento Livre e Esclarecido (TCLE) tem como objetivo
+                    fornecer informações sobre a utilização da plataforma de acompanhamento
+                    terapêutico.
+                  </p>
+                  <h3 className='text-slate-900 dark:text-white font-bold'>
+                    1. Objetivo da Plataforma
+                  </h3>
+                  <p className='text-slate-800 dark:text-slate-200'>
+                    Esta plataforma foi desenvolvida para auxiliar no acompanhamento do seu processo
+                    terapêutico, permitindo o registro de humor, diário de pensamentos, realização
+                    de tarefas e meditações.
+                  </p>
+                  <h3 className='text-slate-900 dark:text-white font-bold'>
+                    2. Confidencialidade e Privacidade
+                  </h3>
+                  <p className='text-slate-800 dark:text-slate-200'>
+                    Todas as informações registradas na plataforma são confidenciais e protegidas.
+                    Apenas você e seu terapeuta vinculado terão acesso aos dados inseridos.
+                  </p>
+                  <h3 className='text-slate-900 dark:text-white font-bold'>3. Uso de Dados</h3>
+                  <p className='text-slate-800 dark:text-slate-200'>
+                    Os dados coletados serão utilizados exclusivamente para fins terapêuticos e de
+                    melhoria do seu acompanhamento. Dados anonimizados poderão ser utilizados para
+                    fins estatísticos e de pesquisa.
+                  </p>
+                  <h3 className='text-slate-900 dark:text-white font-bold'>
+                    4. Compromisso do Usuário
+                  </h3>
+                  <p className='text-slate-800 dark:text-slate-200'>
+                    Ao utilizar a plataforma, você se compromete a fornecer informações verídicas e
+                    a utilizar os recursos de forma responsável.
+                  </p>
+                  <h3 className='text-slate-900 dark:text-white font-bold'>5. Desistência</h3>
+                  <p className='text-slate-800 dark:text-slate-200'>
+                    Você pode deixar de utilizar a plataforma a qualquer momento, sem prejuízo ao
+                    seu atendimento terapêutico presencial ou online.
+                  </p>
+                </div>
+                <div className='mt-6 rounded-xl bg-violet-50 p-4 text-slate-700 text-sm dark:bg-violet-900/20 dark:text-slate-200'>
+                  <strong>Data/hora da assinatura:</strong>{' '}
+                  {termsData?.termsAcceptedAt ? (
+                    <span className='font-mono'>{formatDateTime(termsData.termsAcceptedAt)}</span>
+                  ) : (
+                    <span className='italic text-slate-400'>Não assinado</span>
+                  )}
+                </div>
+              </div>
+              <div className='border-slate-100 border-t bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50'>
+                <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
+                  <button
+                    className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-bold text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/20 active:scale-95 sm:w-auto'
+                    onClick={() => setShowConsentModal(false)}
+                    type='button'
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )

@@ -797,6 +797,57 @@ export const therapistFinancialRouter = router({
       }
     }),
 
+  // Incrementar progresso da meta
+  incrementGoalProgress: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        incrementBy: z.number().min(1).default(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [goal] = await db
+        .select()
+        .from(therapistGoals)
+        .where(and(eq(therapistGoals.id, input.id), eq(therapistGoals.therapistId, ctx.user.id)))
+        .limit(1)
+
+      if (!goal) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Meta não encontrada' })
+      }
+
+      const newValue = goal.currentValue + input.incrementBy
+      const isCompleted = newValue >= goal.targetValue
+      const wasNotCompleted = goal.status !== 'completed'
+
+      const [updated] = await db
+        .update(therapistGoals)
+        .set({
+          currentValue: newValue,
+          status: isCompleted ? 'completed' : goal.status,
+          completedAt: isCompleted && wasNotCompleted ? new Date() : goal.completedAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(therapistGoals.id, input.id))
+        .returning()
+
+      // Se completou a meta, dar XP
+      if (isCompleted && wasNotCompleted) {
+        await awardTherapistXP(db, ctx.user.id, 'achieveGoal')
+      }
+
+      return {
+        goal: updated,
+        completed: isCompleted && wasNotCompleted,
+        newValue,
+        progress: Math.min(100, (newValue / goal.targetValue) * 100),
+      }
+    }),
+
   // Atualizar status da meta
   updateGoalStatus: protectedProcedure
     .input(
