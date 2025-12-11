@@ -9,6 +9,8 @@ import { GameProvider } from '@/context/GameContext'
 const navItems = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
   { href: '/admin/users', label: 'Usuários', icon: '👥' },
+  { href: '/admin/subscriptions', label: 'Assinaturas', icon: '💳' },
+  { href: '/admin/terms', label: 'Termos', icon: '📄' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

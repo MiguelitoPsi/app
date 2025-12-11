@@ -1063,4 +1063,84 @@ export const adminRouter = router({
 
       return { success: true }
     }),
+
+  // Obter todas as assinaturas de termos de todos os usuários
+  getTermsAcceptances: protectedProcedure.query(async ({ ctx }) => {
+    // Verificar se é admin
+    const [currentUser] = await ctx.db
+      .select()
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (currentUser?.role !== 'admin') {
+      throw new Error('Acesso não autorizado')
+    }
+
+    // Buscar todos os usuários que precisam aceitar termos (pacientes e psicólogos)
+    const allUsers = await ctx.db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        role: users.role,
+        termsAcceptedAt: users.termsAcceptedAt,
+        createdAt: users.createdAt,
+        deletedAt: users.deletedAt,
+        bannedAt: users.bannedAt,
+      })
+      .from(users)
+      .where(or(eq(users.role, 'psychologist'), eq(users.role, 'patient')))
+      .orderBy(users.createdAt)
+
+    return allUsers
+  }),
+
+  // Obter estatísticas de assinaturas de termos
+  getTermsStats: protectedProcedure.query(async ({ ctx }) => {
+    // Verificar se é admin
+    const [currentUser] = await ctx.db
+      .select()
+      .from(users)
+      .where(eq(users.id, ctx.user.id))
+      .limit(1)
+
+    if (currentUser?.role !== 'admin') {
+      throw new Error('Acesso não autorizado')
+    }
+
+    // Total de pacientes
+    const [totalPatients] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.role, 'patient'))
+
+    // Pacientes que aceitaram os termos
+    const [patientsAccepted] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(and(eq(users.role, 'patient'), sql`${users.termsAcceptedAt} IS NOT NULL`))
+
+    // Total de psicólogos
+    const [totalPsychologists] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(eq(users.role, 'psychologist'))
+
+    // Psicólogos que aceitaram os termos
+    const [psychologistsAccepted] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(and(eq(users.role, 'psychologist'), sql`${users.termsAcceptedAt} IS NOT NULL`))
+
+    return {
+      totalPatients: Number(totalPatients?.count ?? 0),
+      patientsAccepted: Number(patientsAccepted?.count ?? 0),
+      patientsPending: Number(totalPatients?.count ?? 0) - Number(patientsAccepted?.count ?? 0),
+      totalPsychologists: Number(totalPsychologists?.count ?? 0),
+      psychologistsAccepted: Number(psychologistsAccepted?.count ?? 0),
+      psychologistsPending:
+        Number(totalPsychologists?.count ?? 0) - Number(psychologistsAccepted?.count ?? 0),
+    }
+  }),
 })
