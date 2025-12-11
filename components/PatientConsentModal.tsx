@@ -2,7 +2,7 @@
 
 import { Check, FileText } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc/client";
 
 type PatientConsentModalProps = {
