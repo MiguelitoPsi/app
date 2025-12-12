@@ -15,7 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import type React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
 import { useSound } from '@/hooks/useSound'
 import { useGame } from '../context/GameContext'
@@ -32,6 +32,27 @@ export const RewardsView: React.FC = () => {
   // New Reward Form State
   const [newRewardTitle, setNewRewardTitle] = useState('')
   const [newRewardCategory, setNewRewardCategory] = useState<RewardCategory>('lazer')
+
+  // Listen for central button toggle event from BottomNav
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsAdding((prev) => !prev)
+    }
+    window.addEventListener('toggleRewardsAdd', handleToggle)
+    return () => window.removeEventListener('toggleRewardsAdd', handleToggle)
+  }, [])
+
+  // Lock scroll when modal is open
+  useEffect(() => {
+    if (isAdding) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isAdding])
 
   const categories: { id: RewardCategory; label: string; color: string; icon: string }[] = [
     { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: '🎮' },
@@ -162,68 +183,6 @@ export const RewardsView: React.FC = () => {
         className='flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:space-y-6 sm:px-6 sm:py-6'
         id='main-content'
       >
-        {/* Add Reward Form */}
-        {isAdding && (
-          <div className='slide-in-from-top-4 fade-in animate-in rounded-2xl border border-slate-100 bg-white p-4 shadow-slate-200/50 shadow-xl duration-300 sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'>
-            <div className='mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3'>
-              <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/30 dark:text-violet-300'>
-                <Gift size={18} />
-              </div>
-              <h3 className='font-bold text-sm text-slate-800 sm:text-base dark:text-white'>
-                Nova Recompensa
-              </h3>
-            </div>
-
-            <form className='space-y-3 sm:space-y-4' onSubmit={handleSubmit}>
-              <div>
-                <label className='mb-1 ml-1 block font-bold text-slate-400 text-[10px] uppercase sm:mb-1.5 sm:text-xs'>
-                  O que você deseja?
-                </label>
-                <input
-                  autoFocus
-                  className='w-full rounded-xl border-0 bg-slate-50 p-3 font-medium text-slate-800 text-sm transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-violet-500 sm:rounded-2xl sm:p-4 sm:text-base dark:bg-slate-800 dark:text-white'
-                  onChange={(e) => setNewRewardTitle(e.target.value)}
-                  placeholder='Ex: Cinema, Jantar fora, Skin...'
-                  type='text'
-                  value={newRewardTitle}
-                />
-              </div>
-
-              <div>
-                <label className='mb-1 ml-1 block font-bold text-slate-400 text-[10px] uppercase sm:mb-1.5 sm:text-xs'>
-                  Categoria
-                </label>
-                <div className='grid grid-cols-2 gap-2'>
-                  {categories.map((cat) => (
-                    <button
-                      className={`flex items-center gap-2 rounded-lg border-2 p-2.5 font-bold text-[11px] transition-all sm:rounded-xl sm:p-3 sm:text-xs ${
-                        newRewardCategory === cat.id
-                          ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300'
-                          : 'border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
-                      }
-                                    `}
-                      key={cat.id}
-                      onClick={() => setNewRewardCategory(cat.id)}
-                      type='button'
-                    >
-                      <span className='text-sm sm:text-base'>{cat.icon}</span>
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-3 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] hover:bg-violet-700 sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none'
-                type='submit'
-              >
-                <span>Criar Recompensa</span>
-                <ChevronRight size={16} />
-              </button>
-            </form>
-          </div>
-        )}
-
         {/* Category Filter */}
         <div className='grid grid-cols-5 gap-2 sm:gap-3'>
           <button
@@ -419,6 +378,86 @@ export const RewardsView: React.FC = () => {
           )}
         </div>
       </main>
+
+      {/* Add Reward Modal */}
+      {isAdding && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+          {/* Backdrop */}
+          <div
+            aria-hidden='true'
+            className='absolute inset-0 bg-black/50 backdrop-blur-sm'
+            onClick={() => setIsAdding(false)}
+          />
+          {/* Modal Content */}
+          <div className='zoom-in-95 fade-in relative w-full max-w-md animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
+            <div className='mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3'>
+              <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/30 dark:text-violet-300'>
+                <Gift size={18} />
+              </div>
+              <h3 className='font-bold text-sm text-slate-800 sm:text-base dark:text-white'>
+                Nova Recompensa
+              </h3>
+            </div>
+
+            <form className='space-y-3 sm:space-y-4' onSubmit={handleSubmit}>
+              <div>
+                <label className='mb-1 ml-1 block font-bold text-slate-400 text-[10px] uppercase sm:mb-1.5 sm:text-xs'>
+                  O que você deseja?
+                </label>
+                <input
+                  autoFocus
+                  className='w-full rounded-xl border-0 bg-slate-50 p-3 font-medium text-slate-800 text-sm transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-violet-500 sm:rounded-2xl sm:p-4 sm:text-base dark:bg-slate-800 dark:text-white'
+                  onChange={(e) => setNewRewardTitle(e.target.value)}
+                  placeholder='Ex: Cinema, Jantar fora, Skin...'
+                  type='text'
+                  value={newRewardTitle}
+                />
+              </div>
+
+              <div>
+                <label className='mb-1 ml-1 block font-bold text-slate-400 text-[10px] uppercase sm:mb-1.5 sm:text-xs'>
+                  Categoria
+                </label>
+                <div className='grid grid-cols-2 gap-2'>
+                  {categories.map((cat) => (
+                    <button
+                      className={`flex items-center gap-2 rounded-lg border-2 p-2.5 font-bold text-[11px] transition-all sm:rounded-xl sm:p-3 sm:text-xs ${
+                        newRewardCategory === cat.id
+                          ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300'
+                          : 'border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
+                      }
+                                    `}
+                      key={cat.id}
+                      onClick={() => setNewRewardCategory(cat.id)}
+                      type='button'
+                    >
+                      <span className='text-sm sm:text-base'>{cat.icon}</span>
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className='flex gap-3 pt-2'>
+                <button
+                  className='flex-1 rounded-xl py-3 font-bold text-slate-500 text-sm transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700'
+                  onClick={() => setIsAdding(false)}
+                  type='button'
+                >
+                  Cancelar
+                </button>
+                <button
+                  className='touch-target flex flex-[2] items-center justify-center gap-2 rounded-xl bg-violet-600 py-3 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] hover:bg-violet-700 dark:shadow-none'
+                  type='submit'
+                >
+                  <span>Criar Recompensa</span>
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

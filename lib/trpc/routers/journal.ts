@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { journalEntries, psychologistPatients, userStats, users } from '@/lib/db/schema'
 import { isSameDay } from '@/lib/utils/timezone'
 import { addRawXP, awardXPAndCoins, JOURNAL_XP_DAILY_LIMIT } from '@/lib/xp'
+import { addTherapistRawXP } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
 import { autoCheckBadges } from './badge'
 
@@ -235,8 +236,8 @@ export const journalRouter = router({
       // Award XP to patient (5 XP for having entry read)
       const _patientResult = await addRawXP(ctx.db, entry.userId, 5)
 
-      // Award XP to therapist (5 XP for reading)
-      const therapistResult = await addRawXP(ctx.db, ctx.user.id, 5)
+      // Award XP to therapist (5 XP for reading) - usar therapistStats
+      const therapistResult = await addTherapistRawXP(ctx.db, ctx.user.id, 5)
 
       return {
         success: true,
@@ -297,12 +298,12 @@ export const journalRouter = router({
         })
         .where(eq(journalEntries.id, input.entryId))
 
-      // Award XP to therapist only for new feedback (10 XP)
+      // Award XP to therapist only for new feedback (10 XP) - usar therapistStats
       let therapistXpAwarded = 0
       let therapistLevel = 0
       let therapistExperience = 0
       if (isNewFeedback) {
-        const therapistResult = await addRawXP(ctx.db, ctx.user.id, 10)
+        const therapistResult = await addTherapistRawXP(ctx.db, ctx.user.id, 10)
         therapistXpAwarded = 10
         therapistLevel = therapistResult.level
         therapistExperience = therapistResult.experience

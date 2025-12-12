@@ -107,17 +107,39 @@ export const BottomNav: React.FC = () => {
             className='absolute inset-0 rounded-full bg-violet-600 opacity-40 blur-lg transition-opacity duration-300 group-hover:opacity-60'
           />
           <button
-            aria-label='Abrir diário de pensamentos'
+            aria-label={
+              pathname === '/routine'
+                ? 'Adicionar nova tarefa'
+                : pathname === '/rewards'
+                  ? 'Adicionar nova recompensa'
+                  : 'Abrir diário de pensamentos'
+            }
             className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-violet-300/50 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4'
             onClick={() => {
               playNavigation()
-              router.push('/journal')
+              // Context-aware action based on current page
+              if (pathname === '/routine') {
+                // Dispatch event to toggle add task form in RoutineView
+                window.dispatchEvent(new CustomEvent('toggleRoutineAdd'))
+              } else if (pathname === '/rewards') {
+                // Dispatch event to toggle add reward form in RewardsView
+                window.dispatchEvent(new CustomEvent('toggleRewardsAdd'))
+              } else {
+                // Default action: open journal
+                router.push('/journal')
+              }
             }}
             type='button'
           >
             <Plus aria-hidden='true' className='sm:hidden' size={28} strokeWidth={2.5} />
             <Plus aria-hidden='true' className='hidden sm:block' size={32} strokeWidth={2.5} />
-            <span className='sr-only'>Novo registro no diário</span>
+            <span className='sr-only'>
+              {pathname === '/routine'
+                ? 'Nova tarefa'
+                : pathname === '/rewards'
+                  ? 'Nova recompensa'
+                  : 'Novo registro no diário'}
+            </span>
           </button>
         </div>
 

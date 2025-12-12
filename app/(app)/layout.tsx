@@ -30,9 +30,19 @@ function AppHeader() {
     return rank ?? RANKS[0]
   }, [stats.level])
 
-  // Calculate XP progress within current level
-  const xpProgress = stats.xp % 100
-  const xpToNext = 100 - xpProgress
+  // Calculate XP progress within current level using RANKS thresholds
+  const nextRank = RANKS.find((r) => r.level === stats.level + 1)
+  const currentRankThreshold = currentRank?.xpRequired ?? 0
+  const nextRankThreshold = nextRank?.xpRequired ?? currentRankThreshold + 100
+
+  // XP gained since reaching current level
+  const xpInCurrentLevel = stats.xp - currentRankThreshold
+  // Total XP needed to reach next level from current level
+  const xpNeededForNextLevel = nextRankThreshold - currentRankThreshold
+  // Progress percentage within current level (0-100)
+  const xpProgress = Math.min(100, Math.round((xpInCurrentLevel / xpNeededForNextLevel) * 100))
+  // XP remaining to next level
+  const xpToNext = Math.max(0, nextRankThreshold - stats.xp)
 
   return (
     <header className='relative z-10   pt-safe  '>

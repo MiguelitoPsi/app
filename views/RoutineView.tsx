@@ -67,10 +67,42 @@ export const RoutineView: React.FC = () => {
     }
   }, [urgentOverdueTasks.length])
 
-  // Reward Animation State
-  const [rewardAnimations, setRewardAnimations] = useState<
-    { id: string; x: number; y: number; val: number; type: 'xp' | 'pts' }[]
-  >([])
+  // Listen for central button toggle event from BottomNav
+  useEffect(() => {
+    const handleToggle = () => {
+      setIsAdding((prev) => {
+        // When opening, set the date to today or selected date
+        if (!prev) {
+          const today = new Date()
+          today.setHours(0, 0, 0, 0)
+          const selected = new Date(selectedDate)
+          selected.setHours(0, 0, 0, 0)
+          const dateToUse = selected < today ? today : selectedDate
+          const yyyy = dateToUse.getFullYear()
+          const mm = String(dateToUse.getMonth() + 1).padStart(2, '0')
+          const dd = String(dateToUse.getDate()).padStart(2, '0')
+          setNewTaskDate(`${yyyy}-${mm}-${dd}`)
+        }
+        return !prev
+      })
+    }
+    window.addEventListener('toggleRoutineAdd', handleToggle)
+    return () => window.removeEventListener('toggleRoutineAdd', handleToggle)
+  }, [selectedDate])
+
+  // Lock scroll when modal is open
+  useEffect(() => {
+    if (isAdding) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [isAdding])
+
+  // Ripple Animation State
   const [ripples, setRipples] = useState<{ id: string; x: number; y: number }[]>([])
 
   // XP Animation to bar
@@ -427,13 +459,6 @@ export const RoutineView: React.FC = () => {
         // Add Ripple
         setRipples((prev) => [...prev, { id, x: centerX, y: centerY }])
 
-        // Add Reward Text (Split XP and Pts)
-        setRewardAnimations((prev) => [
-          ...prev,
-          { id: `${id}-xp`, x: centerX, y: centerY, val: xp, type: 'xp' },
-          { id: `${id}-pts`, x: centerX, y: centerY, val: pts, type: 'pts' },
-        ])
-
         // Trigger Fireworks
         const x = e.clientX / window.innerWidth
         const y = e.clientY / window.innerHeight
@@ -452,17 +477,14 @@ export const RoutineView: React.FC = () => {
           disableForReducedMotion: true,
         })
 
-        // Trigger particles flying to XP bar
+        // Trigger particles flying to XP bar (single animation)
+        triggerAnimation(xp, 'xp', centerX, centerY)
         setTimeout(() => {
-          triggerAnimation(xp, 'xp', centerX, centerY)
-          setTimeout(() => {
-            triggerAnimation(pts, 'pts', centerX, centerY)
-          }, 100)
+          triggerAnimation(pts, 'pts', centerX, centerY)
         }, 200)
 
-        // Remove animations after 1s
+        // Remove ripple after animation
         setTimeout(() => {
-          setRewardAnimations((prev) => prev.filter((anim) => !anim.id.startsWith(id)))
           setRipples((prev) => prev.filter((r) => r.id !== id))
         }, 1000)
       }
@@ -662,11 +684,18 @@ export const RoutineView: React.FC = () => {
           </div>
         )}
 
-        {/* Add Task Form */}
-        {isAdding && (
-          <div className='mb-6 sm:mb-8'>
-            <div className='slide-in-from-top-2 zoom-in-95 relative animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-xl transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
-              <div className='absolute top-0 left-0 h-1 w-full bg-gradient-to-r from-violet-500 to-fuchsia-500' />
+      {/* Add Task Modal */}
+      {isAdding && (
+        <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+          {/* Backdrop */}
+          <div
+            aria-hidden='true'
+            className='absolute inset-0 bg-black/50 backdrop-blur-sm'
+            onClick={() => setIsAdding(false)}
+          />
+          {/* Modal Content */}
+          <div className='zoom-in-95 fade-in relative max-h-[85vh] w-full max-w-md animate-in overflow-y-auto rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
+            <div className='absolute top-0 left-0 h-1 w-full rounded-t-2xl bg-gradient-to-r from-violet-500 to-fuchsia-500 sm:rounded-t-3xl' />
 
               <h3 className='mb-3 flex items-center gap-2 font-bold text-base text-slate-800 sm:mb-4 sm:text-lg dark:text-white'>
                 <Plus className='text-violet-500' size={16} />
@@ -850,9 +879,9 @@ export const RoutineView: React.FC = () => {
                   </button>
                 </div>
               </form>
-            </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Tasks List */}
         <div className='space-y-2 sm:space-y-3'>
@@ -1136,32 +1165,6 @@ export const RoutineView: React.FC = () => {
           />
         ))}
 
-        {/* Reward Animations */}
-        {rewardAnimations.map((anim) => (
-          <div
-            className='pointer-events-none fixed z-50 flex flex-col items-center gap-1 font-black text-sm'
-            key={anim.id}
-            style={{
-              left: anim.x,
-              top: anim.y,
-              animation:
-                anim.type === 'xp'
-                  ? 'float-up-left 1s ease-out forwards'
-                  : 'float-up-right 1s ease-out forwards',
-            }}
-          >
-            {anim.type === 'xp' ? (
-              <div className='flex items-center gap-1 rounded-full bg-violet-600 px-3 py-1 text-white shadow-lg shadow-violet-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
-                <span>+{anim.val} XP</span>
-              </div>
-            ) : (
-              <div className='flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1 text-white shadow-lg shadow-emerald-500/30 ring-2 ring-white/20 backdrop-blur-sm'>
-                <Gem size={12} />
-                <span>+{anim.val}</span>
-              </div>
-            )}
-          </div>
-        ))}
       </div>
     </>
   )

@@ -65,7 +65,7 @@ export function useXPAnimation(): UseXPAnimationReturn {
       // Auto-remove particle after animation completes
       setTimeout(() => {
         setParticles((prev) => prev.filter((p) => p.id !== id))
-      }, 1500)
+      }, 4000)
     },
     [xpBarPosition]
   )
