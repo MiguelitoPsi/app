@@ -524,6 +524,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           deletedAt: null,
           fromTherapist: false,
           therapistId: null,
+          metadata: null,
         },
       ]
     })
