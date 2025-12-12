@@ -484,7 +484,7 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }
 
-  const addTask = async (taskData: {
+  const addTask = (taskData: {
     title: string
     description?: string
     priority: 'low' | 'medium' | 'high'
@@ -493,22 +493,66 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     weekDays?: number[]
     monthDays?: number[]
   }) => {
-    try {
-      await utils.client.task.create.mutate({
-        title: taskData.title,
-        description: taskData.description,
-        category: 'general',
-        priority: taskData.priority,
-        dueDate: taskData.dueDate ? new Date(taskData.dueDate) : undefined,
-        frequency: taskData.frequency,
-        weekDays: taskData.weekDays,
-        monthDays: taskData.monthDays,
-      })
+    // Generate temporary ID for optimistic update
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const dueDate = taskData.dueDate ? new Date(taskData.dueDate) : new Date()
 
-      // Background invalidation - refetch to get the new task with all fields
-      utils.task.getAll.invalidate()
+    // Optimistic update - add task immediately to UI
+    utils.task.getAll.setData(undefined, (old) => {
+      if (!old) return old
+      return [
+        ...old,
+        {
+          id: tempId,
+          userId: '',
+          title: taskData.title,
+          description: taskData.description || null,
+          category: 'general',
+          priority: taskData.priority,
+          dueDate,
+          completed: false,
+          completedAt: null,
+          experience: 0,
+          coins: 0,
+          frequency: taskData.frequency || 'once',
+          weekDays: taskData.weekDays || null,
+          monthDays: taskData.monthDays || null,
+          originalDueDate: null,
+          transferCount: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          deletedAt: null,
+          fromTherapist: false,
+          therapistId: null,
+        },
+      ]
+    })
+
+    try {
+      // Fire and forget - don't await
+      utils.client.task.create
+        .mutate({
+          title: taskData.title,
+          description: taskData.description,
+          category: 'general',
+          priority: taskData.priority,
+          dueDate,
+          frequency: taskData.frequency,
+          weekDays: taskData.weekDays,
+          monthDays: taskData.monthDays,
+        })
+        .then(() => {
+          // Background invalidation to sync with server
+          utils.task.getAll.invalidate()
+        })
+        .catch((error) => {
+          console.error('Error creating task:', error)
+          // Revert optimistic update on error
+          utils.task.getAll.invalidate()
+        })
     } catch (error) {
       console.error('Error creating task:', error)
+      utils.task.getAll.invalidate()
       throw error
     }
   }

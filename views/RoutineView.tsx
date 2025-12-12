@@ -135,7 +135,7 @@ export const RoutineView: React.FC = () => {
     setSelectedDate(newDate)
   }
 
-  const handleAddTask = async (e: React.FormEvent) => {
+  const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault()
     if (!newTaskTitle.trim()) {
       return
@@ -213,7 +213,11 @@ export const RoutineView: React.FC = () => {
       }
     }
 
-    console.log(`Creating ${datesToCreate.length} tasks for frequency: ${newTaskFrequency}`)
+    console.log(`Creating ${datesToCreate.length} tasks for frequency: ${newTaskFrequency}`, {
+      dates: datesToCreate.map((d) => new Date(d).toLocaleDateString('pt-BR')),
+      title: newTaskTitle,
+      priority: newTaskPriority,
+    })
 
     // Validation: Check limits for the first date (to prevent creation)
     const firstTimestamp = datesToCreate[0]
@@ -258,24 +262,23 @@ export const RoutineView: React.FC = () => {
       }
     }
 
-    // Create tasks for all dates in parallel for better performance
-    await Promise.all(
-      datesToCreate.map((timestamp) =>
-        addTask({
-          title: newTaskTitle,
-          priority: newTaskPriority,
-          dueDate: timestamp,
-          frequency: newTaskFrequency,
-          weekDays: newTaskFrequency === 'weekly' ? selectedWeekDays : undefined,
-          monthDays: newTaskFrequency === 'monthly' ? selectedMonthDays : undefined,
-        })
-      )
-    )
+    // Create tasks - fire and forget for instant UI response
+    // Tasks are added optimistically in GameContext
+    for (const timestamp of datesToCreate) {
+      addTask({
+        title: newTaskTitle,
+        priority: newTaskPriority,
+        dueDate: timestamp,
+        frequency: newTaskFrequency,
+        weekDays: newTaskFrequency === 'weekly' ? selectedWeekDays : undefined,
+        monthDays: newTaskFrequency === 'monthly' ? selectedMonthDays : undefined,
+      })
+    }
 
-    // Play success sound
+    // Play success sound immediately
     playClick()
 
-    // Reset form
+    // Reset form immediately
     setNewTaskTitle('')
     setNewTaskPriority('medium')
     setNewTaskDate('')
@@ -537,9 +540,15 @@ export const RoutineView: React.FC = () => {
               className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 sm:hover:scale-105 dark:shadow-none'
               onClick={() => {
                 setIsAdding(!isAdding)
-                const yyyy = selectedDate.getFullYear()
-                const mm = String(selectedDate.getMonth() + 1).padStart(2, '0')
-                const dd = String(selectedDate.getDate()).padStart(2, '0')
+                // Use today if selectedDate is in the past
+                const today = new Date()
+                today.setHours(0, 0, 0, 0)
+                const selected = new Date(selectedDate)
+                selected.setHours(0, 0, 0, 0)
+                const dateToUse = selected < today ? today : selectedDate
+                const yyyy = dateToUse.getFullYear()
+                const mm = String(dateToUse.getMonth() + 1).padStart(2, '0')
+                const dd = String(dateToUse.getDate()).padStart(2, '0')
                 setNewTaskDate(`${yyyy}-${mm}-${dd}`)
               }}
               type='button'
@@ -682,6 +691,13 @@ export const RoutineView: React.FC = () => {
                     </label>
                     <input
                       className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                      min={(() => {
+                        const today = new Date()
+                        const yyyy = today.getFullYear()
+                        const mm = String(today.getMonth() + 1).padStart(2, '0')
+                        const dd = String(today.getDate()).padStart(2, '0')
+                        return `${yyyy}-${mm}-${dd}`
+                      })()}
                       onChange={(e) => setNewTaskDate(e.target.value)}
                       type='date'
                       value={newTaskDate}
