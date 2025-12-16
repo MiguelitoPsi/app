@@ -23,6 +23,7 @@ const profileInputSchema = z.object({
   clinicAddress: z.string().optional(),
   phone: z.string().min(10, 'Telefone deve ter pelo menos 10 caracteres'),
   bio: z.string().max(500, 'Biografia deve ter no máximo 500 caracteres').optional(),
+  image: z.string().optional().or(z.literal('')),
 })
 
 export const therapistProfileRouter = router({
@@ -40,7 +41,12 @@ export const therapistProfileRouter = router({
 
     return {
       needsProfile: !profile,
-      profile: profile || null,
+      profile: profile
+        ? {
+            ...profile,
+            image: ctx.user.image,
+          }
+        : null,
     }
   }),
 
@@ -59,7 +65,12 @@ export const therapistProfileRouter = router({
       .where(eq(therapistProfiles.therapistId, ctx.user.id))
       .limit(1)
 
-    return profile || null
+    return profile
+      ? {
+          ...profile,
+          image: ctx.user.image,
+        }
+      : null
   }),
 
   // Check if username is available
@@ -144,11 +155,12 @@ export const therapistProfileRouter = router({
       bio: input.bio || null,
     })
 
-    // Also update the user name to match
+    // Also update the user name and image
     await ctx.db
       .update(users)
       .set({
         name: input.fullName,
+        image: input.image || null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, ctx.user.id))
@@ -229,6 +241,7 @@ export const therapistProfileRouter = router({
       .update(users)
       .set({
         name: input.fullName,
+        image: input.image || null,
         updatedAt: new Date(),
       })
       .where(eq(users.id, ctx.user.id))
@@ -250,6 +263,7 @@ export const therapistProfileRouter = router({
         clinicAddress: therapistProfiles.clinicAddress,
         phone: therapistProfiles.phone,
         bio: therapistProfiles.bio,
+        image: users.image,
       })
       .from(therapistProfiles)
       .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
@@ -270,6 +284,7 @@ export const therapistProfileRouter = router({
       clinicAddress: profile.clinicAddress,
       phone: profile.phone,
       bio: profile.bio,
+      image: profile.image,
     }))
   }),
 
@@ -286,6 +301,7 @@ export const therapistProfileRouter = router({
         clinicAddress: therapistProfiles.clinicAddress,
         phone: therapistProfiles.phone,
         bio: therapistProfiles.bio,
+        image: users.image,
       })
       .from(therapistProfiles)
       .innerJoin(users, eq(users.id, therapistProfiles.therapistId))
@@ -301,6 +317,7 @@ export const therapistProfileRouter = router({
       clinicAddress: profile.clinicAddress,
       phone: profile.phone,
       bio: profile.bio,
+      image: profile.image,
     }))
   }),
 })

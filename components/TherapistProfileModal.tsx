@@ -11,9 +11,11 @@ import {
   User,
   UserCircle,
   X,
+  Image as ImageIcon,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
+import { compressImage } from '@/lib/utils/image-compression'
 
 type AttendanceType = 'online' | 'presential' | 'both'
 
@@ -94,10 +96,40 @@ export function TherapistProfileModal({
     attendanceType: 'online' as AttendanceType,
     clinicAddress: '',
     phone: '',
+    phone: '',
     bio: '',
+    image: '',
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file type
+    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
+      alert('Por favor, selecione uma imagem JPG, PNG ou WebP.')
+      return
+    }
+
+    // Validate input file size (10MB limit for browser safety, but will compress)
+    if (file.size > 10 * 1024 * 1024) {
+      alert('A imagem é muito grande. Por favor, escolha uma imagem de até 10MB.')
+      return
+    }
+
+    try {
+      // Compress and resize image
+      const base64String = await compressImage(file, 1500, 0.85)
+      setFormData({ ...formData, image: base64String })
+    } catch (error) {
+      console.error('Error compressing image:', error)
+      alert('Erro ao processar imagem. Tente novamente.')
+    }
+  }
 
   const utils = trpc.useUtils()
 
@@ -154,7 +186,9 @@ export function TherapistProfileModal({
         attendanceType: existingProfile.attendanceType,
         clinicAddress: existingProfile.clinicAddress || '',
         phone: existingProfile.phone,
+        phone: existingProfile.phone,
         bio: existingProfile.bio || '',
+        image: existingProfile.image || '',
       })
     }
   }, [existingProfile, mode])
@@ -199,6 +233,8 @@ export function TherapistProfileModal({
       newErrors.phone = 'Telefone deve ter pelo menos 10 dígitos'
     }
 
+
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -229,8 +265,11 @@ export function TherapistProfileModal({
       city: formData.city.trim(),
       attendanceType: formData.attendanceType,
       clinicAddress: formData.clinicAddress.trim() || undefined,
+      attendanceType: formData.attendanceType,
+      clinicAddress: formData.clinicAddress.trim() || undefined,
       phone: formData.phone,
       bio: formData.bio.trim() || undefined,
+      image: formData.image.trim() || undefined,
     }
 
     if (mode === 'edit') {
@@ -296,20 +335,76 @@ export function TherapistProfileModal({
                 </div>
               )}
 
-              {/* Full Name */}
-              <div>
-                <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <User className='h-4 w-4 text-violet-500' />
-                  Nome Completo *
-                </label>
-                <input
-                  className={`w-full rounded-xl border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  placeholder='Seu nome completo'
-                  type='text'
-                  value={formData.fullName}
-                />
-                {errors.fullName && <p className='mt-1 text-sm text-red-500'>{errors.fullName}</p>}
+              <div className='flex gap-4'>
+                {/* Image Upload */}
+                <div className='flex flex-col gap-2'>
+                  <div 
+                    onClick={() => document.getElementById('profile-image-upload')?.click()}
+                    className='relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-violet-500 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800'
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        document.getElementById('profile-image-upload')?.click()
+                      }
+                    }}
+                  >
+                    {formData.image ? (
+                      <div className="relative h-full w-full group cursor-pointer">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          alt='Preview'
+                          className='h-full w-full object-cover transition-opacity group-hover:opacity-75'
+                          src={formData.image}
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                          }}
+                        />
+                         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
+                          <span className="rounded-full bg-black/50 p-1.5 text-white">
+                             <ImageIcon className="h-4 w-4" />
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex h-full w-full cursor-pointer items-center justify-center text-slate-300 dark:text-slate-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-image h-8 w-8" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+                      </div>
+                    )}
+                  </div>
+                  <input
+                    id="profile-image-upload"
+                    type="file"
+                    accept="image/jpeg, image/png"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                  />
+                  <p className="w-24 text-center text-[10px] text-slate-500">
+                    JPG/PNG alta qualidade
+                  </p>
+                </div>
+
+                <div className='flex-1 space-y-4'>
+                  {/* Full Name */}
+                  <div>
+                    <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
+                      <User className='h-4 w-4 text-violet-500' />
+                      Nome Completo *
+                    </label>
+                    <input
+                      className={`w-full rounded-xl border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                      onChange={(e) =>
+                        setFormData({ ...formData, fullName: e.target.value })
+                      }
+                      placeholder='Seu nome completo'
+                      type='text'
+                      value={formData.fullName}
+                    />
+                    {errors.fullName && (
+                      <p className='mt-1 text-sm text-red-500'>{errors.fullName}</p>
+                    )}
+                  </div>
+                </div>
               </div>
 
               {/* CPF */}

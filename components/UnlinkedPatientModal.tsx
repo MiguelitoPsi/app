@@ -1,6 +1,6 @@
 'use client'
 
-import { MessageCircle, PartyPopper, Search, Sparkles, UserMinus, X } from 'lucide-react'
+import { MessageCircle, PartyPopper, Search, Sparkles, User, UserMinus, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
@@ -26,6 +26,7 @@ type Therapist = {
   attendanceType: 'online' | 'presential' | 'both'
   clinicAddress: string | null
   phone: string
+  image: string | null
 }
 
 export function UnlinkedPatientModal() {
@@ -251,14 +252,35 @@ export function UnlinkedPatientModal() {
                     className='rounded-xl border border-slate-700 bg-slate-800 p-4'
                     key={therapist.id}
                   >
-                    <div className='mb-3 flex items-start justify-between'>
-                      <div>
-                        <h3 className='font-semibold text-white'>{therapist.fullName}</h3>
-                        <p className='text-slate-400 text-sm'>CRP: {therapist.crp}</p>
+                    <div className='mb-3 flex items-start gap-3'>
+                      <div className='relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-slate-700'>
+                        {therapist.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            alt={therapist.fullName}
+                            className='h-full w-full object-cover'
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none'
+                              e.currentTarget.parentElement?.classList.add('flex')
+                            }}
+                            src={therapist.image}
+                          />
+                        ) : (
+                          <User className='h-6 w-6 text-slate-400' />
+                        )}
+                        {!therapist.image && <User className='absolute h-6 w-6 text-slate-400' />}
                       </div>
-                      <span className='rounded-full bg-violet-900/30 px-2 py-1 text-violet-300 text-xs'>
-                        {getAttendanceTypeLabel(therapist.attendanceType)}
-                      </span>
+                      <div className='flex-1'>
+                        <div className='flex justify-between items-start'>
+                          <div>
+                            <h3 className='font-semibold text-white'>{therapist.fullName}</h3>
+                            <p className='text-slate-400 text-sm'>CRP: {therapist.crp}</p>
+                          </div>
+                          <span className='rounded-full bg-violet-900/30 px-2 py-1 text-violet-300 text-xs whitespace-nowrap ml-2'>
+                            {getAttendanceTypeLabel(therapist.attendanceType)}
+                          </span>
+                        </div>
+                      </div>
                     </div>
 
                     <div className='mb-3 space-y-1 text-slate-300 text-sm'>

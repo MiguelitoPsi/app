@@ -4,6 +4,7 @@ import { ArrowLeft, Brain, ChevronRight, MapPin, Phone, Search, User, Video } fr
 import Link from 'next/link'
 import { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
+import { PsychologistProfileModal } from './PsychologistProfileModal'
 
 type AttendanceType = 'all' | 'online' | 'presential' | 'both'
 
@@ -38,6 +39,18 @@ function formatPhoneForWhatsApp(phone: string): string {
 export default function PsychologistsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<AttendanceType>('all')
+  const [selectedTherapist, setSelectedTherapist] = useState<{
+    id: string
+    fullName: string
+    crp: string
+    education: string
+    city: string
+    attendanceType: 'all' | 'online' | 'presential' | 'both'
+    clinicAddress: string | null
+    phone: string
+    bio: string | null
+    image: string | null
+  } | null>(null)
 
   const { data: therapists, isLoading } = trpc.therapistProfile.getPublicTherapists.useQuery()
 
@@ -62,6 +75,7 @@ export default function PsychologistsPage() {
     attendanceType: 'online' | 'presential' | 'both'
     clinicAddress: string | null
     phone: string
+    image: string | null
   }) => {
     const phone = formatPhoneForWhatsApp(therapist.phone)
     const message = encodeURIComponent(
@@ -70,8 +84,17 @@ export default function PsychologistsPage() {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
   }
 
+  const handleCardClick = (therapist: any) => {
+    setSelectedTherapist(therapist)
+  }
+
   return (
     <div className='min-h-screen bg-slate-950 text-slate-200'>
+      <PsychologistProfileModal
+        isOpen={!!selectedTherapist}
+        onClose={() => setSelectedTherapist(null)}
+        therapist={selectedTherapist as any}
+      />
       {/* Header */}
       <header className='fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl'>
         <div className='mx-auto flex max-w-6xl items-center justify-between px-4 py-3'>
@@ -203,17 +226,36 @@ export default function PsychologistsPage() {
             <div className='grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'>
               {filteredTherapists.map((therapist) => (
                 <div
-                  className='group rounded-xl sm:rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6 transition-all hover:border-emerald-500/50 hover:bg-slate-800/50'
+                  className='group rounded-xl sm:rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-6 transition-all hover:border-emerald-500/50 hover:bg-slate-800/50 cursor-pointer'
                   key={therapist.id}
+                  onClick={() => handleCardClick(therapist)}
                 >
                   {/* Header */}
                   <div className='flex items-start gap-3 sm:gap-4'>
-                    <div className='flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-base sm:text-xl font-bold text-white'>
-                      {therapist.fullName
-                        .split(' ')
-                        .slice(0, 2)
-                        .map((n) => n[0])
-                        .join('')}
+                    <div className='flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-base sm:text-xl font-bold text-white'>
+                      {therapist.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          alt={therapist.fullName}
+                          className='h-full w-full object-cover'
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none'
+                            e.currentTarget.parentElement?.classList.remove('bg-transparent')
+                            e.currentTarget.parentElement?.classList.add(
+                              'bg-gradient-to-br',
+                              'from-emerald-500',
+                              'to-teal-600'
+                            )
+                          }}
+                          src={therapist.image}
+                        />
+                      ) : (
+                        therapist.fullName
+                          .split(' ')
+                          .slice(0, 2)
+                          .map((n) => n[0])
+                          .join('')
+                      )}
                     </div>
                     <div className='flex-1 min-w-0'>
                       <h3 className='font-semibold text-sm sm:text-base text-white truncate'>
@@ -256,7 +298,10 @@ export default function PsychologistsPage() {
                   {/* Contact Button */}
                   <button
                     className='mt-4 sm:mt-6 flex w-full items-center justify-center gap-2 rounded-lg sm:rounded-xl border border-emerald-500/50 bg-emerald-500/10 py-2.5 sm:py-3 text-sm sm:text-base font-semibold text-emerald-300 transition-all hover:bg-emerald-500/20 group-hover:border-emerald-500'
-                    onClick={() => handleContactTherapist(therapist)}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleContactTherapist(therapist)
+                    }}
                     type='button'
                   >
                     <Phone className='h-4 w-4' />
