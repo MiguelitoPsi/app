@@ -25,6 +25,8 @@ import {
   User,
   UserCircle,
   X,
+  FileSpreadsheet,
+  File,
 } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
@@ -376,9 +378,25 @@ export default function TherapistReportsView(): React.ReactElement {
     if (!selectedPatientId) return
 
     // Validar tipo de arquivo
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'image/gif']
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/webp',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/plain',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    ]
+
     if (!allowedTypes.includes(file.type)) {
-      alert('Tipo de arquivo não suportado. Use PDF ou imagens (JPEG, PNG, WebP, GIF).')
+      alert(
+        'Tipo de arquivo não suportado. Use PDF, imagens, Word, Excel, PowerPoint ou texto simples.'
+      )
       return
     }
 
@@ -394,7 +412,40 @@ export default function TherapistReportsView(): React.ReactElement {
     const reader = new FileReader()
     reader.onload = () => {
       const base64 = (reader.result as string).split(',')[1]
-      const fileType = file.type === 'application/pdf' ? 'pdf' : 'image'
+      let fileType:
+        | 'pdf'
+        | 'image'
+        | 'document'
+        | 'spreadsheet'
+        | 'presentation'
+        | 'text'
+        | 'other' = 'other'
+
+      if (file.type === 'application/pdf') {
+        fileType = 'pdf'
+      } else if (file.type.startsWith('image/')) {
+        fileType = 'image'
+      } else if (
+        file.type.includes('word') ||
+        file.type.includes('document') ||
+        file.type === 'application/msword'
+      ) {
+        fileType = 'document'
+      } else if (
+        file.type.includes('excel') ||
+        file.type.includes('spreadsheet') ||
+        file.type === 'application/vnd.ms-excel'
+      ) {
+        fileType = 'spreadsheet'
+      } else if (
+        file.type.includes('powerpoint') ||
+        file.type.includes('presentation') ||
+        file.type === 'application/vnd.ms-powerpoint'
+      ) {
+        fileType = 'presentation'
+      } else if (file.type === 'text/plain') {
+        fileType = 'text'
+      }
 
       uploadMutation.mutate({
         patientId: selectedPatientId,
@@ -722,13 +773,29 @@ export default function TherapistReportsView(): React.ReactElement {
                           className={`flex h-12 w-12 items-center justify-center rounded-lg ${
                             doc.fileType === 'pdf'
                               ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                              : 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                              : doc.fileType === 'image'
+                                ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                                : doc.fileType === 'spreadsheet'
+                                  ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                                  : doc.fileType === 'document'
+                                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
+                                    : doc.fileType === 'presentation'
+                                      ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
+                                      : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
                           }`}
                         >
                           {doc.fileType === 'pdf' ? (
                             <FileText className='h-6 w-6' />
-                          ) : (
+                          ) : doc.fileType === 'image' ? (
                             <FileImage className='h-6 w-6' />
+                          ) : doc.fileType === 'spreadsheet' ? (
+                            <FileSpreadsheet className='h-6 w-6' />
+                          ) : doc.fileType === 'document' ? (
+                            <FileText className='h-6 w-6' />
+                          ) : doc.fileType === 'presentation' ? (
+                            <FileText className='h-6 w-6' />
+                          ) : (
+                            <File className='h-6 w-6' />
                           )}
                         </div>
                         <div className='min-w-0 flex-1'>
@@ -1779,12 +1846,12 @@ export default function TherapistReportsView(): React.ReactElement {
                         Clique para selecionar
                       </span>
                       <span className='mt-1 text-slate-400 text-xs'>
-                        PDF ou imagens (máx. 10MB)
+                        PDF, Imagens, Docs, Planilhas (máx. 10MB)
                       </span>
                     </>
                   )}
                   <input
-                    accept='application/pdf,image/jpeg,image/png,image/webp,image/gif'
+                    accept='application/pdf,image/jpeg,image/png,image/webp,image/gif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/plain,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation'
                     className='hidden'
                     disabled={isUploading}
                     id='file-upload'

@@ -59,21 +59,18 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       {/* XP Gain Toast - floating notifications */}
       <TherapistXPGainToast />
 
-      {/* Desktop Sidebar - hidden on mobile (w-56 = 224px) */}
+      {/* Desktop Sidebar - visible on all screens now (slim on mobile) */}
       <TherapistSidebar />
 
       {/* XP Header - visible on mobile, hidden on desktop (sidebar shows XP there) */}
-      <div className='lg:hidden'>
+      <div className='lg:hidden ml-20 transition-all duration-300'>
         <TherapistHeader />
       </div>
 
-      {/* Main content - with left margin for sidebar (56 = 14rem = 224px) and right margin for profile card on xl: */}
-      <main className='min-h-screen bg-slate-50 pb-24 transition-colors duration-300 lg:ml-56 lg:pb-0  dark:bg-transparent'>
+      {/* Main content - with left margin for sidebar (20 = 5rem = 80px on mobile, 56 = 14rem = 224px on desktop) */}
+      <main className='min-h-screen bg-slate-50 pb-8 transition-all duration-300 ml-20 lg:ml-56 lg:pb-0 dark:bg-transparent'>
         {children}
       </main>
-
-      {/* Mobile Bottom Nav - hidden on desktop */}
-      <TherapistBottomNav />
     </div>
   )
 }

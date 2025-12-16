@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lt, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, ne, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { TASK_LIMITS } from "@/lib/constants";
@@ -379,7 +379,12 @@ export const taskRouter = router({
     return ctx.db
       .select()
       .from(patientTasksFromTherapist)
-      .where(eq(patientTasksFromTherapist.patientId, ctx.user.id))
+      .where(
+        and(
+          eq(patientTasksFromTherapist.patientId, ctx.user.id),
+          ne(patientTasksFromTherapist.status, "rejected")
+        )
+      )
       .orderBy(
         // Data mais próxima primeiro (nulls por último)
         sql`CASE WHEN ${patientTasksFromTherapist.dueDate} IS NULL THEN 1 ELSE 0 END`,
@@ -409,12 +414,79 @@ export const taskRouter = router({
         throw new Error("Task not found");
       }
 
-      if (task.status === "completed") {
-        throw new Error("Task already completed");
-      }
-
       const now = new Date();
 
+      if (task.status === "completed") {
+        // Task is already completed, so we uncomplete it (toggle)
+        const [user] = await ctx.db
+          .select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+
+        if (!user) throw new Error("User not found");
+
+        // Calculate XP/Coins to deduct
+        // Sessões dão 40 XP/coins, outras tarefas baseadas na prioridade
+        const isSession = task.category === "sessao";
+        let xpToDeduct = 0;
+        let coinReward = 0;
+
+        if (isSession) {
+          xpToDeduct = 40;
+          coinReward = 40;
+        } else {
+          const xpRewards: Record<string, number> = {
+            high: 30,
+            medium: 10,
+            low: 5,
+          };
+          const coinRewards: Record<string, number> = {
+            high: 30,
+            medium: 10,
+            low: 5,
+          };
+          const priority = task.priority || "medium";
+          xpToDeduct = xpRewards[priority] || 10;
+          coinReward = coinRewards[priority] || 10;
+        }
+
+        // Update user stats (remove rewards)
+        const newCoins = Math.max(0, user.coins - coinReward);
+        const newExperience = Math.max(0, user.experience - xpToDeduct);
+        // Recalculate level based on new XP
+        const newLevel = Math.floor(newExperience / 100) + 1;
+
+        await ctx.db
+          .update(users)
+          .set({
+            coins: newCoins,
+            experience: newExperience,
+            level: newLevel,
+            updatedAt: now,
+          })
+          .where(eq(users.id, ctx.user.id));
+
+        // Mark task as pending
+        await ctx.db
+          .update(patientTasksFromTherapist)
+          .set({
+            status: "pending",
+            completedAt: null,
+            updatedAt: now,
+          })
+          .where(eq(patientTasksFromTherapist.id, input.taskId));
+
+        return {
+          success: true,
+          xp: -xpToDeduct,
+          coins: -coinReward,
+          levelUp: false,
+          status: "pending",
+        };
+      }
+
+      // Task is not completed, so we complete it
       // Verificar se é uma tarefa de sessão (categoria 'sessao')
       const isSession = task.category === "sessao";
 
@@ -446,6 +518,7 @@ export const taskRouter = router({
         xp: result.xpAwarded,
         coins: result.coinsAwarded,
         levelUp: result.levelUp,
+        status: "completed",
       };
     }),
 

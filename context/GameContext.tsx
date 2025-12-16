@@ -559,21 +559,38 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   const deleteTask = async (id: string) => {
+    // Find the task to check if it's from therapist
+    const regularTask = tasksData.find((t) => t.id === id);
+    const therapistTask = therapistTasksData.find((t) => t.id === id);
+    const isFromTherapist = !!therapistTask;
+
     // Optimistic delete
-    utils.task.getAll.setData(undefined, (old) => {
-      if (!old) return old
-      return old.filter((task) => task.id !== id)
-    })
+    if (isFromTherapist) {
+      utils.task.getMyTasksFromTherapist.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.filter((task) => task.id !== id);
+      });
+    } else {
+      utils.task.getAll.setData(undefined, (old) => {
+        if (!old) return old;
+        return old.filter((task) => task.id !== id);
+      });
+    }
 
     try {
-      await utils.client.task.delete.mutate({ id })
-      // Background invalidation
-      utils.task.getAll.invalidate()
+      if (isFromTherapist) {
+        await utils.client.task.rejectTherapistTask.mutate({ taskId: id });
+        utils.task.getMyTasksFromTherapist.invalidate();
+      } else {
+        await utils.client.task.delete.mutate({ id });
+        utils.task.getAll.invalidate();
+      }
     } catch (error) {
-      utils.task.getAll.invalidate()
-      console.error('Error deleting task:', error)
+      utils.task.getAll.invalidate();
+      utils.task.getMyTasksFromTherapist.invalidate();
+      console.error("Error deleting task:", error);
     }
-  }
+  };
 
   const addJournalEntry = async (entryData: {
     emotion: Mood

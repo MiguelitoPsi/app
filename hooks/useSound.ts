@@ -423,21 +423,6 @@ export function useSound() {
   // Ref para evitar tocar múltiplos sons ao mesmo tempo
   const lastPlayedRef = useRef<{ [key: string]: number }>({})
 
-  // Inicializar Audio Context na primeira interação
-  useEffect(() => {
-    const initAudio = () => {
-      getAudioContext()
-      document.removeEventListener('click', initAudio)
-      document.removeEventListener('touchstart', initAudio)
-    }
-    document.addEventListener('click', initAudio)
-    document.addEventListener('touchstart', initAudio)
-    return () => {
-      document.removeEventListener('click', initAudio)
-      document.removeEventListener('touchstart', initAudio)
-    }
-  }, [])
-
   // Persistir configurações
   useEffect(() => {
     if (isClient) {
@@ -464,14 +449,46 @@ export function useSound() {
       if (now - lastPlayed < debounceMs) return
       lastPlayedRef.current[soundType] = now
 
-      const volume = options?.volume ?? DEFAULT_VOLUMES[soundType]
+      const volume = (options?.volume ?? DEFAULT_VOLUMES[soundType]) * masterVolume
 
-      // Tentar Web Audio API primeiro, fallback para base64
-      try {
-        playSyntheticSound(soundType, volume, masterVolume)
-      } catch {
-        playBase64Sound(soundType, volume, masterVolume)
+      // Mapeamento de sons para arquivos
+      let soundFile = ''
+      switch (soundType) {
+        case 'click':
+        case 'pop':
+        case 'toggle':
+        case 'navigation':
+        case 'delete':
+          soundFile = '/sounds/click.mp3'
+          break
+        case 'success':
+        case 'xp':
+        case 'coins':
+        case 'reward':
+        case 'achievement':
+          soundFile = '/sounds/success.mp3'
+          break
+        case 'levelUp':
+          soundFile = '/sounds/level-up.mp3'
+          break
+        case 'notification':
+        case 'journal':
+        case 'mood':
+        case 'streak':
+          soundFile = '/sounds/notification.mp3'
+          break
+        case 'error':
+          soundFile = '/sounds/error.mp3'
+          break
+        default:
+          soundFile = '/sounds/click.mp3'
       }
+
+      const audio = new Audio(soundFile)
+      audio.volume = Math.max(0, Math.min(1, volume))
+      audio.play().catch(() => {
+        // Ignorar erros de autoplay
+      })
     },
     [soundEnabled, masterVolume]
   )

@@ -587,7 +587,9 @@ export const sessionDocuments = sqliteTable('session_documents', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   fileName: text('file_name').notNull(),
-  fileType: text('file_type', { enum: ['pdf', 'image'] }).notNull(),
+  fileType: text('file_type', {
+    enum: ['pdf', 'image', 'document', 'spreadsheet', 'presentation', 'text', 'other'],
+  }).notNull(),
   mimeType: text('mime_type').notNull(),
   fileSize: integer('file_size').notNull(),
   fileData: text('file_data').notNull(), // Base64 encoded file data

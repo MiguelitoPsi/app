@@ -719,7 +719,15 @@ export const therapistReportsRouter = router({
       z.object({
         patientId: z.string(),
         fileName: z.string(),
-        fileType: z.enum(['pdf', 'image']),
+        fileType: z.enum([
+          'pdf',
+          'image',
+          'document',
+          'spreadsheet',
+          'presentation',
+          'text',
+          'other',
+        ]),
         mimeType: z.string(),
         fileSize: z.number(),
         fileData: z.string(), // Base64 encoded
