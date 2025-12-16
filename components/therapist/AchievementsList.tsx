@@ -3,6 +3,7 @@
 import { Award, Lock } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import {
   THERAPIST_BADGE_CATEGORIES,
   THERAPIST_BADGE_DEFINITIONS,
@@ -103,7 +104,10 @@ export const AchievementsList: React.FC = () => {
                     : 'bg-slate-200 grayscale dark:bg-slate-700'
                 }`}
               >
-                {badge.icon}
+                {(() => {
+                  const BadgeIcon = getIconByKey(badge.icon)
+                  return <BadgeIcon />
+                })()}
               </div>
 
               {/* Badge Info */}
@@ -116,7 +120,12 @@ export const AchievementsList: React.FC = () => {
 
               {/* Category & XP */}
               <div className='flex items-center justify-between'>
-                <span className={`text-xs ${categoryInfo.color}`}>{categoryInfo.icon}</span>
+                <span className={`text-xs ${categoryInfo.color}`}>
+                  {(() => {
+                    const CatIcon = getIconByKey(categoryInfo.icon)
+                    return <CatIcon size={14} />
+                  })()}
+                </span>
                 <span
                   className={`font-medium text-xs ${isUnlocked ? 'text-purple-600 dark:text-purple-400' : 'text-slate-400'}`}
                 >

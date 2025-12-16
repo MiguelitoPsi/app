@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, BookOpen, Brain, Save, Sparkles } from 'lucide-react'
+import { ArrowLeft, BookOpen, Brain, CloudRain, Flame, Frown, Meh, Save, Smile, Sparkles, Sun } from 'lucide-react'
 import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -99,13 +99,13 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
     )
   }
 
-  const moods: { id: Mood; emoji: string; label: string }[] = [
-    { id: 'happy', emoji: '😄', label: 'Feliz' },
-    { id: 'calm', emoji: '😌', label: 'Calmo' },
-    { id: 'neutral', emoji: '😕', label: 'Confuso' },
-    { id: 'sad', emoji: '😔', label: 'Triste' },
-    { id: 'anxious', emoji: '😰', label: 'Ansioso' },
-    { id: 'angry', emoji: '😡', label: 'Bravo' },
+  const moods: { id: Mood; icon: React.ElementType; label: string }[] = [
+    { id: 'happy', icon: Smile, label: 'Feliz' },
+    { id: 'calm', icon: Sun, label: 'Calmo' },
+    { id: 'neutral', icon: Meh, label: 'Confuso' },
+    { id: 'sad', icon: Frown, label: 'Triste' },
+    { id: 'anxious', icon: CloudRain, label: 'Ansioso' },
+    { id: 'angry', icon: Flame, label: 'Bravo' },
   ]
 
   return (
@@ -227,7 +227,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                           aria-hidden='true'
                           className='text-2xl drop-shadow-sm filter sm:text-3xl'
                         >
-                          {m.emoji}
+                          <m.icon className="w-6 h-6 sm:w-8 sm:h-8" />
                         </span>
                         <span className='font-bold text-[10px] sm:text-xs'>{m.label}</span>
                       </button>

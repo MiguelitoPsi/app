@@ -5,13 +5,16 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Gamepad2,
   Gem,
   Gift,
+  Moon,
   Plus,
   Sparkles,
   Tag,
   Trash2,
   Trophy,
+  Users,
   X,
 } from 'lucide-react'
 import type React from 'react'
@@ -54,11 +57,11 @@ export const RewardsView: React.FC = () => {
     }
   }, [isAdding])
 
-  const categories: { id: RewardCategory; label: string; color: string; icon: string }[] = [
-    { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: '🎮' },
-    { id: 'autocuidado', label: 'Cuidado', color: 'from-pink-500 to-rose-400', icon: '🧖‍♀️' },
-    { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-violet-400', icon: '😴' },
-    { id: 'social', label: 'Social', color: 'from-emerald-500 to-teal-400', icon: '👥' },
+  const categories: { id: RewardCategory; label: string; color: string; icon: React.ElementType }[] = [
+    { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: Gamepad2 },
+    { id: 'autocuidado', label: 'Cuidado', color: 'from-pink-500 to-rose-400', icon: Sparkles },
+    { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-violet-400', icon: Moon },
+    { id: 'social', label: 'Social', color: 'from-emerald-500 to-teal-400', icon: Users },
   ]
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -216,7 +219,7 @@ export const RewardsView: React.FC = () => {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${cat.color}`} />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
-                  <span className='text-lg sm:text-2xl'>{cat.icon}</span>
+                  <cat.icon className="w-6 h-6 sm:w-8 sm:h-8" />
                   <span className='text-center font-semibold text-[8px] leading-tight sm:text-xs'>
                     {cat.label}
                   </span>
@@ -261,7 +264,11 @@ export const RewardsView: React.FC = () => {
                           className={`h-9 w-9 rounded-xl bg-gradient-to-br ${categoryInfo?.color || 'from-slate-400 to-slate-500'} flex items-center justify-center text-white shadow-sm sm:h-10 sm:w-10 sm:rounded-2xl`}
                         >
                           <span className='text-base sm:text-lg'>
-                            {categoryInfo?.icon || <Tag size={16} />}
+                            {categoryInfo?.icon ? (
+                              <categoryInfo.icon size={16} />
+                            ) : (
+                              <Tag size={16} />
+                            )}
                           </span>
                         </div>
                         <div>
@@ -431,7 +438,9 @@ export const RewardsView: React.FC = () => {
                       onClick={() => setNewRewardCategory(cat.id)}
                       type='button'
                     >
-                      <span className='text-sm sm:text-base'>{cat.icon}</span>
+                      <span className='text-sm sm:text-base'>
+                        <cat.icon size={16} />
+                      </span>
                       {cat.label}
                     </button>
                   ))}

@@ -1,4 +1,5 @@
-'use client'
+
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 import {
   AlertTriangle,
@@ -570,7 +571,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 return (
                   <div className='space-y-3' key={catKey}>
                     <div className={`flex items-center gap-2 font-bold text-sm ${catInfo.color}`}>
-                      <span className='text-lg'>{catInfo.icon}</span>
+                      <span className='text-lg'>
+                        {(() => {
+                          const Icon = getIconByKey(catInfo.icon)
+                          return <Icon size={18} />
+                        })()}
+                      </span>
                       <h3>{catInfo.label}</h3>
                     </div>
                     <div className='grid grid-cols-1 gap-4 sm:grid-cols-2'>
@@ -605,7 +611,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                               {isUnlocked && (
                                 <div className='absolute inset-0 animate-pulse bg-violet-200 opacity-30' />
                               )}
-                              <div className='relative z-10'>{badge.icon}</div>
+                              <div className='relative z-10'>
+                                {(() => {
+                                  const BadgeIcon = getIconByKey(badge.icon)
+                                  return <BadgeIcon size={24} />
+                                })()}
+                              </div>
                             </div>
                             <div className='z-10 min-w-0 flex-1'>
                               <div
@@ -1336,7 +1347,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 {selectedBadgeStatus.isUnlocked && (
                   <div className='absolute inset-0 animate-pulse bg-violet-200 opacity-30' />
                 )}
-                <div className='relative z-10'>{selectedBadge.icon}</div>
+                <div className='relative z-10'>
+                  {(() => {
+                    const ModalIcon = getIconByKey(selectedBadge.icon)
+                    return <ModalIcon size={48} />
+                  })()}
+                </div>
               </div>
               <h3 className='font-bold text-slate-900 text-lg sm:text-xl dark:text-white'>
                 {selectedBadge.name}

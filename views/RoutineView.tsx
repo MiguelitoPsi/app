@@ -191,7 +191,7 @@ export const RoutineView: React.FC = () => {
       playError()
       const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
       setAlertMessage(
-        `⚠️ Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
+        `Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
       )
       setAlertTitle('Data no Passado')
       setShowAlert(true)
@@ -272,7 +272,7 @@ export const RoutineView: React.FC = () => {
         if (highCount >= 2) {
           const dateStr = targetDate.toLocaleDateString('pt-BR')
           setAlertMessage(
-            `⚠️ Limite atingido!\n\nVocê só pode adicionar 2 tarefas de prioridade ALTA por dia.\n\nData: ${dateStr}\nTarefas de alta prioridade: ${highCount}/2`
+            `Limite atingido!\n\nVocê só pode adicionar 2 tarefas de prioridade ALTA por dia.\n\nData: ${dateStr}\nTarefas de alta prioridade: ${highCount}/2`
           )
           setAlertTitle('Limite de Tarefas')
           setShowAlert(true)
@@ -285,7 +285,7 @@ export const RoutineView: React.FC = () => {
         if (mediumCount >= 5) {
           const dateStr = targetDate.toLocaleDateString('pt-BR')
           setAlertMessage(
-            `⚠️ Limite atingido!\n\nVocê só pode adicionar 5 tarefas de prioridade MÉDIA por dia.\n\nData: ${dateStr}\nTarefas de média prioridade: ${mediumCount}/5`
+            `Limite atingido!\n\nVocê só pode adicionar 5 tarefas de prioridade MÉDIA por dia.\n\nData: ${dateStr}\nTarefas de média prioridade: ${mediumCount}/5`
           )
           setAlertTitle('Limite de Tarefas')
           setShowAlert(true)
@@ -438,7 +438,7 @@ export const RoutineView: React.FC = () => {
       if (taskDate.getTime() > today.getTime()) {
         playError()
         setAlertMessage(
-          '⏳ Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
+          'Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
         )
         setAlertTitle('Tarefa Futura')
         setShowAlert(true)

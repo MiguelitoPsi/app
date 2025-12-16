@@ -17,7 +17,19 @@ import {
   Key,
   LogOut,
   Mail,
+  CloudRain,
+  Eye,
+  EyeOff,
+  FileText,
+  Filter,
+  Flame,
+  Frown,
+  Gift,
+  Key,
+  LogOut,
+  Mail,
   MapPin,
+  Meh,
   MessageSquare,
   Moon,
   Phone,
@@ -25,6 +37,7 @@ import {
   Save,
   Search,
   Settings,
+  Smile,
   Sparkles,
   Sun,
   User,
@@ -434,16 +447,16 @@ export const TherapistView: React.FC = () => {
     }
   }
 
-  const getMoodEmoji = (mood: Mood) => {
-    const map: Record<string, string> = {
-      happy: '😄',
-      sad: '😔',
-      anxious: '😰',
-      angry: '😡',
-      calm: '😌',
-      neutral: '😕',
+  const getMoodIcon = (mood: Mood) => {
+    const map: Record<string, React.ElementType> = {
+      happy: Smile,
+      sad: Frown,
+      anxious: CloudRain,
+      angry: Flame,
+      calm: Sun,
+      neutral: Meh,
     }
-    return map[mood] || '😕'
+    return map[mood] || Meh
   }
 
   const handleInvite = () => {
@@ -939,7 +952,10 @@ export const TherapistView: React.FC = () => {
                           key={item.emotion}
                         >
                           <span className='text-base drop-shadow-sm filter sm:text-lg'>
-                            {getMoodEmoji(item.emotion as Mood)}
+                           {(() => {
+                              const MoodIcon = getMoodIcon(item.emotion as Mood)
+                              return <MoodIcon size={18} />
+                           })()}
                           </span>
                           <span className='font-bold text-[10px] capitalize sm:text-xs'>
                             {item.emotion}
@@ -1174,7 +1190,10 @@ export const TherapistView: React.FC = () => {
                               entry.emotion
                             )} bg-opacity-20`}
                           >
-                            {getMoodEmoji(entry.emotion)}
+                           {(() => {
+                              const MoodIcon = getMoodIcon(entry.emotion)
+                              return <MoodIcon size={18} />
+                           })()}
                           </div>
                           <div className='min-w-0 flex-1'>
                             <p className='font-bold text-slate-700 text-xs dark:text-slate-300'>
@@ -1236,7 +1255,10 @@ export const TherapistView: React.FC = () => {
                         )}`}
                       >
                         <span className='text-xl drop-shadow-sm filter sm:text-2xl'>
-                          {getMoodEmoji(entry.emotion)}
+                           {(() => {
+                              const MoodIcon = getMoodIcon(entry.emotion)
+                              return <MoodIcon size={24} />
+                           })()}
                         </span>
                         <div>
                           <span className='block font-black text-[10px] uppercase opacity-80 sm:text-xs'>

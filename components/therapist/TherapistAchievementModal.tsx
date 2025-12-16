@@ -3,6 +3,7 @@
 import { Award, Star, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import {
   THERAPIST_BADGE_CATEGORIES,
   type TherapistBadgeDefinition,
@@ -88,7 +89,10 @@ export const TherapistAchievementModal: React.FC<TherapistAchievementModalProps>
         <div className='relative mx-auto mb-6 flex h-24 w-24 items-center justify-center'>
           <div className='absolute inset-0 animate-ping rounded-full bg-amber-400/20' />
           <div className='relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-4xl shadow-lg'>
-            {achievement.icon}
+            {(() => {
+              const AchievementIcon = getIconByKey(achievement.icon)
+              return <AchievementIcon size={48} />
+            })()}
           </div>
         </div>
 
@@ -111,7 +115,11 @@ export const TherapistAchievementModal: React.FC<TherapistAchievementModalProps>
           <span
             className={`rounded-full bg-slate-100 px-3 py-1 text-sm dark:bg-slate-800 ${categoryInfo.color}`}
           >
-            {categoryInfo.icon} {categoryInfo.label}
+            {(() => {
+              const CatIcon = getIconByKey(categoryInfo.icon)
+              return <CatIcon className='mr-1 inline' size={14} />
+            })()}
+            {categoryInfo.label}
           </span>
         </div>
 
