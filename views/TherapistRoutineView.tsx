@@ -121,19 +121,110 @@ export default function TherapistRoutineView() {
   const utils = trpc.useUtils()
 
   // Mutations for patient tasks
+  // Mutations for patient tasks
   const createTaskMutation = trpc.task.createForPatient.useMutation({
+    onMutate: async (newOne) => {
+      // Cancelar queries pendentes
+      await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
+
+      // Snapshot do valor anterior
+      const previousTasks = utils.task.getPatientTasksFromTherapist.getData({ patientId: selectedPatientId || '' })
+
+      // Otimisticamente atualizar
+      if (selectedPatientId) {
+        utils.task.getPatientTasksFromTherapist.setData({ patientId: selectedPatientId }, (old) => {
+          if (!old) return []
+          
+          const tempId = Math.random().toString()
+          // Criar objeto temporário (precisa bater com o tipo esperado pelo cache)
+          // Usando as/any com cuidado apenas para os campos obrigatórios da UI
+          const optimisticTask: any = {
+            id: tempId,
+            patientId: selectedPatientId,
+            therapistId: 'me', // não importa muito no front
+            title: newOne.title,
+            description: newOne.description,
+            priority: newOne.priority,
+            dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null, // Backend espera string, mas cache geralmente volta Date se transformado, checar trpc
+            // Nota: o trpc client com superjson serializa/deserializa dates. 
+            // Se localmente usamos string no form, o cache espera Date se for o que vem do banco.
+            // O código de visualização faz "task.dueDate && new Date(task.dueDate)", sugerindo que pode ser string ou date.
+            // Vamos ser seguros e passar Date se parsed, ou null.
+            // update: createForPatient input.dueDate é string YYYY-MM-DD.
+            status: 'pending',
+            category: 'geral',
+            frequency: newOne.frequency,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }
+          
+          // Se dueDate for string no input, converter para Date para o cache local se necessário
+          // Mas vendo o código de renderização: const taskDate = new Date(task.dueDate)
+          // Isso funciona tanto para string quanto para Date object.
+          
+          return [...old, optimisticTask]
+        })
+      }
+
+      return { previousTasks }
+    },
     onSuccess: () => {
       setShowTaskForm(false)
       setTaskForm(defaultTaskForm)
-      refetchTasks()
+      // Não precisamos refetchTasks imediatamente se o optimistic funcionou, mas é bom para garantir IDs reais
+      // refetchTasks() -> Deixar para onSettled ou manter aqui? 
+      // Se mantivermos aqui, ele substitui o otimista pelo real.
       utils.therapistXp.getStats.invalidate()
     },
+    onError: (error, newOne, context) => {
+        // Rollback
+        if (context?.previousTasks) {
+            utils.task.getPatientTasksFromTherapist.setData(
+                { patientId: selectedPatientId || '' },
+                context.previousTasks
+            )
+        }
+
+        // Se for erro de limite, usar título específico
+        if (error.message.includes('Limite')) {
+            setAlertTitle('Limite de Tarefas')
+        } else {
+            setAlertTitle('Atenção')
+        }
+        setAlertMessage(error.message)
+        setShowAlert(true)
+    },
+    onSettled: () => {
+        utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
+    }
   })
 
   const deleteTaskMutation = trpc.task.deletePatientTask.useMutation({
-    onSuccess: () => {
-      refetchTasks()
+    onMutate: async (vars) => {
+        await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
+        const previousTasks = utils.task.getPatientTasksFromTherapist.getData({ patientId: selectedPatientId || '' })
+
+        if (selectedPatientId) {
+            utils.task.getPatientTasksFromTherapist.setData({ patientId: selectedPatientId }, (old) => {
+                return old ? old.filter(t => t.id !== vars.taskId) : []
+            })
+        }
+        return { previousTasks }
     },
+    onError: (err, vars, context) => {
+        if (context?.previousTasks) {
+            utils.task.getPatientTasksFromTherapist.setData(
+                { patientId: selectedPatientId || '' },
+                context.previousTasks
+            )
+        }
+        setAlertTitle('Erro ao excluir')
+        setAlertMessage(err.message)
+        setShowAlert(true)
+    },
+    onSettled: () => {
+        utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
+    }
   })
 
   const sendFeedbackMutation = trpc.task.sendTaskFeedback.useMutation({
@@ -146,32 +237,121 @@ export default function TherapistRoutineView() {
   })
 
   // Mutations for therapist's own tasks
+  // Mutations for therapist's own tasks
   const createMyTaskMutation = trpc.therapistTasks.create.useMutation({
+    onMutate: async (newOne) => {
+        await utils.therapistTasks.getAll.cancel()
+        const previousMyTasks = utils.therapistTasks.getAll.getData()
+
+        utils.therapistTasks.getAll.setData(undefined, (old) => {
+            if (!old) return []
+            const tempId = Math.random().toString()
+            const optimisticTask: any = {
+                id: tempId,
+                therapistId: 'me',
+                title: newOne.title,
+                description: newOne.description,
+                type: newOne.type,
+                priority: newOne.priority,
+                status: 'pending',
+                dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null,
+                isRecurring: newOne.isRecurring,
+                frequency: newOne.frequency,
+                xpReward: 20, // valor placeholder
+                createdAt: new Date(),
+                updatedAt: new Date()
+            }
+            return [...old, optimisticTask]
+        })
+
+        return { previousMyTasks }
+    },
     onSuccess: () => {
       setShowTaskForm(false)
       setTaskForm(defaultTaskForm)
       setPatientSearchQuery('')
       setShowPatientDropdown(false)
-      refetchMyTasks()
+      // refetchMyTasks() // Deixar para onSettled
       // Se criou tarefa de sessão, também recarregar tarefas do paciente
       if (taskForm.taskCategory === 'sessao') {
-        refetchTasks()
+        utils.task.getPatientTasksFromTherapist.invalidate()
       }
       utils.therapistXp.getStats.invalidate()
     },
+    onError: (error, newOne, context) => {
+        if (context?.previousMyTasks) {
+            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+        }
+
+        if (error.message.includes('Limite')) {
+            setAlertTitle('Limite de Tarefas')
+        } else {
+            setAlertTitle('Atenção')
+        }
+        setAlertMessage(error.message)
+        setShowAlert(true)
+    },
+    onSettled: () => {
+        utils.therapistTasks.getAll.invalidate()
+    }
   })
 
   const completeMyTaskMutation = trpc.therapistTasks.complete.useMutation({
+    onMutate: async (vars) => {
+        await utils.therapistTasks.getAll.cancel()
+        const previousMyTasks = utils.therapistTasks.getAll.getData()
+
+        utils.therapistTasks.getAll.setData(undefined, (old) => {
+            if (!old) return []
+            return old.map(t => {
+                if (t.id === vars.id) {
+                    // Toggle status logic similar to what backend does
+                    const newStatus = t.status === 'completed' ? 'pending' : 'completed'
+                    return { ...t, status: newStatus }
+                }
+                return t
+            })
+        })
+        return { previousMyTasks }
+    },
     onSuccess: () => {
-      refetchMyTasks()
+      // refetchMyTasks() // onSettled
       utils.therapistXp.getStats.invalidate()
     },
+    onError: (err, vars, context) => {
+        if (context?.previousMyTasks) {
+            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+        }
+    },
+    onSettled: () => {
+        utils.therapistTasks.getAll.invalidate()
+    }
   })
 
   const deleteMyTaskMutation = trpc.therapistTasks.delete.useMutation({
-    onSuccess: () => {
-      refetchMyTasks()
+    onMutate: async (vars) => {
+        await utils.therapistTasks.getAll.cancel()
+        const previousMyTasks = utils.therapistTasks.getAll.getData()
+
+        utils.therapistTasks.getAll.setData(undefined, (old) => {
+            return old ? old.filter(t => t.id !== vars.id) : []
+        })
+        return { previousMyTasks }
     },
+    onSuccess: () => {
+      // refetchMyTasks()
+    },
+    onError: (err, vars, context) => {
+        if (context?.previousMyTasks) {
+            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+        }
+        setAlertTitle('Erro ao excluir')
+        setAlertMessage(err.message)
+        setShowAlert(true)
+    },
+    onSettled: () => {
+        utils.therapistTasks.getAll.invalidate()
+    }
   })
 
   const selectedPatient = patients?.find((p) => p.id === selectedPatientId)

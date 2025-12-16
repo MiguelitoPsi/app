@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, lt, ne, sql } from "drizzle-orm";
+import { and, asc, eq, isNull, lt, ne, gte, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { z } from "zod";
 import { TASK_LIMITS } from "@/lib/constants";
@@ -522,6 +522,87 @@ export const taskRouter = router({
       };
     }),
 
+  // Reject (delete from patient view) a task assigned by therapist
+  rejectTherapistTask: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Verify the task belongs to this patient
+      const [task] = await ctx.db
+        .select()
+        .from(patientTasksFromTherapist)
+        .where(
+          and(
+            eq(patientTasksFromTherapist.id, input.taskId),
+            eq(patientTasksFromTherapist.patientId, ctx.user.id)
+          )
+        )
+        .limit(1);
+
+      if (!task) {
+        throw new Error("Task not found");
+      }
+
+      const now = new Date();
+
+      if (task.status === "completed") {
+        // Reuse logic to remove rewards
+        const [user] = await ctx.db
+          .select()
+          .from(users)
+          .where(eq(users.id, ctx.user.id))
+          .limit(1);
+
+        if (user) {
+          const isSession = task.category === "sessao";
+          let xpToDeduct = 0;
+          let coinReward = 0;
+
+          if (isSession) {
+            xpToDeduct = 40;
+            coinReward = 40;
+          } else {
+            const xpRewards: Record<string, number> = {
+              high: 30,
+              medium: 10,
+              low: 5,
+            };
+            const coinRewards: Record<string, number> = {
+              high: 30,
+              medium: 10,
+              low: 5,
+            };
+            const priority = task.priority || "medium";
+            xpToDeduct = xpRewards[priority] || 10;
+            coinReward = coinRewards[priority] || 10;
+          }
+
+          const newCoins = Math.max(0, user.coins - coinReward);
+          const newExperience = Math.max(0, user.experience - xpToDeduct);
+          const newLevel = Math.floor(newExperience / 100) + 1;
+
+          await ctx.db
+            .update(users)
+            .set({
+              coins: newCoins,
+              experience: newExperience,
+              level: newLevel,
+              updatedAt: now,
+            })
+            .where(eq(users.id, ctx.user.id));
+        }
+      }
+
+      await ctx.db
+        .update(patientTasksFromTherapist)
+        .set({
+          status: "rejected",
+          updatedAt: now,
+        })
+        .where(eq(patientTasksFromTherapist.id, input.taskId));
+
+      return { success: true };
+    }),
+
   // ================== THERAPIST TASK MANAGEMENT ==================
 
   // Get tasks created by therapist for a specific patient
@@ -607,6 +688,56 @@ export const taskRouter = router({
         if (taskDateForValidation < today) {
           throw new Error(
             "Não é possível criar tarefas para datas que já passaram"
+          );
+        }
+
+        // Validate task limits for the due date
+        // Limit: 2 High Priority, 5 Medium Priority
+        // This must count tasks from BOTH 'tasks' (patient self-assigned) and 'patientTasksFromTherapist' (therapist assigned)
+
+        const dayStart = new Date(taskDateForValidation);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+
+        // 1. Count from patient's personal tasks
+        const personalTasks = await ctx.db
+          .select()
+          .from(tasks)
+          .where(
+            and(
+              eq(tasks.userId, input.patientId),
+              isNull(tasks.deletedAt),
+              eq(tasks.priority, input.priority),
+              gte(tasks.dueDate, dayStart),
+              lt(tasks.dueDate, dayEnd)
+            )
+          );
+
+        // 2. Count from therapist assigned tasks (exclude rejected ones)
+        const therapistAssignedTasks = await ctx.db
+          .select()
+          .from(patientTasksFromTherapist)
+          .where(
+            and(
+              eq(patientTasksFromTherapist.patientId, input.patientId),
+              ne(patientTasksFromTherapist.status, "rejected"),
+              eq(patientTasksFromTherapist.priority, input.priority),
+              gte(patientTasksFromTherapist.dueDate, dayStart),
+              lt(patientTasksFromTherapist.dueDate, dayEnd)
+            )
+          );
+
+        const totalTasks = personalTasks.length + therapistAssignedTasks.length;
+
+        if (input.priority === "high" && totalTasks >= TASK_LIMITS.high) {
+          throw new Error(
+            `O paciente já possui ${totalTasks} tarefas de prioridade ALTA para esta data (Limite: ${TASK_LIMITS.high}).`
+          );
+        }
+
+        if (input.priority === "medium" && totalTasks >= TASK_LIMITS.medium) {
+          throw new Error(
+            `O paciente já possui ${totalTasks} tarefas de prioridade MÉDIA para esta data (Limite: ${TASK_LIMITS.medium}).`
           );
         }
       }

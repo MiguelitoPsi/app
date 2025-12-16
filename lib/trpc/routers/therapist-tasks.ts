@@ -4,10 +4,12 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { and, asc, eq, gte, isNull, lt, or, sql } from 'drizzle-orm'
+import { and, asc, eq, gte, isNull, lt, ne, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { patientTasksFromTherapist, psychologistPatients, therapistTasks } from '@/lib/db/schema'
+import { patientTasksFromTherapist, psychologistPatients, tasks, therapistTasks } from '@/lib/db/schema'
+import { TASK_LIMITS } from '@/lib/constants'
+
 import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 import { awardTherapistXP, type THERAPIST_XP_ACTIONS } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
@@ -181,6 +183,10 @@ export const therapistTasksRouter = router({
         const [year, month, day] = input.dueDate.split('-').map(Number)
         parsedDueDate = new Date(year, month - 1, day)
         parsedDueDate.setHours(12, 0, 0, 0) // Set to noon to avoid timezone edge cases
+
+        // Se for uma tarefa de SESSÃO, não validamos o limite do paciente pois sessões são exceções
+        // if (input.taskCategory === 'sessao' && input.patientId) { ... } -> REMOVIDO
+
       }
 
       // Gerar datas para tarefas recorrentes de sessão (APENAS NO MÊS SELECIONADO)
@@ -236,6 +242,48 @@ export const therapistTasksRouter = router({
           : parsedDueDate
             ? [parsedDueDate]
             : []
+
+      // Validar limites para a rotina do TERAPEUTA (Minha Rotina)
+      // Sessões são exceções e podem exceder o limite
+      if (parsedDueDate && input.taskCategory !== 'sessao') {
+        const taskDateForValidation = new Date(parsedDueDate);
+        taskDateForValidation.setHours(0, 0, 0, 0);
+        
+        const dayStart = new Date(taskDateForValidation);
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+
+        const myTasksOnDate = await ctx.db
+          .select()
+          .from(therapistTasks)
+          .where(
+            and(
+              eq(therapistTasks.therapistId, ctx.user.id),
+              // Considerar a prioridade efetiva (sessões são high)
+              eq(therapistTasks.priority, effectivePriority),
+              gte(therapistTasks.dueDate, dayStart),
+              lt(therapistTasks.dueDate, dayEnd),
+              // Não contar tarefas canceladas se houver status cancelado (mas aqui só temos pending/completed/in_progress)
+              ne(therapistTasks.status, 'cancelled')
+            )
+          );
+        
+        const totalMyTasks = myTasksOnDate.length;
+
+        if (effectivePriority === 'high' && totalMyTasks >= TASK_LIMITS.high) {
+             throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: `Você já possui ${totalMyTasks} tarefas de prioridade ALTA para esta data (Limite: ${TASK_LIMITS.high}).`
+            })
+        }
+
+        if (effectivePriority === 'medium' && totalMyTasks >= TASK_LIMITS.medium) {
+             throw new TRPCError({
+                code: 'BAD_REQUEST',
+                message: `Você já possui ${totalMyTasks} tarefas de prioridade MÉDIA para esta data (Limite: ${TASK_LIMITS.medium}).`
+            })
+        }
+      }
 
       // ID da primeira tarefa (para retorno)
       const firstId = nanoid()

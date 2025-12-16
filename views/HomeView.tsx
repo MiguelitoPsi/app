@@ -74,6 +74,7 @@ export const HomeView: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false)
   // Local state for immediate UI feedback
   const [selectedMood, setSelectedMood] = useState<Mood>(currentMood)
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const [_, setIsScrolled] = useState(false)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [showSettings, setShowSettings] = useState(false)
@@ -216,12 +217,12 @@ export const HomeView: React.FC = () => {
     return () => clearInterval(interval)
   }, [stats.lastMoodXPTimestamp])
 
-  const handleMoodChange = (mood: Mood, e?: React.MouseEvent<HTMLButtonElement>) => {
-    if (!isXPAvailable) return
-    // Update local state immediately for instant UI feedback
+  const handleMoodChange = async (mood: Mood, e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (!isXPAvailable || isSubmitting) return
+    
+    // Immediate UI feedback
+    setIsSubmitting(true)
     setSelectedMood(mood)
-
-    // Play mood sound
     playMood()
 
     if (isXPAvailable) {
@@ -240,8 +241,18 @@ export const HomeView: React.FC = () => {
       }
     }
 
-    // Update backend asynchronously
-    setMood(mood)
+    try {
+      // Update backend
+      await setMood(mood)
+    } catch (error) {
+      console.error('Error setting mood:', error)
+      setIsSubmitting(false)
+    } finally {
+      // Small delay to prevent double clicks during animation
+      setTimeout(() => {
+        setIsSubmitting(false)
+      }, 1000)
+    }
   }
 
   // Logout handler
@@ -643,8 +654,8 @@ export const HomeView: React.FC = () => {
                     selectedMood === m.id
                       ? 'scale-105 bg-violet-50 shadow-sm ring-2 ring-violet-100 sm:scale-110 dark:bg-violet-900/20 dark:ring-violet-900/30'
                       : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
-                  disabled={!isXPAvailable}
+                  } ${isXPAvailable && !isSubmitting ? '' : 'cursor-not-allowed opacity-50'}`}
+                  disabled={!isXPAvailable || isSubmitting}
                   key={m.id}
                   onClick={(e) => handleMoodChange(m.id, e)}
                   type='button'
