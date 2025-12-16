@@ -1,4 +1,4 @@
-import { and, eq, gte, lte, or, sql } from 'drizzle-orm'
+import { and, eq, gte, isNull, lte, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { auth } from '@/lib/auth'
@@ -121,7 +121,7 @@ export const adminRouter = router({
         bannedAt: users.bannedAt,
       })
       .from(users)
-      .where(eq(users.role, 'psychologist'))
+      .where(and(eq(users.role, 'psychologist'), isNull(users.deletedAt)))
       .orderBy(users.name)
 
     // Para cada psicólogo, buscar seus pacientes
@@ -158,7 +158,7 @@ export const adminRouter = router({
               bannedAt: users.bannedAt,
             })
             .from(users)
-            .where(sql`${users.id} IN ${patientIds}`)
+            .where(and(sql`${users.id} IN ${patientIds}`, isNull(users.deletedAt)))
             .orderBy(users.name)
         }
 
