@@ -96,7 +96,6 @@ export function TherapistProfileModal({
     attendanceType: 'online' as AttendanceType,
     clinicAddress: '',
     phone: '',
-    phone: '',
     bio: '',
     image: '',
   })
@@ -186,7 +185,6 @@ export function TherapistProfileModal({
         attendanceType: existingProfile.attendanceType,
         clinicAddress: existingProfile.clinicAddress || '',
         phone: existingProfile.phone,
-        phone: existingProfile.phone,
         bio: existingProfile.bio || '',
         image: existingProfile.image || '',
       })
@@ -263,8 +261,6 @@ export function TherapistProfileModal({
       crp: formData.crp.trim(),
       education: formData.education.trim(),
       city: formData.city.trim(),
-      attendanceType: formData.attendanceType,
-      clinicAddress: formData.clinicAddress.trim() || undefined,
       attendanceType: formData.attendanceType,
       clinicAddress: formData.clinicAddress.trim() || undefined,
       phone: formData.phone,
