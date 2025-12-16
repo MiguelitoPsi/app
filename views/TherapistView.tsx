@@ -18,16 +18,8 @@ import {
   LogOut,
   Mail,
   CloudRain,
-  Eye,
-  EyeOff,
-  FileText,
-  Filter,
   Flame,
   Frown,
-  Gift,
-  Key,
-  LogOut,
-  Mail,
   MapPin,
   Meh,
   MessageSquare,
@@ -58,6 +50,18 @@ import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
 import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
+
+const getMoodEmoji = (mood: Mood) => {
+  const map: Record<string, string> = {
+    happy: '😄',
+    sad: '😔',
+    anxious: '😰',
+    angry: '😡',
+    calm: '😌',
+    neutral: '😕',
+  }
+  return map[mood] || '😕'
+}
 
 export const TherapistView: React.FC = () => {
   // Buscar dados do terapeuta via tRPC
