@@ -11,6 +11,7 @@ import {
   users,
 } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
+import { getLevelFromXP } from '@/lib/xp'
 
 // Helper function to check and unlock badges
 export async function autoCheckBadges(
@@ -96,8 +97,41 @@ export async function autoCheckBadges(
   // Get existing badges
   const existingBadges = await db.select().from(badges).where(eq(badges.userId, userId))
 
-  const existingBadgeIds = new Set(existingBadges.map((b: { badgeId: string }) => b.badgeId))
+  // Cleanup: Remove level badges if user level is lower than requirement
+  const currentLevel = getLevelFromXP(user.experience)
+  const badgesToDelete: string[] = []
 
+  for (const existingBadge of existingBadges) {
+    // Check if it's a level badge
+    if (existingBadge.badgeId.startsWith('level_')) {
+      const def = BADGE_DEFINITIONS.find((d) => d.id === existingBadge.badgeId)
+      if (def && def.metric === 'level') {
+        if (currentLevel < def.requirement) {
+           badgesToDelete.push(existingBadge.id)
+        }
+      }
+    }
+  }
+
+  if (badgesToDelete.length > 0) {
+    // Delete invalid badges from DB
+    for (const badgeId of badgesToDelete) {
+       await db.delete(badges).where(eq(badges.id, badgeId))
+    }
+    // Update existing list in memory so we don't skip check (though check will fail anyway)
+    // Actually, we just want to remove them from existingBadgeIds so the check loop runs?
+    // No, if we delete them, it means they are invalid. The check loop will see they are missing,
+    // verify the requirement (which will fail), and NOT add them back. Correct.
+  }
+
+  // Reload existing badges set after cleanup to be safe, OR just filter the IDs from the set
+  const validExistingBadgeIds = new Set(
+    existingBadges
+      .filter((b: { id: string; badgeId: string }) => !badgesToDelete.includes(b.id))
+      .map((b: { badgeId: string }) => b.badgeId)
+  )
+
+  const existingBadgeIds = validExistingBadgeIds
   const newBadges: (typeof badges.$inferInsert)[] = []
 
   // Check each badge definition
@@ -121,7 +155,14 @@ export async function autoCheckBadges(
     } else if (badge.metric === 'totalMeditations') {
       shouldUnlock = stats.totalMeditations >= badge.requirement
     } else if (badge.metric === 'level') {
-      shouldUnlock = user.level >= badge.requirement
+      const currentLevel = getLevelFromXP(user.experience)
+
+      // Self-healing: if stored level is incorrect, update it
+      if (currentLevel !== user.level) {
+        await db.update(users).set({ level: currentLevel }).where(eq(users.id, userId))
+      }
+
+      shouldUnlock = currentLevel >= badge.requirement
     } else if (badge.metric === 'completedTasksHigh') {
       shouldUnlock = completedTasksHigh >= badge.requirement
     } else if (badge.metric === 'completedTasksMedium') {
@@ -160,16 +201,38 @@ export async function autoCheckBadges(
 
 export const badgeRouter = router({
   getAll: protectedProcedure.query(async ({ ctx }) => {
-    const userBadges = await ctx.db.select().from(badges).where(eq(badges.userId, ctx.user.id))
+    // Fetch fresh user data to get accurate XP
+    const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
+    if (!user) return []
 
-    // Merge with definitions
-    return userBadges.map((badge) => {
-      const definition = BADGE_DEFINITIONS.find((def) => def.id === badge.badgeId)
-      return {
-        ...badge,
-        definition,
-      }
-    })
+    const userBadges = await ctx.db.select().from(badges).where(eq(badges.userId, ctx.user.id))
+    // Fix desync: Filter out level badges that don't match actual level
+    const currentLevel = getLevelFromXP(user.experience)
+
+    return userBadges
+      .map((badge) => {
+        const definition = BADGE_DEFINITIONS.find((def) => def.id === badge.badgeId)
+        return {
+          ...badge,
+          definition,
+        }
+      })
+      .filter((b) => {
+        // Strict safety check:
+        // 1. If we can't find definition, keep it (or maybe hide? safer to keep for now unless it's clearly broken)
+        // 2. If it IS a level badge, strictly enforce requirement
+        if (b.definition?.metric === 'level') {
+          return currentLevel >= b.definition.requirement
+        }
+        // Also check if badgeId string itself suggests a level badge (e.g. 'level_5')
+        if (b.badgeId.startsWith('level_')) {
+             const manualDef = BADGE_DEFINITIONS.find(d => d.id === b.badgeId)
+             if (manualDef && manualDef.metric === 'level') {
+                 return currentLevel >= manualDef.requirement
+             }
+        }
+        return true
+      })
   }),
 
   checkAndUnlock: protectedProcedure.mutation(async ({ ctx }) => {

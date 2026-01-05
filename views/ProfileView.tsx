@@ -289,27 +289,36 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   }
 
   // Determine badge status, treating 100% progress as unlocked
+  // Determine badge status, treating 100% progress as unlocked
   const getBadgeStatus = (badge: BadgeDefinition) => {
     const unlockedInfo = stats.badges.find((b) => b.id === badge.id)
+    
     let rawValue: number | boolean = 0
     if (badge.metric === 'auto') {
-      rawValue = 1
+       // Auto badges depend on whether they are unlocked in DB
+      rawValue = !!unlockedInfo ? 1 : 0
+    } else if (badge.metric === 'level') {
+      rawValue = stats.level
     } else {
-      rawValue = stats[badge.metric as keyof UserStats] as number | boolean
+      // biome-ignore lint/suspicious/noExplicitAny: dynamic access to stats
+      rawValue = (stats as any)[badge.metric] || 0
     }
-    const metricValue =
-      typeof rawValue === 'boolean'
-        ? rawValue
-          ? 1
-          : 0
-        : typeof rawValue === 'number'
-          ? rawValue
-          : 0
+
+    const metricValue = typeof rawValue === 'number' ? rawValue : (rawValue ? 1 : 0)
+
     const percentage =
       badge.requirement > 0
         ? Math.min(100, Math.max(0, (metricValue / badge.requirement) * 100))
         : 100
-    const isUnlocked = !!unlockedInfo || percentage === 100
+
+    // Strict checks:
+    // 1. Level requirement must be met (UI-side correction)
+    const meetsLevelRequirement = badge.metric !== 'level' || (stats.level >= badge.requirement)
+    // 2. Context must not explicitly say it's locked (if calculated there)
+    const contextSaysLocked = badge.isUnlocked === false
+    
+    const isUnlocked = (!!unlockedInfo || percentage === 100) && meetsLevelRequirement && !contextSaysLocked
+
     return {
       isUnlocked,
       unlockedDate: unlockedInfo?.date,

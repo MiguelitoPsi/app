@@ -420,14 +420,20 @@ export const RANKS: RankDefinition[] = [
   },
 ]
 
-export type Mood = 'happy' | 'calm' | 'neutral' | 'sad' | 'anxious' | 'angry'
+export type Mood = 'happy' | 'excited' | 'grateful' | 'calm' | 'neutral' | 'tired' | 'bored' | 'sad' | 'anxious' | 'fearful' | 'angry' | 'disgusted'
 
 export const MOOD_SCORE_MAP: Record<Mood, number> = {
   happy: 100,
+  excited: 100,
+  grateful: 90,
   calm: 80,
   neutral: 60,
+  tired: 50,
+  bored: 50,
   anxious: 40,
+  fearful: 30,
   sad: 30,
+  disgusted: 20,
   angry: 20,
 }
 

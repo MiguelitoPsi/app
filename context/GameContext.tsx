@@ -62,9 +62,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const utils = trpc.useUtils()
 
   // Fetch user profile - core data, refresh less often
+  // Fetch user profile - keep it fresh
   const { data: userProfile } = trpc.user.getProfile.useQuery(undefined, {
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnMount: true,
   })
 
   // Fetch tasks - can change frequently
@@ -129,9 +130,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   })
 
   // Fetch badges - rarely changes
+  // Fetch badges - refresh often to catch updates/cleanups
   const { data: badgesData = [] } = trpc.badge.getAll.useQuery(undefined, {
-    staleTime: 10 * 60 * 1000, // 10 minutes
-    refetchOnMount: false,
+    staleTime: 0, // Always fetch fresh to catch cleanups
+    refetchOnMount: true,
   })
 
   // Fetch rewards - can change with purchases
@@ -343,8 +345,20 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return 'neutral'
   }, [latestMood, journal])
 
-  // Use BADGE_DEFINITIONS directly
-  const allBadges = BADGE_DEFINITIONS
+  // Calculate badges with unlock status
+  const allBadges = useMemo(() => {
+    return BADGE_DEFINITIONS.map((def) => {
+      const isUnlocked = stats.badges.some((b) => b.id === def.id)
+      // Extra UI check: if it's a level badge, ensure we actually have the level
+      const meetsLevelRequirement = def.metric !== 'level' || (stats.level >= def.requirement)
+      
+      return {
+        ...def,
+        isUnlocked: isUnlocked && meetsLevelRequirement,
+        unlockedAt: stats.badges.find((b) => b.id === def.id)?.date,
+      }
+    })
+  }, [stats.badges, stats.level])
 
   // State for new badges
   const [newBadges, setNewBadges] = useState<typeof BADGE_DEFINITIONS>([])
@@ -365,20 +379,28 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     utils.client.badge.checkAndUnlock
       .mutate()
       .then((result) => {
-        if (result.newBadges && result.newBadges.length > 0) {
-          const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
-            result.newBadges.includes(def.id)
-          )
-          setNewBadges((prev) => [...prev, ...unlockedBadges])
-          // Invalidate in background
+          if (result.newBadges && result.newBadges.length > 0) {
+            const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
+              result.newBadges.includes(def.id)
+            )
+            setNewBadges((prev) => [...prev, ...unlockedBadges])
+          }
+          // Always invalidate to ensure consistency (e.g. if DB cleanup happened)
           utils.badge.getAll.invalidate()
           utils.user.getProfile.invalidate()
-        }
       })
       .catch((error) => {
         console.error('Error checking badges:', error)
       })
   }
+
+  // Check badges on mount/user load to ensure consistency
+  useEffect(() => {
+    if (userProfile?.id) {
+      checkBadges()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userProfile?.id])
 
   const dismissNewBadge = () => {
     setNewBadges((prev) => prev.slice(1))
@@ -436,6 +458,11 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (!old) return old
         return old.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
       })
+    }
+
+    // If it's a temporary task, don't call backend
+    if (id.startsWith('temp-')) {
+      return
     }
 
     // Optimistic update for XP/coins based on task type and priority
@@ -578,6 +605,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
+      if (id.startsWith('temp-')) {
+        return;
+      }
+
       if (isFromTherapist) {
         await utils.client.task.rejectTherapistTask.mutate({ taskId: id });
         utils.task.getMyTasksFromTherapist.invalidate();

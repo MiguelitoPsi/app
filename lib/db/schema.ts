@@ -182,7 +182,20 @@ export const moodHistory = sqliteTable('mood_history', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   mood: text('mood', {
-    enum: ['happy', 'calm', 'neutral', 'sad', 'anxious', 'angry'],
+    enum: [
+      'happy',
+      'excited',
+      'grateful',
+      'calm',
+      'neutral',
+      'tired',
+      'bored',
+      'sad',
+      'anxious',
+      'fearful',
+      'angry',
+      'disgusted',
+    ],
   }).notNull(),
   xpAwarded: integer('xp_awarded').notNull().default(0),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),

@@ -63,11 +63,11 @@ export async function POST(request: Request) {
     `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash",
       contents: prompt,
-      config: {
-        thinkingConfig: { thinkingBudget: 0 }, // Disable thinking for faster response
-      },
+      // config: {
+      //   thinkingConfig: { thinkingBudget: 0 }, 
+      // },
     });
 
     const analysis =
@@ -75,11 +75,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ analysis });
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Error calling Gemini:", error);
     return NextResponse.json(
       {
-        error:
-          "Desculpe, não consegui analisar seu pensamento agora. Por favor, tente novamente mais tarde.",
+        error: `Debug Error: ${errorMessage}`,
       },
       { status: 500 }
     );

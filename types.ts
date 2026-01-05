@@ -1,4 +1,4 @@
-export type Mood = 'happy' | 'calm' | 'neutral' | 'sad' | 'anxious' | 'angry'
+export type Mood = 'happy' | 'excited' | 'grateful' | 'calm' | 'neutral' | 'tired' | 'bored' | 'sad' | 'anxious' | 'fearful' | 'angry' | 'disgusted'
 
 export type JournalEntry = {
   id: string
@@ -132,6 +132,9 @@ export type BadgeDefinition = {
     | 'totalMoodLogs'
     | 'redeemedRewards'
     | 'engagement'
+  // Properties added by GameContext calculation
+  isUnlocked?: boolean
+  unlockedAt?: number
 }
 
 export type GameContextType = {
