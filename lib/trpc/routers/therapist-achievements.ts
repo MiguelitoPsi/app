@@ -12,7 +12,7 @@ import {
   type TherapistBadgeDefinition,
 } from '@/lib/constants/therapist'
 import { db } from '@/lib/db'
-import { therapistAchievements, therapistChallenges, therapistGoals } from '@/lib/db/schema'
+import { therapistAchievements, therapistChallenges, therapistGoals, therapistStats } from '@/lib/db/schema'
 import { addTherapistRawXP, getOrCreateTherapistStats } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
 

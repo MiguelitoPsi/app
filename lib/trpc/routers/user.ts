@@ -231,7 +231,20 @@ export const userRouter = router({
   trackMood: protectedProcedure
     .input(
       z.object({
-        mood: z.enum(["happy", "calm", "neutral", "sad", "anxious", "angry"]),
+        mood: z.enum([
+          "happy",
+          "excited",
+          "grateful",
+          "calm",
+          "neutral",
+          "tired",
+          "bored",
+          "sad",
+          "anxious",
+          "fearful",
+          "angry",
+          "disgusted",
+        ]),
       })
     )
     .mutation(async ({ ctx, input }) => {

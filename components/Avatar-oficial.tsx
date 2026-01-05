@@ -1,13 +1,13 @@
 import Image from 'next/image'
-
-type Mood = 'happy' | 'calm' | 'neutral' | 'sad' | 'anxious' | 'angry'
+import type { Mood } from '@/lib/constants'
 
 type AvatarOficialProps = {
   mood?: Mood
   size?: 'sm' | 'md' | 'lg'
 }
 
-const moodImages: Record<Mood, string> = {
+// Subset of moods with specific images
+const moodImages: Partial<Record<Mood, string>> = {
   happy: '/mascote/feliz.png',
   calm: '/mascote/calmo.png',
   neutral: '/mascote/calmo.png',
@@ -16,8 +16,11 @@ const moodImages: Record<Mood, string> = {
   angry: '/mascote/raiva.png',
 }
 
-// Gradientes de cor para cada emoção
-const moodGradients: Record<Mood, string> = {
+// Fallback image for moods without specific visuals
+const defaultMoodImage = '/mascote/calmo.png'
+
+// Gradientes de cor para cada emoção (with fallback for unsupported moods)
+const moodGradients: Partial<Record<Mood, string>> = {
   happy: 'from-yellow-300 via-amber-400 to-yellow-500',
   calm: 'from-green-400 via-emerald-500 to-green-600',
   neutral: 'from-slate-400 via-gray-500 to-slate-600',
@@ -25,16 +28,18 @@ const moodGradients: Record<Mood, string> = {
   anxious: 'from-purple-400 via-violet-500 to-purple-600',
   angry: 'from-red-400 via-rose-500 to-red-600',
 }
+const defaultGradient = 'from-slate-400 via-gray-500 to-slate-600'
 
-// Cores de glow/aura para cada emoção
-const moodGlowColors: Record<Mood, string> = {
-  happy: '251, 191, 36', // green-500
-  calm: '34, 197, 94', // amber-400
-  neutral: '148, 163, 184', // slate-400
-  sad: '56, 189, 248', // sky-400
-  anxious: '167, 139, 250', // violet-400
-  angry: '251, 113, 133', // rose-400
+// Cores de glow/aura para cada emoção (with fallback for unsupported moods)
+const moodGlowColors: Partial<Record<Mood, string>> = {
+  happy: '251, 191, 36', // amber
+  calm: '34, 197, 94', // green
+  neutral: '148, 163, 184', // slate
+  sad: '56, 189, 248', // sky
+  anxious: '167, 139, 250', // violet
+  angry: '251, 113, 133', // rose
 }
+const defaultGlowColor = '148, 163, 184' // slate
 
 const sizeConfig = {
   sm: {
@@ -61,9 +66,9 @@ const sizeConfig = {
 }
 
 export default function AvatarOficial({ mood = 'calm', size = 'lg' }: AvatarOficialProps) {
-  const imageSrc = moodImages[mood]
-  const gradient = moodGradients[mood]
-  const glowColor = moodGlowColors[mood]
+  const imageSrc = moodImages[mood] || defaultMoodImage
+  const gradient = moodGradients[mood] || defaultGradient
+  const glowColor = moodGlowColors[mood] || defaultGlowColor
   const config = sizeConfig[size]
 
   return (
