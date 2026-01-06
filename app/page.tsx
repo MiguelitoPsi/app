@@ -21,6 +21,7 @@ import {
   Users,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   return (
@@ -68,8 +69,8 @@ export default function LandingPage() {
       <header className="fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-gradient-to-br from-sky-500 to-cyan-600 p-1.5">
-              <Brain className="h-5 w-5 text-white" />
+            <div className="rounded-lg bg-white overflow-hidden p-0.5">
+              <Image src="/logo.jpg" alt="Logo Nepsis" width={24} height={24} className="rounded-md" />
             </div>
             <span className="font-bold text-lg text-white">Nepsis</span>
           </div>
@@ -484,8 +485,8 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="rounded-lg bg-slate-800 p-1.5">
-                <Brain className="h-5 w-5 text-slate-200" />
+              <div className="rounded-lg bg-white overflow-hidden p-0.5">
+                <Image src="/logo.jpg" alt="Logo Nepsis" width={24} height={24} className="rounded-md" />
               </div>
               <span className="font-bold text-white">Nepsis</span>
             </div>
@@ -572,7 +573,7 @@ function DataFlowAnimation() {
       {/* 3D Container */}
       <motion.div
         animate={{ rotateX: [10, 15, 10] }}
-        className="relative w-full max-w-4xl h-[60%] flex items-center justify-center"
+        className="relative w-full max-w-4xl h-[70%] sm:h-[60%] flex items-center justify-center"
         initial={{ rotateX: 10 }}
         style={{ transformStyle: "preserve-3d" }}
         transition={{
@@ -583,7 +584,7 @@ function DataFlowAnimation() {
       >
         {/* Central Hub - AI */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-          <motion.div
+            <motion.div
             animate={{
               scale: [1, 1.05, 1],
               boxShadow: [
@@ -592,14 +593,14 @@ function DataFlowAnimation() {
                 "0 0 30px rgba(14, 165, 233, 0.3)",
               ],
             }}
-            className="relative w-32 h-32 rounded-full bg-gradient-to-br from-sky-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-sky-500/30"
+            className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-sky-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-sky-500/30"
             transition={{
               duration: 3,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
             }}
           >
-            <Brain className="w-16 h-16 text-white" />
+            <Brain className="w-10 h-10 sm:w-16 sm:h-16 text-white" />
 
             {/* Rotating Rings */}
             {[1, 2, 3].map((i) => (
@@ -610,8 +611,8 @@ function DataFlowAnimation() {
                 style={{
                   width: `${100 + i * 40}%`,
                   height: `${100 + i * 40}%`,
-                  left: `-${i * 20}%`,
-                  top: `-${i * 20}%`,
+                  left: `-${(i * 20)}%`,
+                  top: `-${(i * 20)}%`,
                 }}
                 transition={{
                   duration: 10 + i * 5,
@@ -623,61 +624,61 @@ function DataFlowAnimation() {
               </motion.div>
             ))}
           </motion.div>
-          <div className="absolute -bottom-12 left-1/2 -translate-x-1/2 text-center w-40">
-            <span className="text-lg font-bold text-white block">
+          <div className="absolute -bottom-10 sm:-bottom-12 left-1/2 -translate-x-1/2 text-center w-32 sm:w-40">
+            <span className="text-sm sm:text-lg font-bold text-white block">
               Nepsis AI
             </span>
-            <span className="text-xs text-sky-400">
+            <span className="text-[10px] sm:text-xs text-sky-400">
               Processamento Seguro
             </span>
           </div>
         </div>
 
         {/* Left Node - Patient */}
-        <div className="absolute left-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-4">
+        <div className="absolute left-[5%] sm:left-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 sm:gap-4">
           <motion.div
             animate={{ y: [0, -15, 0] }}
-            className="w-24 h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-sky-500/10"
+            className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-sky-500/10"
             transition={{
               duration: 5,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
             }}
           >
-            <Smartphone className="w-10 h-10 text-slate-300" />
+            <Smartphone className="w-7 h-7 sm:w-10 sm:h-10 text-slate-300" />
           </motion.div>
-          <span className="text-sm font-medium text-slate-400">Paciente</span>
+          <span className="text-[10px] sm:text-sm font-medium text-slate-400">Paciente</span>
 
           {/* Satellite Nodes */}
           <motion.div
             animate={{ y: [0, -5, 0] }}
-            className="absolute -top-12 -left-8 bg-slate-800 p-2 rounded-lg border border-slate-700"
+            className="absolute -top-8 -left-4 sm:-top-12 sm:-left-8 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700"
             transition={{
               duration: 3,
               repeat: Number.POSITIVE_INFINITY,
               delay: 1,
             }}
           >
-            <Heart className="w-4 h-4 text-rose-500" />
+            <Heart className="w-3 h-3 sm:w-4 sm:h-4 text-rose-500" />
           </motion.div>
           <motion.div
             animate={{ y: [0, 5, 0] }}
-            className="absolute -bottom-8 -right-8 bg-slate-800 p-2 rounded-lg border border-slate-700"
+            className="absolute -bottom-6 -right-4 sm:-bottom-8 sm:-right-8 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700"
             transition={{
               duration: 4,
               repeat: Number.POSITIVE_INFINITY,
               delay: 0.5,
             }}
           >
-            <FileText className="w-4 h-4 text-blue-500" />
+            <FileText className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
           </motion.div>
         </div>
 
         {/* Right Node - Therapist */}
-        <div className="absolute right-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-4">
+        <div className="absolute right-[5%] sm:right-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 sm:gap-4">
           <motion.div
             animate={{ y: [0, -15, 0] }}
-            className="w-24 h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-emerald-500/10"
+            className="w-16 h-16 sm:w-24 sm:h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-emerald-500/10"
             transition={{
               duration: 5,
               repeat: Number.POSITIVE_INFINITY,
@@ -685,32 +686,32 @@ function DataFlowAnimation() {
               delay: 2.5,
             }}
           >
-            <Users className="w-10 h-10 text-emerald-400" />
+            <Users className="w-7 h-7 sm:w-10 sm:h-10 text-emerald-400" />
           </motion.div>
-          <span className="text-sm font-medium text-slate-400">Terapeuta</span>
+          <span className="text-[10px] sm:text-sm font-medium text-slate-400">Terapeuta</span>
 
           {/* Satellite Nodes */}
           <motion.div
             animate={{ y: [0, -5, 0] }}
-            className="absolute -top-10 -right-6 bg-slate-800 p-2 rounded-lg border border-slate-700"
+            className="absolute -top-8 -right-4 sm:-top-10 sm:-right-6 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700"
             transition={{
               duration: 3,
               repeat: Number.POSITIVE_INFINITY,
               delay: 2,
             }}
           >
-            <BarChart className="w-4 h-4 text-emerald-500" />
+            <BarChart className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-500" />
           </motion.div>
           <motion.div
             animate={{ y: [0, 5, 0] }}
-            className="absolute -bottom-6 -left-6 bg-slate-800 p-2 rounded-lg border border-slate-700"
+            className="absolute -bottom-5 -left-4 sm:-bottom-6 sm:-left-6 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700"
             transition={{
               duration: 4,
               repeat: Number.POSITIVE_INFINITY,
               delay: 1.5,
             }}
           >
-            <Calendar className="w-4 h-4 text-amber-500" />
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 text-amber-500" />
           </motion.div>
         </div>
 
@@ -816,15 +817,15 @@ function DataFlowAnimation() {
           {
             icon: <Bell className="w-3 h-3 text-blue-400" />,
             text: "Lembrete Enviado",
-            top: "15%",
-            right: "30%",
+            top: "10%",
+            right: "15%",
             delay: 4,
           },
           {
             icon: <MessageCircle className="w-3 h-3 text-sky-400" />,
             text: "Insight Gerado",
-            bottom: "25%",
-            left: "30%",
+            bottom: "15%",
+            left: "25%",
             delay: 6,
           },
         ].map((item, i) => (
@@ -851,7 +852,7 @@ function DataFlowAnimation() {
             }}
           >
             {item.icon}
-            <span className="text-[10px] font-medium text-slate-200 whitespace-nowrap">
+            <span className="text-[8px] sm:text-[10px] font-medium text-slate-200 whitespace-nowrap">
               {item.text}
             </span>
           </motion.div>

@@ -41,11 +41,8 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
       <div className='flex h-full flex-col'>
         {/* Logo */}
         <div className='flex h-14 items-center justify-center gap-2.5 border-b border-slate-200 px-4 lg:justify-start dark:border-slate-700'>
-          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-purple-600 shadow-sm'>
-            {(() => {
-              const Icon = getIconByKey('thought')
-              return <Icon className='h-4.5 w-4.5 text-white' />
-            })()}
+          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white overflow-hidden p-0.5 shadow-sm'>
+            <img src='/logo.jpg' alt='Logo Nepsis' className='h-full w-full object-cover rounded-md' />
           </div>
           <span className='hidden text-base font-bold text-slate-800 lg:block dark:text-white'>
             Nepsis

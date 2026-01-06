@@ -107,8 +107,8 @@ export default function PsychologistsPage() {
               <span className='hidden sm:inline'>Voltar</span>
             </Link>
             <div className='flex items-center gap-2'>
-              <div className='rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 p-1.5'>
-                <Brain className='h-5 w-5 text-white' />
+              <div className='rounded-lg bg-white overflow-hidden p-0.5'>
+                <img src='/logo.jpg' alt='Logo Nepsis' className='h-6 w-6 rounded-md' />
               </div>
               <span className='font-bold text-lg text-white'>Nepsis</span>
             </div>
