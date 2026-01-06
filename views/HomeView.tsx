@@ -468,16 +468,17 @@ export const HomeView: React.FC = () => {
 
   const moods: { id: Mood; label: string; image: string; emoji: string }[] = [
     { id: 'happy', label: 'Feliz', image: '/mascote/feliz.png', emoji: '😄' },
+    { id: 'excited', label: 'Empolgado', image: '/mascote/feliz.png', emoji: '🤩' },
+    { id: 'grateful', label: 'Grato', image: '/mascote/feliz.png', emoji: '😇' },
     { id: 'calm', label: 'Calmo', image: '/mascote/calmo.png', emoji: '😌' },
     { id: 'neutral', label: 'Neutro', image: '/mascote/neutro.png', emoji: '😐' },
+    { id: 'tired', label: 'Cansado', image: '/mascote/neutro.png', emoji: '🥱' },
+    { id: 'bored', label: 'Entediado', image: '/mascote/neutro.png', emoji: '😑' },
     { id: 'sad', label: 'Triste', image: '/mascote/triste.png', emoji: '😢' },
-    {
-      id: 'anxious',
-      label: 'Ansioso',
-      image: '/mascote/ansioso.png',
-      emoji: '😰',
-    },
+    { id: 'anxious', label: 'Ansioso', image: '/mascote/ansioso.png', emoji: '😰' },
+    { id: 'fearful', label: 'Medo', image: '/mascote/ansioso.png', emoji: '😨' },
     { id: 'angry', label: 'Bravo', image: '/mascote/raiva.png', emoji: '😡' },
+    { id: 'disgusted', label: 'Nojo', image: '/mascote/raiva.png', emoji: '🤢' },
   ]
 
   return (

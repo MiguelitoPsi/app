@@ -92,12 +92,18 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
   const getMoodColor = (mood: Mood) => {
     switch (mood) {
       case 'happy':
+      case 'excited':
+      case 'grateful':
         return 'bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-900/30'
       case 'sad':
+      case 'tired':
+      case 'bored':
         return 'bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-900/30'
       case 'anxious':
+      case 'fearful':
         return 'bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-900/30'
       case 'angry':
+      case 'disgusted':
         return 'bg-red-100 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900/30'
       case 'calm':
         return 'bg-teal-100 text-teal-700 border-teal-200 dark:bg-teal-900/20 dark:text-teal-400 dark:border-teal-900/30'
@@ -109,13 +115,19 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
   const getMoodEmoji = (mood: Mood) => {
     const map: Record<Mood, string> = {
       happy: 'happy',
-      sad: 'sad',
-      anxious: 'anxious',
-      angry: 'angry',
+      excited: 'excited',
+      grateful: 'grateful',
       calm: 'calm',
       neutral: 'neutral',
+      tired: 'tired',
+      bored: 'bored',
+      sad: 'sad',
+      anxious: 'anxious',
+      fearful: 'fearful',
+      angry: 'angry',
+      disgusted: 'disgusted',
     }
-    return map[mood] || 'neutral'
+    return map[mood]
   }
 
   // Date filter logic
@@ -323,8 +335,20 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                     >
                       Todas
                     </button>
-                    {(['happy', 'calm', 'neutral', 'sad', 'anxious', 'angry'] as Mood[]).map(
-                      (mood) => (
+                    {([
+                      'happy',
+                      'excited',
+                      'grateful',
+                      'calm',
+                      'neutral',
+                      'tired',
+                      'bored',
+                      'sad',
+                      'anxious',
+                      'fearful',
+                      'angry',
+                      'disgusted',
+                    ] as Mood[]).map((mood) => (
                         <button
                           className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
                             filterMood === mood
