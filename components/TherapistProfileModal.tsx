@@ -290,7 +290,7 @@ export function TherapistProfileModal({
     <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/60 px-4 py-6 backdrop-blur-sm'>
       <div className='relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900'>
         {/* Header */}
-        <div className='flex items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 dark:border-slate-700'>
+        <div className='flex items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-sky-600 to-indigo-600 px-6 py-4 dark:border-slate-700'>
           <div className='flex items-center gap-3'>
             <div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
               <UserCircle className='h-5 w-5 text-white' />
@@ -299,7 +299,7 @@ export function TherapistProfileModal({
               <h2 className='font-bold text-lg text-white'>
                 {isEditMode ? 'Editar Perfil' : 'Criar Perfil Profissional'}
               </h2>
-              <p className='text-sm text-violet-200'>
+              <p className='text-sm text-sky-200'>
                 {isEditMode ? 'Atualize suas informações' : 'Complete seu cadastro'}
               </p>
             </div>
@@ -320,7 +320,7 @@ export function TherapistProfileModal({
         <div className='flex-1 overflow-y-auto px-6 py-5'>
           {isLoading ? (
             <div className='flex items-center justify-center py-12'>
-              <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent' />
+              <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent' />
             </div>
           ) : (
             <div className='space-y-4'>
@@ -336,7 +336,7 @@ export function TherapistProfileModal({
                 <div className='flex flex-col gap-2'>
                   <div 
                     onClick={() => document.getElementById('profile-image-upload')?.click()}
-                    className='relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-violet-500 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800'
+                    className='relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-sky-500 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800'
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
@@ -384,11 +384,11 @@ export function TherapistProfileModal({
                   {/* Full Name */}
                   <div>
                     <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                      <User className='h-4 w-4 text-violet-500' />
+                      <User className='h-4 w-4 text-sky-500' />
                       Nome Completo *
                     </label>
                     <input
-                      className={`w-full rounded-xl border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                      className={`w-full rounded-xl border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                       onChange={(e) =>
                         setFormData({ ...formData, fullName: e.target.value })
                       }
@@ -406,11 +406,11 @@ export function TherapistProfileModal({
               {/* CPF */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <CreditCard className='h-4 w-4 text-violet-500' />
+                  <CreditCard className='h-4 w-4 text-sky-500' />
                   CPF *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.cpf ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.cpf ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
                   placeholder='000.000.000-00'
                   type='text'
@@ -422,11 +422,11 @@ export function TherapistProfileModal({
               {/* Birth Date */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Calendar className='h-4 w-4 text-violet-500' />
+                  <Calendar className='h-4 w-4 text-sky-500' />
                   Data de Nascimento *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.birthDate ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.birthDate ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) =>
                     setFormData({ ...formData, birthDate: formatDate(e.target.value) })
                   }
@@ -442,11 +442,11 @@ export function TherapistProfileModal({
               {/* CRP */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <CreditCard className='h-4 w-4 text-violet-500' />
+                  <CreditCard className='h-4 w-4 text-sky-500' />
                   CRP *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.crp ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.crp ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, crp: formatCRP(e.target.value) })}
                   placeholder='00/00000'
                   type='text'
@@ -458,11 +458,11 @@ export function TherapistProfileModal({
               {/* Education */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <BookOpen className='h-4 w-4 text-violet-500' />
+                  <BookOpen className='h-4 w-4 text-sky-500' />
                   Formação *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.education ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.education ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, education: e.target.value })}
                   placeholder='Ex: Psicologia - PUC-SP'
                   type='text'
@@ -476,11 +476,11 @@ export function TherapistProfileModal({
               {/* City */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <MapPin className='h-4 w-4 text-violet-500' />
+                  <MapPin className='h-4 w-4 text-sky-500' />
                   Cidade *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.city ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.city ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder='São Paulo, SP'
                   type='text'
@@ -492,11 +492,11 @@ export function TherapistProfileModal({
               {/* Bio */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <BookOpen className='h-4 w-4 text-violet-500' />
+                  <BookOpen className='h-4 w-4 text-sky-500' />
                   Biografia
                 </label>
                 <textarea
-                  className={`w-full rounded-xl border ${errors.bio ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200 resize-none`}
+                  className={`w-full rounded-xl border ${errors.bio ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200 resize-none`}
                   maxLength={500}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   placeholder='Conte um pouco sobre você, sua experiência e abordagem terapêutica...'
@@ -514,7 +514,7 @@ export function TherapistProfileModal({
               {/* Attendance Type */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Building2 className='h-4 w-4 text-violet-500' />
+                  <Building2 className='h-4 w-4 text-sky-500' />
                   Tipo de Atendimento *
                 </label>
                 <div className='grid grid-cols-3 gap-2'>
@@ -526,8 +526,8 @@ export function TherapistProfileModal({
                     <button
                       className={`rounded-xl border py-3 font-medium text-sm transition-all ${
                         formData.attendanceType === option.value
-                          ? 'border-violet-400 bg-violet-50 text-violet-700 dark:border-violet-500 dark:bg-violet-900/30 dark:text-violet-300'
-                          : 'border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:bg-violet-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-violet-700'
+                          ? 'border-sky-400 bg-sky-50 text-sky-700 dark:border-sky-500 dark:bg-sky-900/30 dark:text-sky-300'
+                          : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300 hover:bg-sky-50/50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-sky-700'
                       }`}
                       key={option.value}
                       onClick={() =>
@@ -548,11 +548,11 @@ export function TherapistProfileModal({
               {showClinicAddress && (
                 <div className='animate-in fade-in slide-in-from-top-2 duration-200'>
                   <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                    <Building2 className='h-4 w-4 text-violet-500' />
+                    <Building2 className='h-4 w-4 text-sky-500' />
                     Endereço da Clínica *
                   </label>
                   <input
-                    className={`w-full rounded-xl border ${errors.clinicAddress ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                    className={`w-full rounded-xl border ${errors.clinicAddress ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                     onChange={(e) => setFormData({ ...formData, clinicAddress: e.target.value })}
                     placeholder='Rua, número, bairro, cidade - UF'
                     type='text'
@@ -567,11 +567,11 @@ export function TherapistProfileModal({
               {/* Phone */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Phone className='h-4 w-4 text-violet-500' />
+                  <Phone className='h-4 w-4 text-sky-500' />
                   Telefone *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.phone ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-violet-400 focus:outline-none focus:ring-2 focus:ring-violet-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${errors.phone ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
                   placeholder='(00) 00000-0000'
                   type='text'
@@ -600,7 +600,7 @@ export function TherapistProfileModal({
               className={`flex-1 rounded-xl py-3.5 font-semibold text-white transition-all duration-200 ${
                 isSubmitting
                   ? 'cursor-not-allowed bg-slate-400 dark:bg-slate-600'
-                  : 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 active:scale-[0.98]'
+                  : 'bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-700 hover:to-indigo-700 active:scale-[0.98]'
               }`}
               disabled={isSubmitting}
               onClick={handleSubmit}

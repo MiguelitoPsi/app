@@ -2165,7 +2165,7 @@ export default function TherapistFinancialView(): React.ReactElement {
               {/* Modo Escuro */}
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -2181,7 +2181,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                   aria-checked={theme === 'dark'}
                   aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -2247,7 +2247,7 @@ export default function TherapistFinancialView(): React.ReactElement {
 
               {/* Termo de Responsabilidade */}
               <button
-                className='flex w-full items-center justify-between rounded-xl border border-violet-100 bg-violet-50 p-3 transition-colors hover:bg-violet-100 sm:p-4 dark:border-violet-900/30 dark:bg-violet-900/20 dark:hover:bg-violet-900/30'
+                className='flex w-full items-center justify-between rounded-xl border border-sky-100 bg-sky-50 p-3 transition-colors hover:bg-sky-100 sm:p-4 dark:border-sky-900/30 dark:bg-sky-900/20 dark:hover:bg-sky-900/30'
                 onClick={() => {
                   setShowSettings(false)
                   setShowTermsModal(true)
@@ -2255,7 +2255,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                 type='button'
               >
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     <FileText size={18} />
                   </div>
                   <div className='text-left'>
@@ -2303,7 +2303,7 @@ export default function TherapistFinancialView(): React.ReactElement {
           >
             <div className='mb-4 flex items-center justify-between sm:mb-6'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <Key className='text-violet-500' size={18} /> Alterar Senha
+                <Key className='text-sky-500' size={18} /> Alterar Senha
               </h3>
               <button
                 aria-label='Fechar modal'
@@ -2348,7 +2348,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='current-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='currentPassword'
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2376,7 +2376,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='newPassword'
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2407,7 +2407,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='confirmPassword'
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2432,7 +2432,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                   )}
 
                   <button
-                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                     disabled={isChangingPassword}
                     type='submit'
                   >
@@ -2469,3 +2469,4 @@ export default function TherapistFinancialView(): React.ReactElement {
     </div>
   )
 }
+

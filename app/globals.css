@@ -10,8 +10,8 @@
   --safe-area-inset-right: env(safe-area-inset-right, 0px);
 
   /* Focus ring colors */
-  --focus-ring-color: #8b5cf6;
-  --focus-ring-color-light: rgba(139, 92, 246, 0.4);
+  --focus-ring-color: #0ea5e9;
+  --focus-ring-color-light: rgba(14, 165, 233, 0.4);
 }
 
 /* Reduce motion for users who prefer it */
@@ -215,10 +215,10 @@ html.theme-transition *::after {
 @keyframes avatar-glow {
   0%,
   100% {
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.3));
+    filter: drop-shadow(0 0 20px rgba(14, 165, 233, 0.3));
   }
   50% {
-    filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.6));
+    filter: drop-shadow(0 0 40px rgba(14, 165, 233, 0.6));
   }
 }
 
@@ -290,7 +290,7 @@ html.theme-transition *::after {
 
 /* Improved focus styles for accessibility */
 .focus-ring:focus-visible {
-  outline: 2px solid #8b5cf6;
+  outline: 2px solid #0ea5e9;
   outline-offset: 2px;
 }
 
@@ -312,7 +312,7 @@ html.theme-transition *::after {
   left: 50%;
   transform: translateX(-50%);
   padding: 1rem 1.5rem;
-  background: #8b5cf6;
+  background: #0ea5e9;
   color: white;
   font-weight: 600;
   border-radius: 0 0 0.5rem 0.5rem;

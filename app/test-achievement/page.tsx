@@ -51,12 +51,12 @@ export default function TestAchievementPage() {
         <div className='space-y-4'>
           {testBadges.map((badge, index) => (
             <button
-              className='flex w-full items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-left transition-all hover:border-violet-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-violet-500/10'
+              className='flex w-full items-center gap-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-left transition-all hover:border-sky-500/50 hover:bg-slate-800 hover:shadow-lg hover:shadow-sky-500/10'
               key={index}
               onClick={() => showAchievement(badge)}
               type='button'
             >
-              <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 text-2xl'>
+              <div className='flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 text-2xl'>
                 {badge.icon}
               </div>
               <div>
@@ -68,7 +68,7 @@ export default function TestAchievementPage() {
         </div>
 
         <div className='mt-8 rounded-xl border border-slate-700 bg-slate-800/30 p-4'>
-          <h2 className='mb-2 font-semibold text-violet-400'>ℹ️ Como funciona</h2>
+          <h2 className='mb-2 font-semibold text-sky-400'>ℹ️ Como funciona</h2>
           <ul className='space-y-1 text-sm text-slate-400'>
             <li>• O modal aparece automaticamente quando você conquista um badge</li>
             <li>• Pressione ESC ou clique fora para fechar</li>

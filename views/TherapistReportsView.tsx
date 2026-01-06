@@ -594,7 +594,7 @@ export default function TherapistReportsView(): React.ReactElement {
           type='button'
         >
           <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-            <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 font-semibold text-white sm:h-10 sm:w-10'>
+            <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white sm:h-10 sm:w-10'>
               {selectedPatient ? (
                 <span className='font-semibold text-xs sm:text-sm'>
                   {selectedPatient.name?.charAt(0) ?? 'P'}
@@ -619,7 +619,7 @@ export default function TherapistReportsView(): React.ReactElement {
             {patients?.map((patient) => (
               <button
                 className={`flex w-full items-center gap-3 p-4 text-left hover:bg-slate-50 dark:hover:bg-slate-700 ${
-                  selectedPatientId === patient.id ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+                  selectedPatientId === patient.id ? 'bg-sky-50 dark:bg-sky-900/20' : ''
                 }`}
                 key={patient.id}
                 onClick={() => {
@@ -628,7 +628,7 @@ export default function TherapistReportsView(): React.ReactElement {
                 }}
                 type='button'
               >
-                <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 font-semibold text-white'>
+                <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white'>
                   {patient.name?.charAt(0) ?? 'P'}
                 </div>
                 <div>
@@ -636,7 +636,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   <p className='text-slate-500 text-sm'>{patient.email}</p>
                 </div>
                 {selectedPatientId === patient.id && (
-                  <CheckCircle2 className='ml-auto h-5 w-5 text-violet-500' />
+                  <CheckCircle2 className='ml-auto h-5 w-5 text-sky-500' />
                 )}
               </button>
             ))}
@@ -690,13 +690,13 @@ export default function TherapistReportsView(): React.ReactElement {
               <button
                 className={`group relative overflow-hidden rounded-xl p-3 transition-all duration-300 sm:aspect-square sm:rounded-2xl sm:p-4 ${
                   activeSection === 'therapeutic'
-                    ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                    ? 'ring-2 ring-sky-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
                 }`}
                 onClick={() => setActiveSection('therapeutic')}
                 type='button'
               >
-                <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+                <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1 py-2 text-white sm:gap-2 sm:py-0'>
                   <Target className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='font-semibold text-[9px] sm:text-xs'>Plano</span>
@@ -733,7 +733,7 @@ export default function TherapistReportsView(): React.ReactElement {
               <button
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
                   activeSection === 'therapeutic'
-                    ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                 }`}
                 onClick={() => setActiveSection('therapeutic')}
@@ -1550,7 +1550,7 @@ export default function TherapistReportsView(): React.ReactElement {
                           Gerado por IA
                         </span>
                         <button
-                          className='flex items-center gap-1 rounded-lg bg-violet-500 px-2 py-1.5 font-medium text-xs text-white transition-colors hover:bg-violet-600 disabled:opacity-50 sm:px-3 sm:py-2 sm:text-sm'
+                          className='flex items-center gap-1 rounded-lg bg-sky-500 px-2 py-1.5 font-medium text-xs text-white transition-colors hover:bg-sky-600 disabled:opacity-50 sm:px-3 sm:py-2 sm:text-sm'
                           disabled={isGeneratingPlan}
                           onClick={handleGenerateTherapeuticPlan}
                           title='Regenerar plano terapêutico'
@@ -1669,8 +1669,8 @@ export default function TherapistReportsView(): React.ReactElement {
 
                       {/* Duration and Observations */}
                       <div className='grid gap-3 sm:gap-4 md:grid-cols-2'>
-                        <div className='rounded-lg border border-violet-200 bg-violet-50 p-3 dark:border-violet-800 dark:bg-violet-900/20 sm:p-4'>
-                          <h4 className='mb-1.5 font-semibold text-xs text-violet-800 dark:text-violet-300 sm:mb-2 sm:text-sm'>
+                        <div className='rounded-lg border border-sky-200 bg-sky-50 p-3 dark:border-sky-800 dark:bg-sky-900/20 sm:p-4'>
+                          <h4 className='mb-1.5 font-semibold text-xs text-sky-800 dark:text-sky-300 sm:mb-2 sm:text-sm'>
                             Duração Estimada
                           </h4>
                           <p className='text-slate-700 text-xs dark:text-slate-300 sm:text-sm'>
@@ -1691,8 +1691,8 @@ export default function TherapistReportsView(): React.ReactElement {
                 ) : (
                   <div className='rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900'>
                     <div className='flex flex-col items-center justify-center py-8 text-center'>
-                      <div className='mb-4 rounded-2xl bg-violet-100 p-4 dark:bg-violet-900/30'>
-                        <ClipboardList className='h-12 w-12 text-violet-500' />
+                      <div className='mb-4 rounded-2xl bg-sky-100 p-4 dark:bg-sky-900/30'>
+                        <ClipboardList className='h-12 w-12 text-sky-500' />
                       </div>
                       <h3 className='mb-2 font-semibold text-lg text-slate-800 dark:text-slate-200'>
                         Plano Terapêutico
@@ -1711,7 +1711,7 @@ export default function TherapistReportsView(): React.ReactElement {
                             </div>
                           )}
                           <button
-                            className='flex items-center gap-2 rounded-lg bg-violet-500 px-4 py-2 font-medium text-white transition-colors hover:bg-violet-600 disabled:opacity-50'
+                            className='flex items-center gap-2 rounded-lg bg-sky-500 px-4 py-2 font-medium text-white transition-colors hover:bg-sky-600 disabled:opacity-50'
                             disabled={isGeneratingPlan}
                             onClick={handleGenerateTherapeuticPlan}
                             type='button'
@@ -1795,7 +1795,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   Descrição (opcional)
                 </label>
                 <input
-                  className='w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                  className='w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                   id='doc-description'
                   onChange={(e) => setUploadDescription(e.target.value)}
                   placeholder='Ex: Relatório da sessão sobre ansiedade'
@@ -1813,7 +1813,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   Data da Sessão (opcional)
                 </label>
                 <input
-                  className='w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                  className='w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-cyan-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
                   id='session-date'
                   onChange={(e) => setUploadSessionDate(e.target.value)}
                   type='date'
@@ -1904,7 +1904,7 @@ export default function TherapistReportsView(): React.ReactElement {
               {/* Modo Escuro */}
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -1920,7 +1920,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   aria-checked={theme === 'dark'}
                   aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1986,7 +1986,7 @@ export default function TherapistReportsView(): React.ReactElement {
 
               {/* Termo de Responsabilidade */}
               <button
-                className='flex w-full items-center justify-between rounded-xl border border-violet-100 bg-violet-50 p-3 transition-colors hover:bg-violet-100 sm:p-4 dark:border-violet-900/30 dark:bg-violet-900/20 dark:hover:bg-violet-900/30'
+                className='flex w-full items-center justify-between rounded-xl border border-sky-100 bg-sky-50 p-3 transition-colors hover:bg-sky-100 sm:p-4 dark:border-sky-900/30 dark:bg-sky-900/20 dark:hover:bg-sky-900/30'
                 onClick={() => {
                   setShowSettings(false)
                   setShowTermsModal(true)
@@ -1994,7 +1994,7 @@ export default function TherapistReportsView(): React.ReactElement {
                 type='button'
               >
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     <FileText size={18} />
                   </div>
                   <div className='text-left'>
@@ -2042,7 +2042,7 @@ export default function TherapistReportsView(): React.ReactElement {
           >
             <div className='mb-4 flex items-center justify-between sm:mb-6'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <Key className='text-violet-500' size={18} /> Alterar Senha
+                <Key className='text-sky-500' size={18} /> Alterar Senha
               </h3>
               <button
                 aria-label='Fechar modal'
@@ -2087,7 +2087,7 @@ export default function TherapistReportsView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='current-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='currentPassword'
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2115,7 +2115,7 @@ export default function TherapistReportsView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='newPassword'
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2146,7 +2146,7 @@ export default function TherapistReportsView(): React.ReactElement {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='confirmPassword'
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2171,7 +2171,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   )}
 
                   <button
-                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                     disabled={isChangingPassword}
                     type='submit'
                   >
@@ -2245,16 +2245,16 @@ export default function TherapistReportsView(): React.ReactElement {
                 </div>
               </div>
 
-              <div className='rounded-xl border border-violet-200 bg-violet-50 p-4 dark:border-violet-800 dark:bg-violet-900/20'>
+              <div className='rounded-xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-900/20'>
                 <div className='flex items-start gap-3'>
-                  <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/50'>
-                    <Sparkles className='h-5 w-5 text-violet-600 dark:text-violet-400' />
+                  <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/50'>
+                    <Sparkles className='h-5 w-5 text-sky-600 dark:text-sky-400' />
                   </div>
                   <div>
-                    <h4 className='font-semibold text-violet-800 text-sm dark:text-violet-300'>
+                    <h4 className='font-semibold text-sky-800 text-sm dark:text-sky-300'>
                       Geração do Plano Terapêutico
                     </h4>
-                    <p className='mt-1 text-violet-700 text-xs dark:text-violet-400'>
+                    <p className='mt-1 text-sky-700 text-xs dark:text-sky-400'>
                       A IA irá analisar a conceituação cognitiva aprovada e gerar um plano
                       terapêutico personalizado com sugestões de intervenções e técnicas.
                     </p>
@@ -2287,3 +2287,4 @@ export default function TherapistReportsView(): React.ReactElement {
     </div>
   )
 }
+

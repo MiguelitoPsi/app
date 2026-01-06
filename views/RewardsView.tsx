@@ -60,7 +60,7 @@ export const RewardsView: React.FC = () => {
   const categories: { id: RewardCategory; label: string; color: string; icon: React.ElementType }[] = [
     { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: Gamepad2 },
     { id: 'autocuidado', label: 'Cuidado', color: 'from-pink-500 to-rose-400', icon: Sparkles },
-    { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-violet-400', icon: Moon },
+    { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-sky-400', icon: Moon },
     { id: 'social', label: 'Social', color: 'from-emerald-500 to-teal-400', icon: Users },
   ]
 
@@ -126,7 +126,7 @@ export const RewardsView: React.FC = () => {
               aria-label={
                 isAdding ? 'Fechar formulário de nova recompensa' : 'Adicionar nova recompensa'
               }
-              className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-violet-100 hover:text-violet-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-violet-900/30 dark:hover:text-violet-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+              className='touch-target flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition-all active:scale-95 hover:bg-sky-100 hover:text-sky-600 sm:h-10 sm:w-10 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-sky-900/30 dark:hover:text-sky-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2'
               onClick={() => setIsAdding(!isAdding)}
               type='button'
             >
@@ -146,7 +146,7 @@ export const RewardsView: React.FC = () => {
         >
           <div
             aria-hidden='true'
-            className='-mt-4 -mr-4 absolute top-0 right-0 h-24 w-24 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 opacity-50 blur-3xl sm:h-32 sm:w-32'
+            className='-mt-4 -mr-4 absolute top-0 right-0 h-24 w-24 rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 opacity-50 blur-3xl sm:h-32 sm:w-32'
           />
           <div
             aria-hidden='true'
@@ -208,7 +208,7 @@ export const RewardsView: React.FC = () => {
                 : cat.id === 'autocuidado'
                   ? 'ring-pink-400'
                   : cat.id === 'descanso'
-                    ? 'ring-violet-400'
+                    ? 'ring-sky-400'
                     : 'ring-emerald-400'
             return (
               <button
@@ -334,7 +334,7 @@ export const RewardsView: React.FC = () => {
                               particleCount: 100,
                               spread: 70,
                               origin: { x, y },
-                              colors: ['#8b5cf6', '#d946ef', '#10b981', '#f59e0b'],
+                              colors: ['#0ea5e9', '#d946ef', '#10b981', '#f59e0b'],
                               zIndex: 9999,
                             })
                             redeemReward(reward.id)
@@ -398,7 +398,7 @@ export const RewardsView: React.FC = () => {
           {/* Modal Content */}
           <div className='zoom-in-95 fade-in relative w-full max-w-md animate-in overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
             <div className='mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3'>
-              <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/30 dark:text-violet-300'>
+              <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:rounded-xl sm:p-2 dark:bg-sky-900/30 dark:text-sky-300'>
                 <Gift size={18} />
               </div>
               <h3 className='font-bold text-sm text-slate-800 sm:text-base dark:text-white'>
@@ -413,7 +413,7 @@ export const RewardsView: React.FC = () => {
                 </label>
                 <input
                   autoFocus
-                  className='w-full rounded-xl border-0 bg-slate-50 p-3 font-medium text-slate-800 text-sm transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-violet-500 sm:rounded-2xl sm:p-4 sm:text-base dark:bg-slate-800 dark:text-white'
+                  className='w-full rounded-xl border-0 bg-slate-50 p-3 font-medium text-slate-800 text-sm transition-all placeholder:text-slate-400 focus:ring-2 focus:ring-sky-500 sm:rounded-2xl sm:p-4 sm:text-base dark:bg-slate-800 dark:text-white'
                   onChange={(e) => setNewRewardTitle(e.target.value)}
                   placeholder='Ex: Cinema, Jantar fora, Skin...'
                   type='text'
@@ -430,7 +430,7 @@ export const RewardsView: React.FC = () => {
                     <button
                       className={`flex items-center gap-2 rounded-lg border-2 p-2.5 font-bold text-[11px] transition-all sm:rounded-xl sm:p-3 sm:text-xs ${
                         newRewardCategory === cat.id
-                          ? 'border-violet-500 bg-violet-50 text-violet-700 dark:bg-violet-900/20 dark:text-violet-300'
+                          ? 'border-sky-500 bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-300'
                           : 'border-transparent bg-slate-50 text-slate-500 hover:bg-slate-100 dark:bg-slate-800 dark:text-slate-400 dark:hover:bg-slate-700'
                       }
                                     `}
@@ -456,7 +456,7 @@ export const RewardsView: React.FC = () => {
                   Cancelar
                 </button>
                 <button
-                  className='touch-target flex flex-[2] items-center justify-center gap-2 rounded-xl bg-violet-600 py-3 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] hover:bg-violet-700 dark:shadow-none'
+                  className='touch-target flex flex-[2] items-center justify-center gap-2 rounded-xl bg-sky-600 py-3 font-bold text-sm text-white shadow-lg shadow-sky-200 transition-all active:scale-[0.98] hover:bg-sky-700 dark:shadow-none'
                   type='submit'
                 >
                   <span>Criar Recompensa</span>
@@ -470,3 +470,4 @@ export const RewardsView: React.FC = () => {
     </div>
   )
 }
+

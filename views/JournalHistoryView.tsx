@@ -253,7 +253,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
               {!filtersExpanded && (filterMood !== null || filterDate !== 'all') && (
                 <div className='flex items-center gap-1.5'>
                   {filterMood !== null && (
-                    <span className='rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <span className='rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'>
                       {filterMood === 'all' ? 'Todas' : getMoodEmoji(filterMood)}
                     </span>
                   )}
@@ -293,8 +293,8 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                 {/* Mood Filter Card */}
                 <div className='rounded-xl bg-slate-50 p-3 dark:bg-slate-800/50'>
                   <div className='mb-2 flex items-center gap-2'>
-                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30'>
-                      <MessageSquare className='text-violet-600 dark:text-violet-400' size={12} />
+                    <div className='flex h-6 w-6 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/30'>
+                      <MessageSquare className='text-sky-600 dark:text-sky-400' size={12} />
                     </div>
                     <span className='font-bold text-slate-700 text-xs dark:text-slate-300'>
                       Emoção
@@ -304,7 +304,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                     <button
                       className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
                         filterMood === 'all'
-                          ? 'bg-violet-500 text-white shadow-sm dark:bg-violet-600'
+                          ? 'bg-sky-500 text-white shadow-sm dark:bg-sky-600'
                           : 'bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
                       }`}
                       onClick={() => setFilterMood(filterMood === 'all' ? null : 'all')}
@@ -317,7 +317,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                         <button
                           className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
                             filterMood === mood
-                              ? 'bg-violet-500 text-white shadow-sm dark:bg-violet-600'
+                              ? 'bg-sky-500 text-white shadow-sm dark:bg-sky-600'
                               : 'bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
                           }`}
                           key={mood}
@@ -430,7 +430,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                   <div className='flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400'>
                     <span className='font-medium'>Filtros ativos:</span>
                     {filterMood !== null && (
-                      <span className='rounded-full bg-violet-100 px-2 py-0.5 font-semibold text-violet-700 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <span className='rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'>
                         {filterMood === 'all' ? 'Todas emoções' : getMoodEmoji(filterMood)}
                       </span>
                     )}
@@ -459,8 +459,8 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
       {/* Journal List */}
       <main className='flex-1 space-y-6 overflow-y-auto px-4 py-4 pb-28 sm:px-6 sm:py-6 sm:pb-32'>
         {filterMood === null ? (
-          <div className='flex flex-col items-center justify-center rounded-2xl border-2 border-violet-200 border-dashed bg-white py-12 text-center sm:rounded-3xl sm:py-16 dark:border-violet-900/50 dark:bg-slate-900'>
-            <div className='mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-violet-100 text-violet-400 sm:mb-4 sm:h-20 sm:w-20 dark:bg-violet-900/30 dark:text-violet-500'>
+          <div className='flex flex-col items-center justify-center rounded-2xl border-2 border-sky-200 border-dashed bg-white py-12 text-center sm:rounded-3xl sm:py-16 dark:border-sky-900/50 dark:bg-slate-900'>
+            <div className='mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-400 sm:mb-4 sm:h-20 sm:w-20 dark:bg-sky-900/30 dark:text-sky-500'>
               <Calendar className='sm:hidden' size={32} />
               <Calendar className='hidden sm:block' size={40} />
             </div>
@@ -491,13 +491,13 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
             <section key={group.dateKey}>
               {/* Date Header */}
               <div className='mb-3 flex items-center gap-2 rounded-xl bg-slate-100/80 px-3 py-2.5 dark:bg-slate-800/80'>
-                <div className='flex h-7 w-7 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-900/30'>
-                  <Calendar className='text-violet-600 dark:text-violet-400' size={12} />
+                <div className='flex h-7 w-7 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/30'>
+                  <Calendar className='text-sky-600 dark:text-sky-400' size={12} />
                 </div>
                 <h2 className='flex-1 font-bold text-slate-700 text-sm capitalize dark:text-slate-300'>
                   {group.dateLabel}
                 </h2>
-                <span className='rounded-full bg-violet-100 px-2 py-0.5 text-[10px] font-semibold text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                <span className='rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
                   {group.entries.length} {group.entries.length === 1 ? 'registro' : 'registros'}
                 </span>
               </div>
@@ -634,3 +634,4 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
     </div>
   )
 }
+

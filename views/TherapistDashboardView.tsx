@@ -335,7 +335,7 @@ export const TherapistDashboardView: React.FC = () => {
   if (statsLoading) {
     return (
       <div className='flex h-full items-center justify-center'>
-        <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-500 border-t-transparent' />
+        <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-500 border-t-transparent' />
       </div>
     )
   }
@@ -364,7 +364,7 @@ export const TherapistDashboardView: React.FC = () => {
 
       {/* Stats Cards */}
       <div className='mb-6 grid grid-cols-4 gap-2 sm:gap-3 lg:mb-8 lg:gap-4'>
-        <div className='rounded-xl bg-violet-500 p-3 text-white shadow-lg sm:rounded-2xl sm:p-4 lg:p-5'>
+        <div className='rounded-xl bg-sky-500 p-3 text-white shadow-lg sm:rounded-2xl sm:p-4 lg:p-5'>
           <div className='flex flex-col items-center gap-1 sm:flex-row sm:gap-3'>
             <div className='rounded-lg bg-white/20 p-1.5 sm:p-2'>
               <Users className='h-4 w-4 sm:h-5 sm:w-5' />
@@ -446,8 +446,8 @@ export const TherapistDashboardView: React.FC = () => {
             id: 'achievements',
             label: 'Conquistas',
             icon: Award,
-            bgColor: 'bg-violet-500',
-            hoverBg: 'hover:bg-violet-600',
+            bgColor: 'bg-sky-500',
+            hoverBg: 'hover:bg-sky-600',
           },
         ].map((tab) => (
           <button
@@ -731,7 +731,7 @@ export const TherapistDashboardView: React.FC = () => {
                 type='button'
               >
                 <div className='flex items-center gap-3'>
-                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500'>
                     <User className='h-5 w-5 text-white' />
                   </div>
                   <div className='text-left'>
@@ -753,7 +753,7 @@ export const TherapistDashboardView: React.FC = () => {
                   {patients?.map((patient) => (
                     <button
                       className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-700 ${
-                        selectedPatientId === patient.id ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+                        selectedPatientId === patient.id ? 'bg-sky-50 dark:bg-sky-900/20' : ''
                       }`}
                       key={patient.id}
                       onClick={() => {
@@ -762,7 +762,7 @@ export const TherapistDashboardView: React.FC = () => {
                       }}
                       type='button'
                     >
-                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 font-semibold text-white'>
+                      <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white'>
                         {patient.name?.charAt(0) ?? 'P'}
                       </div>
                       <div className='flex-1'>
@@ -772,7 +772,7 @@ export const TherapistDashboardView: React.FC = () => {
                         <p className='text-slate-500 text-sm'>{patient.email}</p>
                       </div>
                       {selectedPatientId === patient.id && (
-                        <CheckCircle2 className='h-5 w-5 text-violet-500' />
+                        <CheckCircle2 className='h-5 w-5 text-sky-500' />
                       )}
                     </button>
                   ))}
@@ -798,7 +798,7 @@ export const TherapistDashboardView: React.FC = () => {
                     <button
                       className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors ${
                         patientSubTab === tab.id
-                          ? 'bg-violet-100 font-medium text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+                          ? 'bg-sky-100 font-medium text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'
                           : 'text-slate-500 hover:text-slate-700 dark:text-slate-400'
                       }`}
                       key={tab.id}
@@ -815,7 +815,7 @@ export const TherapistDashboardView: React.FC = () => {
                   <div className='space-y-4'>
                     {isLoadingSummary ? (
                       <div className='flex h-40 items-center justify-center'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600' />
+                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600' />
                       </div>
                     ) : patientSummary ? (
                       <>
@@ -919,7 +919,7 @@ export const TherapistDashboardView: React.FC = () => {
                   <div className='space-y-3'>
                     {isLoadingMood ? (
                       <div className='flex h-40 items-center justify-center'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600' />
+                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600' />
                       </div>
                     ) : moodHistory && moodHistory.length > 0 ? (
                       moodHistory.map((mood) => (
@@ -943,7 +943,7 @@ export const TherapistDashboardView: React.FC = () => {
                             </p>
                           </div>
                           {mood.xpAwarded > 0 && (
-                            <span className='rounded-full bg-violet-100 px-2 py-1 font-medium text-violet-700 text-xs dark:bg-violet-900/30 dark:text-violet-400'>
+                            <span className='rounded-full bg-sky-100 px-2 py-1 font-medium text-sky-700 text-xs dark:bg-sky-900/30 dark:text-sky-400'>
                               +{mood.xpAwarded} XP
                             </span>
                           )}
@@ -962,7 +962,7 @@ export const TherapistDashboardView: React.FC = () => {
                   <div className='space-y-3'>
                     {isLoadingJournal ? (
                       <div className='flex h-40 items-center justify-center'>
-                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600' />
+                        <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600' />
                       </div>
                     ) : journalEntries && journalEntries.length > 0 ? (
                       journalEntries.map((entry) => {
@@ -988,11 +988,11 @@ export const TherapistDashboardView: React.FC = () => {
                               {entry.content}
                             </p>
                             {entry.aiAnalysis && (
-                              <div className='mt-3 rounded-lg bg-violet-50 p-3 dark:bg-violet-900/20'>
-                                <p className='mb-1 font-medium text-violet-700 text-xs dark:text-violet-400'>
+                              <div className='mt-3 rounded-lg bg-sky-50 p-3 dark:bg-sky-900/20'>
+                                <p className='mb-1 font-medium text-sky-700 text-xs dark:text-sky-400'>
                                   Análise IA
                                 </p>
-                                <p className='text-violet-600 text-sm dark:text-violet-300'>
+                                <p className='text-sky-600 text-sm dark:text-sky-300'>
                                   {entry.aiAnalysis}
                                 </p>
                               </div>
@@ -1018,7 +1018,7 @@ export const TherapistDashboardView: React.FC = () => {
                       </h3>
                       <div className='space-y-3'>
                         <div className='flex items-center gap-3'>
-                          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-500 font-semibold text-white text-lg'>
+                          <div className='flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white text-lg'>
                             {selectedPatient?.name?.charAt(0) ?? 'P'}
                           </div>
                           <div>
@@ -1333,7 +1333,7 @@ export const TherapistDashboardView: React.FC = () => {
               <h2 className='font-semibold text-slate-800 dark:text-slate-200'>
                 Desafios da Semana
               </h2>
-              <span className='rounded-full bg-violet-100 px-3 py-1 text-sm text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'>
+              <span className='rounded-full bg-sky-100 px-3 py-1 text-sm text-sky-700 dark:bg-sky-900/30 dark:text-sky-300'>
                 {completedChallenges}/{totalChallenges} completos
               </span>
             </div>
@@ -1353,7 +1353,7 @@ export const TherapistDashboardView: React.FC = () => {
                         className={`rounded-lg p-2 ${
                           challenge.status === 'completed'
                             ? 'bg-green-100 dark:bg-green-900/30'
-                            : 'bg-violet-100 dark:bg-violet-900/30'
+                            : 'bg-sky-100 dark:bg-sky-900/30'
                         }`}
                       >
                         <span className='text-xl'>{challenge.template?.icon || '🎯'}</span>
@@ -1381,7 +1381,7 @@ export const TherapistDashboardView: React.FC = () => {
                     <div className='h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700'>
                       <div
                         className={`h-full rounded-full transition-all ${
-                          challenge.status === 'completed' ? 'bg-green-500' : 'bg-violet-500'
+                          challenge.status === 'completed' ? 'bg-green-500' : 'bg-sky-500'
                         }`}
                         style={{ width: `${challenge.progress}%` }}
                       />
@@ -1418,7 +1418,7 @@ export const TherapistDashboardView: React.FC = () => {
                 </h3>
                 <div className='grid grid-cols-2 gap-4'>
                   <div className='text-center'>
-                    <p className='font-bold text-2xl text-violet-600 dark:text-violet-400'>
+                    <p className='font-bold text-2xl text-sky-600 dark:text-sky-400'>
                       {challengeStats.completedChallenges}
                     </p>
                     <p className='text-slate-500 text-sm dark:text-slate-400'>Completados</p>
@@ -1475,7 +1475,7 @@ export const TherapistDashboardView: React.FC = () => {
                   {!achievement.isUnlocked && (
                     <div className='mt-1 h-1 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700'>
                       <div
-                        className='h-full rounded-full bg-violet-500'
+                        className='h-full rounded-full bg-sky-500'
                         style={{ width: `${achievement.progress}%` }}
                       />
                     </div>
@@ -1484,7 +1484,7 @@ export const TherapistDashboardView: React.FC = () => {
               ))}
             </div>
             <button
-              className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-100 py-3 font-medium text-violet-700 transition-colors hover:bg-violet-200 dark:bg-violet-900/30 dark:text-violet-300 dark:hover:bg-violet-900/50'
+              className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-100 py-3 font-medium text-sky-700 transition-colors hover:bg-sky-200 dark:bg-sky-900/30 dark:text-sky-300 dark:hover:bg-sky-900/50'
               onClick={() => router.push('/achievements')}
               type='button'
             >
@@ -1514,7 +1514,7 @@ export const TherapistDashboardView: React.FC = () => {
             <div className='space-y-4'>
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -1530,7 +1530,7 @@ export const TherapistDashboardView: React.FC = () => {
                   aria-checked={theme === 'dark'}
                   aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -1582,7 +1582,7 @@ export const TherapistDashboardView: React.FC = () => {
                 <ChevronRight className='h-5 w-5 text-indigo-400' />
               </button>
               <button
-                className='flex w-full items-center justify-between rounded-xl bg-violet-100 p-4 dark:bg-violet-900/30'
+                className='flex w-full items-center justify-between rounded-xl bg-sky-100 p-4 dark:bg-sky-900/30'
                 onClick={() => {
                   setShowSettings(false)
                   setShowTermsModal(true)
@@ -1590,12 +1590,12 @@ export const TherapistDashboardView: React.FC = () => {
                 type='button'
               >
                 <div className='flex items-center gap-3'>
-                  <FileText className='h-5 w-5 text-violet-600 dark:text-violet-400' />
-                  <span className='text-violet-700 dark:text-violet-300'>
+                  <FileText className='h-5 w-5 text-sky-600 dark:text-sky-400' />
+                  <span className='text-sky-700 dark:text-sky-300'>
                     Termo de Responsabilidade
                   </span>
                 </div>
-                <ChevronRight className='h-5 w-5 text-violet-400' />
+                <ChevronRight className='h-5 w-5 text-sky-400' />
               </button>
               <button
                 className='w-full rounded-xl bg-red-100 p-4 text-red-600 dark:bg-red-900/30 dark:text-red-400'
@@ -1618,7 +1618,7 @@ export const TherapistDashboardView: React.FC = () => {
           >
             <div className='mb-4 flex items-center justify-between sm:mb-6'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <Key className='text-violet-500' size={18} /> Alterar Senha
+                <Key className='text-sky-500' size={18} /> Alterar Senha
               </h3>
               <button
                 aria-label='Fechar modal'
@@ -1663,7 +1663,7 @@ export const TherapistDashboardView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='current-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='currentPassword'
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1691,7 +1691,7 @@ export const TherapistDashboardView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='newPassword'
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1722,7 +1722,7 @@ export const TherapistDashboardView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='confirmPassword'
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1747,7 +1747,7 @@ export const TherapistDashboardView: React.FC = () => {
                   )}
 
                   <button
-                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                     disabled={isChangingPassword}
                     type='submit'
                   >
@@ -1786,3 +1786,4 @@ export const TherapistDashboardView: React.FC = () => {
 }
 
 export default TherapistDashboardView
+

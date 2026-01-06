@@ -703,7 +703,7 @@ export default function TherapistRoutineView() {
         <div className='flex items-center gap-2 lg:gap-3'>
           {(mainView === 'my-routine' || selectedPatientId) && (
             <button
-              className='touch-target group rounded-xl bg-violet-600 p-2.5 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:rounded-2xl sm:p-3 lg:flex lg:items-center lg:gap-2 lg:px-5 lg:py-3 sm:hover:scale-105 dark:shadow-none'
+              className='touch-target group rounded-xl bg-sky-600 p-2.5 text-white shadow-lg shadow-sky-200 transition-all active:scale-95 hover:bg-sky-700 sm:rounded-2xl sm:p-3 lg:flex lg:items-center lg:gap-2 lg:px-5 lg:py-3 sm:hover:scale-105 dark:shadow-none'
               onClick={() => {
                 setShowTaskForm(!showTaskForm)
                 // Sempre usar a data de hoje como padrão, não a selectedDate
@@ -749,7 +749,7 @@ export default function TherapistRoutineView() {
         <button
           className={`flex items-center justify-center gap-2 rounded-xl py-3 font-semibold transition-all lg:px-8 lg:py-4 lg:text-lg ${
             mainView === 'patients'
-              ? 'bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white shadow-lg lg:shadow-violet-200/50 dark:lg:shadow-violet-900/30'
+              ? 'bg-gradient-to-r from-sky-500 to-cyan-400 text-white shadow-lg lg:shadow-sky-200/50 dark:lg:shadow-sky-900/30'
               : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
           }`}
           onClick={() => setMainView('patients')}
@@ -769,7 +769,7 @@ export default function TherapistRoutineView() {
             type='button'
           >
             <div className='flex items-center gap-3 lg:gap-4'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 font-semibold text-white lg:h-12 lg:w-12 lg:text-lg'>
+              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-white lg:h-12 lg:w-12 lg:text-lg'>
                 {selectedPatient?.name?.charAt(0) || <User size={20} />}
               </div>
               <div className='text-left'>
@@ -794,7 +794,7 @@ export default function TherapistRoutineView() {
               {patients?.map((patient) => (
                 <button
                   className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 lg:gap-4 lg:p-5 dark:hover:bg-slate-800 ${
-                    selectedPatientId === patient.id ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+                    selectedPatientId === patient.id ? 'bg-sky-50 dark:bg-sky-900/20' : ''
                   }`}
                   key={patient.id}
                   onClick={() => {
@@ -803,7 +803,7 @@ export default function TherapistRoutineView() {
                   }}
                   type='button'
                 >
-                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 font-semibold text-white lg:h-12 lg:w-12'>
+                  <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-white lg:h-12 lg:w-12'>
                     {patient.name?.charAt(0) || 'P'}
                   </div>
                   <div>
@@ -813,7 +813,7 @@ export default function TherapistRoutineView() {
                     <p className='text-slate-500 text-sm dark:text-slate-400'>{patient.email}</p>
                   </div>
                   {selectedPatientId === patient.id && (
-                    <CheckCircle2 className='ml-auto h-5 w-5 text-violet-500 lg:h-6 lg:w-6' />
+                    <CheckCircle2 className='ml-auto h-5 w-5 text-sky-500 lg:h-6 lg:w-6' />
                   )}
                 </button>
               ))}
@@ -873,13 +873,13 @@ export default function TherapistRoutineView() {
                 <button
                   className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:py-4 ${
                     viewMode === 'month'
-                      ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                      ? 'ring-2 ring-sky-400 ring-offset-2 dark:ring-offset-slate-900'
                       : 'hover:scale-[1.02]'
                   }`}
                   onClick={() => setViewMode('month')}
                   type='button'
                 >
-                  <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+                  <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
                   <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
                     <Target className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
                     <span className='font-semibold text-[9px] sm:text-xs lg:text-sm'>Mês</span>
@@ -1162,13 +1162,13 @@ export default function TherapistRoutineView() {
                 <button
                   className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 lg:aspect-auto lg:py-4 ${
                     viewMode === 'month'
-                      ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                      ? 'ring-2 ring-sky-400 ring-offset-2 dark:ring-offset-slate-900'
                       : 'hover:scale-[1.02]'
                   }`}
                   onClick={() => setViewMode('month')}
                   type='button'
                 >
-                  <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+                  <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
                   <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
                     <Target className='h-5 w-5 sm:h-7 sm:w-7 lg:h-5 lg:w-5' />
                     <span className='font-semibold text-[9px] sm:text-xs lg:text-sm'>Mês</span>
@@ -1179,7 +1179,7 @@ export default function TherapistRoutineView() {
               {/* Date Navigation Card */}
               <div className='mb-4 flex items-center justify-between rounded-xl border border-slate-100 bg-white p-1 shadow-sm sm:mb-6 sm:rounded-2xl lg:mb-6 lg:p-2 dark:border-slate-800 dark:bg-slate-900'>
                 <button
-                  className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+                  className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-sky-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-sky-400'
                   onClick={() => changeDate(-1)}
                   type='button'
                 >
@@ -1194,7 +1194,7 @@ export default function TherapistRoutineView() {
                   </div>
                 </div>
                 <button
-                  className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-violet-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-violet-400'
+                  className='touch-target rounded-lg p-2.5 text-slate-400 transition-colors active:scale-95 hover:bg-slate-50 hover:text-sky-600 sm:rounded-xl sm:p-3 dark:hover:bg-slate-800 dark:hover:text-sky-400'
                   onClick={() => changeDate(1)}
                   type='button'
                 >
@@ -1204,12 +1204,12 @@ export default function TherapistRoutineView() {
 
               {/* Progress Card */}
               {showProgressBar && (
-                <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-violet-500 to-fuchsia-600 p-4 text-white shadow-lg shadow-violet-200 sm:mb-8 sm:rounded-3xl sm:p-5 lg:mb-6 dark:shadow-none'>
+                <div className='fade-in slide-in-from-top-4 relative mb-6 animate-in overflow-hidden rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 p-4 text-white shadow-lg shadow-sky-200 sm:mb-8 sm:rounded-3xl sm:p-5 lg:mb-6 dark:shadow-none'>
                   <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
 
                   <div className='relative z-10 mb-2 flex items-end justify-between'>
                     <div>
-                      <p className='mb-1 font-bold text-violet-100 text-[10px] uppercase tracking-wider sm:text-xs'>
+                      <p className='mb-1 font-bold text-sky-100 text-[10px] uppercase tracking-wider sm:text-xs'>
                         Progresso de {selectedPatient?.name?.split(' ')[0]}
                       </p>
                       <h3 className='font-bold text-xl sm:text-2xl lg:text-xl'>
@@ -1244,7 +1244,7 @@ export default function TherapistRoutineView() {
                 <div className='rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
                   <div className='flex items-center justify-between mb-3'>
                     <span className='text-slate-500 text-sm dark:text-slate-400'>Concluídas</span>
-                    <CheckCircle2 className='h-4 w-4 text-violet-500' />
+                    <CheckCircle2 className='h-4 w-4 text-sky-500' />
                   </div>
                   <p className='text-2xl font-bold text-slate-800 dark:text-white'>
                     {displayTasks.filter((t) => t.status === 'completed').length}
@@ -1261,7 +1261,7 @@ export default function TherapistRoutineView() {
                     type='button'
                   >
                     <div className='flex items-center gap-2'>
-                      <Sparkles className='h-5 w-5 text-purple-500' />
+                      <Sparkles className='h-5 w-5 text-cyan-500' />
                       <h3 className='font-semibold text-slate-800 text-sm lg:text-base dark:text-slate-200'>
                         Sugestões da IA
                       </h3>
@@ -1314,7 +1314,7 @@ export default function TherapistRoutineView() {
                   <button
                     className={`flex flex-1 items-center justify-center gap-2 rounded-xl py-3 font-medium transition-colors lg:flex-none lg:px-6 lg:py-3 ${
                       activeTab === tab.key
-                        ? 'bg-violet-500 text-white'
+                        ? 'bg-sky-500 text-white'
                         : 'bg-white text-slate-600 hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                     }`}
                     key={tab.key}
@@ -1386,7 +1386,7 @@ export default function TherapistRoutineView() {
                                 </span>
                               )}
                               {task.frequency && task.frequency !== 'once' && (
-                                <span className='flex items-center gap-0.5 rounded bg-violet-100 px-1.5 py-0.5 font-bold text-[10px] text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                                <span className='flex items-center gap-0.5 rounded bg-sky-100 px-1.5 py-0.5 font-bold text-[10px] text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
                                   <Repeat size={10} />
                                   {task.frequency === 'daily'
                                     ? 'Diário'
@@ -1454,7 +1454,7 @@ export default function TherapistRoutineView() {
                             Feedback para o paciente
                           </label>
                           <textarea
-                            className='mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:focus:ring-violet-900/30'
+                            className='mb-3 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm outline-none transition-colors focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:focus:ring-sky-900/30'
                             id={`feedback-${task.id}`}
                             onChange={(e) => setFeedbackText(e.target.value)}
                             placeholder='Parabéns pelo progresso! Continue assim...'
@@ -1463,7 +1463,7 @@ export default function TherapistRoutineView() {
                           />
                           <div className='flex gap-2'>
                             <button
-                              className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-violet-600 py-2 font-medium text-white transition-colors hover:bg-violet-700'
+                              className='flex flex-1 items-center justify-center gap-2 rounded-xl bg-sky-600 py-2 font-medium text-white transition-colors hover:bg-sky-700'
                               disabled={sendFeedbackMutation.isPending}
                               onClick={() => handleSendFeedback(task.id)}
                               type='button'
@@ -1487,11 +1487,11 @@ export default function TherapistRoutineView() {
 
                       {/* Existing Feedback */}
                       {task.feedback && (
-                        <div className='mt-4 rounded-xl bg-violet-50 p-3 dark:bg-violet-900/20'>
-                          <p className='mb-1 font-medium text-violet-700 text-xs dark:text-violet-300'>
+                        <div className='mt-4 rounded-xl bg-sky-50 p-3 dark:bg-sky-900/20'>
+                          <p className='mb-1 font-medium text-sky-700 text-xs dark:text-sky-300'>
                             Seu feedback:
                           </p>
-                          <p className='text-violet-600 text-sm dark:text-violet-400'>
+                          <p className='text-sky-600 text-sm dark:text-sky-400'>
                             {task.feedback}
                           </p>
                         </div>
@@ -1505,7 +1505,7 @@ export default function TherapistRoutineView() {
         </>
       ) : mainView === 'patients' ? (
         <div className='mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-8 text-center sm:mt-12 sm:rounded-3xl sm:p-12 lg:p-16 dark:border-slate-800 dark:bg-slate-900/50'>
-          <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-violet-100 text-violet-500 lg:h-20 lg:w-20 dark:bg-violet-900/30'>
+          <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-500 lg:h-20 lg:w-20 dark:bg-sky-900/30'>
             <Target size={32} />
           </div>
           <h3 className='mb-2 font-bold text-lg text-slate-700 lg:text-xl dark:text-slate-300'>
@@ -1521,10 +1521,10 @@ export default function TherapistRoutineView() {
       {showTaskForm && mainView === 'patients' && selectedPatientId && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
           <div className='zoom-in-95 fade-in animate-in w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
-            <div className='relative bg-gradient-to-r from-violet-500 to-fuchsia-600 p-6 text-white'>
+            <div className='relative bg-gradient-to-r from-sky-500 to-cyan-500 p-6 text-white'>
               <div className='absolute top-0 right-0 h-20 w-20 rounded-full bg-white/10' />
               <h3 className='font-bold text-xl'>Nova Tarefa</h3>
-              <p className='text-violet-100 text-sm'>Para {selectedPatient?.name}</p>
+              <p className='text-sky-100 text-sm'>Para {selectedPatient?.name}</p>
             </div>
 
             <form
@@ -1545,7 +1545,7 @@ export default function TherapistRoutineView() {
                   </label>
                   <input
                     autoFocus
-                    className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-violet-900/30'
+                    className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
                     id='task-title'
                     onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
                     placeholder='Ex: Praticar respiração consciente'
@@ -1565,7 +1565,7 @@ export default function TherapistRoutineView() {
                       <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
                     </label>
                     <input
-                      className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                      className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
                       id='task-due-date'
                       onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
                       type='date'
@@ -1610,7 +1610,7 @@ export default function TherapistRoutineView() {
                       <button
                         className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
                           taskForm.frequency === freq
-                            ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                            ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                             : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
                         }`}
                         key={freq}
@@ -1675,7 +1675,7 @@ export default function TherapistRoutineView() {
             <div
               className={`relative p-6 text-white ${
                 taskForm.taskCategory === 'sessao'
-                  ? 'bg-gradient-to-r from-violet-500 to-fuchsia-600'
+                  ? 'bg-gradient-to-r from-sky-500 to-cyan-500'
                   : 'bg-gradient-to-r from-emerald-500 to-teal-600'
               }`}
             >
@@ -1683,7 +1683,7 @@ export default function TherapistRoutineView() {
               <h3 className='font-bold text-xl'>Nova Tarefa</h3>
               <p
                 className={`text-sm ${
-                  taskForm.taskCategory === 'sessao' ? 'text-violet-100' : 'text-emerald-100'
+                  taskForm.taskCategory === 'sessao' ? 'text-sky-100' : 'text-emerald-100'
                 }`}
               >
                 {taskForm.taskCategory === 'sessao'
@@ -1731,7 +1731,7 @@ export default function TherapistRoutineView() {
                     <button
                       className={`flex flex-col items-center justify-center rounded-xl border-2 p-4 font-bold transition-all ${
                         taskForm.taskCategory === 'sessao'
-                          ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                          ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                           : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                       }`}
                       onClick={() =>
@@ -1764,7 +1764,7 @@ export default function TherapistRoutineView() {
                           <div className='relative'>
                             <Search className='absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-slate-400' />
                             <input
-                              className='w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-3 pl-10 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-violet-900/30'
+                              className='w-full rounded-xl border border-slate-200 bg-slate-50 py-3 pr-3 pl-10 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
                               onChange={(e) => {
                                 setPatientSearchQuery(e.target.value)
                                 setShowPatientDropdown(true)
@@ -1817,7 +1817,7 @@ export default function TherapistRoutineView() {
                                     }}
                                     type='button'
                                   >
-                                    <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 font-semibold text-white text-sm'>
+                                    <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-white text-sm'>
                                       {patient.name?.charAt(0) || 'P'}
                                     </div>
                                     <div>
@@ -1869,7 +1869,7 @@ export default function TherapistRoutineView() {
                           <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
                         </label>
                         <input
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-violet-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
                           id='my-task-due-date'
                           onChange={(e) =>
                             setTaskForm({
@@ -2075,7 +2075,7 @@ export default function TherapistRoutineView() {
                             <button
                               className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
                                 taskForm.frequency === freq.key
-                                  ? 'border-violet-500 bg-violet-50 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                                  ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                                   : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
                               }`}
                               key={freq.key}
@@ -2135,7 +2135,7 @@ export default function TherapistRoutineView() {
                 </button>
                 <button
                   className={`flex flex-[2] items-center justify-center gap-2 rounded-xl py-3 font-bold text-sm text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 ${
-                    taskForm.taskCategory === 'sessao' ? 'bg-violet-600' : 'bg-emerald-600'
+                    taskForm.taskCategory === 'sessao' ? 'bg-sky-600' : 'bg-emerald-600'
                   }`}
                   disabled={
                     createMyTaskMutation.isPending ||
@@ -2186,3 +2186,4 @@ export default function TherapistRoutineView() {
     </div>
   )
 }
+

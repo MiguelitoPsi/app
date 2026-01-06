@@ -53,7 +53,7 @@ export function InviteTherapistModal({
 
         {/* Icon */}
         <div className='flex justify-center mb-6'>
-          <div className='flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-fuchsia-500 to-violet-600 shadow-lg shadow-fuchsia-500/25'>
+          <div className='flex items-center justify-center w-20 h-20 rounded-full bg-gradient-to-br from-cyan-400 to-sky-600 shadow-lg shadow-cyan-400/25'>
             <svg
               className='text-white'
               fill='none'
@@ -103,7 +103,7 @@ export function InviteTherapistModal({
           className={`w-full flex items-center justify-center gap-2 rounded-xl py-4 font-bold text-sm shadow-lg transition-all duration-300 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${
             isCopied
               ? 'bg-emerald-500 text-white shadow-emerald-500/25'
-              : 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-fuchsia-500/25 hover:from-fuchsia-500 hover:to-violet-500'
+              : 'bg-gradient-to-r from-cyan-500 to-sky-600 text-white shadow-cyan-400/25 hover:from-cyan-400 hover:to-sky-500'
           }`}
           disabled={isLoading}
           onClick={handleCopy}

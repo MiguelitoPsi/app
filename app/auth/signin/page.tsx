@@ -106,7 +106,7 @@ function SignInForm() {
             x: [0, 80, 0, -60, 0],
             y: [0, -50, 40, 0, 0],
           }}
-          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
+          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl'
           transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
         <motion.div
@@ -114,7 +114,7 @@ function SignInForm() {
             x: [0, -70, 40, 0],
             y: [0, 60, -40, 0],
           }}
-          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
+          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl'
           transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
         <motion.div
@@ -122,7 +122,7 @@ function SignInForm() {
             x: [0, 60, -50, 0],
             y: [0, -70, 50, 0],
           }}
-          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl'
+          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl'
           transition={{ duration: 14, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
       </div>
@@ -134,13 +134,13 @@ function SignInForm() {
             {/* Title */}
             <div className='mb-8 text-center'>
               <h1 className='font-bold text-3xl text-white'>Nepsis</h1>
-              <p className='mt-2 text-violet-400'>
+              <p className='mt-2 text-sky-400'>
                 {therapistId || inviteToken
                   ? 'Entre para vincular-se ao seu terapeuta'
                   : 'Entre para continuar sua jornada'}
               </p>
               {(therapistId || inviteToken) && (
-                <div className='mt-4 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-400 text-sm'>
+                <div className='mt-4 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sky-400 text-sm'>
                   ✓ Você será vinculado ao seu terapeuta após o login
                 </div>
               )}
@@ -173,7 +173,7 @@ function SignInForm() {
                 </label>
                 <input
                   autoComplete='email'
-                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                   id={emailId}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder='seu@email.com'
@@ -193,7 +193,7 @@ function SignInForm() {
                 <div className='relative'>
                   <input
                     autoComplete='current-password'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={passwordId}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder='••••••••'
@@ -203,7 +203,7 @@ function SignInForm() {
                   />
                   <button
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     onClick={() => setShowPassword(!showPassword)}
                     type='button'
                   >
@@ -212,7 +212,7 @@ function SignInForm() {
                 </div>
                 <div className='mt-2 text-right'>
                   <Link
-                    className='text-violet-400 text-sm hover:text-violet-300 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='text-sky-400 text-sm hover:text-sky-300 hover:underline underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     href='/auth/forgot-password'
                   >
                     Esqueci minha senha
@@ -222,7 +222,7 @@ function SignInForm() {
 
               <button
                 aria-busy={loading}
-                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 flex items-center justify-center gap-2'
+                className='w-full rounded-xl bg-sky-600 py-4 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 flex items-center justify-center gap-2'
                 disabled={loading}
                 type='submit'
               >
@@ -243,7 +243,7 @@ function SignInForm() {
               <p className='text-slate-400 text-sm'>
                 Não tem uma conta?{' '}
                 <Link
-                  className='rounded font-semibold text-violet-400 underline-offset-2 hover:text-violet-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                  className='rounded font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                   href='/'
                 >
                   Voltar ao início
@@ -262,7 +262,7 @@ export default function SignInPage() {
     <Suspense
       fallback={
         <div className='min-h-screen bg-slate-950 flex items-center justify-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500' />
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500' />
         </div>
       }
     >

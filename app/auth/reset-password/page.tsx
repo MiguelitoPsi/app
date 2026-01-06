@@ -95,7 +95,7 @@ function ResetPasswordForm() {
   if (validating) {
     return (
       <div className='relative flex min-h-screen flex-col items-center justify-center bg-slate-950'>
-        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500' />
+        <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500' />
         <p className='mt-4 text-slate-400'>Verificando link...</p>
       </div>
     )
@@ -121,13 +121,13 @@ function ResetPasswordForm() {
                 por segurança.
               </p>
               <Link
-                className='inline-flex items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-semibold text-white transition-all hover:bg-violet-500'
+                className='inline-flex items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 font-semibold text-white transition-all hover:bg-sky-500'
                 href='/auth/forgot-password'
               >
                 Solicitar novo link
               </Link>
               <div className='mt-4'>
-                <Link className='text-slate-400 text-sm hover:text-violet-400' href='/auth/signin'>
+                <Link className='text-slate-400 text-sm hover:text-sky-400' href='/auth/signin'>
                   Voltar ao login
                 </Link>
               </div>
@@ -161,13 +161,13 @@ function ResetPasswordForm() {
                 Sua senha foi alterada com sucesso. Você será redirecionado para o login...
               </p>
               <div className='flex items-center justify-center gap-2'>
-                <div className='h-2 w-2 animate-bounce rounded-full bg-violet-500' />
+                <div className='h-2 w-2 animate-bounce rounded-full bg-sky-500' />
                 <div
-                  className='h-2 w-2 animate-bounce rounded-full bg-violet-500'
+                  className='h-2 w-2 animate-bounce rounded-full bg-sky-500'
                   style={{ animationDelay: '0.1s' }}
                 />
                 <div
-                  className='h-2 w-2 animate-bounce rounded-full bg-violet-500'
+                  className='h-2 w-2 animate-bounce rounded-full bg-sky-500'
                   style={{ animationDelay: '0.2s' }}
                 />
               </div>
@@ -188,7 +188,7 @@ function ResetPasswordForm() {
             x: [0, 80, 0, -60, 0],
             y: [0, -50, 40, 0, 0],
           }}
-          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
+          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl'
           transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
         <motion.div
@@ -196,7 +196,7 @@ function ResetPasswordForm() {
             x: [0, -70, 40, 0],
             y: [0, 60, -40, 0],
           }}
-          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
+          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl'
           transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
       </div>
@@ -206,7 +206,7 @@ function ResetPasswordForm() {
           <main className='rounded-3xl border border-slate-800/50 bg-slate-900/50 p-8 shadow-xl backdrop-blur-sm'>
             {/* Back Link */}
             <Link
-              className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-violet-400'
+              className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-sky-400'
               href='/auth/signin'
             >
               <ArrowLeft className='h-4 w-4' />
@@ -215,8 +215,8 @@ function ResetPasswordForm() {
 
             {/* Title */}
             <div className='mb-8 text-center'>
-              <div className='mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-violet-500/20'>
-                <Lock className='h-7 w-7 text-violet-400' />
+              <div className='mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-500/20'>
+                <Lock className='h-7 w-7 text-sky-400' />
               </div>
               <h1 className='font-bold text-2xl text-white'>Nova Senha</h1>
               <p className='mt-2 text-slate-400 text-sm'>
@@ -255,7 +255,7 @@ function ResetPasswordForm() {
                 <div className='relative'>
                   <input
                     autoComplete='new-password'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={passwordId}
                     minLength={8}
                     onChange={(e) => setPassword(e.target.value)}
@@ -266,7 +266,7 @@ function ResetPasswordForm() {
                   />
                   <button
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     onClick={() => setShowPassword(!showPassword)}
                     type='button'
                   >
@@ -285,7 +285,7 @@ function ResetPasswordForm() {
                 <div className='relative'>
                   <input
                     autoComplete='new-password'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={confirmPasswordId}
                     minLength={8}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -296,7 +296,7 @@ function ResetPasswordForm() {
                   />
                   <button
                     aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     type='button'
                   >
@@ -331,7 +331,7 @@ function ResetPasswordForm() {
 
               <button
                 aria-busy={loading}
-                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                className='w-full rounded-xl bg-sky-600 py-4 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                 disabled={loading || password.length < 8 || password !== confirmPassword}
                 type='submit'
               >
@@ -365,7 +365,7 @@ export default function ResetPasswordPage() {
     <Suspense
       fallback={
         <div className='min-h-screen bg-slate-950 flex items-center justify-center'>
-          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-violet-500' />
+          <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500' />
         </div>
       }
     >

@@ -16,17 +16,17 @@ export const BottomNav: React.FC = () => {
     relative flex flex-col items-center justify-center w-full h-full space-y-1
     ${
       isActive(path)
-        ? 'text-violet-600 dark:text-violet-400'
+        ? 'text-sky-600 dark:text-sky-400'
         : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
     }
     transition-all duration-300 group
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 rounded-lg
+    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 rounded-lg
   `
 
   const _activeIndicator = (
     <span
       aria-hidden='true'
-      className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-violet-600 shadow-[0_2px_8px_rgba(139,92,246,0.5)] duration-300 dark:bg-violet-400 dark:shadow-[0_2px_8px_rgba(167,139,250,0.3)]'
+      className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-sky-600 shadow-[0_2px_8px_rgba(14,165,233,0.5)] duration-300 dark:bg-sky-400 dark:shadow-[0_2px_8px_rgba(56,189,248,0.3)]'
     />
   )
 
@@ -50,7 +50,7 @@ export const BottomNav: React.FC = () => {
           <div
             aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/home') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+              isActive('/home') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
             }`}
           >
             <Home
@@ -82,7 +82,7 @@ export const BottomNav: React.FC = () => {
           <div
             aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/routine') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+              isActive('/routine') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
             }`}
           >
             <Calendar
@@ -104,7 +104,7 @@ export const BottomNav: React.FC = () => {
         <div className='-top-6 group relative sm:-top-8'>
           <div
             aria-hidden='true'
-            className='absolute inset-0 rounded-full bg-violet-600 opacity-40 blur-lg transition-opacity duration-300 group-hover:opacity-60'
+            className='absolute inset-0 rounded-full bg-sky-500 opacity-30 blur-lg transition-opacity duration-300 group-hover:opacity-50'
           />
           <button
             aria-label={
@@ -114,7 +114,7 @@ export const BottomNav: React.FC = () => {
                   ? 'Adicionar nova recompensa'
                   : 'Abrir diário de pensamentos'
             }
-            className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-violet-600 to-fuchsia-600 text-white shadow-violet-300/50 shadow-xl transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-4'
+            className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sky-300/50 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-4'
             onClick={() => {
               playNavigation()
               // Context-aware action based on current page
@@ -157,7 +157,7 @@ export const BottomNav: React.FC = () => {
           <div
             aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/rewards') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+              isActive('/rewards') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
             }`}
           >
             <Gift
@@ -189,7 +189,7 @@ export const BottomNav: React.FC = () => {
           <div
             aria-hidden='true'
             className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/profile') ? 'bg-violet-50 dark:bg-violet-900/20' : ''
+              isActive('/profile') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
             }`}
           >
             <User
@@ -210,3 +210,4 @@ export const BottomNav: React.FC = () => {
     </nav>
   )
 }
+

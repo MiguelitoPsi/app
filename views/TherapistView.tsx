@@ -572,7 +572,7 @@ export const TherapistView: React.FC = () => {
             <Settings className='h-5 w-5 sm:h-6 sm:w-6' />
           </button>
           <button
-            className='touch-target group flex items-center justify-center rounded-full bg-violet-600 p-3 text-white shadow-lg shadow-violet-200 transition-all active:scale-95 hover:bg-violet-700 sm:p-4 sm:hover:scale-105 dark:shadow-none'
+            className='touch-target group flex items-center justify-center rounded-full bg-sky-600 p-3 text-white shadow-lg shadow-sky-200 transition-all active:scale-95 hover:bg-sky-700 sm:p-4 sm:hover:scale-105 dark:shadow-none'
             onClick={handleInvite}
             title='Convidar Paciente'
             type='button'
@@ -749,13 +749,13 @@ export const TherapistView: React.FC = () => {
               <button
                 className={`group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 ${
                   activeSection === 'profile'
-                    ? 'ring-2 ring-violet-400 ring-offset-2 dark:ring-offset-slate-900'
+                    ? 'ring-2 ring-sky-400 ring-offset-2 dark:ring-offset-slate-900'
                     : 'hover:scale-[1.02]'
                 }`}
                 onClick={() => setActiveSection('profile')}
                 type='button'
               >
-                <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+                <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
                   <User className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='font-semibold text-[9px] sm:text-xs'>Perfil</span>
@@ -812,7 +812,7 @@ export const TherapistView: React.FC = () => {
               <button
                 className={`flex flex-1 items-center justify-center gap-2 rounded-lg px-6 py-3 font-medium transition-all duration-200 ${
                   activeSection === 'profile'
-                    ? 'bg-gradient-to-r from-violet-500 to-violet-600 text-white shadow-md'
+                    ? 'bg-gradient-to-r from-sky-500 to-sky-600 text-white shadow-md'
                     : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                 }`}
                 onClick={() => setActiveSection('profile')}
@@ -845,7 +845,7 @@ export const TherapistView: React.FC = () => {
                 </div>
                 <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
                   <div className='mb-2 flex items-center gap-1.5 text-slate-400 sm:mb-3 sm:gap-2'>
-                    <div className='rounded-md bg-violet-50 p-1.5 text-violet-500 sm:rounded-lg sm:p-2 dark:bg-violet-900/20'>
+                    <div className='rounded-md bg-sky-50 p-1.5 text-sky-500 sm:rounded-lg sm:p-2 dark:bg-sky-900/20'>
                       <FileText size={16} />
                     </div>
                     <span className='font-bold text-[9px] uppercase tracking-wider sm:text-[10px]'>
@@ -856,7 +856,7 @@ export const TherapistView: React.FC = () => {
                     {stats.totalJournals}
                   </p>
                 </div>
-                <div className='relative col-span-2 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-700 p-4 text-white shadow-indigo-200 shadow-lg sm:rounded-3xl sm:p-6 dark:shadow-none'>
+                <div className='relative col-span-2 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-sky-700 p-4 text-white shadow-indigo-200 shadow-lg sm:rounded-3xl sm:p-6 dark:shadow-none'>
                   <div className='-mr-8 -mt-8 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 blur-2xl sm:-mr-10 sm:-mt-10 sm:h-32 sm:w-32' />
 
                   <div className='relative z-10 mb-3 flex items-center gap-1.5 text-indigo-100 sm:mb-4 sm:gap-2'>
@@ -942,7 +942,7 @@ export const TherapistView: React.FC = () => {
                 {topEmotionsData && topEmotionsData.topEmotions.length > 0 && (
                   <div className='mt-4 border-slate-100 border-t pt-4 sm:mt-6 sm:pt-6 dark:border-slate-800'>
                     <div className='mb-3 flex items-center gap-2'>
-                      <Brain className='text-violet-500' size={16} />
+                      <Brain className='text-sky-500' size={16} />
                       <span className='font-bold text-[10px] text-slate-500 uppercase tracking-wider sm:text-xs dark:text-slate-400'>
                         Emoções mais frequentes
                       </span>
@@ -1487,7 +1487,7 @@ export const TherapistView: React.FC = () => {
             <div className='relative overflow-hidden rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'>
               <div className='-mr-16 -mt-16 pointer-events-none absolute top-0 right-0 h-48 w-48 rounded-full bg-indigo-100/50 blur-3xl dark:bg-indigo-900/20' />
               <div className='relative z-10 flex items-center gap-4 sm:gap-6'>
-                <div className='flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg shadow-indigo-200 sm:h-20 sm:w-20 sm:rounded-3xl dark:shadow-none'>
+                <div className='flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-600 text-white shadow-lg shadow-indigo-200 sm:h-20 sm:w-20 sm:rounded-3xl dark:shadow-none'>
                   <User className='sm:hidden' size={28} />
                   <User className='hidden sm:block' size={36} />
                 </div>
@@ -1583,7 +1583,7 @@ export const TherapistView: React.FC = () => {
             {/* Patient Stats Summary */}
             <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'>
               <h3 className='mb-4 flex items-center gap-2 font-bold text-slate-800 sm:gap-3 dark:text-white'>
-                <div className='rounded-lg bg-violet-50 p-1.5 text-violet-500 sm:rounded-xl sm:p-2 dark:bg-violet-900/20'>
+                <div className='rounded-lg bg-sky-50 p-1.5 text-sky-500 sm:rounded-xl sm:p-2 dark:bg-sky-900/20'>
                   <BarChart2 size={16} />
                 </div>
                 Estatísticas
@@ -1601,14 +1601,14 @@ export const TherapistView: React.FC = () => {
                     <span className='font-medium text-teal-500 text-xs'>min</span>
                   </p>
                 </div>
-                <div className='rounded-xl bg-gradient-to-br from-violet-50 to-violet-100/50 p-3 sm:rounded-2xl sm:p-4 dark:from-violet-900/20 dark:to-violet-900/10'>
-                  <div className='mb-1 flex items-center gap-1.5 text-violet-600 sm:mb-2 dark:text-violet-400'>
+                <div className='rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/50 p-3 sm:rounded-2xl sm:p-4 dark:from-sky-900/20 dark:to-sky-900/10'>
+                  <div className='mb-1 flex items-center gap-1.5 text-sky-600 sm:mb-2 dark:text-sky-400'>
                     <FileText size={14} />
                     <span className='font-bold text-[9px] uppercase tracking-wider sm:text-[10px]'>
                       Registros
                     </span>
                   </div>
-                  <p className='font-black text-xl text-violet-700 sm:text-2xl dark:text-violet-300'>
+                  <p className='font-black text-xl text-sky-700 sm:text-2xl dark:text-sky-300'>
                     {stats.totalJournals}
                   </p>
                 </div>
@@ -2030,7 +2030,7 @@ export const TherapistView: React.FC = () => {
               {/* Modo Escuro */}
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -2046,7 +2046,7 @@ export const TherapistView: React.FC = () => {
                   aria-checked={theme === 'dark'}
                   aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -2112,7 +2112,7 @@ export const TherapistView: React.FC = () => {
 
               {/* Termo de Responsabilidade */}
               <button
-                className='flex w-full items-center justify-between rounded-xl border border-violet-100 bg-violet-50 p-3 transition-colors hover:bg-violet-100 sm:p-4 dark:border-violet-900/30 dark:bg-violet-900/20 dark:hover:bg-violet-900/30'
+                className='flex w-full items-center justify-between rounded-xl border border-sky-100 bg-sky-50 p-3 transition-colors hover:bg-sky-100 sm:p-4 dark:border-sky-900/30 dark:bg-sky-900/20 dark:hover:bg-sky-900/30'
                 onClick={() => {
                   setShowSettings(false)
                   setShowTermsModal(true)
@@ -2120,7 +2120,7 @@ export const TherapistView: React.FC = () => {
                 type='button'
               >
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                     <FileText size={18} />
                   </div>
                   <div className='text-left'>
@@ -2168,7 +2168,7 @@ export const TherapistView: React.FC = () => {
           >
             <div className='mb-4 flex items-center justify-between sm:mb-6'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <Key className='text-violet-500' size={18} /> Alterar Senha
+                <Key className='text-sky-500' size={18} /> Alterar Senha
               </h3>
               <button
                 aria-label='Fechar modal'
@@ -2213,7 +2213,7 @@ export const TherapistView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='current-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='currentPassword'
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2241,7 +2241,7 @@ export const TherapistView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='newPassword'
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2272,7 +2272,7 @@ export const TherapistView: React.FC = () => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='confirmPassword'
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder='••••••••'
@@ -2297,7 +2297,7 @@ export const TherapistView: React.FC = () => {
                   )}
 
                   <button
-                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                     disabled={isChangingPassword}
                     type='submit'
                   >
@@ -2525,7 +2525,7 @@ export const TherapistView: React.FC = () => {
       {/* XP Notification */}
       {xpNotification && (
         <div className='pointer-events-none fixed inset-0 z-[100] flex items-start justify-center pt-20'>
-          <div className='animate-in fade-in slide-in-from-top-4 zoom-in-95 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 px-5 py-3 text-white shadow-2xl shadow-indigo-500/30 duration-300'>
+          <div className='animate-in fade-in slide-in-from-top-4 zoom-in-95 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-600 px-5 py-3 text-white shadow-2xl shadow-indigo-500/30 duration-300'>
             <Sparkles className='animate-pulse text-yellow-300' size={20} />
             <span className='font-bold text-sm'>+{xpNotification.amount} XP</span>
             <span className='text-indigo-200 text-xs'>({xpNotification.action})</span>
@@ -2535,3 +2535,4 @@ export const TherapistView: React.FC = () => {
     </div>
   )
 }
+

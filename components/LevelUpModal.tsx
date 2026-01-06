@@ -80,7 +80,7 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
           />
           <div
             aria-hidden='true'
-            className='absolute -bottom-24 -right-24 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl animate-pulse'
+            className='absolute -bottom-24 -right-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl animate-pulse'
           />
 
           {/* Icon */}
@@ -134,3 +134,4 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
 }
 
 export default LevelUpModal
+

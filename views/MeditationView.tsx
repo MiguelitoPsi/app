@@ -93,12 +93,12 @@ const MEDITATION_TYPES: MeditationType[] = [
     title: 'Relaxamento',
     description: 'Alivie o estresse e encontre equilíbrio.',
     icon: Wind,
-    colorFrom: 'from-violet-400',
+    colorFrom: 'from-sky-400',
     colorTo: 'to-fuchsia-400',
-    shadowColor: 'shadow-violet-300',
-    ringColor: 'ring-violet-300',
-    textColor: 'text-violet-600 dark:text-violet-400',
-    bgActive: 'bg-violet-50 dark:bg-violet-900/20',
+    shadowColor: 'shadow-sky-300',
+    ringColor: 'ring-sky-300',
+    textColor: 'text-sky-600 dark:text-sky-400',
+    bgActive: 'bg-sky-50 dark:bg-sky-900/20',
     breathInfo: '4s inspirar • 4s expirar',
   },
   {
@@ -294,7 +294,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
               <div className='flex items-center gap-2 sm:gap-3'>
                 <button
                   aria-label='Voltar para página inicial'
-                  className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+                  className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2'
                   onClick={goHome}
                   type='button'
                 >
@@ -366,19 +366,19 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
               )
             })}
 
-            <div className='mt-4 rounded-2xl border border-violet-100 bg-violet-50 p-4 transition-colors sm:mt-6 sm:rounded-3xl sm:p-5 dark:border-violet-900/30 dark:bg-violet-900/10'>
+            <div className='mt-4 rounded-2xl border border-sky-100 bg-sky-50 p-4 transition-colors sm:mt-6 sm:rounded-3xl sm:p-5 dark:border-sky-900/30 dark:bg-sky-900/10'>
               <div className='flex items-start gap-3 sm:gap-4'>
-                <div className='shrink-0 rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                <div className='shrink-0 rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:rounded-xl sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                   <Sun className='sm:hidden' size={18} />
                   <Sun className='hidden sm:block' size={20} />
                 </div>
                 <div>
-                  <h4 className='font-bold text-xs text-violet-700 sm:text-sm dark:text-violet-300'>
+                  <h4 className='font-bold text-xs text-sky-700 sm:text-sm dark:text-sky-300'>
                     Dica do dia
                   </h4>
                   <p className='mt-1 font-medium text-slate-600 text-[11px] leading-relaxed sm:text-xs dark:text-slate-400'>
                     Meditar por apenas{' '}
-                    <span className='font-bold text-violet-600 dark:text-violet-400'>
+                    <span className='font-bold text-sky-600 dark:text-sky-400'>
                       {recommendedTime} minutos
                     </span>{' '}
                     pode aumentar seu XP e reduzir o estresse em até 30%.
@@ -533,7 +533,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
                     {hasBonus && (
                       <span
                         className={`absolute -top-1.5 -right-1.5 rounded-full px-1.5 py-0.5 text-[9px] font-bold ${
-                          duration === dur ? 'bg-white text-violet-600' : 'bg-violet-500 text-white'
+                          duration === dur ? 'bg-white text-sky-600' : 'bg-sky-500 text-white'
                         }`}
                       >
                         {dur >= 600 ? '2x' : '1.5x'}
@@ -545,7 +545,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
             </div>
             <p className='mt-3 text-center font-medium text-slate-400 text-xs'>
               Recompensa:{' '}
-              <span className='text-violet-500 dark:text-violet-400'>
+              <span className='text-sky-500 dark:text-sky-400'>
                 +{currentRewards.xp} XP & {currentRewards.coins} Pts
               </span>
             </p>
@@ -555,7 +555,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
           <div
             className={`rounded-2xl border p-4 ${
               selectedType.colorFrom.includes('violet')
-                ? 'border-violet-100 bg-violet-50 dark:border-violet-900/30 dark:bg-violet-900/10'
+                ? 'border-sky-100 bg-sky-50 dark:border-sky-900/30 dark:bg-sky-900/10'
                 : selectedType.colorFrom.includes('teal')
                   ? 'border-teal-100 bg-teal-50 dark:border-teal-900/30 dark:bg-teal-900/10'
                   : 'border-indigo-100 bg-indigo-50 dark:border-indigo-900/30 dark:bg-indigo-900/10'
@@ -678,7 +678,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
             <div
               className={`absolute inset-0 rounded-full border-2 ${
                 selectedType.colorFrom.includes('violet')
-                  ? 'border-violet-200 bg-violet-50/30 dark:border-violet-800 dark:bg-violet-900/20'
+                  ? 'border-sky-200 bg-sky-50/30 dark:border-sky-800 dark:bg-sky-900/20'
                   : selectedType.colorFrom.includes('teal')
                     ? 'border-teal-200 bg-teal-50/30 dark:border-teal-800 dark:bg-teal-900/20'
                     : 'border-indigo-200 bg-indigo-50/30 dark:border-indigo-800 dark:bg-indigo-900/20'
@@ -694,7 +694,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
             <div
               className={`absolute inset-4 rounded-full border ${
                 selectedType.colorFrom.includes('violet')
-                  ? 'border-violet-300 bg-violet-100/40 dark:border-violet-700 dark:bg-violet-800/30'
+                  ? 'border-sky-300 bg-sky-100/40 dark:border-sky-700 dark:bg-sky-800/30'
                   : selectedType.colorFrom.includes('teal')
                     ? 'border-teal-300 bg-teal-100/40 dark:border-teal-700 dark:bg-teal-800/30'
                     : 'border-indigo-300 bg-indigo-100/40 dark:border-indigo-700 dark:bg-indigo-800/30'
@@ -710,7 +710,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
             <div
               className={`absolute inset-8 rounded-full ${
                 selectedType.colorFrom.includes('violet')
-                  ? 'bg-violet-200/50 dark:bg-violet-700/40'
+                  ? 'bg-sky-200/50 dark:bg-sky-700/40'
                   : selectedType.colorFrom.includes('teal')
                     ? 'bg-teal-200/50 dark:bg-teal-700/40'
                     : 'bg-indigo-200/50 dark:bg-indigo-700/40'
@@ -811,12 +811,12 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
               Você acaba de investir no seu bem-estar mental.
             </p>
 
-            <div className='mt-6 rounded-2xl bg-gradient-to-br from-violet-500 to-fuchsia-500 p-[1px] sm:mt-8 sm:rounded-3xl'>
+            <div className='mt-6 rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-400 p-[1px] sm:mt-8 sm:rounded-3xl'>
               <div className='flex flex-col items-center rounded-[15px] bg-white px-6 py-3 sm:rounded-[23px] sm:px-8 sm:py-4 dark:bg-slate-900'>
                 <span className='mb-1 font-bold text-slate-400 text-[10px] uppercase tracking-wider sm:text-xs'>
                   Recompensa
                 </span>
-                <p className='bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text font-black text-2xl text-transparent sm:text-3xl'>
+                <p className='bg-gradient-to-r from-sky-500 to-cyan-400 bg-clip-text font-black text-2xl text-transparent sm:text-3xl'>
                   +{currentRewards.xp} XP & {currentRewards.coins} Pts
                 </p>
               </div>
@@ -838,3 +838,4 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
     </>
   )
 }
+

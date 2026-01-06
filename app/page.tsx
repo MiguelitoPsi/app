@@ -24,7 +24,7 @@ import Link from "next/link";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-violet-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-sky-500/30 relative overflow-hidden">
       {/* Animated gradient orbs */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <motion.div
@@ -32,7 +32,7 @@ export default function LandingPage() {
             x: [0, 80, 0, -60, 0],
             y: [0, -50, 40, 0, 0],
           }}
-          className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl"
+          className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl"
           transition={{
             duration: 12,
             repeat: Number.POSITIVE_INFINITY,
@@ -44,7 +44,7 @@ export default function LandingPage() {
             x: [0, -70, 40, 0],
             y: [0, 60, -40, 0],
           }}
-          className="absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl"
+          className="absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl"
           transition={{
             duration: 10,
             repeat: Number.POSITIVE_INFINITY,
@@ -56,7 +56,7 @@ export default function LandingPage() {
             x: [0, 60, -50, 0],
             y: [0, -70, 50, 0],
           }}
-          className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl"
+          className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl"
           transition={{
             duration: 14,
             repeat: Number.POSITIVE_INFINITY,
@@ -68,7 +68,7 @@ export default function LandingPage() {
       <header className="fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 p-1.5">
+            <div className="rounded-lg bg-gradient-to-br from-sky-500 to-cyan-600 p-1.5">
               <Brain className="h-5 w-5 text-white" />
             </div>
             <span className="font-bold text-lg text-white">Nepsis</span>
@@ -97,7 +97,7 @@ export default function LandingPage() {
 
           <div className="flex items-center gap-4">
             <Link
-              className="rounded-lg bg-violet-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-violet-500 hover:shadow-lg hover:shadow-violet-500/20"
+              className="rounded-lg bg-sky-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-sky-500 hover:shadow-lg hover:shadow-sky-500/20"
               href="/auth/signin"
             >
               Entrar
@@ -110,21 +110,21 @@ export default function LandingPage() {
       <section className="relative overflow-hidden px-4 pt-32 pb-20">
         {/* Background Effects - Mais sutis */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute top-20 left-1/4 h-96 w-96 rounded-full bg-violet-600/10 blur-[120px]" />
-          <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-indigo-600/10 blur-[120px]" />
+          <div className="absolute top-20 left-1/4 h-96 w-96 rounded-full bg-sky-600/10 blur-[120px]" />
+          <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-sky-600/10 blur-[120px]" />
         </div>
 
         <div className="relative mx-auto max-w-5xl text-center">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-violet-500/20 bg-violet-500/10 px-4 py-1.5">
-            <Sparkles className="h-4 w-4 text-violet-400" />
-            <span className="font-medium text-violet-300 text-sm">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-4 py-1.5">
+            <Sparkles className="h-4 w-4 text-sky-400" />
+            <span className="font-medium text-sky-300 text-sm">
               Tecnologia e Psicologia unidas pelo seu bem-estar
             </span>
           </div>
 
           <h1 className="mb-6 font-bold text-4xl tracking-tight text-white sm:text-5xl md:text-6xl lg:leading-tight">
             Sua jornada de saúde mental <br className="hidden md:block" />
-            <span className="bg-gradient-to-r from-violet-400 via-purple-400 to-indigo-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-sky-400 via-cyan-400 to-emerald-400 bg-clip-text text-transparent">
               mais engajadora e eficiente
             </span>
           </h1>
@@ -137,11 +137,11 @@ export default function LandingPage() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-slate-900 shadow-xl shadow-violet-500/10 transition-all hover:bg-slate-100 hover:shadow-violet-500/20 sm:w-auto"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-slate-900 shadow-xl shadow-sky-500/10 transition-all hover:bg-slate-100 hover:shadow-sky-500/20 sm:w-auto"
               href="#recursos"
             >
               Saiba mais
-              <ArrowRight className="h-5 w-5 text-violet-600 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="h-5 w-5 text-sky-600 transition-transform group-hover:translate-x-1" />
             </Link>
             <Link
               className="flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-600/50 bg-emerald-600/10 px-8 py-4 font-medium text-emerald-300 transition-all hover:bg-emerald-600/20 hover:border-emerald-500 sm:w-auto"
@@ -178,7 +178,7 @@ export default function LandingPage() {
       <section className="relative px-4 pb-20">
         <div className="mx-auto max-w-5xl">
           <div className="relative rounded-2xl border border-slate-800 bg-slate-900/50 p-4 backdrop-blur-sm shadow-2xl">
-            <div className="absolute -top-px left-10 right-10 h-px bg-gradient-to-r from-transparent via-violet-500/50 to-transparent" />
+            <div className="absolute -top-px left-10 right-10 h-px bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
             <div className="aspect-[16/9] w-full overflow-hidden rounded-xl bg-slate-950 relative flex items-center justify-center">
               <DataFlowAnimation />
             </div>
@@ -205,7 +205,7 @@ export default function LandingPage() {
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             <FeatureCard
               description="Baseado no modelo da Terapia Cognitivo-Comportamental (TCC), ajuda a identificar e reestruturar distorções cognitivas."
-              icon={<Brain className="h-6 w-6 text-violet-400" />}
+              icon={<Brain className="h-6 w-6 text-sky-400" />}
               title="Registro de Pensamentos"
             />
             <FeatureCard
@@ -275,7 +275,7 @@ export default function LandingPage() {
                             <div className="h-2 w-20 bg-slate-700/50 rounded" />
                           </div>
                         </div>
-                        <div className="h-6 w-20 bg-violet-500/20 rounded-full" />
+                        <div className="h-6 w-20 bg-sky-500/20 rounded-full" />
                       </div>
                     ))}
                   </div>
@@ -333,7 +333,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl relative">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-violet-500/10 px-3 py-1 text-sm font-medium text-violet-400 mb-6">
+              <div className="inline-flex items-center gap-2 rounded-full bg-sky-500/10 px-3 py-1 text-sm font-medium text-sky-400 mb-6">
                 <Users className="h-4 w-4" />
                 Para Psicólogos
               </div>
@@ -353,8 +353,8 @@ export default function LandingPage() {
                   "Maior engajamento do paciente com o tratamento",
                 ].map((item, i) => (
                   <li className="flex items-start gap-3" key={i}>
-                    <div className="mt-1 h-5 w-5 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                      <Check className="h-3 w-3 text-violet-400" />
+                    <div className="mt-1 h-5 w-5 rounded-full bg-sky-500/20 flex items-center justify-center flex-shrink-0">
+                      <Check className="h-3 w-3 text-sky-400" />
                     </div>
                     <span className="text-slate-300">{item}</span>
                   </li>
@@ -362,7 +362,7 @@ export default function LandingPage() {
               </ul>
 
               <Link
-                className="inline-flex items-center justify-center gap-2 rounded-lg border border-violet-500/50 bg-violet-500/10 px-6 py-3 font-semibold text-violet-300 transition-all hover:bg-violet-500/20"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-sky-500/50 bg-sky-500/10 px-6 py-3 font-semibold text-sky-300 transition-all hover:bg-sky-500/20"
                 href="mailto:contato@nepsis.com?subject=Cadastro como Profissional"
               >
                 Entre em contato para cadastro
@@ -371,7 +371,7 @@ export default function LandingPage() {
             </div>
 
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-violet-600/20 to-transparent rounded-2xl blur-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-br from-sky-600/20 to-transparent rounded-2xl blur-2xl" />
               <div className="relative rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl">
                 {/* Mockup de Dashboard do Terapeuta */}
                 <div className="space-y-4">
@@ -417,12 +417,12 @@ export default function LandingPage() {
       {/* CTA / Pricing Simplified */}
       <section className="px-4 py-24">
         <div className="mx-auto max-w-4xl">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-violet-900 to-slate-900 p-8 md:p-16 text-center border border-violet-500/30">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-900 to-slate-900 p-8 md:p-16 text-center border border-sky-500/30">
             <div className="relative z-10">
               <h2 className="mb-6 font-bold text-3xl text-white sm:text-4xl">
                 Comece a cuidar de você hoje
               </h2>
-              <p className="mx-auto mb-10 max-w-xl text-lg text-violet-100/80">
+              <p className="mx-auto mb-10 max-w-xl text-lg text-sky-100/80">
                 O Nepsis oferece o primeiro mês gratuito para você iniciar sua
                 jornada de autoconhecimento com o apoio da tecnologia, no seu
                 ritmo e com total segurança.
@@ -430,7 +430,7 @@ export default function LandingPage() {
 
               <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
                 <Link
-                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-violet-900 shadow-lg transition-all hover:bg-slate-100 hover:scale-105"
+                  className="group inline-flex items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-sky-900 shadow-lg transition-all hover:bg-slate-100 hover:scale-105"
                   href="#recursos"
                 >
                   Saiba mais
@@ -441,7 +441,7 @@ export default function LandingPage() {
 
             {/* Decorative background */}
             <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-              <div className="absolute -top-24 -right-24 w-64 h-64 bg-violet-500/20 rounded-full blur-3xl" />
+              <div className="absolute -top-24 -right-24 w-64 h-64 bg-sky-500/20 rounded-full blur-3xl" />
               <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl" />
             </div>
           </div>
@@ -562,7 +562,7 @@ function FaqItem({ question, answer }: { question: string; answer: string }) {
 function DataFlowAnimation() {
   return (
     <div className="relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950 perspective-1000">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-violet-900/20 via-slate-950 to-slate-950" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-900/20 via-slate-950 to-slate-950" />
 
       {/* Background Grid Animation */}
       <div className="absolute inset-0 opacity-20">
@@ -587,12 +587,12 @@ function DataFlowAnimation() {
             animate={{
               scale: [1, 1.05, 1],
               boxShadow: [
-                "0 0 30px rgba(124, 58, 237, 0.3)",
-                "0 0 60px rgba(124, 58, 237, 0.6)",
-                "0 0 30px rgba(124, 58, 237, 0.3)",
+                "0 0 30px rgba(14, 165, 233, 0.3)",
+                "0 0 60px rgba(14, 165, 233, 0.6)",
+                "0 0 30px rgba(14, 165, 233, 0.3)",
               ],
             }}
-            className="relative w-32 h-32 rounded-full bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-violet-500/30"
+            className="relative w-32 h-32 rounded-full bg-gradient-to-br from-sky-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-sky-500/30"
             transition={{
               duration: 3,
               repeat: Number.POSITIVE_INFINITY,
@@ -605,7 +605,7 @@ function DataFlowAnimation() {
             {[1, 2, 3].map((i) => (
               <motion.div
                 animate={{ rotate: 360, scale: [1, 1.02, 1] }}
-                className="absolute inset-0 rounded-full border border-violet-400/30"
+                className="absolute inset-0 rounded-full border border-sky-400/30"
                 key={i}
                 style={{
                   width: `${100 + i * 40}%`,
@@ -619,7 +619,7 @@ function DataFlowAnimation() {
                   ease: "linear",
                 }}
               >
-                <div className="absolute top-0 left-1/2 w-2 h-2 -ml-1 bg-violet-400 rounded-full shadow-glow" />
+                <div className="absolute top-0 left-1/2 w-2 h-2 -ml-1 bg-sky-400 rounded-full shadow-glow" />
               </motion.div>
             ))}
           </motion.div>
@@ -627,7 +627,7 @@ function DataFlowAnimation() {
             <span className="text-lg font-bold text-white block">
               Nepsis AI
             </span>
-            <span className="text-xs text-violet-400">
+            <span className="text-xs text-sky-400">
               Processamento Seguro
             </span>
           </div>
@@ -637,7 +637,7 @@ function DataFlowAnimation() {
         <div className="absolute left-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-4">
           <motion.div
             animate={{ y: [0, -15, 0] }}
-            className="w-24 h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-violet-500/10"
+            className="w-24 h-24 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center shadow-xl shadow-sky-500/10"
             transition={{
               duration: 5,
               repeat: Number.POSITIVE_INFINITY,
@@ -719,9 +719,9 @@ function DataFlowAnimation() {
           <title>Data Flow Connections</title>
           <defs>
             <linearGradient id="grad1" x1="0%" x2="100%" y1="0%" y2="0%">
-              <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0" />
-              <stop offset="50%" stopColor="#8b5cf6" stopOpacity="1" />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity="0" />
+              <stop offset="0%" stopColor="#0ea5e9" stopOpacity="0" />
+              <stop offset="50%" stopColor="#0ea5e9" stopOpacity="1" />
+              <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="grad2" x1="0%" x2="100%" y1="0%" y2="0%">
               <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
@@ -821,7 +821,7 @@ function DataFlowAnimation() {
             delay: 4,
           },
           {
-            icon: <MessageCircle className="w-3 h-3 text-violet-400" />,
+            icon: <MessageCircle className="w-3 h-3 text-sky-400" />,
             text: "Insight Gerado",
             bottom: "25%",
             left: "30%",
@@ -860,3 +860,5 @@ function DataFlowAnimation() {
     </div>
   );
 }
+
+

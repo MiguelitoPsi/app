@@ -265,7 +265,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
             {/* Header */}
             <div className='flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <HelpCircle className='text-violet-500' size={20} />
+                <HelpCircle className='text-sky-500' size={20} />
                 Como usar: {tutorial.title}
               </h3>
               <button
@@ -292,7 +292,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
                           className='flex items-start gap-2 text-slate-600 text-xs sm:text-sm dark:text-slate-400'
                           key={itemIdx}
                         >
-                          <span className='mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-violet-400' />
+                          <span className='mt-1 h-1.5 w-1.5 flex-shrink-0 rounded-full bg-sky-400' />
                           {item}
                         </li>
                       ))}
@@ -305,7 +305,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
             {/* Footer */}
             <div className='border-t border-slate-100 p-4 sm:p-5 dark:border-slate-800'>
               <button
-                className='w-full rounded-xl bg-violet-600 py-2.5 font-bold text-sm text-white transition-all hover:bg-violet-700 active:scale-[0.98] sm:py-3'
+                className='w-full rounded-xl bg-sky-600 py-2.5 font-bold text-sm text-white transition-all hover:bg-sky-700 active:scale-[0.98] sm:py-3'
                 onClick={() => setIsOpen(false)}
                 type='button'
               >
@@ -325,3 +325,4 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
     </>
   )
 }
+

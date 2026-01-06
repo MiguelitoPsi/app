@@ -39,7 +39,7 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
       <div className='flex h-full flex-col'>
         {/* Logo */}
         <div className='flex h-14 items-center justify-center gap-2.5 border-b border-slate-200 px-4 lg:justify-start dark:border-slate-700'>
-          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-sm'>
+          <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-purple-600 shadow-sm'>
             <span className='text-base'>🧠</span>
           </div>
           <span className='hidden text-base font-bold text-slate-800 lg:block dark:text-white'>
@@ -82,7 +82,7 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
                 </div>
                 <div className='h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700'>
                   <div
-                    className='h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500'
+                    className='h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-500 transition-all duration-500'
                     style={{ width: `${stats.progressPercent}%` }}
                   />
                 </div>
@@ -99,7 +99,7 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
               <Link
                 className={`flex items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 lg:justify-start ${
                   isActive
-                    ? 'bg-gradient-to-r from-violet-500 to-purple-600 text-white shadow-sm'
+                    ? 'bg-gradient-to-r from-sky-500 to-purple-600 text-white shadow-sm'
                     : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                 }`}
                 href={item.path}
@@ -115,15 +115,15 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
 
         {/* Card promocional */}
         <div className='hidden p-3 lg:block'>
-          <div className='relative overflow-hidden rounded-xl bg-gradient-to-br from-violet-50 to-purple-50 p-4 dark:from-violet-900/20 dark:to-purple-900/20'>
+          <div className='relative overflow-hidden rounded-xl bg-gradient-to-br from-sky-50 to-purple-50 p-4 dark:from-sky-900/20 dark:to-purple-900/20'>
             {/* Decoração */}
-            <div className='absolute -right-4 -top-4 h-16 w-16 rounded-full bg-violet-200/50 dark:bg-violet-700/20' />
+            <div className='absolute -right-4 -top-4 h-16 w-16 rounded-full bg-sky-200/50 dark:bg-sky-700/20' />
             <div className='absolute -bottom-2 -left-2 h-12 w-12 rounded-full bg-purple-200/50 dark:bg-purple-700/20' />
 
             <div className='relative'>
               <div className='mb-2 flex items-center gap-1.5'>
-                <Sparkles className='h-4 w-4 text-violet-600 dark:text-violet-400' />
-                <span className='text-xs font-semibold text-violet-700 dark:text-violet-300'>
+                <Sparkles className='h-4 w-4 text-sky-600 dark:text-sky-400' />
+                <span className='text-xs font-semibold text-sky-700 dark:text-sky-300'>
                   Dica do dia
                 </span>
               </div>
@@ -169,3 +169,4 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
     </aside>
   )
 })
+

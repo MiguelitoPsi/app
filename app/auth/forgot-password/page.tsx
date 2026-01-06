@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
             x: [0, 80, 0, -60, 0],
             y: [0, -50, 40, 0, 0],
           }}
-          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
+          className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl'
           transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
         <motion.div
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
             x: [0, -70, 40, 0],
             y: [0, 60, -40, 0],
           }}
-          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
+          className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl'
           transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
         <motion.div
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
             x: [0, 60, -50, 0],
             y: [0, -70, 50, 0],
           }}
-          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl'
+          className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl'
           transition={{ duration: 14, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
         />
       </div>
@@ -74,7 +74,7 @@ export default function ForgotPasswordPage() {
           <main className='rounded-3xl border border-slate-800/50 bg-slate-900/50 p-8 shadow-xl backdrop-blur-sm'>
             {/* Back Link */}
             <Link
-              className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-violet-400'
+              className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-sky-400'
               href='/auth/signin'
             >
               <ArrowLeft className='h-4 w-4' />
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
             {/* Title */}
             <div className='mb-8 text-center'>
               <h1 className='font-bold text-3xl text-white'>Nepsis</h1>
-              <p className='mt-2 text-violet-400'>Recuperação de Senha</p>
+              <p className='mt-2 text-sky-400'>Recuperação de Senha</p>
             </div>
 
             {submitted ? (
@@ -111,7 +111,7 @@ export default function ForgotPasswordPage() {
                   </ul>
                 </div>
                 <button
-                  className='mt-6 text-violet-400 text-sm underline-offset-2 hover:text-violet-300 hover:underline'
+                  className='mt-6 text-sky-400 text-sm underline-offset-2 hover:text-sky-300 hover:underline'
                   onClick={() => {
                     setSubmitted(false)
                     setEmail('')
@@ -158,7 +158,7 @@ export default function ForgotPasswordPage() {
                   </label>
                   <input
                     autoComplete='email'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={emailId}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder='seu@email.com'
@@ -170,7 +170,7 @@ export default function ForgotPasswordPage() {
 
                 <button
                   aria-busy={loading}
-                  className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                  className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 py-4 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                   disabled={loading}
                   type='submit'
                 >
@@ -193,7 +193,7 @@ export default function ForgotPasswordPage() {
             <div className='mt-6 rounded-xl border border-slate-700/50 bg-slate-800/30 p-4'>
               <p className='text-center text-slate-500 text-xs'>
                 🔒 Seus dados são protegidos conforme a LGPD.{' '}
-                <Link className='text-violet-400 hover:underline' href='/privacy'>
+                <Link className='text-sky-400 hover:underline' href='/privacy'>
                   Política de Privacidade
                 </Link>
               </p>

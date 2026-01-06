@@ -43,7 +43,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
         {/* Header */}
         <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
           <div className='flex items-center gap-4'>
-            <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+            <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
               <FileText size={24} />
             </div>
             <div>
@@ -107,7 +107,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
             <ul className='text-slate-800 dark:text-slate-200'>
               <li>
                 <Link
-                  className='text-violet-600 underline hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
+                  className='text-sky-600 underline hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300'
                   href='/privacy'
                   target='_blank'
                 >
@@ -117,7 +117,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
               </li>
               <li>
                 <Link
-                  className='text-violet-600 underline hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
+                  className='text-sky-600 underline hover:text-sky-700 dark:text-sky-400 dark:hover:text-sky-300'
                   href='/terms'
                   target='_blank'
                 >
@@ -136,7 +136,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
               Ao clicar em "Li e Concordo", você aceita os termos descritos acima.
             </p>
             <button
-              className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-bold text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/20 active:scale-95 sm:w-auto disabled:cursor-not-allowed disabled:opacity-70'
+              className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 font-bold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-500/20 active:scale-95 sm:w-auto disabled:cursor-not-allowed disabled:opacity-70'
               disabled={isAccepting}
               onClick={handleAccept}
               type='button'

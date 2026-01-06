@@ -101,7 +101,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         return {
           icon: Zap,
           color: 'text-purple-100',
-          bg: 'bg-gradient-to-br from-violet-400 via-purple-500 to-fuchsia-600',
+          bg: 'bg-gradient-to-br from-sky-400 via-cyan-500 to-cyan-500',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(168,85,247,0.4)]',
           shadow: 'shadow-[0_20px_60px_rgba(168,85,247,0.5)]',
           animation: 'animate-avatar-jitter',
@@ -415,7 +415,7 @@ export const Avatar: React.FC<AvatarProps> = ({
             : mood === 'sad'
               ? 'from-blue-400/40 via-indigo-400/30 to-blue-400/40'
               : mood === 'anxious'
-                ? 'from-purple-400/40 via-fuchsia-400/30 to-purple-400/40'
+                ? 'from-purple-400/40 via-cyan-400/30 to-purple-400/40'
                 : mood === 'angry'
                   ? 'from-red-400/40 via-orange-400/30 to-red-400/40'
                   : mood === 'calm'
@@ -433,7 +433,7 @@ export const Avatar: React.FC<AvatarProps> = ({
               : mood === 'sad'
                 ? 'from-blue-500/0 via-blue-400/50 to-blue-500/0'
                 : mood === 'anxious'
-                  ? 'from-purple-500/0 via-purple-400/50 to-purple-500/0'
+                  ? 'from-cyan-500/0 via-purple-400/50 to-cyan-500/0'
                   : mood === 'angry'
                     ? 'from-red-500/0 via-red-400/50 to-red-500/0'
                     : mood === 'calm'

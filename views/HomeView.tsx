@@ -496,7 +496,7 @@ export const HomeView: React.FC = () => {
             key={xpFeedback.id}
           >
             <span
-              className='stroke-white font-black text-4xl text-violet-600 drop-shadow-xl filter sm:text-5xl dark:text-violet-400'
+              className='stroke-white font-black text-4xl text-sky-600 drop-shadow-xl filter sm:text-5xl dark:text-sky-400'
               style={{ textShadow: '0 2px 10px rgba(139, 92, 246, 0.5)' }}
             >
               +{xpFeedback.amount} XP
@@ -628,7 +628,7 @@ export const HomeView: React.FC = () => {
             >
               Como você se sente?
               {isXPAvailable && (
-                <span className='animate-pulse rounded-full bg-violet-100 px-2 py-0.5 font-bold text-[9px] text-violet-600 sm:text-[10px] dark:bg-violet-900/30 dark:text-violet-300'>
+                <span className='animate-pulse rounded-full bg-sky-100 px-2 py-0.5 font-bold text-[9px] text-sky-600 sm:text-[10px] dark:bg-sky-900/30 dark:text-sky-300'>
                   +{XP_REWARDS.mood} XP
                   <span className='sr-only'> disponível ao registrar seu humor</span>
                 </span>
@@ -639,9 +639,9 @@ export const HomeView: React.FC = () => {
                 <button
                   aria-label={`${m.label}${selectedMood === m.id ? ' (selecionado)' : ''}`}
                   aria-pressed={selectedMood === m.id}
-                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
+                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${
                     selectedMood === m.id
-                      ? 'scale-105 bg-violet-50 shadow-sm ring-2 ring-violet-100 sm:scale-110 dark:bg-violet-900/20 dark:ring-violet-900/30'
+                      ? 'scale-105 bg-sky-50 shadow-sm ring-2 ring-sky-100 sm:scale-110 dark:bg-sky-900/20 dark:ring-sky-900/30'
                       : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
                   } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
                   disabled={!isXPAvailable}
@@ -666,14 +666,14 @@ export const HomeView: React.FC = () => {
           <section aria-label='Ações rápidas' className='grid grid-cols-2 gap-3 sm:gap-4'>
             <button
               aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
-              className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
+              className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
               onClick={() => {
                 playNavigation()
                 router.push('/journal')
               }}
               type='button'
             >
-              <div className='absolute inset-0 bg-gradient-to-br from-violet-400 to-violet-600' />
+              <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
               <div className='relative flex h-full flex-col items-center justify-center gap-2 text-white sm:gap-3'>
                 <BookOpen className='h-8 w-8 sm:h-10 sm:w-10' />
                 <div className='text-center'>
@@ -729,7 +729,7 @@ export const HomeView: React.FC = () => {
             <div className='mb-4 flex items-center gap-2 sm:mb-6 sm:gap-3'>
               <div
                 aria-hidden='true'
-                className='rounded-lg bg-violet-50 p-1.5 text-violet-600 sm:rounded-xl sm:p-2 dark:bg-violet-900/20 dark:text-violet-400'
+                className='rounded-lg bg-sky-50 p-1.5 text-sky-600 sm:rounded-xl sm:p-2 dark:bg-sky-900/20 dark:text-sky-400'
               >
                 <BarChart2 className='sm:hidden' size={16} />
                 <BarChart2 className='hidden sm:block' size={18} />
@@ -762,7 +762,7 @@ export const HomeView: React.FC = () => {
                         marginBottom: '4px',
                       }}
                     />
-                    <Bar barSize={20} dataKey='score' fill='#8b5cf6' radius={[4, 4, 4, 4]} />
+                    <Bar barSize={20} dataKey='score' fill='#0ea5e9' radius={[4, 4, 4, 4]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -793,7 +793,7 @@ export const HomeView: React.FC = () => {
               <div className='space-y-3 sm:space-y-4'>
                 <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                       {stats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                     </div>
                     <div className='min-w-0'>
@@ -811,7 +811,7 @@ export const HomeView: React.FC = () => {
                       stats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
                     }
                     className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                      stats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                      stats.theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                     }`}
                     onClick={() => {
                       playToggle()
@@ -838,7 +838,7 @@ export const HomeView: React.FC = () => {
                 {isPushSupported && (
                   <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                     <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                         {isPushSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
                       </div>
                       <div className='min-w-0'>
@@ -861,7 +861,7 @@ export const HomeView: React.FC = () => {
                           : 'Ativar notificações push'
                       }
                       className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                        isPushSubscribed ? 'bg-violet-600' : 'bg-slate-300'
+                        isPushSubscribed ? 'bg-sky-600' : 'bg-slate-300'
                       } ${
                         isPushLoading || permissionState === 'denied'
                           ? 'cursor-not-allowed opacity-50'
@@ -893,7 +893,7 @@ export const HomeView: React.FC = () => {
                 {/* Sound Toggle */}
                 <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                       {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                     </div>
                     <div className='min-w-0'>
@@ -909,7 +909,7 @@ export const HomeView: React.FC = () => {
                     aria-checked={soundEnabled}
                     aria-label={soundEnabled ? 'Desativar sons' : 'Ativar sons'}
                     className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                      soundEnabled ? 'bg-violet-600' : 'bg-slate-300'
+                      soundEnabled ? 'bg-sky-600' : 'bg-slate-300'
                     }`}
                     onClick={() => {
                       toggleSound()
@@ -938,7 +938,7 @@ export const HomeView: React.FC = () => {
                 </div>
                 {/* Change Password Button */}
                 <button
-                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20'
                   onClick={() => {
                     setShowSettings(false)
                     setShowChangePassword(true)
@@ -946,7 +946,7 @@ export const HomeView: React.FC = () => {
                   type='button'
                 >
                   <div className='flex items-center gap-2 sm:gap-3'>
-                    <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                       <Key size={18} />
                     </div>
                     <div className='text-left'>
@@ -968,12 +968,12 @@ export const HomeView: React.FC = () => {
 
                   {/* Botão para visualizar termo de consentimento */}
                   <button
-                    className='touch-target flex w-full items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20 mb-3'
+                    className='touch-target flex w-full items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20 mb-3'
                     onClick={() => setShowConsentModal(true)}
                     type='button'
                   >
                     <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                         <FileText size={18} />
                       </div>
                       <div className='min-w-0 text-left'>
@@ -1050,14 +1050,14 @@ export const HomeView: React.FC = () => {
 
                 {stats.role === 'psychologist' && (
                   <button
-                    className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                    className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20'
                     onClick={() => {
                       window.location.href = '/dashboard'
                     }}
                     type='button'
                   >
                     <div className='flex items-center gap-2 sm:gap-3'>
-                      <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                      <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                         <Stethoscope size={18} />
                       </div>
                       <div className='text-left'>
@@ -1099,7 +1099,7 @@ export const HomeView: React.FC = () => {
             >
               <div className='mb-4 flex items-center justify-between sm:mb-6'>
                 <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                  <Key className='text-violet-500' size={18} /> Alterar Senha
+                  <Key className='text-sky-500' size={18} /> Alterar Senha
                 </h3>
                 <button
                   aria-label='Fechar modal'
@@ -1144,7 +1144,7 @@ export const HomeView: React.FC = () => {
                       <div className='relative'>
                         <input
                           autoComplete='current-password'
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                           id='currentPassword'
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           placeholder='••••••••'
@@ -1172,7 +1172,7 @@ export const HomeView: React.FC = () => {
                       <div className='relative'>
                         <input
                           autoComplete='new-password'
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                           id='newPassword'
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder='••••••••'
@@ -1203,7 +1203,7 @@ export const HomeView: React.FC = () => {
                       <div className='relative'>
                         <input
                           autoComplete='new-password'
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                           id='confirmPassword'
                           onChange={(e) => setConfirmPassword(e.target.value)}
                           placeholder='••••••••'
@@ -1228,7 +1228,7 @@ export const HomeView: React.FC = () => {
                     )}
 
                     <button
-                      className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                      className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                       disabled={isChangingPassword}
                       type='submit'
                     >
@@ -1347,7 +1347,7 @@ export const HomeView: React.FC = () => {
             <div className='w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900'>
               <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
                 <div className='flex items-center gap-4'>
-                  <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
                     <FileText size={24} />
                   </div>
                   <div>
@@ -1401,7 +1401,7 @@ export const HomeView: React.FC = () => {
                     seu atendimento terapêutico presencial ou online.
                   </p>
                 </div>
-                <div className='mt-6 rounded-xl bg-violet-50 p-4 text-slate-700 text-sm dark:bg-violet-900/20 dark:text-slate-200'>
+                <div className='mt-6 rounded-xl bg-sky-50 p-4 text-slate-700 text-sm dark:bg-sky-900/20 dark:text-slate-200'>
                   <strong>Data/hora da assinatura:</strong>{' '}
                   {termsData?.termsAcceptedAt ? (
                     <span className='font-mono'>
@@ -1415,7 +1415,7 @@ export const HomeView: React.FC = () => {
               <div className='border-slate-100 border-t bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50'>
                 <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
                   <button
-                    className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-bold text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/20 active:scale-95 sm:w-auto'
+                    className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 font-bold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-500/20 active:scale-95 sm:w-auto'
                     onClick={() => setShowConsentModal(false)}
                     type='button'
                   >
@@ -1430,3 +1430,4 @@ export const HomeView: React.FC = () => {
     </>
   )
 }
+

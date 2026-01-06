@@ -35,9 +35,9 @@ function SignUpForm() {
       <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
         {/* Subtle gradient orbs */}
         <div className='pointer-events-none absolute inset-0'>
-          <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
-          <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
-          <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+          <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl' />
+          <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl' />
+          <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl' />
         </div>
 
         <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>
@@ -47,7 +47,7 @@ function SignUpForm() {
                 <h1 className='font-bold text-3xl text-white'>Nepsis</h1>
                 <p className='mt-2 text-red-400'>Cadastro requer um link de convite</p>
                 <Link
-                  className='mt-4 inline-block rounded-lg bg-violet-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-violet-500'
+                  className='mt-4 inline-block rounded-lg bg-sky-600 px-4 py-2 font-semibold text-sm text-white transition-all hover:bg-sky-500'
                   href='/'
                 >
                   Voltar ao início
@@ -169,9 +169,9 @@ function SignUpForm() {
     <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
       {/* Subtle gradient orbs */}
       <div className='pointer-events-none absolute inset-0'>
-        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
-        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
-        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl' />
+        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl' />
+        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl' />
       </div>
 
       <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>
@@ -181,7 +181,7 @@ function SignUpForm() {
             {/* Title */}
             <div className='mb-8 text-center'>
               <h1 className='font-bold text-3xl text-white'>Nepsis</h1>
-              <p className='mt-2 text-violet-400'>
+              <p className='mt-2 text-sky-400'>
                 {therapistId || inviteToken
                   ? 'Complete seu cadastro para vincular-se ao seu terapeuta'
                   : adminInviteToken
@@ -189,7 +189,7 @@ function SignUpForm() {
                     : 'Comece sua jornada de bem-estar'}
               </p>
               {(therapistId || inviteToken) && (
-                <div className='mt-4 rounded-xl border border-violet-500/30 bg-violet-500/10 px-4 py-3 text-violet-400 text-sm'>
+                <div className='mt-4 rounded-xl border border-sky-500/30 bg-sky-500/10 px-4 py-3 text-sky-400 text-sm'>
                   ✓ Você será vinculado ao seu terapeuta após o cadastro
                 </div>
               )}
@@ -222,7 +222,7 @@ function SignUpForm() {
                 </label>
                 <input
                   autoComplete='name'
-                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                   id={nameId}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder='Seu nome'
@@ -238,7 +238,7 @@ function SignUpForm() {
                 </label>
                 <input
                   autoComplete='email'
-                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                  className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                   id={emailId}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder='seu@email.com'
@@ -258,7 +258,7 @@ function SignUpForm() {
                 <div className='relative'>
                   <input
                     autoComplete='new-password'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={passwordId}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                     placeholder='••••••••'
@@ -268,7 +268,7 @@ function SignUpForm() {
                   />
                   <button
                     aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     onClick={() => setShowPassword(!showPassword)}
                     type='button'
                   >
@@ -287,7 +287,7 @@ function SignUpForm() {
                 <div className='relative'>
                   <input
                     autoComplete='new-password'
-                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                    className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={confirmPasswordId}
                     onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
                     placeholder='••••••••'
@@ -297,7 +297,7 @@ function SignUpForm() {
                   />
                   <button
                     aria-label={showConfirmPassword ? 'Ocultar senha' : 'Mostrar senha'}
-                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 rounded'
+                    className='absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-400 transition-colors hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 rounded'
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     type='button'
                   >
@@ -312,7 +312,7 @@ function SignUpForm() {
 
               <button
                 aria-busy={loading}
-                className='w-full rounded-xl bg-violet-600 py-4 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 flex items-center justify-center gap-2'
+                className='w-full rounded-xl bg-sky-600 py-4 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 flex items-center justify-center gap-2'
                 disabled={loading}
                 type='submit'
               >
@@ -333,7 +333,7 @@ function SignUpForm() {
               <p className='text-slate-400 text-sm'>
                 Já tem uma conta?{' '}
                 <Link
-                  className='rounded font-semibold text-violet-400 underline-offset-2 hover:text-violet-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
+                  className='rounded font-semibold text-sky-400 underline-offset-2 hover:text-sky-300 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900'
                   href='/auth/signin'
                 >
                   Entrar
@@ -352,9 +352,9 @@ function SignUpLoading() {
     <div className='relative flex min-h-screen flex-col overflow-hidden bg-slate-950'>
       {/* Subtle gradient orbs */}
       <div className='pointer-events-none absolute inset-0'>
-        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl' />
-        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl' />
-        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-purple-500/20 blur-3xl' />
+        <div className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl' />
+        <div className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl' />
+        <div className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl' />
       </div>
 
       <div className='relative flex flex-1 flex-col items-center justify-center px-6 py-12'>

@@ -363,8 +363,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             {stats.name}
           </h1>
           <div className='flex items-center justify-center gap-2'>
-            <Crown className='text-violet-600 dark:text-violet-400' size={14} />
-            <span className='font-bold text-sm text-violet-600 sm:text-base dark:text-violet-400'>
+            <Crown className='text-sky-600 dark:text-sky-400' size={14} />
+            <span className='font-bold text-sm text-sky-600 sm:text-base dark:text-sky-400'>
               {currentRank.name}
             </span>
           </div>
@@ -374,12 +374,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
           </div>
         </div>
         {/* Daily Quote */}
-        <div className='relative mt-2 max-w-xs rounded-xl border border-violet-100 bg-violet-50 px-4 py-3 text-center sm:rounded-2xl sm:px-6 sm:py-4 dark:border-violet-900/30 dark:bg-violet-900/20'>
+        <div className='relative mt-2 max-w-xs rounded-xl border border-sky-100 bg-sky-50 px-4 py-3 text-center sm:rounded-2xl sm:px-6 sm:py-4 dark:border-sky-900/30 dark:bg-sky-900/20'>
           <Quote
-            className='-top-2 -left-1 absolute rounded-full bg-white fill-current p-0.5 text-violet-300 dark:bg-slate-900 dark:text-violet-600'
+            className='-top-2 -left-1 absolute rounded-full bg-white fill-current p-0.5 text-sky-300 dark:bg-slate-900 dark:text-sky-600'
             size={14}
           />
-          <p className='font-medium text-violet-800 text-[11px] italic leading-relaxed sm:text-xs dark:text-violet-200'>
+          <p className='font-medium text-sky-800 text-[11px] italic leading-relaxed sm:text-xs dark:text-sky-200'>
             "{dailyQuote}"
           </p>
         </div>
@@ -390,7 +390,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
         <button
           className={`touch-target flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 font-bold text-[10px] transition-all duration-200 sm:gap-2 sm:rounded-lg sm:py-2.5 sm:text-xs ${
             activeTab === 'stats'
-              ? 'bg-white text-violet-600 shadow-sm dark:bg-slate-700'
+              ? 'bg-white text-sky-600 shadow-sm dark:bg-slate-700'
               : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('stats')}
@@ -401,7 +401,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
         <button
           className={`touch-target flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 font-bold text-[10px] transition-all duration-200 sm:gap-2 sm:rounded-lg sm:py-2.5 sm:text-xs ${
             activeTab === 'rank'
-              ? 'bg-white text-violet-600 shadow-sm dark:bg-slate-700'
+              ? 'bg-white text-sky-600 shadow-sm dark:bg-slate-700'
               : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('rank')}
@@ -412,7 +412,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
         <button
           className={`touch-target flex flex-1 items-center justify-center gap-1.5 rounded-md py-2 font-bold text-[10px] transition-all duration-200 sm:gap-2 sm:rounded-lg sm:py-2.5 sm:text-xs ${
             activeTab === 'achievements'
-              ? 'bg-white text-violet-600 shadow-sm dark:bg-slate-700'
+              ? 'bg-white text-sky-600 shadow-sm dark:bg-slate-700'
               : 'text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300'
           }`}
           onClick={() => setActiveTab('achievements')}
@@ -437,7 +437,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 </span>
               </div>
               <div className='zoom-in flex animate-in flex-col items-center rounded-xl border border-slate-100 bg-white fill-mode-backwards p-3 shadow-sm transition-colors delay-200 duration-500 sm:rounded-2xl sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
-                <Target className='mb-1.5 text-violet-500 sm:mb-2' size={20} />
+                <Target className='mb-1.5 text-sky-500 sm:mb-2' size={20} />
                 <span className='font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
                   {stats.xp}
                 </span>
@@ -446,7 +446,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 </span>
               </div>
               <div
-                className='zoom-in flex animate-in cursor-pointer flex-col items-center rounded-xl border border-slate-100 bg-white fill-mode-backwards p-3 shadow-sm transition-colors delay-300 duration-500 hover:border-violet-200 hover:bg-violet-50 sm:rounded-2xl sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-900 dark:hover:bg-violet-900/20'
+                className='zoom-in flex animate-in cursor-pointer flex-col items-center rounded-xl border border-slate-100 bg-white fill-mode-backwards p-3 shadow-sm transition-colors delay-300 duration-500 hover:border-sky-200 hover:bg-sky-50 sm:rounded-2xl sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-900 dark:hover:bg-sky-900/20'
                 onClick={() => setActiveTab('rank')}
               >
                 <Shield className='mb-1.5 text-emerald-500 sm:mb-2' size={20} />
@@ -464,11 +464,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               </h3>
               <p className='text-slate-500 text-xs leading-relaxed sm:text-sm dark:text-slate-400'>
                 Você já completou{' '}
-                <span className='font-bold text-violet-600 dark:text-violet-400'>
+                <span className='font-bold text-sky-600 dark:text-sky-400'>
                   {stats.totalMeditationMinutes} min
                 </span>{' '}
                 de meditação e concluiu{' '}
-                <span className='font-bold text-violet-600 dark:text-violet-400'>
+                <span className='font-bold text-sky-600 dark:text-sky-400'>
                   {stats.totalTasksCompleted} tarefas
                 </span>
                 .<br />
@@ -481,7 +481,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
         {activeTab === 'rank' && (
           <div className='fade-in zoom-in animate-in duration-300'>
             <div
-              className='relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 to-fuchsia-700 p-4 text-white shadow-lg shadow-violet-200 transition-transform duration-300 sm:mb-8 sm:rounded-3xl sm:p-6 dark:shadow-none'
+              className='relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-sky-600 to-fuchsia-700 p-4 text-white shadow-lg shadow-sky-200 transition-transform duration-300 sm:mb-8 sm:rounded-3xl sm:p-6 dark:shadow-none'
               style={{
                 transform: `scale(${Math.max(0.8, 1 - scrollY / 300)})`,
                 transformOrigin: 'top',
@@ -491,7 +491,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               <div className='-ml-10 -mb-10 absolute bottom-0 left-0 h-20 w-20 rounded-full bg-black opacity-10 blur-xl sm:h-24 sm:w-24' />
               <div className='relative z-10 mb-3 flex items-center justify-between sm:mb-4'>
                 <div>
-                  <p className='mb-1 font-bold text-violet-100 text-[10px] uppercase tracking-wider sm:text-xs'>
+                  <p className='mb-1 font-bold text-sky-100 text-[10px] uppercase tracking-wider sm:text-xs'>
                     Nível Atual
                   </p>
                   <h3 className='font-bold text-xl sm:text-2xl'>{currentRank.name}</h3>
@@ -501,7 +501,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 </div>
               </div>
               <div className='relative z-10'>
-                <div className='mb-2 flex justify-between font-medium text-violet-100 text-[10px] sm:text-xs'>
+                <div className='mb-2 flex justify-between font-medium text-sky-100 text-[10px] sm:text-xs'>
                   <span>XP Atual: {stats.xp}</span>
                   <span>Próximo Nível: {xpForNextLevel} XP</span>
                 </div>
@@ -511,7 +511,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     style={{ width: `${levelProgressPercent}%` }}
                   />
                 </div>
-                <p className='mt-2 text-violet-200 text-[10px] italic sm:mt-3 sm:text-xs'>
+                <p className='mt-2 text-sky-200 text-[10px] italic sm:mt-3 sm:text-xs'>
                   Faltam {xpForNextLevel - stats.xp} XP para evoluir.
                 </p>
               </div>
@@ -528,9 +528,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     <div
                       className={`-left-[21px] absolute top-2 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 bg-white transition-all duration-300 dark:bg-slate-800 ${
                         isCurrent
-                          ? 'scale-110 border-violet-500 text-violet-600 shadow-[0_0_0_4px_rgba(139,92,246,0.1)] dark:text-violet-400'
+                          ? 'scale-110 border-sky-500 text-sky-600 shadow-[0_0_0_4px_rgba(139,92,246,0.1)] dark:text-sky-400'
                           : isUnlocked
-                            ? 'border-violet-200 text-violet-300 dark:border-violet-800 dark:text-violet-700'
+                            ? 'border-sky-200 text-sky-300 dark:border-sky-800 dark:text-sky-700'
                             : 'border-slate-100 text-slate-300 dark:border-slate-800 dark:text-slate-600'
                       }`}
                     >
@@ -552,7 +552,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     </div>
 
                     {isCurrent && (
-                      <div className='mt-3 flex w-fit items-center gap-2 rounded-full bg-violet-50 px-3 py-1 font-bold text-violet-600 text-xs dark:bg-violet-900/30 dark:text-violet-400'>
+                      <div className='mt-3 flex w-fit items-center gap-2 rounded-full bg-sky-50 px-3 py-1 font-bold text-sky-600 text-xs dark:bg-sky-900/30 dark:text-sky-400'>
                         <Star fill='currentColor' size={12} /> Você está aqui
                       </div>
                     )}
@@ -569,7 +569,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               <span className='flex items-center gap-2 font-bold text-slate-400 text-xs uppercase tracking-wider dark:text-slate-500'>
                 Coleção
               </span>
-              <span className='rounded-md bg-violet-50 px-2 py-1 font-bold text-violet-600 text-xs dark:bg-violet-900/30 dark:text-violet-400'>
+              <span className='rounded-md bg-sky-50 px-2 py-1 font-bold text-sky-600 text-xs dark:bg-sky-900/30 dark:text-sky-400'>
                 {stats.badges.length} / {allBadges.length}
               </span>
             </div>
@@ -596,7 +596,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                           <button
                             className={`touch-target slide-in-from-bottom-4 fade-in group relative flex w-full animate-in items-center gap-2 overflow-hidden rounded-xl border p-3 text-left transition-all duration-500 sm:gap-3 sm:p-4 ${
                               isUnlocked
-                                ? 'transform border-violet-200 bg-violet-50 text-violet-600 shadow-[0_4px_20px_rgba(139,92,246,0.15)] hover:scale-[1.02] active:scale-95 dark:border-violet-800 dark:bg-violet-900/30 dark:shadow-none'
+                                ? 'transform border-sky-200 bg-sky-50 text-sky-600 shadow-[0_4px_20px_rgba(139,92,246,0.15)] hover:scale-[1.02] active:scale-95 dark:border-sky-800 dark:bg-sky-900/30 dark:shadow-none'
                                 : 'border-slate-100 bg-slate-50 opacity-60 grayscale hover:opacity-80 dark:border-slate-800 dark:bg-slate-900'
                             }`}
                             key={badge.id}
@@ -608,17 +608,17 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                             type='button'
                           >
                             {isUnlocked && (
-                              <div className='pointer-events-none absolute inset-0 z-0 animate-pulse rounded-xl opacity-50 ring-2 ring-violet-400 ring-offset-2 dark:ring-violet-600 dark:ring-offset-slate-900' />
+                              <div className='pointer-events-none absolute inset-0 z-0 animate-pulse rounded-xl opacity-50 ring-2 ring-sky-400 ring-offset-2 dark:ring-sky-600 dark:ring-offset-slate-900' />
                             )}
                             <div
                               className={`relative z-10 flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg p-2 text-xl sm:h-12 sm:w-12 sm:rounded-xl sm:p-3 sm:text-2xl ${
                                 isUnlocked
-                                  ? 'bg-violet-50 text-violet-600 ring-2 ring-violet-100 ring-offset-1 dark:bg-violet-900/30 dark:text-violet-300 dark:ring-violet-800 dark:ring-offset-slate-800'
+                                  ? 'bg-sky-50 text-sky-600 ring-2 ring-sky-100 ring-offset-1 dark:bg-sky-900/30 dark:text-sky-300 dark:ring-sky-800 dark:ring-offset-slate-800'
                                   : 'bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-600'
                               }`}
                             >
                               {isUnlocked && (
-                                <div className='absolute inset-0 animate-pulse bg-violet-200 opacity-30' />
+                                <div className='absolute inset-0 animate-pulse bg-sky-200 opacity-30' />
                               )}
                               <div className='relative z-10'>
                                 {(() => {
@@ -650,7 +650,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                                   </div>
                                   <div className='h-2 w-full overflow-hidden rounded-full border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800'>
                                     <div
-                                      className='h-full rounded-full bg-violet-400 transition-all duration-1000 ease-out dark:bg-violet-600'
+                                      className='h-full rounded-full bg-sky-400 transition-all duration-1000 ease-out dark:bg-sky-600'
                                       style={{
                                         width: `${progressPercentage}%`,
                                       }}
@@ -699,7 +699,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             <div className='space-y-3 sm:space-y-4'>
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {stats.theme === 'dark' ? <Moon size={18} /> : <Sun size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -717,7 +717,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     stats.theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'
                   }
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    stats.theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+                    stats.theme === 'dark' ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={toggleTheme}
                   onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
@@ -735,7 +735,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               {isPushSupported && (
                 <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                       {isPushSubscribed ? <Bell size={18} /> : <BellOff size={18} />}
                     </div>
                     <div className='min-w-0'>
@@ -756,7 +756,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                       isPushSubscribed ? 'Desativar notificações push' : 'Ativar notificações push'
                     }
                     className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                      isPushSubscribed ? 'bg-violet-600' : 'bg-slate-300'
+                      isPushSubscribed ? 'bg-sky-600' : 'bg-slate-300'
                     } ${
                       isPushLoading || permissionState === 'denied'
                         ? 'cursor-not-allowed opacity-50'
@@ -786,7 +786,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               {/* Sound Toggle */}
               <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
                 <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                     {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
                   </div>
                   <div className='min-w-0'>
@@ -802,7 +802,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                   aria-checked={soundEnabled}
                   aria-label={soundEnabled ? 'Desativar sons' : 'Ativar sons'}
                   className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                    soundEnabled ? 'bg-violet-600' : 'bg-slate-300'
+                    soundEnabled ? 'bg-sky-600' : 'bg-slate-300'
                   }`}
                   onClick={() => {
                     toggleSound()
@@ -831,7 +831,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               </div>
               {/* Change Password Button */}
               <button
-                className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20'
                 onClick={() => {
                   setShowSettings(false)
                   resetPasswordForm()
@@ -840,7 +840,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                 type='button'
               >
                 <div className='flex items-center gap-2 sm:gap-3'>
-                  <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                  <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                     <Key size={18} />
                   </div>
                   <div className='text-left'>
@@ -862,12 +862,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
 
                 {/* Botão para visualizar termo de consentimento */}
                 <button
-                  className='touch-target flex w-full items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20 mb-3'
+                  className='touch-target flex w-full items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20 mb-3'
                   onClick={() => setShowConsent(true)}
                   type='button'
                 >
                   <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-violet-100 text-violet-600 sm:h-9 sm:w-9 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
                       <FileText size={18} />
                     </div>
                     <div className='min-w-0 text-left'>
@@ -944,14 +944,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
 
               {onNavigate && stats.role === 'psychologist' && (
                 <button
-                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-violet-200 hover:bg-violet-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-800 dark:hover:bg-violet-900/20'
+                  className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20'
                   onClick={() => {
                     window.location.href = '/dashboard'
                   }}
                   type='button'
                 >
                   <div className='flex items-center gap-2 sm:gap-3'>
-                    <div className='rounded-lg bg-violet-100 p-1.5 text-violet-600 sm:p-2 dark:bg-violet-900/30 dark:text-violet-400'>
+                    <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
                       <Stethoscope size={18} />
                     </div>
                     <div className='text-left'>
@@ -1089,7 +1089,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
           <div className='w-full max-w-2xl overflow-hidden rounded-3xl bg-white shadow-2xl dark:bg-slate-900'>
             <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
               <div className='flex items-center gap-4'>
-                <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-violet-100 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
+                <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
                   <FileText size={24} />
                 </div>
                 <div>
@@ -1142,7 +1142,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                   atendimento terapêutico presencial ou online.
                 </p>
               </div>
-              <div className='mt-6 rounded-xl bg-violet-50 p-4 text-slate-700 text-sm dark:bg-violet-900/20 dark:text-slate-200'>
+              <div className='mt-6 rounded-xl bg-sky-50 p-4 text-slate-700 text-sm dark:bg-sky-900/20 dark:text-slate-200'>
                 <strong>Data/hora da assinatura:</strong>{' '}
                 {termsData?.termsAcceptedAt ? (
                   <span className='font-mono'>{formatDateTime(termsData.termsAcceptedAt)}</span>
@@ -1154,7 +1154,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
             <div className='border-slate-100 border-t bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-900/50'>
               <div className='flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-end'>
                 <button
-                  className='flex w-full items-center justify-center gap-2 rounded-xl bg-violet-600 px-6 py-3 font-bold text-white transition-all hover:bg-violet-700 hover:shadow-lg hover:shadow-violet-500/20 active:scale-95 sm:w-auto'
+                  className='flex w-full items-center justify-center gap-2 rounded-xl bg-sky-600 px-6 py-3 font-bold text-white transition-all hover:bg-sky-700 hover:shadow-lg hover:shadow-sky-500/20 active:scale-95 sm:w-auto'
                   onClick={() => setShowConsent(false)}
                   type='button'
                 >
@@ -1175,7 +1175,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
           >
             <div className='mb-4 flex items-center justify-between sm:mb-6'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <Key className='text-violet-500' size={18} /> Alterar Senha
+                <Key className='text-sky-500' size={18} /> Alterar Senha
               </h3>
               <button
                 aria-label='Fechar modal'
@@ -1221,7 +1221,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     <div className='relative'>
                       <input
                         autoComplete='current-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='currentPassword'
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1250,7 +1250,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='newPassword'
                         onChange={(e) => setNewPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1282,7 +1282,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                     <div className='relative'>
                       <input
                         autoComplete='new-password'
-                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                        className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                         id='confirmPassword'
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder='••••••••'
@@ -1309,7 +1309,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
 
                   {/* Submit Button */}
                   <button
-                    className='mt-2 w-full rounded-xl bg-violet-600 py-3 font-semibold text-white transition-all hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
+                    className='mt-2 w-full rounded-xl bg-sky-600 py-3 font-semibold text-white transition-all hover:bg-sky-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50'
                     disabled={isChangingPassword}
                     type='submit'
                   >
@@ -1349,12 +1349,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               <div
                 className={`relative mb-3 overflow-hidden rounded-full p-4 text-4xl shadow-inner sm:mb-4 sm:p-6 sm:text-5xl ${
                   selectedBadgeStatus.isUnlocked
-                    ? 'bg-violet-50 text-violet-600 shadow-violet-100 ring-4 ring-violet-50 dark:bg-violet-900/30 dark:text-violet-400 dark:shadow-none dark:ring-violet-900'
+                    ? 'bg-sky-50 text-sky-600 shadow-sky-100 ring-4 ring-sky-50 dark:bg-sky-900/30 dark:text-sky-400 dark:shadow-none dark:ring-sky-900'
                     : 'bg-slate-100 text-slate-400 grayscale dark:bg-slate-800 dark:text-slate-600'
                 }`}
               >
                 {selectedBadgeStatus.isUnlocked && (
-                  <div className='absolute inset-0 animate-pulse bg-violet-200 opacity-30' />
+                  <div className='absolute inset-0 animate-pulse bg-sky-200 opacity-30' />
                 )}
                 <div className='relative z-10'>
                   {(() => {
@@ -1372,7 +1372,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
               <div className='mt-6 w-full rounded-xl border border-slate-100 bg-slate-50 p-4 sm:mt-8 sm:rounded-2xl sm:p-5 dark:border-slate-700 dark:bg-slate-800'>
                 {selectedBadgeStatus.isUnlocked ? (
                   <div className='space-y-1'>
-                    <div className='mb-2 flex items-center justify-center gap-2 font-bold text-sm text-violet-600 uppercase tracking-wider dark:text-violet-400'>
+                    <div className='mb-2 flex items-center justify-center gap-2 font-bold text-sm text-sky-600 uppercase tracking-wider dark:text-sky-400'>
                       <CheckCircle2 size={18} /> Conquistado
                     </div>
                     {selectedBadgeStatus.unlockedDate && (
@@ -1393,7 +1393,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
                       <>
                         <div className='h-3 w-full overflow-hidden rounded-full border border-slate-300/50 bg-slate-200 dark:border-slate-600 dark:bg-slate-700'>
                           <div
-                            className='h-full bg-violet-400 transition-all duration-500 ease-out dark:bg-violet-600'
+                            className='h-full bg-sky-400 transition-all duration-500 ease-out dark:bg-sky-600'
                             style={{
                               width: `${selectedBadgeStatus.progressPercentage}%`,
                             }}
@@ -1420,3 +1420,4 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
     </div>
   )
 }
+

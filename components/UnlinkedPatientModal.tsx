@@ -190,7 +190,7 @@ export function UnlinkedPatientModal() {
   if (showTherapistList) {
     return (
       <div className='fixed inset-0 z-[100] flex items-center justify-center bg-black/70 backdrop-blur-sm'>
-        <div className='mx-4 flex h-[90vh] w-full max-w-2xl flex-col rounded-xl border border-violet-500/50 bg-slate-900 shadow-2xl'>
+        <div className='mx-4 flex h-[90vh] w-full max-w-2xl flex-col rounded-xl border border-sky-500/50 bg-slate-900 shadow-2xl'>
           {/* Header */}
           <div className='flex items-center justify-between border-b border-slate-700 p-4'>
             <h2 className='font-semibold text-lg text-white'>Encontrar Novo Terapeuta</h2>
@@ -208,7 +208,7 @@ export function UnlinkedPatientModal() {
             <div className='relative'>
               <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
               <input
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pr-4 pl-10 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20'
+                className='w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pr-4 pl-10 text-white placeholder-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder='Pesquisar por nome, CRP, formação ou cidade...'
                 type='text'
@@ -220,7 +220,7 @@ export function UnlinkedPatientModal() {
                 <button
                   className={`rounded-full px-3 py-1 text-sm transition-colors ${
                     filterType === type
-                      ? 'bg-violet-600 text-white'
+                      ? 'bg-sky-600 text-white'
                       : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                   }`}
                   key={type}
@@ -243,7 +243,7 @@ export function UnlinkedPatientModal() {
           <div className='flex-1 overflow-y-auto p-4'>
             {isLoadingTherapists ? (
               <div className='flex h-40 items-center justify-center'>
-                <div className='h-8 w-8 animate-spin rounded-full border-4 border-violet-200 border-t-violet-600' />
+                <div className='h-8 w-8 animate-spin rounded-full border-4 border-sky-200 border-t-sky-600' />
               </div>
             ) : filteredTherapists && filteredTherapists.length > 0 ? (
               <div className='space-y-3'>
@@ -276,7 +276,7 @@ export function UnlinkedPatientModal() {
                             <h3 className='font-semibold text-white'>{therapist.fullName}</h3>
                             <p className='text-slate-400 text-sm'>CRP: {therapist.crp}</p>
                           </div>
-                          <span className='rounded-full bg-violet-900/30 px-2 py-1 text-violet-300 text-xs whitespace-nowrap ml-2'>
+                          <span className='rounded-full bg-sky-900/30 px-2 py-1 text-sky-300 text-xs whitespace-nowrap ml-2'>
                             {getAttendanceTypeLabel(therapist.attendanceType)}
                           </span>
                         </div>
@@ -448,7 +448,7 @@ export function UnlinkedPatientModal() {
 
         <div className='space-y-3'>
           <button
-            className='w-full rounded-lg bg-violet-600 px-4 py-3 font-medium text-white transition-colors hover:bg-violet-700'
+            className='w-full rounded-lg bg-sky-600 px-4 py-3 font-medium text-white transition-colors hover:bg-sky-700'
             onClick={handleFindNewTherapist}
             type='button'
           >

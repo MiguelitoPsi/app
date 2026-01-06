@@ -149,7 +149,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             <div className='flex items-center gap-2 sm:gap-3'>
               <button
                 aria-label='Voltar para página inicial'
-                className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2'
+                className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2'
                 onClick={goHome}
                 type='button'
               >
@@ -172,7 +172,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               <HelpButton screenId='journal' />
               <button
                 aria-label='Ver registros anteriores'
-                className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-violet-300 bg-violet-100 text-violet-700 shadow-md shadow-violet-200/50 transition-all hover:bg-violet-200 hover:border-violet-400 hover:shadow-lg hover:shadow-violet-300/50 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm sm:h-11 sm:w-11 dark:border-violet-700 dark:bg-violet-900/40 dark:text-violet-300 dark:shadow-violet-900/30 dark:hover:bg-violet-900/60 dark:hover:border-violet-600'
+                className='flex h-10 w-10 items-center justify-center rounded-full border-2 border-sky-300 bg-sky-100 text-sky-700 shadow-md shadow-sky-200/50 transition-all hover:bg-sky-200 hover:border-sky-400 hover:shadow-lg hover:shadow-sky-300/50 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm sm:h-11 sm:w-11 dark:border-sky-700 dark:bg-sky-900/40 dark:text-sky-300 dark:shadow-sky-900/30 dark:hover:bg-sky-900/60 dark:hover:border-sky-600'
                 onClick={() => {
                   window.location.href = '/journal/history'
                 }}
@@ -207,7 +207,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                 </label>
                 <textarea
                   aria-describedby={`${thoughtId}-hint`}
-                  className='w-full rounded-2xl border border-slate-100 bg-white p-4 text-sm text-slate-800 leading-relaxed shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:rounded-3xl sm:p-5 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/20'
+                  className='w-full rounded-2xl border border-slate-100 bg-white p-4 text-sm text-slate-800 leading-relaxed shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 sm:rounded-3xl sm:p-5 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-sky-500 dark:focus:ring-sky-900/20'
                   id={thoughtId}
                   onChange={(e) => setThought(e.target.value)}
                   placeholder='O que está passando pela sua cabeça agora?'
@@ -235,9 +235,9 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                       <button
                         aria-label={`${m.label}${isSelected ? ' (selecionado)' : ''}`}
                         aria-pressed={isSelected}
-                        className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:ring-offset-2 ${
+                        className={`flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all duration-300 sm:gap-2 sm:rounded-2xl sm:p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${
                           isSelected
-                            ? 'scale-105 border-violet-500 bg-violet-50 text-violet-700 shadow-md dark:bg-violet-900/20 dark:text-violet-300'
+                            ? 'scale-105 border-sky-500 bg-sky-50 text-sky-700 shadow-md dark:bg-sky-900/20 dark:text-sky-300'
                             : 'border-transparent bg-white text-slate-400 active:scale-95 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-500 dark:hover:bg-slate-800'
                         }
                       `}
@@ -269,7 +269,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                     Ou descreva sua emoção (opcional)
                   </label>
                   <input
-                    className='w-full rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-violet-500 dark:focus:ring-violet-900/20'
+                    className='w-full rounded-xl border border-slate-100 bg-white px-3 py-2.5 text-sm text-slate-800 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-4 focus:ring-sky-100 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:focus:border-sky-500 dark:focus:ring-sky-900/20'
                     id={customEmotionId}
                     maxLength={50}
                     onChange={(e) => {
@@ -289,7 +289,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                     <label htmlFor={intensityId}>Intensidade</label>
                     <output
                       aria-live='polite'
-                      className='rounded-md bg-violet-50 px-2 py-0.5 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'
+                      className='rounded-md bg-sky-50 px-2 py-0.5 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                       htmlFor={intensityId}
                     >
                       {intensity}
@@ -300,7 +300,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                     aria-valuemax={10}
                     aria-valuemin={1}
                     aria-valuenow={intensity}
-                    className='h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-violet-600 dark:bg-slate-800'
+                    className='h-2 w-full cursor-pointer appearance-none rounded-lg bg-slate-100 accent-sky-600 dark:bg-slate-800'
                     id={intensityId}
                     max='10'
                     min='1'
@@ -315,7 +315,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               <div className='space-y-2 pt-2 sm:space-y-3 sm:pt-4'>
                 <button
                   aria-describedby='analyze-hint'
-                  className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 py-3.5 font-bold text-sm text-white shadow-lg shadow-violet-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-violet-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2'
+                  className='touch-target flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-sky-600 to-cyan-500 py-3.5 font-bold text-sm text-white shadow-lg shadow-sky-200 transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 hover:shadow-sky-200/50 hover:shadow-xl sm:rounded-2xl sm:py-4 sm:text-base dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
                   disabled={!thought || isAnalyzing || isSaving}
                   ref={analyzeButtonRef}
                   type='submit'
@@ -365,18 +365,18 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
             <div className='fade-in zoom-in animate-in space-y-4 duration-300 sm:space-y-6'>
               <article
                 aria-labelledby='insight-heading'
-                className='relative overflow-hidden rounded-2xl border border-violet-100 bg-white p-4 shadow-violet-100/50 shadow-xl sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'
+                className='relative overflow-hidden rounded-2xl border border-sky-100 bg-white p-4 shadow-sky-100/50 shadow-xl sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900 dark:shadow-none'
               >
                 <div
                   aria-hidden='true'
-                  className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-violet-500/10 blur-3xl sm:h-32 sm:w-32'
+                  className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-sky-500/10 blur-3xl sm:h-32 sm:w-32'
                 />
 
                 <div className='relative z-10'>
-                  <div className='mb-3 flex items-center gap-2 text-violet-600 sm:mb-4 sm:gap-3 dark:text-violet-400'>
+                  <div className='mb-3 flex items-center gap-2 text-sky-600 sm:mb-4 sm:gap-3 dark:text-sky-400'>
                     <div
                       aria-hidden='true'
-                      className='rounded-lg bg-violet-100 p-1.5 sm:rounded-xl sm:p-2 dark:bg-violet-900/30'
+                      className='rounded-lg bg-sky-100 p-1.5 sm:rounded-xl sm:p-2 dark:bg-sky-900/30'
                     >
                       <Sparkles size={18} />
                     </div>
@@ -414,3 +414,4 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
     </>
   )
 }
+
