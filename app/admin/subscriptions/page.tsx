@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 type SubscriptionPlan = 'trial' | 'monthly' | 'quarterly' | 'yearly'
 type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending'
@@ -93,31 +94,31 @@ export default function SubscriptionsPage() {
       <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-5'>
         <StatsCard
           color='violet'
-          icon='🧠'
+          icon='total_psychologists'
           title='Total Psicólogos'
           value={stats?.totalPsychologists ?? 0}
         />
         <StatsCard
           color='emerald'
-          icon='✅'
+          icon='active_subscriptions'
           title='Assinaturas Ativas'
           value={stats?.activeSubscriptions ?? 0}
         />
         <StatsCard
           color='amber'
-          icon='⚠️'
+          icon='expiring_subscriptions'
           title='Expirando em 7 dias'
           value={stats?.expiringSoon ?? 0}
         />
         <StatsCard
           color='red'
-          icon='❌'
+          icon='expired_subscriptions'
           title='Expiradas'
           value={stats?.expiredSubscriptions ?? 0}
         />
         <StatsCard
           color='blue'
-          icon='💰'
+          icon='monthly_revenue'
           isMonetary
           title='Receita Mensal'
           value={formatCurrency(stats?.monthlyRevenue ?? 0)}
@@ -627,7 +628,10 @@ function StatsCard({ title, value, icon, color }: StatsCardProps) {
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${colorClasses[color]}`}
         >
-          <span className='text-lg'>{icon}</span>
+          {(() => {
+            const Icon = getIconByKey(icon)
+            return <Icon size={20} />
+          })()}
         </div>
       </div>
     </div>

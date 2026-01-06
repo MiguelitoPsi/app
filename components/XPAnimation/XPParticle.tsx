@@ -3,6 +3,7 @@
 import type React from 'react'
 import { motion } from 'framer-motion'
 import type { Particle } from '@/hooks/useXPAnimation'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 type XPParticleProps = {
   particle: Particle
@@ -110,7 +111,10 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
             ease: "easeInOut",
           }}
         >
-          {isXP ? '✨' : '💎'}
+          {(() => {
+            const Icon = getIconByKey(isXP ? 'sparkles' : 'diamond')
+            return <Icon size={20} />
+          })()}
         </motion.span>
         
         <span className="font-extrabold tracking-tight">
@@ -132,7 +136,10 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
             ease: "easeInOut",
           }}
         >
-          ⭐
+          {(() => {
+            const Icon = getIconByKey('engagement_star')
+            return <Icon size={12} />
+          })()}
         </motion.span>
       </motion.div>
       

@@ -9,12 +9,14 @@ import { memo } from 'react'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 
+import { getIconByKey } from '@/lib/utils/icon-map'
+
 const navItems = [
-  { path: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { path: '/therapist-routine', label: 'Rotina', icon: '📅' },
-  { path: '/reports', label: 'Relatórios', icon: '📈' },
-  { path: '/financial', label: 'Financeiro', icon: '💰' },
-  { path: '/achievements', label: 'Conquistas', icon: '🏆' },
+  { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { path: '/therapist-routine', label: 'Rotina', icon: 'routine' },
+  { path: '/reports', label: 'Relatórios', icon: 'reports_nav' },
+  { path: '/financial', label: 'Financeiro', icon: 'finance' },
+  { path: '/achievements', label: 'Conquistas', icon: 'achievements' },
 ] as const
 
 export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponent() {
@@ -40,7 +42,10 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
         {/* Logo */}
         <div className='flex h-14 items-center justify-center gap-2.5 border-b border-slate-200 px-4 lg:justify-start dark:border-slate-700'>
           <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 to-purple-600 shadow-sm'>
-            <span className='text-base'>🧠</span>
+            {(() => {
+              const Icon = getIconByKey('thought')
+              return <Icon className='h-4.5 w-4.5 text-white' />
+            })()}
           </div>
           <span className='hidden text-base font-bold text-slate-800 lg:block dark:text-white'>
             Nepsis
@@ -106,7 +111,12 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
                 key={item.path}
                 title={item.label}
               >
-                <span className='text-base shrink-0'>{item.icon}</span>
+                <span className='shrink-0'>
+                  {(() => {
+                    const Icon = getIconByKey(item.icon)
+                    return <Icon className='h-5 w-5' />
+                  })()}
+                </span>
                 <span className='hidden lg:block'>{item.label}</span>
               </Link>
             )
@@ -152,7 +162,12 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
             href='/settings'
             title='Configurações'
           >
-            <span className='text-base shrink-0'>⚙️</span>
+            <span className='shrink-0'>
+              {(() => {
+                const Icon = getIconByKey('settings')
+                return <Icon className='h-5 w-5' />
+              })()}
+            </span>
             <span className='hidden lg:block'>Configurações</span>
           </Link>
           <button
@@ -161,7 +176,12 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
             title='Sair'
             type='button'
           >
-            <span className='text-base shrink-0'>🚪</span>
+            <span className='shrink-0'>
+              {(() => {
+                const Icon = getIconByKey('logout')
+                return <Icon className='h-5 w-5' />
+              })()}
+            </span>
             <span className='hidden lg:block'>Sair</span>
           </button>
         </div>

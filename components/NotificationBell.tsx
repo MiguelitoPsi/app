@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useSound } from '@/hooks/useSound'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
@@ -31,15 +32,15 @@ export default function NotificationBell() {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'badge_unlocked':
-        return '🏆'
+        return 'achievements'
       case 'reward_approved':
-        return '🎁'
+        return 'reward_gift'
       case 'streak_milestone':
-        return '🔥'
+        return 'fire'
       case 'level_up':
-        return '⬆️'
+        return 'evolution'
       default:
-        return '📢'
+        return 'notification'
     }
   }
 
@@ -134,8 +135,11 @@ export default function NotificationBell() {
                     type='button'
                   >
                     <div className='flex items-start space-x-3'>
-                      <span aria-hidden='true' className='text-2xl'>
-                        {getNotificationIcon(notification.type)}
+                      <span aria-hidden='true' className='shrink-0 mt-1'>
+                        {(() => {
+                          const Icon = getIconByKey(getNotificationIcon(notification.type))
+                          return <Icon className='h-5 w-5 text-sky-500' />
+                        })()}
                       </span>
                       <div className='flex-1 min-w-0'>
                         <p

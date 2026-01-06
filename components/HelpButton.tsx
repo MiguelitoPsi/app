@@ -3,6 +3,7 @@
 import { HelpCircle, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 type ScreenId =
   | 'home'
@@ -17,6 +18,7 @@ type TutorialContent = {
   title: string
   sections: {
     heading: string
+    label: string
     items: string[]
   }[]
 }
@@ -26,7 +28,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Início',
     sections: [
       {
-        heading: '😊 Registro de Humor',
+        heading: 'happy',
+        label: 'Registro de Humor',
         items: [
           'Toque no emoji que representa como você está se sentindo',
           'Ganhe XP a cada registro de humor (1x por hora)',
@@ -34,14 +37,16 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '⚡ Ações Rápidas',
+        heading: 'excited',
+        label: 'Ações Rápidas',
         items: [
           'Acesse o Diário de Pensamento para registrar reflexões',
           'Inicie uma Meditação Rápida para relaxar',
         ],
       },
       {
-        heading: '📊 Gráfico Semanal',
+        heading: 'clinical_productivity',
+        label: 'Gráfico Semanal',
         items: [
           'Visualize seu humor dos últimos 7 dias',
           'Acompanhe padrões e tendências emocionais',
@@ -53,7 +58,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Diário de Pensamento',
     sections: [
       {
-        heading: '✍️ Como Escrever',
+        heading: 'journal_writer',
+        label: 'Como Escrever',
         items: [
           'Descreva como você está se sentindo no campo de texto',
           'Seja honesto e detalhado em suas reflexões',
@@ -61,7 +67,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '🤖 Análise com IA',
+        heading: 'thought',
+        label: 'Análise com IA',
         items: [
           'Clique em "Analisar" para receber insights da IA',
           'A IA identifica padrões de pensamento e oferece sugestões',
@@ -69,7 +76,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '💾 Salvando',
+        heading: 'success',
+        label: 'Salvando',
         items: [
           'Clique em "Salvar" para guardar sua reflexão',
           'Ganhe XP e pontos ao salvar reflexões',
@@ -82,21 +90,24 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Histórico do Diário',
     sections: [
       {
-        heading: '📜 Navegação',
+        heading: 'reports_nav',
+        label: 'Navegação',
         items: [
           'Veja todas as suas reflexões anteriores em ordem cronológica',
           'Clique em uma entrada para expandir e ver detalhes',
         ],
       },
       {
-        heading: '🔍 Filtros',
+        heading: 'routine',
+        label: 'Filtros',
         items: [
           'Filtre por tipo de humor para encontrar entradas específicas',
           'Use os emojis para selecionar o humor desejado',
         ],
       },
       {
-        heading: '💬 Feedbacks',
+        heading: 'feedback',
+        label: 'Feedbacks',
         items: [
           'Veja os feedbacks deixados pelo seu terapeuta',
           'Entradas com feedback novo são destacadas',
@@ -108,7 +119,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Meditação',
     sections: [
       {
-        heading: '🧘 Tipos de Meditação',
+        heading: 'meditation',
+        label: 'Tipos de Meditação',
         items: [
           'Relaxamento: Alivie o estresse e encontre equilíbrio',
           'Foco: Melhore sua concentração',
@@ -116,7 +128,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '⏱️ Duração',
+        heading: 'clinical_productivity',
+        label: 'Duração',
         items: [
           'Escolha entre 1, 2, 3, 5 ou 10 minutos',
           'Use os botões + e - para ajustar',
@@ -124,7 +137,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '🌬️ Respiração',
+        heading: 'behavior',
+        label: 'Respiração',
         items: [
           'Siga o círculo que expande (inspirar) e contrai (expirar)',
           'Personalize os tempos de inspiração e expiração',
@@ -137,7 +151,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Rotina',
     sections: [
       {
-        heading: '📋 Gerenciando Tarefas',
+        heading: 'tasks_created',
+        label: 'Gerenciando Tarefas',
         items: [
           'Toque no botão + para criar uma nova tarefa',
           'Defina prioridade: Alta, Média ou Baixa',
@@ -145,7 +160,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '👁️ Visualizações',
+        heading: 'reports',
+        label: 'Visualizações',
         items: [
           'Dia: Veja tarefas de um dia específico',
           'Semana: Visão geral da semana',
@@ -153,7 +169,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '✅ Completando',
+        heading: 'success',
+        label: 'Completando',
         items: [
           'Marque tarefas como concluídas tocando nelas',
           'Tarefas de alta prioridade dão mais XP e pontos',
@@ -166,7 +183,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Prêmios',
     sections: [
       {
-        heading: '🎁 Criando Prêmios',
+        heading: 'reward_gift',
+        label: 'Criando Prêmios',
         items: [
           'Toque no botão + para criar um novo prêmio',
           'Defina um nome e o custo em pontos',
@@ -174,7 +192,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '💎 Pontos',
+        heading: 'reward_gem',
+        label: 'Pontos',
         items: [
           'Ganhe pontos completando tarefas e usando o app',
           'Tarefas de alta prioridade dão mais pontos',
@@ -182,7 +201,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '🏆 Resgatando',
+        heading: 'achievements',
+        label: 'Resgatando',
         items: [
           'Quando tiver pontos suficientes, toque em "Resgatar"',
           'O prêmio será marcado como resgatado',
@@ -195,7 +215,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
     title: 'Perfil',
     sections: [
       {
-        heading: '📈 Progresso',
+        heading: 'clinical_productivity',
+        label: 'Progresso',
         items: [
           'Veja seu nível atual e XP acumulado',
           'Acompanhe sua sequência de dias usando o app',
@@ -203,7 +224,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '🏅 Conquistas',
+        heading: 'achievements',
+        label: 'Conquistas',
         items: [
           'Desbloqueie badges completando objetivos',
           'Veja o progresso de cada conquista',
@@ -211,7 +233,8 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
         ],
       },
       {
-        heading: '⚙️ Configurações',
+        heading: 'settings',
+        label: 'Configurações',
         items: [
           'Altere sua senha de acesso',
           'Ative ou desative o modo escuro',
@@ -283,8 +306,12 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
               <div className='space-y-5'>
                 {tutorial.sections.map((section, idx) => (
                   <div key={idx}>
-                    <h4 className='mb-2 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-200'>
-                      {section.heading}
+                    <h4 className='mb-2 flex items-center gap-2 font-bold text-sm text-slate-700 sm:text-base dark:text-slate-200'>
+                      {(() => {
+                        const Icon = getIconByKey(section.heading)
+                        return <Icon className='h-4 w-4 text-sky-500' />
+                      })()}
+                      {section.label}
                     </h4>
                     <ul className='space-y-1.5'>
                       {section.items.map((item, itemIdx) => (

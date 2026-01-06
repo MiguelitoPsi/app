@@ -40,6 +40,7 @@ import {
   type CognitiveConceptualizationInput,
   generateTherapeuticPlan,
 } from '@/services/geminiService'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 type ReportSection = 'documents' | 'cognitive' | 'therapeutic'
 
@@ -1171,8 +1172,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           className={`space-y-3 ${activeSituation !== 1 ? 'hidden md:block' : ''}`}
                         >
                           <div className='rounded-xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100 p-3 dark:border-rose-700 dark:from-rose-900/30 dark:to-rose-900/20'>
-                            <h5 className='mb-2 text-center font-bold text-sm text-rose-700 dark:text-rose-400'>
-                              📍 Situação 1
+                            <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-rose-700 dark:text-rose-400'>
+                              {(() => {
+                                const Icon = getIconByKey('location')
+                                return <Icon size={14} />
+                              })()}
+                              Situação 1
                             </h5>
                             {isEditingCognitive ? (
                               <textarea
@@ -1194,8 +1199,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           {/* Compact flow for mobile */}
                           <div className='grid grid-cols-2 gap-2'>
                             <div className='rounded-lg border border-rose-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
-                                💭 Pensamento Automático
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('thought')
+                                  return <Icon size={12} />
+                                })()}
+                                Pensamento Automático
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1218,8 +1227,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-rose-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
-                                🔍 Significado do PA
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('meaning')
+                                  return <Icon size={12} />
+                                })()}
+                                Significado do PA
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1238,8 +1251,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-rose-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
-                                ❤️ Emoção
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('mood')
+                                  return <Icon size={12} />
+                                })()}
+                                Emoção
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1257,8 +1274,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-rose-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
-                                🎯 Comportamento
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-rose-600 dark:text-rose-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('behavior')
+                                  return <Icon size={12} />
+                                })()}
+                                Comportamento
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1283,8 +1304,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           className={`space-y-3 ${activeSituation !== 2 ? 'hidden md:block' : ''}`}
                         >
                           <div className='rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3 dark:border-amber-700 dark:from-amber-900/30 dark:to-amber-900/20'>
-                            <h5 className='mb-2 text-center font-bold text-sm text-amber-700 dark:text-amber-400'>
-                              📍 Situação 2
+                            <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-amber-700 dark:text-amber-400'>
+                              {(() => {
+                                const Icon = getIconByKey('location')
+                                return <Icon size={14} />
+                              })()}
+                              Situação 2
                             </h5>
                             {isEditingCognitive ? (
                               <textarea
@@ -1306,8 +1331,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           {/* Compact flow for mobile */}
                           <div className='grid grid-cols-2 gap-2'>
                             <div className='rounded-lg border border-amber-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
-                                💭 Pensamento Automático
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('thought')
+                                  return <Icon size={12} />
+                                })()}
+                                Pensamento Automático
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1330,8 +1359,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-amber-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
-                                🔍 Significado do PA
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('meaning')
+                                  return <Icon size={12} />
+                                })()}
+                                Significado do PA
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1350,8 +1383,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-amber-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
-                                ❤️ Emoção
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('mood')
+                                  return <Icon size={12} />
+                                })()}
+                                Emoção
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1369,8 +1406,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-amber-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
-                                🎯 Comportamento
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-amber-600 dark:text-amber-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('behavior')
+                                  return <Icon size={12} />
+                                })()}
+                                Comportamento
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1395,8 +1436,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           className={`space-y-3 ${activeSituation !== 3 ? 'hidden md:block' : ''}`}
                         >
                           <div className='rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 dark:border-emerald-700 dark:from-emerald-900/30 dark:to-emerald-900/20'>
-                            <h5 className='mb-2 text-center font-bold text-sm text-emerald-700 dark:text-emerald-400'>
-                              📍 Situação 3
+                            <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-emerald-700 dark:text-emerald-400'>
+                              {(() => {
+                                const Icon = getIconByKey('location')
+                                return <Icon size={14} />
+                              })()}
+                              Situação 3
                             </h5>
                             {isEditingCognitive ? (
                               <textarea
@@ -1418,8 +1463,12 @@ export default function TherapistReportsView(): React.ReactElement {
                           {/* Compact flow for mobile */}
                           <div className='grid grid-cols-2 gap-2'>
                             <div className='rounded-lg border border-emerald-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
-                                💭 Pensamento Automático
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('thought')
+                                  return <Icon size={12} />
+                                })()}
+                                Pensamento Automático
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1442,8 +1491,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-emerald-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
-                                🔍 Significado do PA
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('meaning')
+                                  return <Icon size={12} />
+                                })()}
+                                Significado do PA
                               </h6>
                               {isEditingCognitive ? (
                                 <textarea
@@ -1462,8 +1515,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-emerald-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
-                                ❤️ Emoção
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('mood')
+                                  return <Icon size={12} />
+                                })()}
+                                Emoção
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1481,8 +1538,12 @@ export default function TherapistReportsView(): React.ReactElement {
                               )}
                             </div>
                             <div className='rounded-lg border border-emerald-100 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-800'>
-                              <h6 className='mb-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
-                                🎯 Comportamento
+                              <h6 className='mb-1.5 flex items-center gap-1.5 font-semibold text-[11px] text-emerald-600 dark:text-emerald-400'>
+                                {(() => {
+                                  const Icon = getIconByKey('behavior')
+                                  return <Icon size={12} />
+                                })()}
+                                Comportamento
                               </h6>
                               {isEditingCognitive ? (
                                 <input
@@ -1506,8 +1567,12 @@ export default function TherapistReportsView(): React.ReactElement {
                       {/* Notes section */}
                       {(isEditingCognitive || cognitiveForm.notes) && (
                         <div className='mt-4 rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50'>
-                          <h4 className='mb-2 font-semibold text-slate-700 text-sm dark:text-slate-300'>
-                            📝 Observações
+                          <h4 className='mb-2 flex items-center gap-1.5 font-semibold text-slate-700 text-sm dark:text-slate-300'>
+                            {(() => {
+                              const Icon = getIconByKey('observations')
+                              return <Icon size={14} />
+                            })()}
+                            Observações
                           </h4>
                           {isEditingCognitive ? (
                             <textarea

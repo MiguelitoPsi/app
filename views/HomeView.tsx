@@ -28,6 +28,7 @@ import {
   VolumeX,
   X,
 } from 'lucide-react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
@@ -465,10 +466,10 @@ export const HomeView: React.FC = () => {
     })
   }, [moodHistoryData])
 
-  const moods: { id: Mood; label: string; image: string; emoji?: string }[] = [
+  const moods: { id: Mood; label: string; image: string; emoji: string }[] = [
     { id: 'happy', label: 'Feliz', image: '/mascote/feliz.png', emoji: '😄' },
     { id: 'calm', label: 'Calmo', image: '/mascote/calmo.png', emoji: '😌' },
-
+    { id: 'neutral', label: 'Neutro', image: '/mascote/neutro.png', emoji: '😐' },
     { id: 'sad', label: 'Triste', image: '/mascote/triste.png', emoji: '😢' },
     {
       id: 'anxious',
@@ -476,7 +477,7 @@ export const HomeView: React.FC = () => {
       image: '/mascote/ansioso.png',
       emoji: '😰',
     },
-    { id: 'angry', label: 'Bravo', image: '/mascote/raiva.png', emoji: '😠' },
+    { id: 'angry', label: 'Bravo', image: '/mascote/raiva.png', emoji: '😡' },
   ]
 
   return (
@@ -648,16 +649,11 @@ export const HomeView: React.FC = () => {
                   key={m.id}
                   onClick={(e) => handleMoodChange(m.id, e)}
                   type='button'
-                >
-                  <span
-                    className='
-                  h-7 w-7 sm:h-10 sm:w-10 text-3xl 
-                  flex items-center justify-center
-                '
                   >
-                    {m.emoji}
-                  </span>
-                </button>
+                    <span className='flex h-7 w-7 items-center justify-center text-2xl sm:h-10 sm:w-10 sm:text-3xl'>
+                      {m.emoji}
+                    </span>
+                  </button>
               ))}
             </div>
           </fieldset>

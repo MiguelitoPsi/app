@@ -13,6 +13,7 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -106,15 +107,15 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
   }
 
   const getMoodEmoji = (mood: Mood) => {
-    const map: Record<string, string> = {
-      happy: '😄',
-      sad: '😔',
-      anxious: '😰',
-      angry: '😡',
-      calm: '😌',
-      neutral: '😕',
+    const map: Record<Mood, string> = {
+      happy: 'happy',
+      sad: 'sad',
+      anxious: 'anxious',
+      angry: 'angry',
+      calm: 'calm',
+      neutral: 'neutral',
     }
-    return map[mood] || '😕'
+    return map[mood] || 'neutral'
   }
 
   // Date filter logic
@@ -254,7 +255,14 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                 <div className='flex items-center gap-1.5'>
                   {filterMood !== null && (
                     <span className='rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'>
-                      {filterMood === 'all' ? 'Todas' : getMoodEmoji(filterMood)}
+                      {filterMood === 'all' ? (
+                        'Todas'
+                      ) : (
+                        (() => {
+                          const Icon = getIconByKey(getMoodEmoji(filterMood))
+                          return <Icon size={10} />
+                        })()
+                      )}
                     </span>
                   )}
                   {filterDate !== 'all' && (
@@ -265,7 +273,10 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                           ? '7d'
                           : filterDate === 'month'
                             ? '30d'
-                            : '📅'}
+                            : (() => {
+                                const Icon = getIconByKey('routine')
+                                return <Icon size={10} />
+                              })()}
                     </span>
                   )}
                 </div>
@@ -324,7 +335,10 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                           onClick={() => setFilterMood(filterMood === mood ? null : mood)}
                           type='button'
                         >
-                          {getMoodEmoji(mood)}
+                          {(() => {
+                            const Icon = getIconByKey(getMoodEmoji(mood))
+                            return <Icon size={14} />
+                          })()}
                         </button>
                       )
                     )}
@@ -348,7 +362,13 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                         { value: 'today', label: 'Hoje' },
                         { value: 'week', label: '7 dias' },
                         { value: 'month', label: '30 dias' },
-                        { value: 'custom', label: '📅' },
+                        {
+                          value: 'custom',
+                          label: (() => {
+                            const Icon = getIconByKey('routine')
+                            return <Icon size={12} />
+                          })(),
+                        },
                       ] as const
                     ).map((option) => (
                       <button
@@ -430,8 +450,15 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                   <div className='flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400'>
                     <span className='font-medium'>Filtros ativos:</span>
                     {filterMood !== null && (
-                      <span className='rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'>
-                        {filterMood === 'all' ? 'Todas emoções' : getMoodEmoji(filterMood)}
+                      <span className='rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 overflow-hidden'>
+                        {filterMood === 'all' ? (
+                          'Todas emoções'
+                        ) : (
+                          (() => {
+                            const Icon = getIconByKey(getMoodEmoji(filterMood))
+                            return <Icon size={12} />
+                          })()
+                        )}
                       </span>
                     )}
                     {filterDate !== 'all' && (
@@ -533,7 +560,10 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                                 entry.emotion
                               )}`}
                             >
-                              {getMoodEmoji(entry.emotion)}
+                              {(() => {
+                                const Icon = getIconByKey(getMoodEmoji(entry.emotion))
+                                return <Icon size={24} />
+                              })()}
                             </div>
                             <div className='min-w-0 flex-1'>
                               <div className='mb-1 flex items-center gap-2'>

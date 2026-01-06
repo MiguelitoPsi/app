@@ -39,6 +39,7 @@ import {
   Users,
   X,
 } from 'lucide-react'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
@@ -53,14 +54,14 @@ import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
 
 const getMoodEmoji = (mood: Mood) => {
   const map: Record<string, string> = {
-    happy: '😄',
-    sad: '😔',
-    anxious: '😰',
-    angry: '😡',
-    calm: '😌',
-    neutral: '😕',
+    happy: 'happy',
+    sad: 'sad',
+    anxious: 'anxious',
+    angry: 'angry',
+    calm: 'calm',
+    neutral: 'neutral',
   }
-  return map[mood] || '😕'
+  return map[mood] || 'neutral'
 }
 
 export const TherapistView: React.FC = () => {
@@ -1073,17 +1074,17 @@ export const TherapistView: React.FC = () => {
                     </label>
                     <div className='flex flex-wrap gap-1.5 sm:gap-2'>
                       {[
-                        { id: 'happy', emoji: '😊', label: 'Feliz' },
-                        { id: 'calm', emoji: '😌', label: 'Calmo' },
-                        { id: 'neutral', emoji: '😕', label: 'Confuso' },
-                        { id: 'sad', emoji: '😢', label: 'Triste' },
-                        { id: 'anxious', emoji: '😰', label: 'Ansioso' },
-                        { id: 'angry', emoji: '😠', label: 'Raiva' },
+                        { id: 'happy', emoji: 'happy', label: 'Feliz' },
+                        { id: 'calm', emoji: 'calm', label: 'Calmo' },
+                        { id: 'neutral', emoji: 'neutral', label: 'Confuso' },
+                        { id: 'sad', emoji: 'sad', label: 'Triste' },
+                        { id: 'anxious', emoji: 'anxious', label: 'Ansioso' },
+                        { id: 'angry', emoji: 'angry', label: 'Raiva' },
                       ].map((mood) => {
                         const count = emotionCounts[mood.id] || 0
                         return (
                           <button
-                            className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all sm:rounded-xl sm:px-3 sm:py-1.5 sm:text-xs ${
+                            className={`flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[10px] font-medium transition-all sm:rounded-xl sm:px-3 sm:py-1.5 sm:text-xs ${
                               journalEmotionFilter === mood.id
                                 ? 'border-indigo-500 bg-indigo-50 text-indigo-600 dark:border-indigo-400 dark:bg-indigo-900/30 dark:text-indigo-400'
                                 : 'border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-400 dark:hover:border-slate-600'
@@ -1097,7 +1098,12 @@ export const TherapistView: React.FC = () => {
                             }
                             type='button'
                           >
-                            <span>{mood.emoji}</span>
+                            <span>
+                              {(() => {
+                                const Icon = getIconByKey(mood.emoji)
+                                return <Icon className='h-3.5 w-3.5' />
+                              })()}
+                            </span>
                             <span className='hidden sm:inline'>{mood.label}</span>
                             <span
                               className={`rounded-full px-1.5 py-0.5 font-bold text-[9px] sm:text-[10px] ${
@@ -1190,12 +1196,12 @@ export const TherapistView: React.FC = () => {
                       <div className='flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between'>
                         <div className='flex min-w-0 items-center gap-3'>
                           <div
-                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-lg ${getMoodColor(
+                            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${getMoodColor(
                               entry.emotion
                             )} bg-opacity-20`}
                           >
                             {(() => {
-                              const MoodIcon = getMoodIcon(entry.emotion)
+                              const MoodIcon = getIconByKey(entry.emotion)
                               return <MoodIcon size={18} />
                             })()}
                           </div>
@@ -1258,9 +1264,9 @@ export const TherapistView: React.FC = () => {
                           entry.emotion
                         )}`}
                       >
-                        <span className='text-xl drop-shadow-sm filter sm:text-2xl'>
+                        <span className='shrink-0'>
                           {(() => {
-                            const MoodIcon = getMoodIcon(entry.emotion)
+                            const MoodIcon = getIconByKey(entry.emotion)
                             return <MoodIcon size={24} />
                           })()}
                         </span>

@@ -4,6 +4,7 @@ import { MessageCircle, PartyPopper, Search, Sparkles, User, UserMinus, X } from
 import { useCallback, useEffect, useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 // Mensagens encorajadoras para alta
 const DISCHARGE_MESSAGES = [
@@ -345,28 +346,40 @@ export function UnlinkedPatientModal() {
           {/* Confetes decorativos */}
           <div className='pointer-events-none absolute inset-0 overflow-hidden'>
             <div
-              className='absolute top-4 left-8 text-2xl animate-bounce'
+              className='absolute top-4 left-8 text-sky-400 animate-bounce'
               style={{ animationDelay: '0ms' }}
             >
-              🎉
+              {(() => {
+                const Icon = getIconByKey('celebration')
+                return <Icon size={24} />
+              })()}
             </div>
             <div
-              className='absolute top-8 right-12 text-xl animate-bounce'
+              className='absolute top-8 right-12 text-emerald-400 animate-bounce'
               style={{ animationDelay: '200ms' }}
             >
-              ✨
+              {(() => {
+                const Icon = getIconByKey('sparkles')
+                return <Icon size={20} />
+              })()}
             </div>
             <div
-              className='absolute top-16 left-16 text-lg animate-bounce'
+              className='absolute top-16 left-16 text-yellow-400 animate-bounce'
               style={{ animationDelay: '400ms' }}
             >
-              🌟
+              {(() => {
+                const Icon = getIconByKey('celebration')
+                return <Icon size={18} />
+              })()}
             </div>
             <div
-              className='absolute top-6 right-6 text-2xl animate-bounce'
+              className='absolute top-6 right-6 text-indigo-400 animate-bounce'
               style={{ animationDelay: '100ms' }}
             >
-              🎊
+              {(() => {
+                const Icon = getIconByKey('celebration')
+                return <Icon size={24} />
+              })()}
             </div>
           </div>
 
@@ -379,8 +392,12 @@ export function UnlinkedPatientModal() {
             </div>
           </div>
 
-          <h2 className='mb-2 text-center font-bold text-2xl text-white'>
-            Parabéns pela sua Alta! 🎉
+          <h2 className='mb-2 text-center font-bold text-2xl text-white flex items-center justify-center gap-2'>
+            Parabéns pela sua Alta!
+            {(() => {
+              const Icon = getIconByKey('celebration')
+              return <Icon className='text-yellow-400' size={28} />
+            })()}
           </h2>
 
           <p className='mb-4 text-center text-emerald-200'>

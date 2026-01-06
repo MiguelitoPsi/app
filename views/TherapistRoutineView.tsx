@@ -531,7 +531,7 @@ export default function TherapistRoutineView() {
       if (selectedTaskDate < today) {
         const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
         setAlertMessage(
-          `⚠️ Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
+          `Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
         )
         setAlertTitle('Data no Passado')
         setShowAlert(true)
@@ -604,7 +604,7 @@ export default function TherapistRoutineView() {
 
         if (taskDate.getTime() > today.getTime()) {
           setAlertMessage(
-            '⏳ Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
+            'Calma lá!\n\nVocê não pode concluir uma tarefa agendada para o futuro. Aguarde o dia correto para realizá-la.'
           )
           setAlertTitle('Tarefa Futura')
           setShowAlert(true)

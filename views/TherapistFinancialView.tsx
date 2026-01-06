@@ -61,6 +61,7 @@ import {
   useFinancialData,
 } from '@/lib/hooks/useFinancialData'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 const CHART_COLORS = {
   income: '#10B981',
@@ -467,7 +468,7 @@ export default function TherapistFinancialView(): React.ReactElement {
   const getCategoryInfo = (category: string): { label: string; icon: string } =>
     FINANCIAL_CATEGORIES[category as keyof typeof FINANCIAL_CATEGORIES] ?? {
       label: category,
-      icon: '📦',
+      icon: 'other_finance',
     }
 
   // Dados para gráficos
@@ -1064,7 +1065,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                 {recurringData && recurringData.count > 0 && (
                   <div className='rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 p-4 shadow-sm dark:from-blue-900/20 dark:to-indigo-900/20'>
                     <div className='mb-3 flex items-center gap-2'>
-                      <span className='text-xl'>🔄</span>
+                      {(() => {
+                        const Icon = getIconByKey('refresh')
+                        return <Icon className='text-blue-600 dark:text-blue-400' size={20} />
+                      })()}
                       <h3 className='font-semibold text-slate-800 dark:text-slate-200'>
                         Registros Recorrentes
                       </h3>
@@ -1107,7 +1111,10 @@ export default function TherapistFinancialView(): React.ReactElement {
                               key={record.id}
                             >
                               <div className='flex items-center gap-2'>
-                                <span>{info.icon}</span>
+                                {(() => {
+                                  const Icon = getIconByKey(info.icon)
+                                  return <Icon className='text-slate-400' size={16} />
+                                })()}
                                 <span className='text-slate-700 text-sm dark:text-slate-300'>
                                   {info.label}
                                 </span>
@@ -1400,7 +1407,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                           )}
                           {record.isRecurring && (
                             <span
-                              className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-xs'
+                              className='absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-white text-[10px]'
                               title={`Recorrente: ${
                                 record.frequency === 'weekly'
                                   ? 'Semanal'
@@ -1409,13 +1416,19 @@ export default function TherapistFinancialView(): React.ReactElement {
                                     : 'Anual'
                               }`}
                             >
-                              🔄
+                              {(() => {
+                                const Icon = getIconByKey('refresh')
+                                return <Icon size={10} />
+                              })()}
                             </span>
                           )}
                         </div>
                         <div className='min-w-0 flex-1'>
                           <div className='flex items-center gap-2'>
-                            <span>{info.icon}</span>
+                            {(() => {
+                              const Icon = getIconByKey(info.icon)
+                              return <Icon className='text-slate-400' size={14} />
+                            })()}
                             <p className='truncate font-medium text-slate-800 dark:text-slate-200'>
                               {info.label}
                             </p>

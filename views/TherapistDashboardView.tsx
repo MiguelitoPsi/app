@@ -41,6 +41,7 @@ import { useSelectedPatient } from '@/context/SelectedPatientContext'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 const AreaChart = dynamic(() => import('recharts').then((mod) => mod.AreaChart), { ssr: false })
 const Area = dynamic(() => import('recharts').then((mod) => mod.Area), {
@@ -59,34 +60,28 @@ const ResponsiveContainer = dynamic(
 
 type TherapistDashboardTab = 'overview' | 'patients' | 'challenges' | 'achievements'
 
-const MOOD_CONFIG: Record<string, { emoji: string; label: string; color: string }> = {
+const MOOD_CONFIG: Record<string, { label: string; color: string }> = {
   happy: {
-    emoji: '😄',
     label: 'Feliz',
     color: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
   },
   calm: {
-    emoji: '😌',
     label: 'Calmo',
     color: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
   },
   neutral: {
-    emoji: '😕',
     label: 'Confuso',
     color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400',
   },
   sad: {
-    emoji: '😔',
     label: 'Triste',
     color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
   },
   anxious: {
-    emoji: '😰',
     label: 'Ansioso',
     color: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
   },
   angry: {
-    emoji: '😡',
     label: 'Bravo',
     color: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
   },
@@ -851,14 +846,18 @@ export const TherapistDashboardView: React.FC = () => {
                                 .sort(([, a], [, b]) => b - a)
                                 .slice(0, 3)
                                 .map(([mood, count]) => (
-                                  <span
-                                    className={`rounded-full px-2 py-0.5 text-xs ${
-                                      MOOD_CONFIG[mood]?.color ?? 'bg-slate-100'
-                                    }`}
-                                    key={mood}
-                                  >
-                                    {MOOD_CONFIG[mood]?.emoji} {count}
-                                  </span>
+                                    <span
+                                      className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
+                                        MOOD_CONFIG[mood]?.color ?? 'bg-slate-100'
+                                      }`}
+                                      key={mood}
+                                    >
+                                      {(() => {
+                                        const Icon = getIconByKey(mood)
+                                        return <Icon size={12} />
+                                      })()}
+                                      {count}
+                                    </span>
                                 ))}
                             </div>
                           </div>
@@ -870,15 +869,20 @@ export const TherapistDashboardView: React.FC = () => {
                             </h3>
                             <div className='flex flex-wrap gap-2'>
                               {patientSummary.recentMoods.map((mood) => (
-                                <div
-                                  className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${
-                                    MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'
-                                  }`}
-                                  key={mood.id}
-                                >
-                                  <span>{MOOD_CONFIG[mood.mood]?.emoji}</span>
-                                  <span className='text-sm'>{formatDate(mood.createdAt)}</span>
-                                </div>
+                                  <div
+                                    className={`flex items-center gap-2 rounded-full px-3 py-1.5 ${
+                                      MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'
+                                    }`}
+                                    key={mood.id}
+                                  >
+                                    <span>
+                                      {(() => {
+                                        const Icon = getIconByKey(mood.mood)
+                                        return <Icon size={14} />
+                                      })()}
+                                    </span>
+                                    <span className='text-sm'>{formatDate(mood.createdAt)}</span>
+                                  </div>
                               ))}
                             </div>
                           </div>
@@ -928,11 +932,14 @@ export const TherapistDashboardView: React.FC = () => {
                           key={mood.id}
                         >
                           <div
-                            className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${
+                            className={`flex h-12 w-12 items-center justify-center rounded-full ${
                               MOOD_CONFIG[mood.mood]?.color ?? 'bg-slate-100'
                             }`}
                           >
-                            {MOOD_CONFIG[mood.mood]?.emoji ?? '😕'}
+                            {(() => {
+                              const Icon = getIconByKey(mood.mood)
+                              return <Icon size={24} />
+                            })()}
                           </div>
                           <div className='flex-1'>
                             <p className='font-medium text-slate-800 dark:text-slate-200'>
@@ -974,11 +981,15 @@ export const TherapistDashboardView: React.FC = () => {
                           >
                             <div className='mb-3 flex items-center justify-between'>
                               <span
-                                className={`rounded-full px-3 py-1 text-sm ${
+                                className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-sm ${
                                   MOOD_CONFIG[moodKey]?.color ?? 'bg-slate-100'
                                 }`}
                               >
-                                {MOOD_CONFIG[moodKey]?.emoji} {MOOD_CONFIG[moodKey]?.label}
+                                {(() => {
+                                  const Icon = getIconByKey(moodKey)
+                                  return <Icon size={14} />
+                                })()}
+                                {MOOD_CONFIG[moodKey]?.label}
                               </span>
                               <span className='text-slate-400 text-sm'>
                                 {formatDateTime(entry.createdAt)}
@@ -1349,15 +1360,18 @@ export const TherapistDashboardView: React.FC = () => {
                 >
                   <div className='flex items-start justify-between'>
                     <div className='flex items-start gap-3'>
-                      <div
-                        className={`rounded-lg p-2 ${
-                          challenge.status === 'completed'
-                            ? 'bg-green-100 dark:bg-green-900/30'
-                            : 'bg-sky-100 dark:bg-sky-900/30'
-                        }`}
-                      >
-                        <span className='text-xl'>{challenge.template?.icon || '🎯'}</span>
-                      </div>
+                        <div
+                          className={`rounded-lg p-2 ${
+                            challenge.status === 'completed'
+                              ? 'bg-green-100 dark:bg-green-900/30'
+                              : 'bg-sky-100 dark:bg-sky-900/30'
+                          }`}
+                        >
+                          {(() => {
+                            const Icon = getIconByKey(challenge.template?.icon || 'challenges')
+                            return <Icon size={20} />
+                          })()}
+                        </div>
                       <div>
                         <h3 className='font-medium text-slate-800 dark:text-slate-200'>
                           {challenge.title}
@@ -1460,9 +1474,16 @@ export const TherapistDashboardView: React.FC = () => {
                   key={achievement.id}
                   type='button'
                 >
-                  <span className={`text-3xl ${!achievement.isUnlocked && 'grayscale opacity-40'}`}>
-                    {achievement.icon}
-                  </span>
+                  <div
+                    className={`flex h-12 w-12 items-center justify-center rounded-xl p-2 ${
+                      !achievement.isUnlocked && 'grayscale opacity-40'
+                    }`}
+                  >
+                    {(() => {
+                      const Icon = getIconByKey(achievement.icon)
+                      return <Icon size={32} />
+                    })()}
+                  </div>
                   <p
                     className={`mt-1 text-center text-xs ${
                       achievement.isUnlocked
