@@ -881,52 +881,7 @@ export const HomeView: React.FC = () => {
                     </div>
                   </div>
                 )}
-                {/* Sound Toggle */}
-                <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 transition-colors sm:p-4 dark:border-slate-700 dark:bg-slate-800'>
-                  <div className='flex min-w-0 flex-1 items-center gap-2 sm:gap-3'>
-                    <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-sky-100 text-sky-600 sm:h-9 sm:w-9 dark:bg-sky-900/30 dark:text-sky-400'>
-                      {soundEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
-                    </div>
-                    <div className='min-w-0'>
-                      <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
-                        Sons do App
-                      </h4>
-                      <p className='text-slate-500 text-[10px] sm:text-xs dark:text-slate-400'>
-                        Efeitos sonoros e feedback
-                      </p>
-                    </div>
-                  </div>
-                  <div
-                    aria-checked={soundEnabled}
-                    aria-label={soundEnabled ? 'Desativar sons' : 'Ativar sons'}
-                    className={`relative h-6 w-11 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-                      soundEnabled ? 'bg-sky-600' : 'bg-slate-300'
-                    }`}
-                    onClick={() => {
-                      toggleSound()
-                      // Play toggle sound only when enabling
-                      if (!soundEnabled) {
-                        setTimeout(() => playToggle(), 50)
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        toggleSound()
-                        if (!soundEnabled) {
-                          setTimeout(() => playToggle(), 50)
-                        }
-                      }
-                    }}
-                    role='switch'
-                    tabIndex={0}
-                  >
-                    <div
-                      className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                        soundEnabled ? 'left-[22px]' : 'left-0.5'
-                      }`}
-                    />
-                  </div>
-                </div>
+
                 {/* Change Password Button */}
                 <button
                   className='touch-target flex w-full items-center justify-between rounded-xl border border-slate-100 bg-slate-50 p-3 transition-all hover:border-sky-200 hover:bg-sky-50 sm:p-4 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-800 dark:hover:bg-sky-900/20'
