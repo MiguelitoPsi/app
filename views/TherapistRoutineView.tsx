@@ -31,7 +31,7 @@ import { trpc } from '../lib/trpc/client'
 
 type TaskFormData = {
   title: string
-  frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
+  frequency: 'once' | 'daily' | 'weekly' | 'biweekly' | 'monthly'
   priority: 'low' | 'medium' | 'high'
   dueDate?: string
   type?: 'feedback' | 'session' | 'review_records' | 'create_plan' | 'approve_reward' | 'custom'
@@ -130,13 +130,15 @@ export default function TherapistRoutineView() {
       await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
 
       // Snapshot do valor anterior
-      const previousTasks = utils.task.getPatientTasksFromTherapist.getData({ patientId: selectedPatientId || '' })
+      const previousTasks = utils.task.getPatientTasksFromTherapist.getData({
+        patientId: selectedPatientId || '',
+      })
 
       // Otimisticamente atualizar
       if (selectedPatientId) {
         utils.task.getPatientTasksFromTherapist.setData({ patientId: selectedPatientId }, (old) => {
           if (!old) return []
-          
+
           const tempId = Math.random().toString()
           // Criar objeto temporário (precisa bater com o tipo esperado pelo cache)
           // Usando as/any com cuidado apenas para os campos obrigatórios da UI
@@ -148,7 +150,7 @@ export default function TherapistRoutineView() {
             description: newOne.description,
             priority: newOne.priority,
             dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null, // Backend espera string, mas cache geralmente volta Date se transformado, checar trpc
-            // Nota: o trpc client com superjson serializa/deserializa dates. 
+            // Nota: o trpc client com superjson serializa/deserializa dates.
             // Se localmente usamos string no form, o cache espera Date se for o que vem do banco.
             // O código de visualização faz "task.dueDate && new Date(task.dueDate)", sugerindo que pode ser string ou date.
             // Vamos ser seguros e passar Date se parsed, ou null.
@@ -159,11 +161,11 @@ export default function TherapistRoutineView() {
             createdAt: new Date(),
             updatedAt: new Date(),
           }
-          
+
           // Se dueDate for string no input, converter para Date para o cache local se necessário
           // Mas vendo o código de renderização: const taskDate = new Date(task.dueDate)
           // Isso funciona tanto para string quanto para Date object.
-          
+
           return [...old, optimisticTask]
         })
       }
@@ -174,59 +176,61 @@ export default function TherapistRoutineView() {
       setShowTaskForm(false)
       setTaskForm(defaultTaskForm)
       // Não precisamos refetchTasks imediatamente se o optimistic funcionou, mas é bom para garantir IDs reais
-      // refetchTasks() -> Deixar para onSettled ou manter aqui? 
+      // refetchTasks() -> Deixar para onSettled ou manter aqui?
       // Se mantivermos aqui, ele substitui o otimista pelo real.
       utils.therapistXp.getStats.invalidate()
     },
     onError: (error, newOne, context) => {
-        // Rollback
-        if (context?.previousTasks) {
-            utils.task.getPatientTasksFromTherapist.setData(
-                { patientId: selectedPatientId || '' },
-                context.previousTasks
-            )
-        }
+      // Rollback
+      if (context?.previousTasks) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId: selectedPatientId || '' },
+          context.previousTasks
+        )
+      }
 
-        // Se for erro de limite, usar título específico
-        if (error.message.includes('Limite')) {
-            setAlertTitle('Limite de Tarefas')
-        } else {
-            setAlertTitle('Atenção')
-        }
-        setAlertMessage(error.message)
-        setShowAlert(true)
+      // Se for erro de limite, usar título específico
+      if (error.message.includes('Limite')) {
+        setAlertTitle('Limite de Tarefas')
+      } else {
+        setAlertTitle('Atenção')
+      }
+      setAlertMessage(error.message)
+      setShowAlert(true)
     },
     onSettled: () => {
-        utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
-    }
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
+    },
   })
 
   const deleteTaskMutation = trpc.task.deletePatientTask.useMutation({
     onMutate: async (vars) => {
-        await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
-        const previousTasks = utils.task.getPatientTasksFromTherapist.getData({ patientId: selectedPatientId || '' })
+      await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
+      const previousTasks = utils.task.getPatientTasksFromTherapist.getData({
+        patientId: selectedPatientId || '',
+      })
 
-        if (selectedPatientId) {
-            utils.task.getPatientTasksFromTherapist.setData({ patientId: selectedPatientId }, (old) => {
-                return old ? old.filter(t => t.id !== vars.taskId) : []
-            })
-        }
-        return { previousTasks }
+      if (selectedPatientId) {
+        utils.task.getPatientTasksFromTherapist.setData({ patientId: selectedPatientId }, (old) =>
+          old ? old.filter((t) => t.id !== vars.taskId) : []
+        )
+      }
+      return { previousTasks }
     },
     onError: (err, vars, context) => {
-        if (context?.previousTasks) {
-            utils.task.getPatientTasksFromTherapist.setData(
-                { patientId: selectedPatientId || '' },
-                context.previousTasks
-            )
-        }
-        setAlertTitle('Erro ao excluir')
-        setAlertMessage(err.message)
-        setShowAlert(true)
+      if (context?.previousTasks) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId: selectedPatientId || '' },
+          context.previousTasks
+        )
+      }
+      setAlertTitle('Erro ao excluir')
+      setAlertMessage(err.message)
+      setShowAlert(true)
     },
     onSettled: () => {
-        utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
-    }
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
+    },
   })
 
   const sendFeedbackMutation = trpc.task.sendTaskFeedback.useMutation({
@@ -242,31 +246,31 @@ export default function TherapistRoutineView() {
   // Mutations for therapist's own tasks
   const createMyTaskMutation = trpc.therapistTasks.create.useMutation({
     onMutate: async (newOne) => {
-        await utils.therapistTasks.getAll.cancel()
-        const previousMyTasks = utils.therapistTasks.getAll.getData()
+      await utils.therapistTasks.getAll.cancel()
+      const previousMyTasks = utils.therapistTasks.getAll.getData()
 
-        utils.therapistTasks.getAll.setData(undefined, (old) => {
-            if (!old) return []
-            const tempId = Math.random().toString()
-            const optimisticTask: any = {
-                id: tempId,
-                therapistId: 'me',
-                title: newOne.title,
-                description: newOne.description,
-                type: newOne.type,
-                priority: newOne.priority,
-                status: 'pending',
-                dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null,
-                isRecurring: newOne.isRecurring,
-                frequency: newOne.frequency,
-                xpReward: 20, // valor placeholder
-                createdAt: new Date(),
-                updatedAt: new Date()
-            }
-            return [...old, optimisticTask]
-        })
+      utils.therapistTasks.getAll.setData(undefined, (old) => {
+        if (!old) return []
+        const tempId = Math.random().toString()
+        const optimisticTask: any = {
+          id: tempId,
+          therapistId: 'me',
+          title: newOne.title,
+          description: newOne.description,
+          type: newOne.type,
+          priority: newOne.priority,
+          status: 'pending',
+          dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null,
+          isRecurring: newOne.isRecurring,
+          frequency: newOne.frequency,
+          xpReward: 20, // valor placeholder
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+        return [...old, optimisticTask]
+      })
 
-        return { previousMyTasks }
+      return { previousMyTasks }
     },
     onSuccess: () => {
       setShowTaskForm(false)
@@ -281,79 +285,79 @@ export default function TherapistRoutineView() {
       utils.therapistXp.getStats.invalidate()
     },
     onError: (error, newOne, context) => {
-        if (context?.previousMyTasks) {
-            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
-        }
+      if (context?.previousMyTasks) {
+        utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+      }
 
-        if (error.message.includes('Limite')) {
-            setAlertTitle('Limite de Tarefas')
-        } else {
-            setAlertTitle('Atenção')
-        }
-        setAlertMessage(error.message)
-        setShowAlert(true)
+      if (error.message.includes('Limite')) {
+        setAlertTitle('Limite de Tarefas')
+      } else {
+        setAlertTitle('Atenção')
+      }
+      setAlertMessage(error.message)
+      setShowAlert(true)
     },
     onSettled: () => {
-        utils.therapistTasks.getAll.invalidate()
-    }
+      utils.therapistTasks.getAll.invalidate()
+    },
   })
 
   const completeMyTaskMutation = trpc.therapistTasks.complete.useMutation({
     onMutate: async (vars) => {
-        await utils.therapistTasks.getAll.cancel()
-        const previousMyTasks = utils.therapistTasks.getAll.getData()
+      await utils.therapistTasks.getAll.cancel()
+      const previousMyTasks = utils.therapistTasks.getAll.getData()
 
-        utils.therapistTasks.getAll.setData(undefined, (old) => {
-            if (!old) return []
-            return old.map(t => {
-                if (t.id === vars.id) {
-                    // Toggle status logic similar to what backend does
-                    const newStatus = t.status === 'completed' ? 'pending' : 'completed'
-                    return { ...t, status: newStatus }
-                }
-                return t
-            })
+      utils.therapistTasks.getAll.setData(undefined, (old) => {
+        if (!old) return []
+        return old.map((t) => {
+          if (t.id === vars.id) {
+            // Toggle status logic similar to what backend does
+            const newStatus = t.status === 'completed' ? 'pending' : 'completed'
+            return { ...t, status: newStatus }
+          }
+          return t
         })
-        return { previousMyTasks }
+      })
+      return { previousMyTasks }
     },
     onSuccess: () => {
       // refetchMyTasks() // onSettled
       utils.therapistXp.getStats.invalidate()
     },
     onError: (err, vars, context) => {
-        if (context?.previousMyTasks) {
-            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
-        }
+      if (context?.previousMyTasks) {
+        utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+      }
     },
     onSettled: () => {
-        utils.therapistTasks.getAll.invalidate()
-    }
+      utils.therapistTasks.getAll.invalidate()
+    },
   })
 
   const deleteMyTaskMutation = trpc.therapistTasks.delete.useMutation({
     onMutate: async (vars) => {
-        await utils.therapistTasks.getAll.cancel()
-        const previousMyTasks = utils.therapistTasks.getAll.getData()
+      await utils.therapistTasks.getAll.cancel()
+      const previousMyTasks = utils.therapistTasks.getAll.getData()
 
-        utils.therapistTasks.getAll.setData(undefined, (old) => {
-            return old ? old.filter(t => t.id !== vars.id) : []
-        })
-        return { previousMyTasks }
+      utils.therapistTasks.getAll.setData(undefined, (old) =>
+        old ? old.filter((t) => t.id !== vars.id) : []
+      )
+      return { previousMyTasks }
     },
     onSuccess: () => {
       // refetchMyTasks()
     },
     onError: (err, vars, context) => {
-        if (context?.previousMyTasks) {
-            utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
-        }
-        setAlertTitle('Erro ao excluir')
-        setAlertMessage(err.message)
-        setShowAlert(true)
+      if (context?.previousMyTasks) {
+        utils.therapistTasks.getAll.setData(undefined, context.previousMyTasks)
+      }
+      setAlertTitle('Erro ao excluir')
+      setAlertMessage(err.message)
+      setShowAlert(true)
     },
     onSettled: () => {
-        utils.therapistTasks.getAll.invalidate()
-    }
+      utils.therapistTasks.getAll.invalidate()
+    },
   })
 
   const selectedPatient = patients?.find((p) => p.id === selectedPatientId)
@@ -542,7 +546,11 @@ export default function TherapistRoutineView() {
     }
 
     // Validate weekDays for sessions
-    if (taskForm.taskCategory === 'sessao' && (taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && !taskForm.weekDays?.length) {
+    if (
+      taskForm.taskCategory === 'sessao' &&
+      (taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') &&
+      !taskForm.weekDays?.length
+    ) {
       setAlertMessage('Por favor, selecione o dia da semana para a sessão.')
       setAlertTitle('Dia da Semana')
       setShowAlert(true)
@@ -1511,9 +1519,7 @@ export default function TherapistRoutineView() {
                           <p className='mb-1 font-medium text-sky-700 text-xs dark:text-sky-300'>
                             Seu feedback:
                           </p>
-                          <p className='text-sky-600 text-sm dark:text-sky-400'>
-                            {task.feedback}
-                          </p>
+                          <p className='text-sky-600 text-sm dark:text-sky-400'>{task.feedback}</p>
                         </div>
                       )}
                     </div>
@@ -1970,8 +1976,8 @@ export default function TherapistRoutineView() {
                                           ? 'border-sky-500 bg-sky-500 text-white'
                                           : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600'
                                     }`}
-                                    key={day}
                                     disabled={isPast}
+                                    key={day}
                                     onClick={() => {
                                       setTaskForm({
                                         ...taskForm,
@@ -2002,7 +2008,8 @@ export default function TherapistRoutineView() {
                               : taskForm.frequency === 'once'
                                 ? `Sessão no dia ${taskForm.monthDay}`
                                 : 'Tarefa adicionada'}
-                          {' para '}<strong>{selectedSessionPatient.name}</strong>.
+                          {' para '}
+                          <strong>{selectedSessionPatient.name}</strong>.
                         </p>
                       </div>
                     )}
@@ -2183,7 +2190,6 @@ export default function TherapistRoutineView() {
                         )}
                       </div>
                     )}
-
                   </>
                 )}
               </div>
@@ -2210,11 +2216,11 @@ export default function TherapistRoutineView() {
                     createMyTaskMutation.isPending ||
                     !taskForm.taskCategory ||
                     (taskForm.taskCategory === 'geral' && !taskForm.title) ||
-                    (taskForm.taskCategory === 'sessao' && (
-                      !taskForm.sessionPatientId ||
-                      ((taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && !taskForm.weekDays?.length) ||
-                      (taskForm.frequency === 'once' && !taskForm.monthDay)
-                    ))
+                    (taskForm.taskCategory === 'sessao' &&
+                      (!taskForm.sessionPatientId ||
+                        ((taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') &&
+                          !taskForm.weekDays?.length) ||
+                        (taskForm.frequency === 'once' && !taskForm.monthDay)))
                   }
                   type='submit'
                 >
@@ -2259,4 +2265,3 @@ export default function TherapistRoutineView() {
     </div>
   )
 }
-

@@ -369,7 +369,7 @@ export const therapistTasks = sqliteTable('therapist_tasks', {
   xpReward: integer('xp_reward').notNull().default(20),
   isRecurring: integer('is_recurring', { mode: 'boolean' }).notNull().default(false),
   frequency: text('frequency', {
-    enum: ['daily', 'weekly', 'biweekly', 'monthly'],
+    enum: ['once', 'daily', 'weekly', 'biweekly', 'monthly'],
   }),
   isAiGenerated: integer('is_ai_generated', { mode: 'boolean' }).notNull().default(false),
   weekDays: text('week_days', { mode: 'json' }).$type<number[]>(),
