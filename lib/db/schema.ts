@@ -372,6 +372,9 @@ export const therapistTasks = sqliteTable('therapist_tasks', {
     enum: ['daily', 'weekly', 'biweekly', 'monthly'],
   }),
   isAiGenerated: integer('is_ai_generated', { mode: 'boolean' }).notNull().default(false),
+  weekDays: text('week_days', { mode: 'json' }).$type<number[]>(),
+  monthDay: integer('month_day'),
+  monthDays: text('month_days', { mode: 'json' }).$type<number[]>(),
   metadata: text('metadata', { mode: 'json' }).$type<{
     icon?: string
     color?: string

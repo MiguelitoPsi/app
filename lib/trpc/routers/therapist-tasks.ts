@@ -105,10 +105,16 @@ export const therapistTasksRouter = router({
         priority: z.enum(['low', 'medium', 'high']).default('medium'),
         dueDate: z.string().optional(),
         isRecurring: z.boolean().default(false),
-        frequency: z.enum(['daily', 'weekly', 'biweekly', 'monthly']).optional(),
+        frequency: z.enum(['daily', 'weekly', 'biweekly', 'once']).optional(),
         patientId: z.string().optional(),
         // Nova categoria de tarefa: 'geral' (para terapeuta) ou 'sessao' (cria também para paciente)
         taskCategory: z.enum(['geral', 'sessao']).default('geral'),
+        // Dias da semana para frequência semanal/quinzenal (0-6, onde 0 = Domingo)
+        weekDays: z.array(z.number()).optional(),
+        // Dia do mês para frequência única de sessão (1-31)
+        monthDay: z.number().optional(),
+        // Dias do mês para frequência mensal de tarefas gerais (1-31)
+        monthDays: z.array(z.number()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -119,6 +125,8 @@ export const therapistTasksRouter = router({
         })
       }
 
+      const today = new Date()
+
       // Se for sessão, precisa ter um paciente selecionado
       if (input.taskCategory === 'sessao' && !input.patientId) {
         throw new TRPCError({
@@ -127,11 +135,28 @@ export const therapistTasksRouter = router({
         })
       }
 
-      // Se for sessão, precisa ter uma data
-      if (input.taskCategory === 'sessao' && !input.dueDate) {
+      // Se for sessão com frequência semanal/quinzenal, precisa ter weekDays selecionado
+      if (
+        input.taskCategory === 'sessao' &&
+        input.frequency &&
+        ['weekly', 'biweekly'].includes(input.frequency) &&
+        (!input.weekDays || input.weekDays.length === 0)
+      ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'É necessário selecionar uma data para tarefas de sessão',
+          message: 'É necessário selecionar o dia da semana para sessões com frequência',
+        })
+      }
+
+      // Se for sessão com frequência única, precisa ter monthDay selecionado
+      if (
+        input.taskCategory === 'sessao' &&
+        input.frequency === 'once' &&
+        !input.monthDay
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'É necessário selecionar o dia do mês para sessão única',
         })
       }
 
@@ -158,14 +183,12 @@ export const therapistTasksRouter = router({
 
       // Validate that the date is not in the past
       if (input.dueDate) {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        // Parse date as local time (YYYY-MM-DD) to avoid timezone issues
+        // Parse date as UTC midnight to avoid timezone issues
         const [year, month, day] = input.dueDate.split('-').map(Number)
-        const taskDate = new Date(year, month - 1, day)
-        taskDate.setHours(0, 0, 0, 0)
+        const taskDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
+        const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0, 0))
 
-        if (taskDate < today) {
+        if (taskDate < todayUTC) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Não é possível criar tarefas para datas que já passaram',
@@ -177,68 +200,114 @@ export const therapistTasksRouter = router({
       const effectivePriority = input.taskCategory === 'sessao' ? 'high' : input.priority
       const xpReward = THERAPIST_TASK_XP[effectivePriority] || 20
 
-      // Parse date as local time to avoid timezone issues
+      // Parse date as UTC to avoid timezone issues
       let parsedDueDate: Date | null = null
-      if (input.dueDate) {
+      if (input.dueDate && input.taskCategory !== 'sessao') {
         const [year, month, day] = input.dueDate.split('-').map(Number)
-        parsedDueDate = new Date(year, month - 1, day)
-        parsedDueDate.setHours(12, 0, 0, 0) // Set to noon to avoid timezone edge cases
-
-        // Se for uma tarefa de SESSÃO, não validamos o limite do paciente pois sessões são exceções
-        // if (input.taskCategory === 'sessao' && input.patientId) { ... } -> REMOVIDO
-
+        parsedDueDate = new Date(Date.UTC(year, month - 1, day, 23, 0, 0, 0))
       }
 
-      // Gerar datas para tarefas recorrentes de sessão (APENAS NO MÊS SELECIONADO)
-      const generateRecurringDates = (
-        startDate: Date,
-        frequency: 'weekly' | 'biweekly' | 'monthly' | undefined
+      // Gerar datas para tarefas recorrentes de sessão baseadas no dia da semana
+      const generateRecurringDatesFromWeekDays = (
+        targetMonth: number,
+        targetYear: number,
+        frequency: 'weekly' | 'biweekly' | undefined
       ): Date[] => {
-        if (!frequency) return [startDate]
-
-        const dates: Date[] = [startDate]
-        const targetMonth = startDate.getMonth()
-        const targetYear = startDate.getFullYear()
-
-        // Para monthly, apenas 1 sessão por mês (já está na data inicial)
-        if (frequency === 'monthly') {
-          return dates
+        if (!frequency || !input.weekDays || input.weekDays.length === 0) {
+          return []
         }
 
-        // Para weekly e biweekly, gerar datas até o fim do mês
+        const dates: Date[] = []
+        const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0)
+        const todayStart = new Date(today)
+        todayStart.setHours(0, 0, 0, 0)
+
+        // Encontrar o primeiro dia da semana correto a partir de HOJE (usando getDay() local)
+        const dayOfWeek = input.weekDays[0] // Usamos o primeiro dia selecionado (0-6, onde 0=Domingo)
+
+        let currentDate = new Date(todayStart)
+
+        // Encontrar o primeiro dia da semana correto a partir de hoje
+        // Se hoje é o dia correto, usamos hoje, senão procuramos a próxima ocorrência
+        while (currentDate.getDay() !== dayOfWeek) {
+          currentDate.setDate(currentDate.getDate() + 1)
+        }
+
+        // Se a primeira data encontrada for anterior a hoje (caso edge), avançar uma semana
+        if (currentDate < todayStart) {
+          currentDate.setDate(currentDate.getDate() + 7)
+        }
+
+        // Gerar todas as datas do mês a partir da próxima ocorrência
         const interval = frequency === 'weekly' ? 7 : 14
 
-        let nextDate = new Date(startDate)
-        nextDate.setHours(12, 0, 0, 0)
-
-        while (true) {
-          nextDate = new Date(nextDate)
-          nextDate.setDate(nextDate.getDate() + interval)
-          nextDate.setHours(12, 0, 0, 0)
-
-          // Parar se sair do mês selecionado
-          if (nextDate.getMonth() !== targetMonth || nextDate.getFullYear() !== targetYear) {
-            break
-          }
-
-          dates.push(new Date(nextDate))
+        while (currentDate <= lastDayOfMonth) {
+          // Criar data às 23:00 UTC para garantir exibição correta no frontend
+          const utcDate = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 23, 0, 0, 0))
+          dates.push(utcDate)
+          currentDate.setDate(currentDate.getDate() + interval)
         }
 
         return dates
       }
 
-      // Para tarefas de sessão com frequência, criar múltiplas instâncias
-      const isSessionWithFrequency =
+      // Gerar datas para sessões únicas baseadas em dia do mês
+      const generateRecurringDateFromMonthDay = (
+        targetMonth: number,
+        targetYear: number
+      ): Date[] => {
+        if (!input.monthDay) {
+          return []
+        }
+
+        const todayDay = today.getDate()
+        const currentMonth = today.getMonth()
+        const currentYear = today.getFullYear()
+
+        // Se o dia selecionado for menor que hoje E não é o mês atual, não criar
+        if (input.monthDay < todayDay && targetMonth === currentMonth && targetYear === currentYear) {
+          return []
+        }
+
+        // Se o mês/ano alvo é anterior ao atual, não criar
+        if (targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)) {
+          return []
+        }
+
+        const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0)
+
+        // Verificar se o dia existe no mês (evitar 31 em meses com 30 dias, etc)
+        if (input.monthDay > lastDayOfMonth.getDate()) {
+          return []
+        }
+
+        // Criar data às 23:00 UTC para garantir que a data seja exibida corretamente
+        // Independente do timezone do usuário (Brasil UTC-3 ou UTC-4), 23:00 UTC = 20:00 ou 19:00 local
+        // Isso garante que a data nunca mude para o dia anterior
+        const date = new Date(Date.UTC(targetYear, targetMonth, input.monthDay, 23, 0, 0, 0))
+
+        return [date]
+      }
+
+      // Para tarefas de sessão com frequência baseada em weekDays, criar múltiplas instâncias
+      const isSessionWithWeekDays =
         input.taskCategory === 'sessao' &&
         input.frequency &&
-        ['weekly', 'biweekly', 'monthly'].includes(input.frequency)
+        ['weekly', 'biweekly'].includes(input.frequency) &&
+        input.weekDays &&
+        input.weekDays.length > 0
 
-      const recurringDates =
-        isSessionWithFrequency && parsedDueDate
-          ? generateRecurringDates(
-              parsedDueDate,
-              input.frequency as 'weekly' | 'biweekly' | 'monthly'
-            )
+      // Para tarefas de sessão com frequência única baseada em monthDay
+      const isSessionWithMonthDay =
+        input.taskCategory === 'sessao' && input.frequency === 'once' && input.monthDay
+
+      const targetMonth = today.getMonth()
+      const targetYear = today.getFullYear()
+
+      const recurringDates = isSessionWithWeekDays
+        ? generateRecurringDatesFromWeekDays(targetMonth, targetYear, input.frequency as 'weekly' | 'biweekly')
+        : isSessionWithMonthDay
+          ? generateRecurringDateFromMonthDay(targetMonth, targetYear)
           : parsedDueDate
             ? [parsedDueDate]
             : []
@@ -309,6 +378,9 @@ export const therapistTasksRouter = router({
           isRecurring: input.isRecurring,
           frequency: input.frequency,
           isAiGenerated: false,
+          weekDays: input.weekDays || null,
+          monthDay: input.monthDay || null,
+          monthDays: input.monthDays || null,
         })
 
         // Se for tarefa de sessão, criar automaticamente na rotina do paciente

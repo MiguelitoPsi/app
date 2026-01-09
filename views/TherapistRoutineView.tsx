@@ -31,7 +31,7 @@ import { trpc } from '../lib/trpc/client'
 
 type TaskFormData = {
   title: string
-  frequency: 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'once'
+  frequency: 'daily' | 'weekly' | 'biweekly' | 'once'
   priority: 'low' | 'medium' | 'high'
   dueDate?: string
   type?: 'feedback' | 'session' | 'review_records' | 'create_plan' | 'approve_reward' | 'custom'
@@ -39,9 +39,11 @@ type TaskFormData = {
   taskCategory?: 'geral' | 'sessao'
   // ID do paciente para tarefas de sessão
   sessionPatientId?: string
-  // Dias da semana para frequência semanal (0-6, onde 0 = Domingo)
+  // Dias da semana para frequência semanal/quinzenal (0-6, onde 0 = Domingo)
   weekDays?: number[]
-  // Dias do mês para frequência mensal (1-31)
+  // Dia do mês para frequência única de sessão (1-31)
+  monthDay?: number
+  // Dias do mês para frequência mensal de tarefas gerais (1-31)
   monthDays?: number[]
 }
 
@@ -517,8 +519,8 @@ export default function TherapistRoutineView() {
       : displayMyTasks && displayMyTasks.length > 0 && myDayProgress < 100
 
   const handleCreateTask = () => {
-    // Validate date is not in the past
-    if (taskForm.dueDate) {
+    // Validate date is not in the past (only for non-session tasks that use dueDate)
+    if (taskForm.dueDate && taskForm.taskCategory !== 'sessao') {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
 
@@ -537,6 +539,22 @@ export default function TherapistRoutineView() {
         setShowAlert(true)
         return
       }
+    }
+
+    // Validate weekDays for sessions
+    if (taskForm.taskCategory === 'sessao' && (taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && !taskForm.weekDays?.length) {
+      setAlertMessage('Por favor, selecione o dia da semana para a sessão.')
+      setAlertTitle('Dia da Semana')
+      setShowAlert(true)
+      return
+    }
+
+    // Validate monthDay for once sessions
+    if (taskForm.taskCategory === 'sessao' && taskForm.frequency === 'once' && !taskForm.monthDay) {
+      setAlertMessage('Por favor, selecione o dia do mês para a sessão.')
+      setAlertTitle('Dia do Mês')
+      setShowAlert(true)
+      return
     }
 
     if (mainView === 'patients') {
@@ -582,9 +600,11 @@ export default function TherapistRoutineView() {
         frequency:
           taskForm.frequency === 'once'
             ? undefined
-            : (taskForm.frequency as 'daily' | 'weekly' | 'biweekly' | 'monthly'),
+            : (taskForm.frequency as 'daily' | 'weekly' | 'biweekly'),
         taskCategory: taskForm.taskCategory,
         patientId: taskForm.sessionPatientId,
+        weekDays: taskForm.weekDays,
+        monthDay: taskForm.monthDay,
       })
     }
   }
@@ -1859,29 +1879,145 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
-                    {/* Date - APENAS PARA SESSÃO */}
+                    {/* Frequency - PARA SESSÃO - SEMPRE ACIMA DE DATA */}
                     {taskForm.taskCategory === 'sessao' && (
                       <div>
-                        <label
-                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                          htmlFor='my-task-due-date'
-                        >
-                          <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
+                        <label className='mb-1 block font-bold text-slate-400 text-[10px] uppercase tracking-wider'>
+                          <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
                         </label>
-                        <input
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                          id='my-task-due-date'
-                          onChange={(e) =>
-                            setTaskForm({
-                              ...taskForm,
-                              dueDate: e.target.value,
-                            })
-                          }
-                          type='date'
-                          value={taskForm.dueDate || ''}
-                        />
+                        <div className='grid grid-cols-3 gap-1.5'>
+                          {(
+                            [
+                              { key: 'once', label: 'Única' },
+                              { key: 'weekly', label: 'Semanal' },
+                              { key: 'biweekly', label: 'Quinzenal' },
+                            ] as const
+                          ).map((freq) => (
+                            <button
+                              className={`rounded-md border-2 px-2 py-1.5 font-bold text-[10px] transition-all ${
+                                taskForm.frequency === freq.key
+                                  ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
+                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
+                              }`}
+                              key={freq.key}
+                              onClick={() =>
+                                setTaskForm({
+                                  ...taskForm,
+                                  frequency: freq.key,
+                                  weekDays: [],
+                                  monthDay: undefined,
+                                })
+                              }
+                              type='button'
+                            >
+                              {freq.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Seleção de dias da semana para frequência semanal/quinzenal */}
+                        {(taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && (
+                          <div className='mt-2'>
+                            <p className='mb-1.5 text-slate-500 text-[10px] dark:text-slate-400'>
+                              Selecione o dia da semana:
+                            </p>
+                            <div className='grid grid-cols-7 gap-1'>
+                              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                                const isSelected = taskForm.weekDays?.includes(index)
+                                return (
+                                  <button
+                                    className={`aspect-square rounded-md border-2 font-bold text-[10px] transition-all ${
+                                      isSelected
+                                        ? 'border-sky-500 bg-sky-500 text-white'
+                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600'
+                                    }`}
+                                    key={index}
+                                    onClick={() => {
+                                      setTaskForm({
+                                        ...taskForm,
+                                        weekDays: [index],
+                                      })
+                                    }}
+                                    type='button'
+                                  >
+                                    {day}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Seleção de dia do mês para frequência única */}
+                        {taskForm.frequency === 'once' && (
+                          <div className='mt-2'>
+                            <p className='mb-1.5 text-slate-500 text-[10px] dark:text-slate-400'>
+                              Selecione o dia do mês:
+                            </p>
+                            <div className='grid grid-cols-[repeat(10,1fr)] gap-1'>
+                              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
+                                const today = new Date()
+                                const todayDay = today.getDate()
+                                const isPast = day < todayDay
+                                const isSelected = taskForm.monthDay === day
+
+                                return (
+                                  <button
+                                    className={`aspect-square rounded-md border-2 font-bold text-[10px] transition-all ${
+                                      isPast
+                                        ? 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed dark:border-slate-800 dark:bg-slate-800 dark:text-slate-600'
+                                        : isSelected
+                                          ? 'border-sky-500 bg-sky-500 text-white'
+                                          : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600'
+                                    }`}
+                                    key={day}
+                                    disabled={isPast}
+                                    onClick={() => {
+                                      setTaskForm({
+                                        ...taskForm,
+                                        monthDay: day,
+                                      })
+                                    }}
+                                    type='button'
+                                  >
+                                    {day}
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     )}
+
+                    {/* Warning para sessão */}
+                    {taskForm.taskCategory === 'sessao' && selectedSessionPatient && (
+                      <div className='flex items-start gap-2 rounded-lg bg-amber-50 p-2 dark:bg-amber-900/20'>
+                        <AlertCircle className='mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-500' />
+                        <p className='text-amber-700 text-[10px] leading-tight dark:text-amber-400'>
+                          {taskForm.frequency === 'weekly'
+                            ? 'Sessão semanal no mesmo dia'
+                            : taskForm.frequency === 'biweekly'
+                              ? 'Sessão quinzenal no mesmo dia'
+                              : taskForm.frequency === 'once'
+                                ? `Sessão no dia ${taskForm.monthDay}`
+                                : 'Tarefa adicionada'}
+                          {' para '}<strong>{selectedSessionPatient.name}</strong>.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Sessão mostra que prioridade é alta automaticamente */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div className='flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 dark:bg-red-900/20'>
+                        <Flag className='h-3.5 w-3.5 text-red-500' fill='currentColor' />
+                        <span className='font-medium text-red-600 text-[10px] dark:text-red-400'>
+                          Prioridade Alta
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Date - REMOVIDO - Substituído pela seleção de dias da semana na frequência */}
 
                     {/* Date and Priority - PARA TAREFAS GERAIS */}
                     {taskForm.taskCategory === 'geral' && (
@@ -1962,7 +2098,7 @@ export default function TherapistRoutineView() {
                                   ...taskForm,
                                   frequency: freq.key,
                                   weekDays: [],
-                                  monthDays: [],
+                                  monthDay: undefined,
                                 })
                               }
                               type='button'
@@ -2048,73 +2184,6 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
-                    {/* Sessão mostra que prioridade é alta automaticamente */}
-                    {taskForm.taskCategory === 'sessao' && (
-                      <div className='flex items-center gap-2 rounded-xl bg-red-50 p-3 dark:bg-red-900/20'>
-                        <Flag className='h-4 w-4 text-red-500' fill='currentColor' />
-                        <span className='font-medium text-red-600 text-sm dark:text-red-400'>
-                          Prioridade Alta (automático para sessões)
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Frequency - APENAS PARA SESSÃO */}
-                    {taskForm.taskCategory === 'sessao' && (
-                      <div>
-                        <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                          <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
-                        </label>
-                        <div className='grid grid-cols-3 gap-2'>
-                          {(
-                            [
-                              { key: 'weekly', label: 'Semanal' },
-                              { key: 'biweekly', label: 'Quinzenal' },
-                              { key: 'monthly', label: 'Mensal' },
-                            ] as const
-                          ).map((freq) => (
-                            <button
-                              className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
-                                taskForm.frequency === freq.key
-                                  ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
-                                  : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                              }`}
-                              key={freq.key}
-                              onClick={() =>
-                                setTaskForm({
-                                  ...taskForm,
-                                  frequency: freq.key,
-                                })
-                              }
-                              type='button'
-                            >
-                              {freq.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Warning para sessão */}
-                    {taskForm.taskCategory === 'sessao' && selectedSessionPatient && (
-                      <div className='flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-900/20'>
-                        <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500' />
-                        <p className='text-amber-700 text-xs dark:text-amber-400'>
-                          {taskForm.frequency === 'weekly'
-                            ? 'Serão criadas sessões semanais no mês selecionado na rotina de '
-                            : taskForm.frequency === 'biweekly'
-                              ? 'Serão criadas sessões quinzenais no mês selecionado na rotina de '
-                              : taskForm.frequency === 'monthly'
-                                ? 'Será criada 1 sessão mensal na rotina de '
-                                : 'A tarefa será adicionada na rotina de '}
-                          <strong>{selectedSessionPatient.name}</strong>
-                          {taskForm.frequency &&
-                          taskForm.frequency !== 'once' &&
-                          taskForm.frequency !== 'monthly'
-                            ? ' sempre no mesmo dia da semana.'
-                            : '.'}
-                        </p>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
@@ -2141,7 +2210,11 @@ export default function TherapistRoutineView() {
                     createMyTaskMutation.isPending ||
                     !taskForm.taskCategory ||
                     (taskForm.taskCategory === 'geral' && !taskForm.title) ||
-                    (taskForm.taskCategory === 'sessao' && !taskForm.sessionPatientId)
+                    (taskForm.taskCategory === 'sessao' && (
+                      !taskForm.sessionPatientId ||
+                      ((taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && !taskForm.weekDays?.length) ||
+                      (taskForm.frequency === 'once' && !taskForm.monthDay)
+                    ))
                   }
                   type='submit'
                 >
