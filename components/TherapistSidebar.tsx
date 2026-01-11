@@ -4,8 +4,7 @@ import { Flame, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import type React from 'react'
-import { memo } from 'react'
+import React, { memo, useState } from 'react'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 
@@ -24,15 +23,23 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
   const router = useRouter()
   const { stats, isLoading } = useTherapistGame()
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
   const handleLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
+    
     try {
-      await authClient.signOut()
-      // Limpar o cookie de role via API
-      await fetch('/api/auth/clear-role-cookie', { method: 'POST' })
+      // Executar logout e limpeza em paralelo para otimizar tempo
+      await Promise.all([
+        authClient.signOut(),
+        fetch('/api/auth/clear-role-cookie', { method: 'POST' }),
+      ])
+      
       router.push('/auth/signin')
-      router.refresh()
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
+      setIsLoggingOut(false)
     }
   }
 
@@ -168,18 +175,23 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
             <span className='hidden lg:block'>Configurações</span>
           </Link>
           <button
-            className='flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:justify-start dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+            className='flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:justify-start dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white disabled:opacity-70 disabled:cursor-not-allowed'
             onClick={handleLogout}
             title='Sair'
             type='button'
+            disabled={isLoggingOut}
           >
             <span className='shrink-0'>
-              {(() => {
-                const Icon = getIconByKey('logout')
-                return <Icon className='h-5 w-5' />
-              })()}
+              {isLoggingOut ? (
+                <div className='h-5 w-5 animate-spin rounded-full border-2 border-slate-600 border-t-transparent dark:border-slate-400' />
+              ) : (
+                (() => {
+                  const Icon = getIconByKey('logout')
+                  return <Icon className='h-5 w-5' />
+                })()
+              )}
             </span>
-            <span className='hidden lg:block'>Sair</span>
+            <span className='hidden lg:block'>{isLoggingOut ? 'Saindo...' : 'Sair'}</span>
           </button>
         </div>
       </div>

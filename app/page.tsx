@@ -33,7 +33,7 @@ export default function LandingPage() {
             x: [0, 80, 0, -60, 0],
             y: [0, -50, 40, 0, 0],
           }}
-          className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl"
+          className="absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl opacity-50 dark:opacity-100"
           transition={{
             duration: 12,
             repeat: Number.POSITIVE_INFINITY,
@@ -45,7 +45,7 @@ export default function LandingPage() {
             x: [0, -70, 40, 0],
             y: [0, 60, -40, 0],
           }}
-          className="absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl"
+          className="absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl opacity-50 dark:opacity-100"
           transition={{
             duration: 10,
             repeat: Number.POSITIVE_INFINITY,
@@ -57,7 +57,7 @@ export default function LandingPage() {
             x: [0, 60, -50, 0],
             y: [0, -70, 50, 0],
           }}
-          className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl"
+          className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl opacity-50 dark:opacity-100"
           transition={{
             duration: 14,
             repeat: Number.POSITIVE_INFINITY,
@@ -138,7 +138,7 @@ export default function LandingPage() {
 
           <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
-              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white px-8 py-4 font-bold text-lg text-slate-900 shadow-xl shadow-sky-500/10 transition-all hover:bg-slate-100 hover:shadow-sky-500/20 sm:w-auto"
+              className="group flex w-full items-center justify-center gap-2 rounded-xl bg-white text-slate-900 px-8 py-4 font-bold text-lg shadow-xl shadow-sky-500/10 transition-all hover:bg-slate-100 hover:shadow-sky-500/20 sm:w-auto"
               href="#recursos"
             >
               Saiba mais
@@ -450,7 +450,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section className="px-4 py-20 border-t border-slate-800/50">
+      <section className="px-4 py-20 border-t border-slate-800/50 bg-transparent">
         <div className="mx-auto max-w-3xl">
           <h2 className="mb-12 text-center font-bold text-2xl text-white">
             Dúvidas Frequentes
@@ -494,14 +494,14 @@ export default function LandingPage() {
             <div className="flex flex-col items-center md:items-end gap-3">
               <div className="flex items-center gap-4 text-sm">
                 <Link
-                  className="text-slate-400 transition-colors hover:text-white"
+                  className="text-slate-400 hover:text-white transition-colors"
                   href="/privacy"
                 >
                   Política de Privacidade
                 </Link>
                 <span className="text-slate-700">|</span>
                 <Link
-                  className="text-slate-400 transition-colors hover:text-white"
+                  className="text-slate-400 hover:text-white transition-colors"
                   href="/terms"
                 >
                   Termos de Uso
@@ -537,7 +537,7 @@ function FeatureCard({
 }) {
   return (
     <div className="group rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition-all hover:border-slate-700 hover:bg-slate-800/50">
-      <div className="mb-4 inline-flex rounded-xl bg-slate-950 border border-slate-800 p-3 shadow-sm group-hover:border-slate-700 group-hover:scale-110 transition-transform">
+      <div className="mb-4 inline-flex rounded-xl bg-slate-950 border border-slate-800 p-3 shadow-sm group-hover:border-slate-700 transform transition-transform group-hover:scale-110">
         {icon}
       </div>
       <h3 className="mb-2 font-semibold text-lg text-white">{title}</h3>

@@ -379,6 +379,7 @@ export const therapistTasks = sqliteTable('therapist_tasks', {
     icon?: string
     color?: string
     notes?: string
+    sessionValue?: number
   }>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),

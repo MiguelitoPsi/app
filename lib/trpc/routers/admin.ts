@@ -38,22 +38,25 @@ export const adminRouter = router({
       throw new Error('Acesso não autorizado')
     }
 
-    const [totalResult] = await ctx.db.select({ count: sql<number>`count(*)` }).from(users)
+    const [totalResult] = await ctx.db
+      .select({ count: sql<number>`count(*)` })
+      .from(users)
+      .where(isNull(users.deletedAt))
 
     const [adminResult] = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(eq(users.role, 'admin'))
+      .where(and(eq(users.role, 'admin'), isNull(users.deletedAt)))
 
     const [psychologistResult] = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(eq(users.role, 'psychologist'))
+      .where(and(eq(users.role, 'psychologist'), isNull(users.deletedAt)))
 
     const [patientResult] = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(users)
-      .where(eq(users.role, 'patient'))
+      .where(and(eq(users.role, 'patient'), isNull(users.deletedAt)))
 
     return {
       totalUsers: Number(totalResult?.count ?? 0),

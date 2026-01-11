@@ -26,20 +26,21 @@
   }
 }
 
-body {
-  font-family: "Inter", sans-serif;
-  -webkit-tap-highlight-color: transparent;
-  background-color: #020617; /* Slate-950 (Dark Mode) */
-  color: #e2e8f0;
-  /* Prevent pull-to-refresh and overscroll bounce */
-  overscroll-behavior: none;
-  /* Better touch experience */
-  touch-action: manipulation;
-  /* Improve text rendering */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  /* Better line height for readability */
-  line-height: 1.5;
+@layer base {
+  body {
+    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50;
+    font-family: "Inter", sans-serif;
+    -webkit-tap-highlight-color: transparent;
+    /* Prevent pull-to-refresh and overscroll bounce */
+    overscroll-behavior: none;
+    /* Better touch experience */
+    touch-action: manipulation;
+    /* Improve text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Better line height for readability */
+    line-height: 1.5;
+  }
 }
 
 /* Theme transition - applied temporarily during theme change */

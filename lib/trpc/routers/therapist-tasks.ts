@@ -7,12 +7,13 @@ import { TRPCError } from '@trpc/server'
 import { and, asc, eq, gte, isNull, lt, ne, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { patientTasksFromTherapist, psychologistPatients, tasks, therapistTasks } from '@/lib/db/schema'
+import { patientTasksFromTherapist, psychologistPatients, tasks, therapistTasks, users } from '@/lib/db/schema'
 import { TASK_LIMITS } from '@/lib/constants'
 
 import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 import { awardTherapistXP, type THERAPIST_XP_ACTIONS } from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
+import { therapistFinancial } from '@/lib/db/schema'
 
 // XP rewards for therapist tasks by priority
 const THERAPIST_TASK_XP: Record<string, number> = {
@@ -115,6 +116,8 @@ export const therapistTasksRouter = router({
         monthDay: z.number().optional(),
         // Dias do mês para frequência mensal de tarefas gerais (1-31)
         monthDays: z.array(z.number()).optional(),
+        // Valor da sessão para fins financeiros
+        sessionValue: z.number().min(0).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -148,15 +151,15 @@ export const therapistTasksRouter = router({
         })
       }
 
-      // Se for sessão com frequência única, precisa ter monthDay selecionado
+      // Se for sessão com frequência única, precisa ter dueDate selecionado
       if (
         input.taskCategory === 'sessao' &&
         input.frequency === 'once' &&
-        !input.monthDay
+        !input.dueDate
       ) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'É necessário selecionar o dia do mês para sessão única',
+          message: 'É necessário selecionar a data para sessão única',
         })
       }
 
@@ -202,7 +205,7 @@ export const therapistTasksRouter = router({
 
       // Parse date as UTC to avoid timezone issues
       let parsedDueDate: Date | null = null
-      if (input.dueDate && input.taskCategory !== 'sessao') {
+      if (input.dueDate) {
         const [year, month, day] = input.dueDate.split('-').map(Number)
         parsedDueDate = new Date(Date.UTC(year, month - 1, day, 23, 0, 0, 0))
       }
@@ -306,7 +309,7 @@ export const therapistTasksRouter = router({
 
       const recurringDates = isSessionWithWeekDays
         ? generateRecurringDatesFromWeekDays(targetMonth, targetYear, input.frequency as 'weekly' | 'biweekly')
-        : isSessionWithMonthDay
+        : isSessionWithMonthDay // Deprecated path, kept for safety but shouldn't be hit with new frontend
           ? generateRecurringDateFromMonthDay(targetMonth, targetYear)
           : parsedDueDate
             ? [parsedDueDate]
@@ -381,6 +384,7 @@ export const therapistTasksRouter = router({
           weekDays: input.weekDays || null,
           monthDay: input.monthDay || null,
           monthDays: input.monthDays || null,
+          metadata: input.sessionValue ? { sessionValue: input.sessionValue } : null,
         })
 
         // Se for tarefa de sessão, criar automaticamente na rotina do paciente
@@ -459,6 +463,18 @@ export const therapistTasksRouter = router({
           })
           .where(eq(therapistTasks.id, input.id))
 
+        // Se a tarefa tinha um registro financeiro associado (sessão), remover
+        if (task.type === 'session' && task.metadata?.sessionValue) {
+           await ctx.db
+            .delete(therapistFinancial)
+            .where(
+              and(
+                eq(therapistFinancial.therapistId, ctx.user.id),
+                sql`JSON_EXTRACT(${therapistFinancial.metadata}, '$.taskId') = ${task.id}`
+              )
+            )
+        }
+
         return {
           xpAwarded: 0,
           levelUp: false,
@@ -475,6 +491,43 @@ export const therapistTasksRouter = router({
           updatedAt: now,
         })
         .where(eq(therapistTasks.id, input.id))
+
+      // Se for uma sessão com valor definido, criar registro financeiro
+      if (task.type === 'session' && task.metadata?.sessionValue) {
+        // Verificar se já existe (segurança)
+        const existingRecord = await ctx.db
+          .select()
+          .from(therapistFinancial)
+          .where(
+            and(
+              eq(therapistFinancial.therapistId, ctx.user.id),
+              sql`JSON_EXTRACT(${therapistFinancial.metadata}, '$.taskId') = ${task.id}`
+            )
+          )
+          .limit(1)
+
+        if (existingRecord.length === 0) {
+           const patientName = task.patientId ? (await ctx.db.select({ name: users.name }).from(users).where(eq(users.id, task.patientId)).limit(1))[0]?.name : 'Paciente'
+           
+           await ctx.db.insert(therapistFinancial).values({
+            id: nanoid(),
+            therapistId: ctx.user.id,
+            type: 'income',
+            category: 'session',
+            amount: task.metadata.sessionValue,
+            description: `Sessão - ${task.title.replace('Sessão - ', '')}`, // Tenta limpar o título se for gerado auto
+            patientId: task.patientId,
+            date: now,
+            isRecurring: false,
+            metadata: {
+              notes: 'Gerado automaticamente via rotina',
+              taskId: task.id
+            }
+          })
+          
+          await awardTherapistXP(ctx.db, ctx.user.id, 'updateFinancialRecord')
+        }
+      }
 
       // Award XP to the therapist
       // Map task type to appropriate XP action

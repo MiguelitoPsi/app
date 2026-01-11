@@ -127,7 +127,7 @@ export default function InvitePage() {
               Aceitar Convite e Criar Conta
             </button>
             <button
-              className='w-full bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-4 px-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]'
+              className='w-full bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold py-4 px-6 rounded-xl border-2 border-slate-200 dark:border-slate-700 transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98]'
               onClick={() => router.push(`/auth/signin?invite=${token}`)}
               type='button'
             >

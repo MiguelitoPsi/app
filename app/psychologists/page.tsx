@@ -89,14 +89,14 @@ export default function PsychologistsPage() {
   }
 
   return (
-    <div className='min-h-screen bg-slate-950 text-slate-200'>
+    <div className='min-h-screen bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-200'>
       <PsychologistProfileModal
         isOpen={!!selectedTherapist}
         onClose={() => setSelectedTherapist(null)}
         therapist={selectedTherapist as any}
       />
       {/* Header */}
-      <header className='fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl'>
+      <header className='fixed top-0 z-40 w-full border-b border-slate-200/50 bg-white/80 dark:border-slate-800/50 dark:bg-slate-950/80 backdrop-blur-xl'>
         <div className='mx-auto flex max-w-6xl items-center justify-between px-4 py-3'>
           <div className='flex items-center gap-4'>
             <Link

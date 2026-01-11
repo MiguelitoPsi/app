@@ -3,6 +3,7 @@
 import {
   AlertCircle,
   AlertTriangle,
+  Banknote,
   Calendar as CalendarIcon,
   Check,
   CheckCircle2,
@@ -45,6 +46,8 @@ type TaskFormData = {
   monthDay?: number
   // Dias do mês para frequência mensal de tarefas gerais (1-31)
   monthDays?: number[]
+  // Valor da sessão
+  sessionValue?: number
 }
 
 const defaultTaskForm: TaskFormData = {
@@ -557,10 +560,17 @@ export default function TherapistRoutineView() {
       return
     }
 
-    // Validate monthDay for once sessions
-    if (taskForm.taskCategory === 'sessao' && taskForm.frequency === 'once' && !taskForm.monthDay) {
-      setAlertMessage('Por favor, selecione o dia do mês para a sessão.')
-      setAlertTitle('Dia do Mês')
+    // Validate monthDay for once sessions (REMOVED - now using dueDate)
+    // if (taskForm.taskCategory === 'sessao' && taskForm.frequency === 'once' && !taskForm.monthDay) {
+    //   setAlertMessage('Por favor, selecione o dia do mês para a sessão.')
+    //   setAlertTitle('Dia do Mês')
+    //   setShowAlert(true)
+    //   return
+    // }
+
+    if (taskForm.taskCategory === 'sessao' && taskForm.frequency === 'once' && !taskForm.dueDate) {
+      setAlertMessage('Por favor, selecione a data para a sessão.')
+      setAlertTitle('Data da Sessão')
       setShowAlert(true)
       return
     }
@@ -612,7 +622,9 @@ export default function TherapistRoutineView() {
         taskCategory: taskForm.taskCategory,
         patientId: taskForm.sessionPatientId,
         weekDays: taskForm.weekDays,
+        weekDays: taskForm.weekDays,
         monthDay: taskForm.monthDay,
+        sessionValue: taskForm.sessionValue,
       })
     }
   }
@@ -1863,6 +1875,32 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
+                    {/* VALOR DA SESSÃO - APENAS PARA SESSÃO */}
+                    {taskForm.taskCategory === 'sessao' && (
+                      <div>
+                        <label
+                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                          htmlFor='session-value'
+                        >
+                          <Banknote className='mb-0.5 inline h-3 w-3' /> Valor da Sessão (R$)
+                        </label>
+                        <input
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
+                          id='session-value'
+                          min='0'
+                          onChange={(e) =>
+                            setTaskForm({
+                              ...taskForm,
+                              sessionValue: Number(e.target.value),
+                            })
+                          }
+                          placeholder='0.00'
+                          type='number'
+                          value={taskForm.sessionValue || ''}
+                        />
+                      </div>
+                    )}
+
                     {/* Title - apenas para tarefas gerais, sessões têm título automático */}
                     {taskForm.taskCategory === 'geral' && (
                       <div>
@@ -1954,43 +1992,28 @@ export default function TherapistRoutineView() {
                           </div>
                         )}
 
-                        {/* Seleção de dia do mês para frequência única */}
+                        {/* Seleção de DATA para frequência única (Substituindo dia do mês) */}
                         {taskForm.frequency === 'once' && (
                           <div className='mt-2'>
-                            <p className='mb-1.5 text-slate-500 text-[10px] dark:text-slate-400'>
-                              Selecione o dia do mês:
-                            </p>
-                            <div className='grid grid-cols-[repeat(10,1fr)] gap-1'>
-                              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                                const today = new Date()
-                                const todayDay = today.getDate()
-                                const isPast = day < todayDay
-                                const isSelected = taskForm.monthDay === day
-
-                                return (
-                                  <button
-                                    className={`aspect-square rounded-md border-2 font-bold text-[10px] transition-all ${
-                                      isPast
-                                        ? 'border-slate-100 bg-slate-50 text-slate-300 cursor-not-allowed dark:border-slate-800 dark:bg-slate-800 dark:text-slate-600'
-                                        : isSelected
-                                          ? 'border-sky-500 bg-sky-500 text-white'
-                                          : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600'
-                                    }`}
-                                    disabled={isPast}
-                                    key={day}
-                                    onClick={() => {
-                                      setTaskForm({
-                                        ...taskForm,
-                                        monthDay: day,
-                                      })
-                                    }}
-                                    type='button'
-                                  >
-                                    {day}
-                                  </button>
-                                )
-                              })}
-                            </div>
+                            <label
+                              className='mb-1 block font-medium text-slate-500 text-[10px] dark:text-slate-400'
+                              htmlFor='session-date-once'
+                            >
+                              Data da Sessão:
+                            </label>
+                            <input
+                              className='w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
+                              id='session-date-once'
+                              onChange={(e) =>
+                                setTaskForm({
+                                  ...taskForm,
+                                  dueDate: e.target.value,
+                                  monthDay: undefined, // Clear monthDay as we use dueDate
+                                })
+                              }
+                              type='date'
+                              value={taskForm.dueDate || ''}
+                            />
                           </div>
                         )}
                       </div>
@@ -2006,7 +2029,7 @@ export default function TherapistRoutineView() {
                             : taskForm.frequency === 'biweekly'
                               ? 'Sessão quinzenal no mesmo dia'
                               : taskForm.frequency === 'once'
-                                ? `Sessão no dia ${taskForm.monthDay}`
+                                ? `Sessão em ${new Date(taskForm.dueDate || '').toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`
                                 : 'Tarefa adicionada'}
                           {' para '}
                           <strong>{selectedSessionPatient.name}</strong>.
@@ -2220,7 +2243,7 @@ export default function TherapistRoutineView() {
                       (!taskForm.sessionPatientId ||
                         ((taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') &&
                           !taskForm.weekDays?.length) ||
-                        (taskForm.frequency === 'once' && !taskForm.monthDay)))
+                        (taskForm.frequency === 'once' && !taskForm.dueDate)))
                   }
                   type='submit'
                 >

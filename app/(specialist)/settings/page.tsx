@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [showTermsModal, setShowTermsModal] = useState(false)
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showChangePassword, setShowChangePassword] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
   // Password Change State
   const [isChangingPassword, setIsChangingPassword] = useState(false)
@@ -233,7 +234,7 @@ export default function SettingsPage() {
                       <div className='relative'>
                         <input
                           autoComplete='current-password'
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
+                          className='w-full rounded-xl border border-slate-200 bg-slate-100 px-4 py-3 pr-12 text-slate-800 text-sm placeholder-slate-400 transition-all focus:border-violet-500 focus:outline-none focus:ring-2 focus:ring-violet-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500'
                           id='currentPassword'
                           onChange={(e) => setCurrentPassword(e.target.value)}
                           placeholder='••••••••'
@@ -356,22 +357,36 @@ export default function SettingsPage() {
         {/* Logout */}
         <div className='pt-6'>
           <button
-            className='flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 py-3 font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20'
+            className='flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 py-3 font-medium text-red-600 transition-colors hover:bg-red-100 hover:text-red-700 disabled:cursor-not-allowed disabled:opacity-70 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400 dark:hover:bg-red-900/20'
             onClick={async () => {
-              await authClient.signOut({
-                fetchOptions: {
-                  onSuccess: async () => {
-                    await fetch('/api/auth/clear-role-cookie', {
-                      method: 'POST',
-                    })
-                    window.location.href = '/auth/signin'
-                  },
-                },
-              })
+              if (isLoggingOut) return
+              setIsLoggingOut(true)
+              try {
+                await Promise.all([
+                  authClient.signOut(),
+                  fetch('/api/auth/clear-role-cookie', {
+                    method: 'POST',
+                  }),
+                ])
+                window.location.href = '/auth/signin'
+              } catch (error) {
+                console.error('Logout error:', error)
+                setIsLoggingOut(false)
+              }
             }}
+            disabled={isLoggingOut}
             type='button'
           >
-            <LogOut size={18} /> Sair da conta
+            {isLoggingOut ? (
+              <>
+                <div className='h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent' />
+                Saindo...
+              </>
+            ) : (
+              <>
+                <LogOut size={18} /> Sair da conta
+              </>
+            )}
           </button>
         </div>
       </div>

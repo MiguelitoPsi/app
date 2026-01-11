@@ -99,7 +99,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <AchievementManager />
       <InternalNotificationManager />
       <div className='min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 transition-colors duration-300 dark:from-slate-900 dark:to-slate-800'>
-        <div className='mx-auto flex h-screen max-w-md flex-col bg-white shadow-2xl dark:bg-slate-950'>
+        <div className='mx-auto flex h-screen max-w-md flex-col bg-slate-100 shadow-2xl dark:bg-slate-950'>
           {!hideHeader && <AppHeader />}
           <main className='flex-1 overflow-y-auto' id='main-content'>
             {children}

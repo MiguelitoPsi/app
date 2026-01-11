@@ -68,7 +68,7 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       </div>
 
       {/* Main content - with left margin for sidebar (20 = 5rem = 80px on mobile, 56 = 14rem = 224px on desktop) */}
-      <main className='min-h-screen bg-slate-50 pb-8 transition-all duration-300 ml-20 lg:ml-56 lg:pb-0 dark:bg-transparent'>
+      <main className='min-h-screen bg-slate-100 pb-8 transition-all duration-300 ml-20 lg:ml-56 lg:pb-0 dark:bg-transparent'>
         {children}
       </main>
     </div>
