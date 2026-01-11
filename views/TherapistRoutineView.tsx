@@ -622,7 +622,6 @@ export default function TherapistRoutineView() {
         taskCategory: taskForm.taskCategory,
         patientId: taskForm.sessionPatientId,
         weekDays: taskForm.weekDays,
-        weekDays: taskForm.weekDays,
         monthDay: taskForm.monthDay,
         sessionValue: taskForm.sessionValue,
       })

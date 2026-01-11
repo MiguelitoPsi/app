@@ -456,6 +456,7 @@ export const therapistFinancial = sqliteTable('therapist_financial', {
     notes?: string
     paymentMethod?: string
     invoiceNumber?: string
+    taskId?: string
   }>(),
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
   updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().default(sql`(unixepoch())`),
