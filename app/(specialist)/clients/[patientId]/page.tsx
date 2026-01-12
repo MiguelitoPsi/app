@@ -77,7 +77,7 @@ export default function PatientProfilePage() {
   )
 
   // Buscar documentos de sessões
-  const { data: sessionDocuments } = trpc.therapistReports.getSessionDocumentsByPatient.useQuery(
+  const { data: sessionDocuments } = trpc.therapistReports.getPatientDocuments.useQuery(
     { patientId },
     { enabled: !!patientId }
   )
