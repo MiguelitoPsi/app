@@ -112,7 +112,7 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className='h-full overflow-y-auto'>
+    <div className='box-border h-full overflow-y-auto'>
       {/* Dashboard Header */}
       <header className='sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/80'>
         <div className='flex h-16 items-center justify-between px-4'>
@@ -225,7 +225,7 @@ export default function ClientsPage() {
 
         {/* Stats */}
         <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
-          <div className='rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800'>
+          <div className='rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
             <div className='flex items-center gap-3'>
               <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
                 <User className='h-5 w-5' />
@@ -238,7 +238,7 @@ export default function ClientsPage() {
               </div>
             </div>
           </div>
-          <div className='rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800'>
+          <div className='rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
             <div className='flex items-center gap-3'>
               <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'>
                 <Calendar className='h-5 w-5' />
@@ -251,7 +251,7 @@ export default function ClientsPage() {
               </div>
             </div>
           </div>
-          <div className='rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800'>
+          <div className='rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
             <div className='flex items-center gap-3'>
               <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'>
                 <FileText className='h-5 w-5' />
@@ -276,7 +276,7 @@ export default function ClientsPage() {
             {filteredPatients.map((patient) => (
               <div
                 key={patient.id}
-                className='group relative rounded-xl border border-slate-200 bg-white p-4 transition-all hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-500'
+                className='group relative rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-500'
               >
                 <div className='flex items-start justify-between'>
                   <div className='flex items-center gap-3'>

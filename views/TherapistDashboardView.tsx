@@ -22,7 +22,16 @@ const CounterBadge: React.FC<{ count: number }> = ({ count }) => (
   </span>
 )
 
-// Card de resumo
+// Card container - flex column, sem position absolute
+const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
+  <div
+    className={`flex flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800 ${className}`}
+  >
+    {children}
+  </div>
+)
+
+// Card de resumo - flexbox alinhado
 const SummaryCard: React.FC<{
   icon: React.ElementType
   iconColor: string
@@ -31,13 +40,12 @@ const SummaryCard: React.FC<{
   isLoading?: boolean
 }> = ({ icon: Icon, iconColor, count, label, isLoading }) => (
   <div
-    className='flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800'
-    style={{ borderWidth: '1px' }}
+    className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'
   >
-    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${iconColor}`}>
+    <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${iconColor}`}>
       <Icon className='h-5 w-5' />
     </div>
-    <div>
+    <div className='flex flex-col'>
       <p className='text-xl font-bold text-slate-800 dark:text-white'>{isLoading ? '-' : count ?? 0}</p>
       <p className='text-xs text-slate-500 dark:text-slate-400'>{label}</p>
     </div>
@@ -51,7 +59,7 @@ const FilterPill: React.FC<{
   children: React.ReactNode
 }> = ({ active, onClick, children }) => (
   <button
-    className={`rounded-full px-3 py-1 text-xs font-medium transition-all ${
+    className={`flex items-center rounded-full px-3 py-1 text-xs font-medium transition-all ${
       active
         ? 'bg-purple-600 text-white'
         : 'border border-slate-200 text-slate-600 hover:border-purple-500 dark:border-slate-600 dark:text-slate-400'
@@ -63,28 +71,18 @@ const FilterPill: React.FC<{
   </button>
 )
 
-// Item de pendência
+// Item de pendência - flexbox alinhado
 const PendingItem: React.FC<{
   icon: React.ElementType
   iconBg: string
   text: string
 }> = ({ icon: Icon, iconBg, text }) => (
-  <div className='flex items-center gap-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800' style={{ borderWidth: '1px' }}>
-    <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${iconBg}`}>
+  <div className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
+    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${iconBg}`}>
       <Icon className='h-4 w-4' />
     </div>
     <p className='flex-1 text-sm text-slate-700 dark:text-slate-300'>{text}</p>
-    <ChevronRight className='h-5 w-5 text-slate-400' />
-  </div>
-)
-
-// Card container
-const Card: React.FC<{ children: React.ReactNode; className?: string }> = ({ children, className = '' }) => (
-  <div
-    className={`rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800 ${className}`}
-    style={{ borderWidth: '1px' }}
-  >
-    {children}
+    <ChevronRight className='h-5 w-5 flex-shrink-0 text-slate-400' />
   </div>
 )
 
@@ -121,41 +119,41 @@ export const TherapistDashboardView: React.FC = () => {
   const isLoading = isLoadingPatients || isLoadingInvites || isLoadingSummary
 
   return (
-    <div className='h-full w-full overflow-hidden bg-slate-50 dark:bg-slate-900'>
+    <div className='box-border h-full w-full overflow-hidden bg-slate-50 p-5 dark:bg-slate-900'>
       {/* CORPO PRINCIPAL - GRID */}
-      <div className='grid h-full grid-cols-12 gap-5 p-5'>
+      <div className='grid h-full grid-cols-12 gap-5'>
         {/* COLUNA ESQUERDA (30%) */}
-        <div className='col-span-12 lg:col-span-4 flex flex-col gap-5'>
+        <div className='col-span-12 flex flex-col gap-5 lg:col-span-4'>
           {/* Próximas Sessões */}
           <Card>
-            <div className='flex items-center gap-2 mb-4'>
-              <Calendar className='h-5 w-5 text-purple-500' />
+            <div className='flex flex-row items-center gap-2 pb-4 mb-4 border-b border-slate-100 dark:border-slate-700'>
+              <Calendar className='h-5 w-5 flex-shrink-0 text-purple-500' />
               <h2 className='text-base font-semibold text-slate-800 dark:text-white'>Próximas sessões</h2>
             </div>
-            <div>
+            <div className='flex flex-col'>
               {isLoading ? (
-                <div className='space-y-2'>
+                <div className='flex flex-col gap-2'>
                   <div className='h-4 w-full rounded bg-slate-100 dark:bg-slate-700' />
                   <div className='h-4 w-3/4 rounded bg-slate-100 dark:bg-slate-700' />
                 </div>
               ) : totalSessions === 0 ? (
-                <>
-                  <p className='text-sm text-slate-500 dark:text-slate-400 mb-4'>
+                <div className='flex flex-col gap-4'>
+                  <p className='text-sm text-slate-500 dark:text-slate-400'>
                     Você ainda não cadastrou sessões para os próximos dias.
                   </p>
-                  <button className='flex items-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700'>
+                  <button className='flex flex-row items-center justify-center gap-2 rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700'>
                     <Calendar className='h-4 w-4' />
                     Cadastrar horário
                   </button>
-                </>
+                </div>
               ) : (
                 <p className='text-sm text-slate-600 dark:text-slate-300'>{totalSessions} sessões agendadas.</p>
               )}
             </div>
           </Card>
 
-          {/* Mini-cards de resumo */}
-          <div className='flex flex-col gap-3 overflow-y-auto'>
+          {/* Mini-cards de resumo - grid alinhado */}
+          <div className='flex flex-col gap-5'>
             <SummaryCard
               icon={Gift}
               iconColor='bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
@@ -181,16 +179,16 @@ export const TherapistDashboardView: React.FC = () => {
         </div>
 
         {/* COLUNA DIREITA (70%) */}
-        <div className='col-span-12 lg:col-span-8 flex flex-col gap-5 overflow-hidden'>
+        <div className='col-span-12 flex flex-col gap-5 overflow-hidden lg:col-span-8'>
           {/* Pendências */}
           <Card>
-            <div className='flex items-center justify-between mb-4'>
-              <div className='flex items-center gap-2'>
-                <Clock className='h-5 w-5 text-slate-400' />
+            <div className='flex flex-row items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700'>
+              <div className='flex flex-row items-center gap-2'>
+                <Clock className='h-5 w-5 flex-shrink-0 text-slate-400' />
                 <h2 className='text-base font-semibold text-slate-800 dark:text-white'>Pendências</h2>
                 <CounterBadge count={pendingItems.length + pendingInvites} />
               </div>
-              <div className='flex items-center gap-2'>
+              <div className='flex flex-row items-center gap-2'>
                 <button className='flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'>
                   <RefreshCw className='h-4 w-4' />
                 </button>
@@ -201,7 +199,7 @@ export const TherapistDashboardView: React.FC = () => {
             </div>
 
             {/* Filtros */}
-            <div className='flex gap-2 mb-4'>
+            <div className='flex flex-row gap-2 pb-4 mb-4'>
               <FilterPill active={activeFilter === 'all'} onClick={() => setActiveFilter('all')}>
                 Todos
               </FilterPill>
@@ -214,7 +212,7 @@ export const TherapistDashboardView: React.FC = () => {
             </div>
 
             {/* Lista */}
-            <div className='space-y-2'>
+            <div className='flex flex-col gap-3'>
               {isLoading ? (
                 <>
                   <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
@@ -228,11 +226,11 @@ export const TherapistDashboardView: React.FC = () => {
             </div>
           </Card>
 
-          {/* Tarefas - Apenas esta div foi diminuída */}
-          <Card className='h-48 flex flex-col'>
-            <div className='flex items-center justify-between border-b border-slate-100 dark:border-slate-700 pb-2 mb-2'>
-              <div className='flex items-center gap-2'>
-                <CheckSquare className='h-4 w-4 text-slate-400' />
+          {/* Tarefas */}
+          <Card className='flex-1 min-h-[200px]'>
+            <div className='flex flex-row items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700'>
+              <div className='flex flex-row items-center gap-2'>
+                <CheckSquare className='h-4 w-4 flex-shrink-0 text-slate-400' />
                 <h2 className='text-sm font-semibold text-slate-800 dark:text-white'>Tarefas</h2>
               </div>
               <button className='flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'>
@@ -241,17 +239,17 @@ export const TherapistDashboardView: React.FC = () => {
             </div>
 
             {/* Input */}
-            <div className='mb-2'>
+            <div className='mb-4'>
               <input
-                className='w-full rounded bg-slate-50 py-1.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
+                className='box-border w-full rounded bg-slate-50 py-2.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
                 placeholder='Adicionar tarefa'
                 type='text'
               />
             </div>
 
             {/* Lista */}
-            <div className='overflow-y-auto flex-1'>
-              <p className='text-xs text-slate-400 text-center py-2 dark:text-slate-500'>
+            <div className='flex-1 overflow-y-auto'>
+              <p className='py-2 text-center text-xs text-slate-400 dark:text-slate-500'>
                 Nenhuma tarefa ainda.
               </p>
             </div>

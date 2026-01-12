@@ -27,8 +27,11 @@
 }
 
 @layer base {
+  html {
+    @apply h-full overflow-hidden;
+  }
   body {
-    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50;
+    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50 h-full overflow-hidden m-0;
     font-family: "Inter", sans-serif;
     -webkit-tap-highlight-color: transparent;
     /* Prevent pull-to-refresh and overscroll bounce */
@@ -40,6 +43,9 @@
     -moz-osx-font-smoothing: grayscale;
     /* Better line height for readability */
     line-height: 1.5;
+  }
+  #root {
+    @apply h-full overflow-hidden;
   }
 }
 
