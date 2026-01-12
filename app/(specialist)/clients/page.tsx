@@ -39,7 +39,7 @@ export default function ClientsPage() {
 
   const { data: patients, isLoading, refetch: refetchPatients } = trpc.patient.getAll.useQuery()
   const { data: patientsData } = trpc.patient.getMyPatients.useQuery()
-  const { data: allTherapists } = trpc.therapist.getAll.useQuery(undefined, {
+  const { data: allTherapists } = trpc.therapistProfile.getAvailableTherapists.useQuery(undefined, {
     enabled: showReferralModal,
   })
 
