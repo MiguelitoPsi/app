@@ -93,22 +93,22 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
         if (!a.isToday && b.isToday) return 1
         return a.sortPriority - b.sortPriority
       })
-      // Limitar a 6 tarefas
-      .slice(0, 6)
+      // Limitar a 4 tarefas para caber na tela
+      .slice(0, 4)
 
     return pending
   }, [allTasks])
 
   if (isLoading) {
     return (
-      <section className='space-y-4'>
+      <section className='space-y-1'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-lg font-semibold text-slate-800 dark:text-white'>Para hoje</h2>
+          <h2 className='font-semibold text-xs text-slate-800 dark:text-white'>Para hoje</h2>
         </div>
-        <div className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
-          {Array.from({ length: 6 }).map((_, i) => (
+        <div className='grid grid-cols-2 gap-1.5 lg:grid-cols-4'>
+          {Array.from({ length: 4 }).map((_, i) => (
             <div
-              className='h-24 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-700'
+              className='h-14 animate-pulse rounded-md bg-slate-200 dark:bg-slate-700'
               key={`skeleton-${i}`}
             />
           ))}
@@ -119,57 +119,51 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
 
   if (dueTasks.length === 0) {
     return (
-      <section className='space-y-4'>
+      <section className='space-y-1'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-lg font-semibold text-slate-800 dark:text-white'>Para hoje</h2>
+          <h2 className='font-semibold text-xs text-slate-800 dark:text-white'>Para hoje</h2>
           <Link
-            className='text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
+            className='text-[10px] font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
             href='/therapist-routine'
           >
             Ver rotina
           </Link>
         </div>
-        <div className='rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-700 dark:bg-slate-800/50'>
-          <div className='mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30'>
-            <span className='text-2xl'>✨</span>
-          </div>
-          <p className='font-medium text-slate-700 dark:text-slate-300'>Tudo em dia!</p>
-          <p className='mt-1 text-sm text-slate-500 dark:text-slate-400'>
-            Você não tem tarefas pendentes para hoje
-          </p>
+        <div className='rounded-md border border-dashed border-slate-300 bg-slate-50 p-2 text-center dark:border-slate-700 dark:bg-slate-800/50'>
+          <p className='text-[10px] font-medium text-slate-700 dark:text-slate-300'>Tudo em dia!</p>
         </div>
       </section>
     )
   }
 
   return (
-    <section className='space-y-4'>
+    <section className='space-y-1'>
       <div className='flex items-center justify-between'>
-        <div className='flex items-center gap-2'>
-          <h2 className='text-lg font-semibold text-slate-800 dark:text-white'>Para hoje</h2>
+        <div className='flex items-center gap-1.5'>
+          <h2 className='font-semibold text-xs text-slate-800 dark:text-white'>Para hoje</h2>
           {dueTasks.some((t) => t.isOverdue) && (
-            <span className='flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-600 dark:bg-red-900/30 dark:text-red-400'>
-              <AlertCircle className='h-3 w-3' />
-              Atrasadas
+            <span className='flex items-center gap-0.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-medium text-red-600 dark:bg-red-900/30 dark:text-red-400'>
+              <AlertCircle className='h-2.5 w-2.5' />
+              {dueTasks.filter((t) => t.isOverdue).length}
             </span>
           )}
         </div>
         <Link
-          className='text-sm font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
+          className='text-[10px] font-medium text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300'
           href='/therapist-routine'
         >
           Ver todas
         </Link>
       </div>
 
-      <div className='grid grid-cols-2 gap-3 lg:grid-cols-3'>
+      <div className='grid grid-cols-2 gap-1.5 lg:grid-cols-4'>
         {dueTasks.map((task, index) => {
           const colors = TASK_COLORS[index % TASK_COLORS.length]
           const isOverdue = task.isOverdue
 
           return (
             <Link
-              className={`group relative flex flex-col justify-between overflow-hidden rounded-xl border p-4 transition-all duration-200 ${
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-md border p-2 transition-all duration-200 ${
                 isOverdue
                   ? 'border-red-300 bg-red-50 hover:bg-red-100 dark:border-red-800 dark:bg-red-900/20 dark:hover:bg-red-900/30'
                   : `${colors.bg} ${colors.border} ${colors.hover}`
@@ -179,37 +173,28 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
             >
               {/* Badge de prioridade/status */}
               {isOverdue ? (
-                <span className='absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-200 dark:bg-red-800'>
-                  <Clock className='h-3 w-3 text-red-600 dark:text-red-300' />
+                <span className='absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-200 dark:bg-red-800'>
+                  <Clock className='h-2 w-2 text-red-600 dark:text-red-300' />
                 </span>
               ) : task.priority === 'high' ? (
-                <span className='absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-orange-200 dark:bg-orange-800'>
-                  <span className='text-xs'>!</span>
+                <span className='absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange-200 dark:bg-orange-800'>
+                  <span className='text-[8px]'>!</span>
                 </span>
               ) : null}
 
-              <div className='pr-6'>
+              <div className='pr-3'>
                 <h3
-                  className={`line-clamp-2 font-medium ${
+                  className={`line-clamp-1 text-[10px] font-medium ${
                     isOverdue ? 'text-red-700 dark:text-red-300' : colors.text
                   }`}
                 >
                   {task.title}
                 </h3>
-                {task.description && (
-                  <p
-                    className={`mt-1 line-clamp-1 text-xs opacity-70 ${
-                      isOverdue ? 'text-red-600 dark:text-red-400' : colors.text
-                    }`}
-                  >
-                    {task.description}
-                  </p>
-                )}
               </div>
 
-              <div className='mt-3 flex items-center justify-between'>
+              <div className='mt-1.5 flex items-center justify-between'>
                 <span
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                  className={`rounded-full px-1.5 py-0.5 text-[8px] font-medium ${
                     isOverdue
                       ? 'bg-red-200 text-red-700 dark:bg-red-800 dark:text-red-300'
                       : `${colors.bg} ${colors.text}`
@@ -218,7 +203,7 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
                   {isOverdue ? 'Atrasada' : PRIORITY_LABELS[task.priority]}
                 </span>
                 <ChevronRight
-                  className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${
+                  className={`h-2.5 w-2.5 transition-transform group-hover:translate-x-0.5 ${
                     isOverdue ? 'text-red-500 dark:text-red-400' : colors.icon
                   }`}
                 />

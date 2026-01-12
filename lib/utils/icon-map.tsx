@@ -183,6 +183,14 @@ export const getIconByKey = (key: string): React.ElementType => {
     expiring_subscriptions: AlertTriangle,
     expired_subscriptions: XCircle,
     monthly_revenue: DollarSign,
+
+    // Dashboard new icons
+    clients: Users,
+    agenda: Calendar,
+    marketing: Megaphone,
+    video: Video,
+    search: Activity,
+    upgrade: Sparkles,
   }
 
   // Fallback for direct Lucide name mapping if desired, or default

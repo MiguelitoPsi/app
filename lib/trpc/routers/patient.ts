@@ -308,6 +308,66 @@ export const patientRouter = router({
       }))
   }),
 
+  // Get patient by ID (psychologist only)
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Verify relationship exists
+      const relationship = await db.query.psychologistPatients.findFirst({
+        where: and(
+          eq(psychologistPatients.psychologistId, ctx.user.id),
+          eq(psychologistPatients.patientId, input.id)
+        ),
+        with: {
+          patient: {
+            with: {
+              stats: true,
+            },
+          },
+        },
+      })
+
+      if (!relationship?.patient) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Paciente não encontrado',
+        })
+      }
+
+      // Fetch additional info from accepted invite
+      const acceptedInvite = await db.query.patientInvites.findFirst({
+        where: and(
+          eq(patientInvites.psychologistId, ctx.user.id),
+          eq(patientInvites.status, 'accepted')
+        ),
+      })
+
+      // Also check for invite by email
+      const inviteByEmail = await db.query.patientInvites.findFirst({
+        where: and(
+          eq(patientInvites.email, relationship.patient.email),
+          eq(patientInvites.status, 'accepted')
+        ),
+      })
+
+      return {
+        ...relationship.patient,
+        phone: inviteByEmail?.phone || null,
+        birthdate: inviteByEmail?.birthdate || null,
+        gender: inviteByEmail?.gender || null,
+        address: inviteByEmail?.address || null,
+        city: inviteByEmail?.address?.city || null,
+        profession: null, // Campo não existe na tabela atual
+        status: 'Ativo', // Status default, pode ser expandido
+        isPrimary: relationship.isPrimary,
+        relationshipId: relationship.id,
+      }
+    }),
+
   // Get my psychologists (patient only)
   getMyPsychologists: protectedProcedure.query(async ({ ctx }) => {
     if (ctx.user.role !== 'patient') {

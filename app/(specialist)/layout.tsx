@@ -1,19 +1,24 @@
 'use client'
 
 import type { ReactNode } from 'react'
+import { usePathname } from 'next/navigation'
 import { RoleGuard } from '@/components/RoleGuard'
-import { TherapistBottomNav } from '@/components/TherapistBottomNav'
-import { TherapistHeader } from '@/components/TherapistHeader'
+import { DashboardHeader } from '@/components/therapist/DashboardHeader'
+import { DashboardSidebar } from '@/components/therapist/DashboardSidebar'
 import { TherapistLevelUpManager } from '@/components/TherapistLevelUpManager'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
-import { TherapistSidebar } from '@/components/TherapistSidebar'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
 import { TherapistXPGainToast } from '@/components/TherapistXPGainToast'
-import { SelectedPatientProvider } from '@/context/SelectedPatientContext'
+import { SelectedPatientProvider, useSelectedPatient } from '@/context/SelectedPatientContext'
 import { TherapistGameProvider } from '@/context/TherapistGameContext'
 import { trpc } from '@/lib/trpc/client'
 
 function SpecialistContent({ children }: { children: ReactNode }) {
+  const pathname = usePathname()
+  const isDashboard = pathname === '/dashboard'
+  const isProfile = pathname === '/profile'
+  const { isPatientViewActive } = useSelectedPatient()
+
   const { data: termsData, isLoading: isLoadingTerms } = trpc.user.checkTermsAccepted.useQuery(
     undefined,
     {
@@ -45,8 +50,21 @@ function SpecialistContent({ children }: { children: ReactNode }) {
 
   const { showTerms, showProfile } = getModalState()
 
+  // Se estiver na visão detalhada do paciente, não mostra sidebar e header
+  if (isPatientViewActive) {
+    return (
+      <div className='min-h-screen bg-slate-50 dark:bg-slate-900'>
+        <TherapistTermsModal isOpen={showTerms} />
+        <TherapistProfileModal isOpen={showProfile} mode='create' />
+        <TherapistLevelUpManager />
+        <TherapistXPGainToast />
+        <main className='min-h-screen'>{children}</main>
+      </div>
+    )
+  }
+
   return (
-    <div className='min-h-screen bg-gradient-to-br from-slate-100 to-slate-200 transition-colors duration-300 dark:from-slate-900 dark:to-slate-800'>
+    <div className='min-h-screen bg-slate-50 transition-colors duration-300 dark:bg-slate-900'>
       {/* Terms Modal - shown first */}
       <TherapistTermsModal isOpen={showTerms} />
 
@@ -59,18 +77,31 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       {/* XP Gain Toast - floating notifications */}
       <TherapistXPGainToast />
 
-      {/* Desktop Sidebar - visible on all screens now (slim on mobile) */}
-      <TherapistSidebar />
-
-      {/* XP Header - visible on mobile, hidden on desktop (sidebar shows XP there) */}
-      <div className='lg:hidden ml-20 transition-all duration-300'>
-        <TherapistHeader />
-      </div>
-
-      {/* Main content - with left margin for sidebar (20 = 5rem = 80px on mobile, 56 = 14rem = 224px on desktop) */}
-      <main className='min-h-screen bg-slate-100 pb-8 transition-all duration-300 ml-20 lg:ml-56 lg:pb-0 dark:bg-transparent'>
-        {children}
-      </main>
+      {/* Sidebar based on route */}
+      {isDashboard ? (
+        <>
+          <DashboardSidebar />
+          <main className='ml-16 h-screen overflow-hidden bg-slate-50 dark:bg-slate-900'>
+            <DashboardHeader />
+            <div className='h-[calc(100vh-64px)] overflow-hidden'>{children}</div>
+          </main>
+        </>
+      ) : isProfile ? (
+        <>
+          <DashboardSidebar />
+          <main className='ml-16 min-h-screen bg-slate-50 transition-colors duration-300 dark:bg-slate-900'>
+            <DashboardHeader />
+            <div className='min-h-[calc(100vh-64px)]'>{children}</div>
+          </main>
+        </>
+      ) : (
+        <>
+          <DashboardSidebar />
+          <main className='ml-16 min-h-screen bg-slate-50 pb-8 transition-colors duration-300 dark:bg-slate-900'>
+            <div className='p-4'>{children}</div>
+          </main>
+        </>
+      )}
     </div>
   )
 }
