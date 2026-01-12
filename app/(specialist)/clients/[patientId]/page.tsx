@@ -1,25 +1,25 @@
 'use client'
 
 import {
-  ArrowLeft,
-  Calendar,
-  FileText,
-  Brain,
-  Scale,
   Activity,
-  Download,
-  User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
-  Clock,
-  CheckCircle,
   AlertCircle,
+  ArrowLeft,
+  Brain,
+  Briefcase,
+  Calendar,
+  CheckCircle,
+  Clock,
+  Download,
+  FileText,
+  Mail,
+  MapPin,
+  Phone,
+  Scale,
+  User,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 type PatientProfile = {
@@ -68,7 +68,9 @@ export default function PatientProfilePage() {
   const params = useParams()
   const patientId = params.patientId as string
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'tcc' | 'sessions' | 'documents'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'tcc' | 'sessions' | 'documents'>(
+    'overview'
+  )
 
   // Buscar dados do paciente
   const { data: patient, isLoading: isPatientLoading } = trpc.patient.getById.useQuery(
@@ -129,9 +131,7 @@ export default function PatientProfilePage() {
     }
   }
 
-  const getFileIcon = (fileType: string) => {
-    return <FileText className='h-5 w-5 text-purple-400' />
-  }
+  const getFileIcon = (fileType: string) => <FileText className='h-5 w-5 text-purple-400' />
 
   if (isPatientLoading) {
     return (
@@ -199,7 +199,9 @@ export default function PatientProfilePage() {
               </div>
             </div>
           </div>
-          <span className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${getStatusColor(patient.status || 'Ativo')}`}>
+          <span
+            className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium ${getStatusColor(patient.status || 'Ativo')}`}
+          >
             {patient.status === 'Ativo' ? (
               <CheckCircle className='h-3 w-3' />
             ) : (
@@ -220,12 +222,12 @@ export default function PatientProfilePage() {
             { id: 'documents', label: 'Documentos', icon: FileText },
           ].map((tab) => (
             <button
-              key={tab.id}
               className={`flex items-center gap-2 whitespace-nowrap rounded-t-lg px-4 py-3 text-sm font-medium transition-colors ${
                 activeTab === tab.id
                   ? 'border-b-2 border-sky-500 bg-[#1c2128] text-sky-400'
                   : 'text-slate-400 hover:bg-[#1c2128] hover:text-white'
               }`}
+              key={tab.id}
               onClick={() => setActiveTab(tab.id as typeof activeTab)}
             >
               <tab.icon className='h-4 w-4' />
@@ -381,10 +383,18 @@ export default function PatientProfilePage() {
                       <table className='w-full'>
                         <thead>
                           <tr className='border-b border-slate-700'>
-                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>Situação</th>
-                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>Pensamento Automático</th>
-                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>Emoção</th>
-                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>Comportamento</th>
+                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>
+                              Situação
+                            </th>
+                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>
+                              Pensamento Automático
+                            </th>
+                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>
+                              Emoção
+                            </th>
+                            <th className='pb-3 text-left text-xs font-medium uppercase text-slate-400'>
+                              Comportamento
+                            </th>
                           </tr>
                         </thead>
                         <tbody className='divide-y divide-slate-700'>
@@ -393,10 +403,18 @@ export default function PatientProfilePage() {
                               const situations = JSON.parse(conceptualization.situations as string)
                               return situations.map((sit: any, idx: number) => (
                                 <tr key={idx}>
-                                  <td className='py-3 text-sm text-slate-300'>{sit.situation || '-'}</td>
-                                  <td className='py-3 text-sm text-slate-300'>{sit.automaticThought || '-'}</td>
-                                  <td className='py-3 text-sm text-slate-300'>{sit.emotion || '-'}</td>
-                                  <td className='py-3 text-sm text-slate-300'>{sit.behavior || '-'}</td>
+                                  <td className='py-3 text-sm text-slate-300'>
+                                    {sit.situation || '-'}
+                                  </td>
+                                  <td className='py-3 text-sm text-slate-300'>
+                                    {sit.automaticThought || '-'}
+                                  </td>
+                                  <td className='py-3 text-sm text-slate-300'>
+                                    {sit.emotion || '-'}
+                                  </td>
+                                  <td className='py-3 text-sm text-slate-300'>
+                                    {sit.behavior || '-'}
+                                  </td>
                                 </tr>
                               ))
                             } catch {
@@ -439,8 +457,8 @@ export default function PatientProfilePage() {
               <div className='space-y-3'>
                 {journalEntries.map((entry) => (
                   <div
-                    key={entry.id}
                     className='group rounded-xl border border-slate-700 bg-[#161b22] p-4 transition-all hover:border-sky-500/50'
+                    key={entry.id}
                   >
                     <div className='flex items-start justify-between'>
                       <div className='flex items-start gap-3'>
@@ -449,7 +467,7 @@ export default function PatientProfilePage() {
                         </div>
                         <div>
                           <h3 className='font-medium text-white'>
-                            {entry.title || 'Sessão sem título'}
+                            {entry.content || 'Sessão sem título'}
                           </h3>
                           <div className='mt-1 flex items-center gap-2 text-xs text-slate-400'>
                             <Clock className='h-3 w-3' />
@@ -504,8 +522,8 @@ export default function PatientProfilePage() {
               <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
                 {sessionDocuments.map((doc) => (
                   <div
-                    key={doc.id}
                     className='group flex items-center gap-3 rounded-xl border border-slate-700 bg-[#161b22] p-4 transition-all hover:border-sky-500/50'
+                    key={doc.id}
                   >
                     <div className='flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/20'>
                       {getFileIcon(doc.fileType)}
