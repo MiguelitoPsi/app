@@ -300,7 +300,7 @@ export default function PatientProfilePage() {
         {/* Conceituação TCC */}
         {activeTab === 'tcc' && (
           <div className='space-y-6'>
-            {conceptualization && conceptualization.length > 0 ? (
+            {conceptualization ? (
               <>
                 {/* Header da Conceituação */}
                 <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
@@ -310,23 +310,23 @@ export default function PatientProfilePage() {
                       Conceituação Cognitiva
                     </h2>
                     <span className='text-sm text-slate-400'>
-                      {conceptualization[0]?.name || 'Diagrama D. Hernandes'}
+                      {conceptualization?.name || 'Diagrama D. Hernandes'}
                     </span>
                   </div>
                 </div>
 
                 {/* Dados de Infância */}
-                {conceptualization[0]?.childhoodData && (
+                {conceptualization?.childhoodData && (
                   <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
                     <h3 className='mb-3 text-sm font-medium uppercase text-slate-400'>
                       Dados Relevantes de Infância
                     </h3>
-                    <p className='text-sm text-slate-300'>{conceptualization[0].childhoodData}</p>
+                    <p className='text-sm text-slate-300'>{conceptualization.childhoodData}</p>
                   </div>
                 )}
 
                 {/* Crença Central */}
-                {conceptualization[0]?.coreBelief && (
+                {conceptualization?.coreBelief && (
                   <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
                     <h2 className='mb-4 flex items-center gap-2 text-lg font-semibold text-white'>
                       <Brain className='h-5 w-5 text-purple-400' />
@@ -334,14 +334,14 @@ export default function PatientProfilePage() {
                     </h2>
                     <div className='rounded-lg bg-[#0d1117] p-4'>
                       <p className='text-sm text-slate-300 whitespace-pre-wrap'>
-                        {conceptualization[0].coreBelief}
+                        {conceptualization.coreBelief}
                       </p>
                     </div>
                   </div>
                 )}
 
                 {/* Suposições Condicionais */}
-                {conceptualization[0]?.conditionalAssumptions && (
+                {conceptualization?.conditionalAssumptions && (
                   <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
                     <h2 className='mb-4 flex items-center gap-2 text-lg font-semibold text-white'>
                       <Scale className='h-5 w-5 text-amber-400' />
@@ -349,14 +349,14 @@ export default function PatientProfilePage() {
                     </h2>
                     <div className='rounded-lg bg-[#0d1117] p-4'>
                       <p className='text-sm text-slate-300 whitespace-pre-wrap'>
-                        {conceptualization[0].conditionalAssumptions}
+                        {conceptualization.conditionalAssumptions}
                       </p>
                     </div>
                   </div>
                 )}
 
                 {/* Estratégias Compensatórias */}
-                {conceptualization[0]?.compensatoryStrategies && (
+                {conceptualization?.compensatoryStrategies && (
                   <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
                     <h2 className='mb-4 flex items-center gap-2 text-lg font-semibold text-white'>
                       <Activity className='h-5 w-5 text-sky-400' />
@@ -364,14 +364,14 @@ export default function PatientProfilePage() {
                     </h2>
                     <div className='rounded-lg bg-[#0d1117] p-4'>
                       <p className='text-sm text-slate-300 whitespace-pre-wrap'>
-                        {conceptualization[0].compensatoryStrategies}
+                        {conceptualization.compensatoryStrategies}
                       </p>
                     </div>
                   </div>
                 )}
 
                 {/* Situações */}
-                {conceptualization[0]?.situations && (
+                {conceptualization?.situations && (
                   <div className='rounded-xl border border-slate-700 bg-[#161b22] p-6'>
                     <h2 className='mb-4 flex items-center gap-2 text-lg font-semibold text-white'>
                       <Scale className='h-5 w-5 text-amber-400' />
@@ -390,7 +390,7 @@ export default function PatientProfilePage() {
                         <tbody className='divide-y divide-slate-700'>
                           {(() => {
                             try {
-                              const situations = JSON.parse(conceptualization[0].situations as string)
+                              const situations = JSON.parse(conceptualization.situations as string)
                               return situations.map((sit: any, idx: number) => (
                                 <tr key={idx}>
                                   <td className='py-3 text-sm text-slate-300'>{sit.situation || '-'}</td>
