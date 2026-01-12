@@ -1,17 +1,17 @@
 'use client'
 
 import {
+  Calendar,
+  CheckCircle,
+  FileText,
+  LogOut,
   Mail,
   Phone,
   Search,
   User,
-  Calendar,
-  FileText,
-  LogOut,
   UserPlus,
-  CheckCircle,
 } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
 type Patient = {
@@ -90,15 +90,16 @@ export default function ClientsPage() {
     },
   })
 
-  const filteredPatients = patients?.filter((patient) =>
-    patient.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    patient.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPatients = patients?.filter(
+    (patient) =>
+      patient.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      patient.email?.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
   const filteredTherapists = allTherapists?.filter(
     (therapist) =>
-      therapist.name?.toLowerCase().includes(therapistSearchQuery.toLowerCase()) ||
-      therapist.email?.toLowerCase().includes(therapistSearchQuery.toLowerCase())
+      therapist.fullName?.toLowerCase().includes(therapistSearchQuery.toLowerCase()) ||
+      therapist.phone?.toLowerCase().includes(therapistSearchQuery.toLowerCase())
   )
 
   const handleOpenActions = (patient: Patient) => {
@@ -121,10 +122,10 @@ export default function ClientsPage() {
               <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
               <input
                 className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder='Buscar cliente...'
                 type='text'
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
           </div>
@@ -135,15 +136,15 @@ export default function ClientsPage() {
             >
               <svg
                 className='h-4 w-4'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 24 24'
                 fill='none'
+                height='24'
                 stroke='currentColor'
-                strokeWidth='2'
                 strokeLinecap='round'
                 strokeLinejoin='round'
+                strokeWidth='2'
+                viewBox='0 0 24 24'
+                width='24'
+                xmlns='http://www.w3.org/2000/svg'
               >
                 <path d='M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z' />
                 <path d='M20 2v4' />
@@ -159,18 +160,18 @@ export default function ClientsPage() {
             >
               <svg
                 className='h-5 w-5'
-                xmlns='http://www.w3.org/2000/svg'
-                width='24'
-                height='24'
-                viewBox='0 0 24 24'
                 fill='none'
+                height='24'
                 stroke='currentColor'
-                strokeWidth='2'
                 strokeLinecap='round'
                 strokeLinejoin='round'
+                strokeWidth='2'
+                viewBox='0 0 24 24'
+                width='24'
+                xmlns='http://www.w3.org/2000/svg'
               >
                 <path d='m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5' />
-                <rect x='2' y='6' width='14' height='12' rx='2' />
+                <rect height='12' rx='2' width='14' x='2' y='6' />
               </svg>
             </a>
             <div className='relative'>
@@ -180,15 +181,15 @@ export default function ClientsPage() {
               >
                 <svg
                   className='h-5 w-5'
-                  xmlns='http://www.w3.org/2000/svg'
-                  width='24'
-                  height='24'
-                  viewBox='0 0 24 24'
                   fill='none'
+                  height='24'
                   stroke='currentColor'
-                  strokeWidth='2'
                   strokeLinecap='round'
                   strokeLinejoin='round'
+                  strokeWidth='2'
+                  viewBox='0 0 24 24'
+                  width='24'
+                  xmlns='http://www.w3.org/2000/svg'
                 >
                   <path d='M10.268 21a2 2 0 0 0 3.464 0' />
                   <path d='M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326' />
@@ -201,9 +202,9 @@ export default function ClientsPage() {
                 <img
                   alt='Perfil'
                   className='h-full w-full object-cover'
+                  height={36}
                   src='/avatar-default.png'
                   width={36}
-                  height={36}
                 />
               </button>
             </div>
@@ -215,9 +216,7 @@ export default function ClientsPage() {
       <div className='px-4 py-6 sm:px-6 lg:px-8'>
         {/* Header */}
         <div className='mb-6'>
-          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>
-            Meus Pacientes
-          </h2>
+          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Meus Pacientes</h2>
           <p className='text-slate-500 dark:text-slate-400'>
             {patients?.length || 0} pacientes cadastrados
           </p>
@@ -275,8 +274,8 @@ export default function ClientsPage() {
           <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-3'>
             {filteredPatients.map((patient) => (
               <div
-                key={patient.id}
                 className='group relative rounded-xl border border-slate-200 bg-white p-5 transition-all hover:border-sky-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-500'
+                key={patient.id}
               >
                 <div className='flex items-start justify-between'>
                   <div className='flex items-center gap-3'>
@@ -287,9 +286,7 @@ export default function ClientsPage() {
                       <h3 className='font-semibold text-slate-800 dark:text-white'>
                         {patient.name}
                       </h3>
-                      <p className='text-sm text-slate-500 dark:text-slate-400'>
-                        {patient.email}
-                      </p>
+                      <p className='text-sm text-slate-500 dark:text-slate-400'>{patient.email}</p>
                     </div>
                   </div>
                   <div className='relative'>
@@ -304,16 +301,16 @@ export default function ClientsPage() {
                       }
                     >
                       <svg
-                        xmlns='http://www.w3.org/2000/svg'
-                        width='24'
-                        height='24'
-                        viewBox='0 0 24 24'
+                        className='h-5 w-5'
                         fill='none'
+                        height='24'
                         stroke='currentColor'
-                        strokeWidth='2'
                         strokeLinecap='round'
                         strokeLinejoin='round'
-                        className='h-5 w-5'
+                        strokeWidth='2'
+                        viewBox='0 0 24 24'
+                        width='24'
+                        xmlns='http://www.w3.org/2000/svg'
                       >
                         <circle cx='12' cy='12' r='1' />
                         <circle cx='19' cy='12' r='1' />
@@ -324,8 +321,8 @@ export default function ClientsPage() {
                     {/* Dropdown Menu */}
                     {openDropdownId === patient.id && (
                       <div
-                        ref={dropdownRef}
                         className='absolute right-0 top-8 z-50 w-48 rounded-xl border border-slate-700 bg-[#161b22] shadow-xl'
+                        ref={dropdownRef}
                         style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)' }}
                       >
                         <div className='py-1'>
@@ -417,13 +414,11 @@ export default function ClientsPage() {
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
           <div className='mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-800'>
             <div className='mb-4'>
-              <h3 className='font-semibold text-slate-800 dark:text-white'>
-                Desvincular Paciente
-              </h3>
+              <h3 className='font-semibold text-slate-800 dark:text-white'>Desvincular Paciente</h3>
             </div>
             <p className='mb-4 text-sm text-slate-500 dark:text-slate-400'>
-              Tem certeza que deseja desvincular <strong>{selectedPatient.name}</strong>? A conta
-              do paciente será suspensa.
+              Tem certeza que deseja desvincular <strong>{selectedPatient.name}</strong>? A conta do
+              paciente será suspensa.
             </p>
             <div className='mb-4'>
               <label className='mb-1 block text-sm text-slate-600 dark:text-slate-400'>
@@ -431,15 +426,15 @@ export default function ClientsPage() {
               </label>
               <textarea
                 className='w-full rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
+                onChange={(e) => setUnlinkReason(e.target.value)}
                 placeholder='Descreva o motivo da desvinculação...'
                 rows={3}
                 value={unlinkReason}
-                onChange={(e) => setUnlinkReason(e.target.value)}
               />
             </div>
             <p className='mb-4 text-xs text-slate-400 dark:text-slate-500'>
-              Ao desvincular ou dar alta, a conta do paciente será suspensa até que ele se vincule
-              a um novo terapeuta.
+              Ao desvincular ou dar alta, a conta do paciente será suspensa até que ele se vincule a
+              um novo terapeuta.
             </p>
             <div className='flex gap-3'>
               <button
@@ -475,13 +470,11 @@ export default function ClientsPage() {
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
           <div className='mx-4 w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-800'>
             <div className='mb-4'>
-              <h3 className='font-semibold text-slate-800 dark:text-white'>
-                Dar Alta ao Paciente
-              </h3>
+              <h3 className='font-semibold text-slate-800 dark:text-white'>Dar Alta ao Paciente</h3>
             </div>
             <p className='mb-8 text-center text-sm text-slate-500 dark:text-slate-400'>
-              Tem certeza que deseja dar alta a <strong>{selectedPatient.name}</strong>? A conta
-              do paciente será suspensa.
+              Tem certeza que deseja dar alta a <strong>{selectedPatient.name}</strong>? A conta do
+              paciente será suspensa.
             </p>
             <div className='flex gap-3'>
               <button
@@ -513,9 +506,7 @@ export default function ClientsPage() {
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
           <div className='mx-4 w-full max-w-2xl rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-800 sm:p-8'>
             <div className='mb-6 border-b border-slate-100 pb-4 dark:border-slate-700'>
-              <h3 className='font-semibold text-slate-800 dark:text-white'>
-                Encaminhar Paciente
-              </h3>
+              <h3 className='font-semibold text-slate-800 dark:text-white'>Encaminhar Paciente</h3>
               <p className='text-sm text-slate-500 dark:text-slate-400'>
                 Selecione um novo terapeuta para encaminhar {selectedPatient.name}
               </p>
@@ -529,10 +520,10 @@ export default function ClientsPage() {
                 <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
                 <input
                   className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
-                  placeholder='Buscar por nome ou email...'
+                  onChange={(e) => setTherapistSearchQuery(e.target.value)}
+                  placeholder='Buscar por nome ou telefone...'
                   type='text'
                   value={therapistSearchQuery}
-                  onChange={(e) => setTherapistSearchQuery(e.target.value)}
                 />
               </div>
             </div>
@@ -551,14 +542,14 @@ export default function ClientsPage() {
                       onClick={() => setSelectedNewTherapistId(therapist.id)}
                     >
                       <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white'>
-                        {therapist.name?.charAt(0) || 'T'}
+                        {therapist.fullName?.charAt(0) || 'T'}
                       </div>
                       <div className='flex-1'>
                         <p className='font-medium text-slate-800 dark:text-white'>
-                          {therapist.name}
+                          {therapist.fullName}
                         </p>
                         <p className='text-sm text-slate-500 dark:text-slate-400'>
-                          {therapist.email}
+                          {therapist.phone}
                         </p>
                       </div>
                       {selectedNewTherapistId === therapist.id && (
@@ -580,10 +571,10 @@ export default function ClientsPage() {
               </label>
               <textarea
                 className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
+                onChange={(e) => setReferralReason(e.target.value)}
                 placeholder='Ex: Especialidade mais adequada, mudança de cidade...'
                 rows={2}
                 value={referralReason}
-                onChange={(e) => setReferralReason(e.target.value)}
               />
             </div>
 
@@ -612,9 +603,7 @@ export default function ClientsPage() {
                   }
                 }}
               >
-                {transferPatientMutation.isPending
-                  ? 'Processando...'
-                  : 'Confirmar Encaminhamento'}
+                {transferPatientMutation.isPending ? 'Processando...' : 'Confirmar Encaminhamento'}
               </button>
             </div>
           </div>
