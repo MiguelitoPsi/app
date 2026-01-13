@@ -70,7 +70,6 @@ export default function TherapistRoutineView() {
   const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null)
   const [taskForm, setTaskForm] = useState<TaskFormData>(defaultTaskForm)
   const [feedbackText, setFeedbackText] = useState('')
-  const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'all'>('pending')
   const [selectedDate, setSelectedDate] = useState(() => {
     const d = new Date()
     d.setHours(0, 0, 0, 0)
@@ -147,7 +146,10 @@ export default function TherapistRoutineView() {
             title: newOne.title,
             description: newOne.description,
             priority: newOne.priority,
-            dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null,
+            dueDate: newOne.dueDate ? (() => {
+              const [y, m, d] = newOne.dueDate.split('-').map(Number);
+              return new Date(y, m - 1, d, 12, 0, 0, 0);
+            })() : null,
             status: 'pending',
             category: 'geral',
             frequency: newOne.frequency,
@@ -239,7 +241,10 @@ export default function TherapistRoutineView() {
           type: newOne.type,
           priority: newOne.priority,
           status: 'pending',
-          dueDate: newOne.dueDate ? new Date(newOne.dueDate) : null,
+          dueDate: newOne.dueDate ? (() => {
+            const [y, m, d] = newOne.dueDate.split('-').map(Number);
+            return new Date(y, m - 1, d, 12, 0, 0, 0);
+          })() : null,
           isRecurring: newOne.isRecurring,
           frequency: newOne.frequency,
           xpReward: 20,
@@ -308,6 +313,47 @@ export default function TherapistRoutineView() {
     },
   })
 
+  const completePatientTaskMutation = trpc.task.togglePatientTaskByTherapist.useMutation({
+    onMutate: async (vars) => {
+      await utils.task.getPatientTasksFromTherapist.cancel({ patientId: selectedPatientId || '' })
+      const previousTasks = utils.task.getPatientTasksFromTherapist.getData({
+        patientId: selectedPatientId || '',
+      })
+
+      if (selectedPatientId) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId: selectedPatientId },
+          (old) => {
+            if (!old) return []
+            return old.map((t) => {
+              if (t.id === vars.taskId) {
+                const newStatus = t.status === 'completed' ? 'pending' : 'completed'
+                return { ...t, status: newStatus }
+              }
+              return t
+            })
+          }
+        )
+      }
+      return { previousTasks }
+    },
+    onSuccess: () => {
+      utils.therapistXp.getStats.invalidate()
+    },
+    onError: (err, vars, context) => {
+      if (context?.previousTasks) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId: selectedPatientId || '' },
+          context.previousTasks
+        )
+      }
+    },
+    onSettled: () => {
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId: selectedPatientId || '' })
+      utils.therapistTasks.getAll.invalidate()
+    },
+  })
+
   const deleteMyTaskMutation = trpc.therapistTasks.delete.useMutation({
     onMutate: async (vars) => {
       await utils.therapistTasks.getAll.cancel()
@@ -368,9 +414,6 @@ export default function TherapistRoutineView() {
   const displayTasks = useMemo(() => {
     if (!patientTasks) return []
     return patientTasks.filter((task) => {
-      if (activeTab === 'pending' && task.status !== 'pending' && task.status !== 'accepted')
-        return false
-      if (activeTab === 'completed' && task.status !== 'completed') return false
 
       if (task.dueDate) {
         const taskDate = new Date(task.dueDate)
@@ -382,14 +425,11 @@ export default function TherapistRoutineView() {
       }
       return false
     })
-  }, [patientTasks, selectedDate, activeTab])
+  }, [patientTasks, selectedDate])
 
   const displayMyTasks = useMemo(() => {
     if (!myTasks) return []
     return myTasks.filter((task) => {
-      if (activeTab === 'pending' && task.status !== 'pending' && task.status !== 'in_progress')
-        return false
-      if (activeTab === 'completed' && task.status !== 'completed') return false
 
       if (task.dueDate) {
         const taskDate = new Date(task.dueDate)
@@ -402,7 +442,7 @@ export default function TherapistRoutineView() {
 
       return task.isRecurring || !task.dueDate
     })
-  }, [myTasks, selectedDate, activeTab])
+  }, [myTasks, selectedDate])
 
   const dayProgress = useMemo(() => {
     const tasks = mainView === 'patients' ? patientTasks : myTasks
@@ -422,10 +462,11 @@ export default function TherapistRoutineView() {
       today.setHours(0, 0, 0, 0)
 
       const [year, month, day] = taskForm.dueDate.split('-').map(Number)
-      const selectedTaskDate = new Date(year, month - 1, day)
-      selectedTaskDate.setHours(0, 0, 0, 0)
+      // Usar meio-dia para evitar problemas de fuso horário na comparação local
+      const selectedTaskDate = new Date(year, month - 1, day, 12, 0, 0, 0)
+      const todayAtMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
 
-      if (selectedTaskDate < today) {
+      if (selectedTaskDate < todayAtMidnight) {
         const dateStr = selectedTaskDate.toLocaleDateString('pt-BR')
         setAlertMessage(
           `Data inválida!\n\nNão é possível criar tarefas para datas que já passaram.\n\nData selecionada: ${dateStr}`
@@ -456,25 +497,45 @@ export default function TherapistRoutineView() {
 
     if (mainView === 'patients') {
       if (!selectedPatientId) return
-      if (!taskForm.title) return
+      if (!taskForm.title && taskForm.taskCategory !== 'sessao') return
 
-      const patientFrequency =
-        taskForm.frequency === 'biweekly' || taskForm.frequency === 'monthly'
-          ? 'weekly'
-          : (taskForm.frequency as 'once' | 'daily' | 'weekly')
+      if (taskForm.taskCategory === 'sessao') {
+        const sessionTitle = `Sessão - ${selectedPatient.name}`
 
-      createTaskMutation.mutate({
-        patientId: selectedPatientId,
-        title: taskForm.title,
-        frequency: patientFrequency,
-        priority: taskForm.priority,
-        dueDate: taskForm.dueDate,
-      })
+        createMyTaskMutation.mutate({
+          title: sessionTitle,
+          type: 'session',
+          priority: 'high',
+          dueDate: taskForm.dueDate,
+          isRecurring: taskForm.frequency !== 'once',
+          frequency:
+            taskForm.frequency === 'once'
+              ? undefined
+              : (taskForm.frequency as 'daily' | 'weekly' | 'biweekly'),
+          taskCategory: 'sessao',
+          patientId: selectedPatientId,
+          weekDays: taskForm.weekDays,
+          monthDay: taskForm.monthDay,
+          sessionValue: taskForm.sessionValue,
+        })
+      } else {
+        const patientFrequency =
+          taskForm.frequency === 'biweekly' || taskForm.frequency === 'monthly'
+            ? 'weekly'
+            : (taskForm.frequency as 'once' | 'daily' | 'weekly')
+
+        createTaskMutation.mutate({
+          patientId: selectedPatientId,
+          title: taskForm.title,
+          frequency: patientFrequency,
+          priority: taskForm.priority,
+          dueDate: taskForm.dueDate,
+        })
+      }
     } else {
       if (!taskForm.taskCategory) return
 
       if (taskForm.taskCategory === 'sessao' && !taskForm.sessionPatientId) return
-
       if (taskForm.taskCategory === 'geral' && !taskForm.title) return
 
       const sessionTitle =
@@ -505,6 +566,7 @@ export default function TherapistRoutineView() {
     id: string
     dueDate?: Date | string | null
     status: string
+    category?: string
   }) => {
     if (task.status !== 'completed') {
       const today = new Date()
@@ -524,7 +586,12 @@ export default function TherapistRoutineView() {
         }
       }
     }
-    completeMyTaskMutation.mutate({ id: task.id })
+
+    if (mainView === 'patients') {
+      completePatientTaskMutation.mutate({ taskId: task.id })
+    } else {
+      completeMyTaskMutation.mutate({ id: task.id })
+    }
   }
 
   const handleSendFeedback = (taskId: string) => {
@@ -602,14 +669,14 @@ export default function TherapistRoutineView() {
   const calendarTasks = mainView === 'patients' ? patientTasks || [] : myTasks || []
 
   return (
-    <div className='h-full overflow-y-auto px-4 pt-safe py-6 pb-28 sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8'>
+    <div className='h-full flex flex-col overflow-hidden bg-slate-50 p-4 pt-safe sm:p-6 lg:p-5 dark:bg-slate-900'>
       {/* Desktop Header */}
-      <div className='mb-6 flex items-end justify-between lg:mb-8'>
+      <div className='mb-6 flex items-end justify-between'>
         <div>
-          <h2 className='font-bold text-xl text-slate-800 sm:text-2xl lg:text-3xl dark:text-white'>
+          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>
             {mainView === 'my-routine' ? 'Minha Rotina' : 'Rotina dos Pacientes'}
           </h2>
-          <p className='text-slate-500 text-xs sm:text-sm lg:text-base dark:text-slate-400'>
+          <p className='text-slate-500 dark:text-slate-400'>
             {mainView === 'my-routine'
               ? 'Gerencie suas tarefas'
               : 'Gerencie as tarefas dos seus pacientes'}
@@ -625,9 +692,12 @@ export default function TherapistRoutineView() {
                 const yyyy = today.getFullYear()
                 const mm = String(today.getMonth() + 1).padStart(2, '0')
                 const dd = String(today.getDate()).padStart(2, '0')
+                const dateString = `${yyyy}-${mm}-${dd}`
+                
                 setTaskForm({
                   ...defaultTaskForm,
-                  dueDate: `${yyyy}-${mm}-${dd}`,
+                  taskCategory: mainView === 'patients' ? 'geral' : undefined,
+                  dueDate: dateString,
                 })
               }}
               type='button'
@@ -647,7 +717,7 @@ export default function TherapistRoutineView() {
       </div>
 
       {/* Main View Selector */}
-      <div className='mb-4 grid grid-cols-2 gap-2 sm:mb-6 lg:mb-8 lg:flex lg:gap-4'>
+      <div className='mb-4 grid grid-cols-2 gap-2 sm:mb-5 lg:mb-6 lg:flex lg:gap-4'>
         <button
           className={`flex items-center justify-center gap-2 rounded-xl py-3 font-semibold transition-all lg:px-8 lg:py-4 lg:text-lg ${
             mainView === 'my-routine'
@@ -676,27 +746,27 @@ export default function TherapistRoutineView() {
 
       {mainView === 'patients' && (
         /* Patient Selector Card */
-        <div className='mb-4 sm:mb-6 lg:mb-8'>
+        <div className='relative mb-4 sm:mb-5 lg:mb-6 lg:max-w-sm'>
           <button
-            className='flex w-full items-center justify-between rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors hover:bg-slate-50 sm:rounded-2xl lg:max-w-md lg:p-5 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800'
+            className='flex w-full items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-sm transition-colors hover:bg-slate-50 sm:rounded-2xl lg:max-w-sm lg:p-4 dark:border-slate-800 dark:bg-slate-900 dark:hover:bg-slate-800'
             onClick={() => setShowPatientList(!showPatientList)}
             type='button'
           >
             <div className='flex items-center gap-3 lg:gap-4'>
-              <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-white lg:h-12 lg:w-12 lg:text-lg'>
-                {selectedPatient?.name?.charAt(0) || <User size={20} />}
+              <div className='flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-400 font-semibold text-white lg:h-10 lg:w-10 lg:text-base'>
+                {selectedPatient?.name?.charAt(0) || <User size={18} />}
               </div>
               <div className='text-left'>
-                <p className='font-bold text-slate-400 text-[10px] uppercase tracking-wider lg:text-xs'>
+                <p className='font-bold text-slate-400 text-[10px] uppercase tracking-wider lg:text-[11px]'>
                   Paciente
                 </p>
-                <p className='font-semibold text-slate-800 lg:text-lg dark:text-white'>
+                <p className='font-semibold text-slate-800 lg:text-base dark:text-white'>
                   {selectedPatient?.name || 'Selecione um paciente'}
                 </p>
               </div>
             </div>
             <ChevronDown
-              className={`h-5 w-5 text-slate-400 transition-transform lg:h-6 lg:w-6 ${
+              className={`h-4 w-4 text-slate-400 transition-transform lg:h-5 lg:w-5 ${
                 showPatientList ? 'rotate-180' : ''
               }`}
             />
@@ -704,7 +774,7 @@ export default function TherapistRoutineView() {
 
           {/* Patient Dropdown */}
           {showPatientList && (
-            <div className='mt-2 max-h-60 overflow-y-auto rounded-xl border border-slate-100 bg-white shadow-xl lg:max-w-md lg:max-h-80 dark:border-slate-800 dark:bg-slate-900'>
+            <div className='absolute z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-slate-100 bg-white shadow-xl lg:max-h-80 dark:border-slate-800 dark:bg-slate-900'>
               {patients?.map((patient) => (
                 <button
                   className={`flex w-full items-center gap-3 p-4 text-left transition-colors hover:bg-slate-50 lg:gap-4 lg:p-5 dark:hover:bg-slate-800 ${
@@ -747,14 +817,14 @@ export default function TherapistRoutineView() {
 
       {/* MY ROUTINE VIEW */}
       {mainView === 'my-routine' && (
-        <>
+        <div className='flex-1 min-h-0 overflow-hidden'>
           {/* Desktop Layout: 2 columns - Calendar on left, Agenda on right */}
-          <div className='lg:grid lg:grid-cols-12 lg:gap-6'>
+          <div className='flex flex-col h-full lg:grid lg:grid-cols-12 lg:gap-5 overflow-hidden'>
             {/* Left Column - Calendar */}
-            <div className='lg:col-span-4 xl:col-span-4'>
+            <div className='flex flex-col gap-4 overflow-y-auto lg:col-span-4 xl:col-span-4'>
               {/* Progress Card */}
               {showProgressBar && (
-                <div className='mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 p-4 text-white shadow-lg sm:rounded-3xl sm:p-5 lg:mb-6 dark:shadow-none'>
+                <div className='mb-3 relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 p-4 text-white shadow-lg sm:rounded-3xl lg:mb-4 dark:shadow-none'>
                   <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
                   <div className='relative z-10 mb-2 flex items-end justify-between'>
                     <div>
@@ -786,22 +856,22 @@ export default function TherapistRoutineView() {
               />
 
               {/* Stats Cards */}
-              <div className='mt-4 grid grid-cols-2 gap-3 lg:mt-6'>
-                <div className='rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
-                  <div className='flex items-center justify-between mb-2'>
-                    <span className='text-slate-500 text-xs dark:text-slate-400'>Pendentes</span>
-                    <Clock className='h-4 w-4 text-amber-500' />
+              <div className='grid grid-cols-2 gap-3 lg:mt-auto'>
+                <div className='rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+                  <div className='flex items-center justify-between mb-1.5'>
+                    <span className='text-slate-500 text-[10px] dark:text-slate-400 uppercase tracking-wider font-semibold'>Pendentes</span>
+                    <Clock className='h-3.5 w-3.5 text-amber-500' />
                   </div>
-                  <p className='text-xl font-bold text-slate-800 dark:text-white'>
+                  <p className='text-lg font-bold text-slate-800 dark:text-white'>
                     {displayMyTasks.filter((t) => t.status !== 'completed').length}
                   </p>
                 </div>
-                <div className='rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
-                  <div className='flex items-center justify-between mb-2'>
-                    <span className='text-slate-500 text-xs dark:text-slate-400'>Concluídas</span>
-                    <CheckCircle2 className='h-4 w-4 text-emerald-500' />
+                <div className='rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+                  <div className='flex items-center justify-between mb-1.5'>
+                    <span className='text-slate-500 text-[10px] dark:text-slate-400 uppercase tracking-wider font-semibold'>Concluídas</span>
+                    <CheckCircle2 className='h-3.5 w-3.5 text-emerald-500' />
                   </div>
-                  <p className='text-xl font-bold text-slate-800 dark:text-white'>
+                  <p className='text-lg font-bold text-slate-800 dark:text-white'>
                     {displayMyTasks.filter((t) => t.status === 'completed').length}
                   </p>
                 </div>
@@ -809,7 +879,7 @@ export default function TherapistRoutineView() {
             </div>
 
             {/* Right Column - Agenda */}
-            <div className='mt-4 lg:col-span-8 lg:mt-0'>
+            <div className='mt-4 flex-1 min-h-0 lg:col-span-8 lg:mt-0 lg:h-full'>
               <AgendaSidebar
                 selectedDate={selectedDate}
                 tasks={displayMyTasks}
@@ -819,19 +889,19 @@ export default function TherapistRoutineView() {
               />
             </div>
           </div>
-        </>
+        </div>
       )}
 
       {/* PATIENTS VIEW */}
       {mainView === 'patients' && selectedPatientId ? (
-        <>
+        <div className='flex-1 min-h-0 overflow-hidden'>
           {/* Desktop Layout: 2 columns - Calendar on left, Agenda on right */}
-          <div className='lg:grid lg:grid-cols-12 lg:gap-6'>
+          <div className='flex flex-col h-full lg:grid lg:grid-cols-12 lg:gap-5 overflow-hidden'>
             {/* Left Column - Calendar */}
-            <div className='lg:col-span-4 xl:col-span-4'>
+            <div className='flex flex-col gap-4 overflow-y-auto lg:col-span-4 xl:col-span-4'>
               {/* Progress Card */}
               {showProgressBar && (
-                <div className='mb-4 relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 p-4 text-white shadow-lg sm:rounded-3xl sm:p-5 lg:mb-6 dark:shadow-none'>
+                <div className='mb-3 relative overflow-hidden rounded-2xl bg-gradient-to-r from-sky-500 to-cyan-500 p-4 text-white shadow-lg sm:rounded-3xl lg:mb-4 dark:shadow-none'>
                   <div className='-mr-10 -mt-10 absolute top-0 right-0 h-24 w-24 rounded-full bg-white opacity-10 sm:h-32 sm:w-32' />
                   <div className='relative z-10 mb-2 flex items-end justify-between'>
                     <div>
@@ -863,22 +933,22 @@ export default function TherapistRoutineView() {
               />
 
               {/* Stats Cards */}
-              <div className='mt-4 grid grid-cols-2 gap-3 lg:mt-6'>
-                <div className='rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
-                  <div className='flex items-center justify-between mb-2'>
-                    <span className='text-slate-500 text-xs dark:text-slate-400'>Pendentes</span>
-                    <Clock className='h-4 w-4 text-amber-500' />
+              <div className='grid grid-cols-2 gap-3 lg:mt-auto'>
+                <div className='rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+                  <div className='flex items-center justify-between mb-1.5'>
+                    <span className='text-slate-500 text-[10px] dark:text-slate-400 uppercase tracking-wider font-semibold'>Pendentes</span>
+                    <Clock className='h-3.5 w-3.5 text-amber-500' />
                   </div>
-                  <p className='text-xl font-bold text-slate-800 dark:text-white'>
+                  <p className='text-lg font-bold text-slate-800 dark:text-white'>
                     {displayTasks.filter((t) => t.status !== 'completed').length}
                   </p>
                 </div>
-                <div className='rounded-xl border border-slate-100 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
-                  <div className='flex items-center justify-between mb-2'>
-                    <span className='text-slate-500 text-xs dark:text-slate-400'>Concluídas</span>
-                    <CheckCircle2 className='h-4 w-4 text-sky-500' />
+                <div className='rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-800 dark:bg-slate-900'>
+                  <div className='flex items-center justify-between mb-1.5'>
+                    <span className='text-slate-500 text-[10px] dark:text-slate-400 uppercase tracking-wider font-semibold'>Concluídas</span>
+                    <CheckCircle2 className='h-3.5 w-3.5 text-sky-500' />
                   </div>
-                  <p className='text-xl font-bold text-slate-800 dark:text-white'>
+                  <p className='text-lg font-bold text-slate-800 dark:text-white'>
                     {displayTasks.filter((t) => t.status === 'completed').length}
                   </p>
                 </div>
@@ -886,36 +956,23 @@ export default function TherapistRoutineView() {
 
               {/* AI Suggestions */}
               {aiSuggestions && aiSuggestions.length > 0 && (
-                <div className='mt-4 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 p-4 dark:from-purple-900/20 dark:to-indigo-900/20'>
-                  <button
-                    className='flex w-full items-center justify-between'
-                    onClick={() => setShowAiSuggestions(!showAiSuggestions)}
-                    type='button'
-                  >
-                    <div className='flex items-center gap-2'>
-                      <Sparkles className='h-5 w-5 text-cyan-500' />
-                      <h3 className='font-semibold text-slate-800 text-sm dark:text-slate-200'>
-                        Sugestões da IA
-                      </h3>
-                    </div>
-                    {showAiSuggestions ? (
-                      <ChevronDown className='h-4 w-4 text-slate-500 transition-transform dark:text-slate-400' />
-                    ) : (
-                      <ChevronDown className='h-4 w-4 text-slate-500 transition-transform dark:text-slate-400' />
-                    )}
-                  </button>
+                <div className='relative rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 p-4 dark:from-purple-900/20 dark:to-indigo-900/20'>
                   {showAiSuggestions && (
-                    <div className='mt-3 space-y-2'>
+                    <div className='absolute bottom-full mb-3 left-0 right-0 z-20 space-y-2 rounded-2xl border border-slate-100 bg-white/95 p-4 shadow-2xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900/95'>
+                      <div className='flex items-center justify-between mb-2 pb-2 border-b border-slate-100 dark:border-slate-800'>
+                        <span className='text-xs font-bold text-slate-500 uppercase tracking-wider'>Recomendações da IA</span>
+                        < Sparkles className='h-4 w-4 text-cyan-500' />
+                      </div>
                       {aiSuggestions.slice(0, 3).map((suggestion, idx) => (
                         <div
-                          className='flex items-center justify-between rounded-xl border border-slate-100 bg-white p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800'
+                          className='flex items-center justify-between rounded-xl border border-slate-100 bg-slate-50/50 p-3 shadow-sm dark:border-slate-700 dark:bg-slate-800/50'
                           key={idx}
                         >
-                          <div className='flex-1'>
-                            <p className='font-medium text-slate-800 text-sm dark:text-slate-200'>
+                          <div className='flex-1 min-w-0'>
+                            <p className='font-medium text-slate-800 text-sm truncate dark:text-slate-200'>
                               {suggestion.title}
                             </p>
-                            <p className='text-slate-500 text-xs dark:text-slate-400'>
+                            <p className='text-slate-500 text-xs truncate dark:text-slate-400'>
                               {suggestion.description}
                             </p>
                           </div>
@@ -930,24 +987,37 @@ export default function TherapistRoutineView() {
                       ))}
                     </div>
                   )}
+                  <button
+                    className='flex w-full items-center justify-between'
+                    onClick={() => setShowAiSuggestions(!showAiSuggestions)}
+                    type='button'
+                  >
+                    <div className='flex items-center gap-2'>
+                      <Sparkles className='h-5 w-5 text-cyan-500' />
+                      <h3 className='font-semibold text-slate-800 text-sm dark:text-slate-200'>
+                        Sugestões da IA
+                      </h3>
+                    </div>
+                    <ChevronDown className={`h-4 w-4 text-slate-500 transition-transform dark:text-slate-400 ${showAiSuggestions ? 'rotate-180' : ''}`} />
+                  </button>
                 </div>
               )}
             </div>
 
             {/* Right Column - Agenda */}
-            <div className='mt-4 lg:col-span-8 lg:mt-0'>
+            <div className='mt-4 flex-1 min-h-0 lg:col-span-8 lg:mt-0 lg:h-full'>
               <AgendaSidebar
                 selectedDate={selectedDate}
                 tasks={displayTasks}
-                onCompleteTask={() => {}}
+                onCompleteTask={handleCompleteTask}
                 onDateChange={changeDate}
                 onDeleteTask={(taskId) => deleteTaskMutation.mutate({ taskId })}
               />
             </div>
           </div>
-        </>
+        </div>
       ) : mainView === 'patients' ? (
-        <div className='mt-8 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-8 text-center sm:mt-12 sm:rounded-3xl sm:p-12 lg:p-16 dark:border-slate-800 dark:bg-slate-900/50'>
+        <div className='flex-1 flex flex-col items-center justify-center rounded-2xl border-2 border-slate-200 border-dashed bg-slate-50/50 p-6 text-center lg:p-10 dark:border-slate-800 dark:bg-slate-900/50'>
           <div className='mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sky-100 text-sky-500 lg:h-20 lg:w-20 dark:bg-sky-900/30'>
             <Target size={32} />
           </div>
@@ -961,163 +1031,12 @@ export default function TherapistRoutineView() {
       ) : null}
 
       {/* Task Form Modal for Patient Tasks */}
-      {showTaskForm && mainView === 'patients' && selectedPatientId && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
-          <div className='w-full max-w-md overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
-            <div className='relative bg-gradient-to-r from-sky-500 to-cyan-500 p-6 text-white'>
-              <div className='absolute top-0 right-0 h-20 w-20 rounded-full bg-white/10' />
-              <h3 className='font-bold text-xl'>Nova Tarefa</h3>
-              <p className='text-sky-100 text-sm'>Para {selectedPatient?.name}</p>
-            </div>
-
-            <form
-              className='p-6'
-              onSubmit={(e) => {
-                e.preventDefault()
-                handleCreateTask()
-              }}
-            >
-              <div className='space-y-4'>
-                {/* Title */}
-                <div>
-                  <label
-                    className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                    htmlFor='task-title'
-                  >
-                    Título *
-                  </label>
-                  <input
-                    autoFocus
-                    className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
-                    id='task-title'
-                    onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                    placeholder='Ex: Praticar respiração consciente'
-                    required
-                    type='text'
-                    value={taskForm.title}
-                  />
-                </div>
-
-                {/* Date and Priority */}
-                <div className='grid grid-cols-2 gap-4'>
-                  <div>
-                    <label
-                      className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                      htmlFor='task-due-date'
-                    >
-                      <CalendarIcon className='mb-0.5 inline h-3 w-3' /> Data
-                    </label>
-                    <input
-                      className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-slate-700 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                      id='task-due-date'
-                      onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
-                      type='date'
-                      value={taskForm.dueDate || ''}
-                    />
-                  </div>
-
-                  <div>
-                    <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                      <Flag className='mb-0.5 inline h-3 w-3' /> Prioridade
-                    </label>
-                    <div className='flex gap-1'>
-                      {(['low', 'medium', 'high'] as const).map((p) => (
-                        <button
-                          className={`flex-1 rounded-lg border-2 py-2 font-bold text-[10px] uppercase transition-all ${
-                            taskForm.priority === p
-                              ? p === 'high'
-                                ? 'border-red-500 bg-red-50 text-red-500 dark:bg-red-900/20'
-                                : p === 'medium'
-                                  ? 'border-orange-500 bg-orange-50 text-orange-500 dark:bg-orange-900/20'
-                                  : 'border-blue-500 bg-blue-50 text-blue-500 dark:bg-blue-900/20'
-                              : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                          }`}
-                          key={p}
-                          onClick={() => setTaskForm({ ...taskForm, priority: p })}
-                          type='button'
-                        >
-                          {p === 'low' ? 'Baixa' : p === 'medium' ? 'Média' : 'Alta'}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Frequency */}
-                <div>
-                  <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
-                    <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
-                  </label>
-                  <div className='grid grid-cols-3 gap-2'>
-                    {(['once', 'daily', 'weekly'] as const).map((freq) => (
-                      <button
-                        className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
-                          taskForm.frequency === freq
-                            ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
-                            : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
-                        }`}
-                        key={freq}
-                        onClick={() => setTaskForm({ ...taskForm, frequency: freq })}
-                        type='button'
-                      >
-                        {freq === 'once' ? 'Uma vez' : freq === 'daily' ? 'Diário' : 'Semanal'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Warning */}
-                <div className='flex items-start gap-2 rounded-xl bg-amber-50 p-3 dark:bg-amber-900/20'>
-                  <AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0 text-amber-500' />
-                  <p className='text-amber-700 text-xs dark:text-amber-400'>
-                    A tarefa será atribuída a <strong>{selectedPatient?.name}</strong> e aparecerá
-                    na rotina dele(a).
-                  </p>
-                </div>
-              </div>
-
-              {/* Buttons */}
-              <div className='mt-6 flex gap-3'>
-                <button
-                  className='flex-1 rounded-xl py-3 font-bold text-slate-500 text-sm transition-colors hover:bg-slate-50 dark:text-slate-400 dark:hover:bg-slate-700'
-                  onClick={() => {
-                    setShowTaskForm(false)
-                    setTaskForm(defaultTaskForm)
-                  }}
-                  type='button'
-                >
-                  Cancelar
-                </button>
-                <button
-                  className='flex flex-[2] items-center justify-center gap-2 rounded-xl bg-slate-900 py-3 font-bold text-sm text-white shadow-lg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-slate-900'
-                  disabled={createTaskMutation.isPending || !taskForm.title}
-                  type='submit'
-                >
-                  {createTaskMutation.isPending ? (
-                    <>
-                      <RefreshCw className='h-4 w-4 animate-spin' />
-                      Criando...
-                    </>
-                  ) : (
-                    <>
-                      <Plus className='h-4 w-4' />
-                      Criar Tarefa
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Task Form Modal for My Routine */}
-      {showTaskForm && mainView === 'my-routine' && (
+      {showTaskForm && (mainView === 'patients' || mainView === 'my-routine') && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm'>
           <div className='w-full max-w-md max-h-[90vh] overflow-y-auto overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800'>
             <div
               className={`relative p-6 text-white ${
-                taskForm.taskCategory === 'sessao'
+                taskForm.taskCategory === 'sessao' || mainView === 'patients'
                   ? 'bg-gradient-to-r from-sky-500 to-cyan-500'
                   : 'bg-gradient-to-r from-emerald-500 to-teal-600'
               }`}
@@ -1126,12 +1045,16 @@ export default function TherapistRoutineView() {
               <h3 className='font-bold text-xl'>Nova Tarefa</h3>
               <p
                 className={`text-sm ${
-                  taskForm.taskCategory === 'sessao' ? 'text-sky-100' : 'text-emerald-100'
+                  taskForm.taskCategory === 'sessao' || mainView === 'patients'
+                    ? 'text-sky-100'
+                    : 'text-emerald-100'
                 }`}
               >
-                {taskForm.taskCategory === 'sessao'
-                  ? `Sessão${selectedSessionPatient ? ` com ${selectedSessionPatient.name}` : ''}`
-                  : 'Para sua rotina pessoal'}
+                {mainView === 'patients'
+                  ? `Para ${selectedPatient?.name}`
+                  : taskForm.taskCategory === 'sessao'
+                    ? `Sessão${selectedSessionPatient ? ` com ${selectedSessionPatient.name}` : ''}`
+                    : 'Para sua rotina pessoal'}
               </p>
             </div>
 
@@ -1143,7 +1066,7 @@ export default function TherapistRoutineView() {
               }}
             >
               <div className='space-y-4'>
-                {/* Task Type */}
+                {/* Task Type - Now visible in patients view too */}
                 <div>
                   <label className='mb-2 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
                     <Target className='mb-0.5 inline h-3 w-3' /> Tipo de Tarefa *
@@ -1152,7 +1075,9 @@ export default function TherapistRoutineView() {
                     <button
                       className={`flex flex-col items-center justify-center rounded-xl border-2 p-4 font-bold transition-all ${
                         taskForm.taskCategory === 'geral'
-                          ? 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
+                          ? mainView === 'patients'
+                            ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
+                            : 'border-emerald-500 bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
                           : 'border-slate-200 bg-slate-50 text-slate-500 hover:border-slate-300 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                       }`}
                       onClick={() =>
@@ -1161,6 +1086,7 @@ export default function TherapistRoutineView() {
                           taskCategory: 'geral',
                           sessionPatientId: undefined,
                           priority: 'medium',
+                          type: 'custom',
                         })
                       }
                       type='button'
@@ -1168,7 +1094,7 @@ export default function TherapistRoutineView() {
                       <Target className='mb-2 h-6 w-6' />
                       <span className='text-sm'>Geral</span>
                       <span className='mt-1 font-normal text-[10px] opacity-70'>
-                        Tarefas pessoais
+                        {mainView === 'patients' ? 'Tarefas para o paciente' : 'Tarefas pessoais'}
                       </span>
                     </button>
                     <button
@@ -1183,6 +1109,7 @@ export default function TherapistRoutineView() {
                           taskCategory: 'sessao',
                           priority: 'high',
                           type: 'session',
+                          sessionPatientId: mainView === 'patients' ? selectedPatientId : undefined,
                         })
                       }
                       type='button'
@@ -1196,8 +1123,30 @@ export default function TherapistRoutineView() {
 
                 {taskForm.taskCategory && (
                   <>
-                    {/* Patient Search - for sessions */}
-                    {taskForm.taskCategory === 'sessao' && (
+                    {/* Title - Only for Geral or if needed */}
+                    {taskForm.taskCategory === 'geral' && (
+                      <div>
+                        <label
+                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
+                          htmlFor='task-title'
+                        >
+                          Título *
+                        </label>
+                        <input
+                          autoFocus
+                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
+                          id='task-title'
+                          onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
+                          placeholder='Ex: Praticar respiração consciente'
+                          required
+                          type='text'
+                          value={taskForm.title}
+                        />
+                      </div>
+                    )}
+
+                    {/* Patient Search - for sessions, hidden if mainView is patients */}
+                    {taskForm.taskCategory === 'sessao' && mainView === 'my-routine' && (
                       <div>
                         <label className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
                           <User className='mb-0.5 inline h-3 w-3' /> Paciente *
@@ -1280,7 +1229,7 @@ export default function TherapistRoutineView() {
 
                     {/* Session Value */}
                     {taskForm.taskCategory === 'sessao' && (
-                      <div>
+                      <div className='mt-2'>
                         <label
                           className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
                           htmlFor='session-value'
@@ -1298,96 +1247,73 @@ export default function TherapistRoutineView() {
                             })
                           }
                           placeholder='0.00'
-                          type='number'
-                          value={taskForm.sessionValue || ''}
-                        />
-                      </div>
-                    )}
-
-                    {/* Title - for general tasks */}
-                    {taskForm.taskCategory === 'geral' && (
-                      <div>
-                        <label
-                          className='mb-1 block font-bold text-slate-400 text-xs uppercase tracking-wider'
-                          htmlFor='my-task-title'
-                        >
-                          Título *
-                        </label>
-                        <input
-                          autoFocus
-                          className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-emerald-900/30'
-                          id='my-task-title'
-                          onChange={(e) => setTaskForm({ ...taskForm, title: e.target.value })}
-                          placeholder='Ex: Revisar relatórios semanais'
-                          required
-                          type='text'
-                          value={taskForm.title}
+                          value={taskForm.sessionValue}
                         />
                       </div>
                     )}
 
                     {/* Frequency for sessions */}
                     {taskForm.taskCategory === 'sessao' && (
-                      <div>
-                        <label className='mb-1 block font-bold text-slate-400 text-[10px] uppercase tracking-wider'>
+                      <div className='mt-4'>
+                        <label className='mb-2 block font-bold text-slate-400 text-xs uppercase tracking-wider'>
                           <Repeat className='mb-0.5 inline h-3 w-3' /> Frequência
                         </label>
-                        <div className='grid grid-cols-3 gap-1.5'>
-                          {(
-                            [
-                              { key: 'once', label: 'Única' },
-                              { key: 'weekly', label: 'Semanal' },
-                              { key: 'biweekly', label: 'Quinzenal' },
-                            ] as const
-                          ).map((freq) => (
+                        <div className='grid grid-cols-3 gap-2'>
+                          {(['once', 'weekly', 'biweekly'] as const).map((freq) => (
                             <button
-                              className={`rounded-md border-2 px-2 py-1.5 font-bold text-[10px] transition-all ${
-                                taskForm.frequency === freq.key
+                              className={`rounded-lg border-2 px-3 py-2 font-bold text-xs transition-all ${
+                                taskForm.frequency === freq
                                   ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
                                   : 'border-transparent bg-slate-50 text-slate-400 hover:bg-slate-100 dark:bg-slate-900 dark:hover:bg-slate-700'
                               }`}
-                              key={freq.key}
+                              key={freq}
                               onClick={() =>
                                 setTaskForm({
                                   ...taskForm,
-                                  frequency: freq.key,
+                                  frequency: freq,
                                   weekDays: [],
-                                  monthDay: undefined,
                                 })
                               }
                               type='button'
                             >
-                              {freq.label}
+                              {freq === 'once' ? 'Única' : freq === 'weekly' ? 'Semanal' : 'Quinzenal'}
                             </button>
                           ))}
                         </div>
 
-                        {/* Week days selection */}
+                        {/* Weekday selector for weekly/biweekly session */}
                         {(taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && (
-                          <div className='mt-2'>
-                            <p className='mb-1.5 text-slate-500 text-[10px] dark:text-slate-400'>
-                              Selecione o dia da semana:
-                            </p>
-                            <div className='grid grid-cols-7 gap-1'>
-                              {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
-                                const isSelected = taskForm.weekDays?.includes(index)
+                          <div className='mt-3'>
+                            <p className='mb-2 text-slate-500 text-xs'>Selecione o dia da semana:</p>
+                            <div className='flex justify-between gap-1'>
+                              {[
+                                { label: 'D', value: 0 },
+                                { label: 'S', value: 1 },
+                                { label: 'T', value: 2 },
+                                { label: 'Q', value: 3 },
+                                { label: 'Q', value: 4 },
+                                { label: 'S', value: 5 },
+                                { label: 'S', value: 6 },
+                              ].map((day) => {
+                                const isSelected = taskForm.weekDays?.includes(day.value)
                                 return (
                                   <button
-                                    className={`aspect-square rounded-md border-2 font-bold text-[10px] transition-all ${
+                                    className={`flex h-10 w-10 items-center justify-center rounded-lg border-2 font-bold text-sm transition-all ${
                                       isSelected
-                                        ? 'border-sky-500 bg-sky-500 text-white'
-                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-sky-300 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-600'
+                                        ? 'border-sky-500 bg-sky-50 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
+                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800'
                                     }`}
-                                    key={index}
+                                    key={day.value}
                                     onClick={() => {
-                                      setTaskForm({
-                                        ...taskForm,
-                                        weekDays: [index],
-                                      })
+                                      const currentDays = taskForm.weekDays || []
+                                      const newDays = currentDays.includes(day.value)
+                                        ? currentDays.filter((d) => d !== day.value)
+                                        : [...currentDays, day.value]
+                                      setTaskForm({ ...taskForm, weekDays: newDays })
                                     }}
                                     type='button'
                                   >
-                                    {day}
+                                    {day.label}
                                   </button>
                                 )
                               })}
@@ -1395,24 +1321,14 @@ export default function TherapistRoutineView() {
                           </div>
                         )}
 
-                        {/* Date for single sessions */}
+                        {/* Date selector for unique session */}
                         {taskForm.frequency === 'once' && (
-                          <div className='mt-2'>
-                            <label
-                              className='mb-1 block font-medium text-slate-500 text-[10px] dark:text-slate-400'
-                              htmlFor='session-date-once'
-                            >
-                              Data da Sessão:
-                            </label>
+                          <div className='mt-3'>
+                            <p className='mb-2 text-slate-500 text-xs'>Selecione a data:</p>
                             <input
-                              className='w-full rounded-lg border border-slate-200 bg-slate-50 p-2 text-sm outline-none transition-colors focus:border-sky-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white'
-                              id='session-date-once'
+                              className='w-full rounded-xl border border-slate-200 bg-slate-50 p-3 font-medium text-sm text-slate-800 outline-none transition-all focus:border-sky-500 focus:ring-2 focus:ring-sky-200 dark:border-slate-700 dark:bg-slate-900 dark:text-white dark:focus:ring-sky-900/30'
                               onChange={(e) =>
-                                setTaskForm({
-                                  ...taskForm,
-                                  dueDate: e.target.value,
-                                  monthDay: undefined,
-                                })
+                                setTaskForm({ ...taskForm, dueDate: e.target.value })
                               }
                               type='date'
                               value={taskForm.dueDate || ''}
@@ -1422,25 +1338,6 @@ export default function TherapistRoutineView() {
                       </div>
                     )}
 
-                    {/* Session warning */}
-                    {taskForm.taskCategory === 'sessao' && selectedSessionPatient && (
-                      <div className='flex items-start gap-2 rounded-lg bg-amber-50 p-2 dark:bg-amber-900/20'>
-                        <AlertCircle className='mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-500' />
-                        <p className='text-amber-700 text-[10px] leading-tight dark:text-amber-400'>
-                          {taskForm.frequency === 'weekly'
-                            ? 'Sessão semanal no mesmo dia'
-                            : taskForm.frequency === 'biweekly'
-                              ? 'Sessão quinzenal no mesmo dia'
-                              : taskForm.frequency === 'once'
-                                ? `Sessão em ${new Date(taskForm.dueDate || '').toLocaleDateString('pt-BR', { timeZone: 'UTC' })}`
-                                : 'Tarefa adicionada'}
-                          {' para '}
-                          <strong>{selectedSessionPatient.name}</strong>.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Session priority */}
                     {taskForm.taskCategory === 'sessao' && (
                       <div className='flex items-center gap-1.5 rounded-lg bg-red-50 px-2.5 py-1.5 dark:bg-red-900/20'>
                         <Flag className='h-3.5 w-3.5 text-red-500' fill='currentColor' />
@@ -1514,7 +1411,7 @@ export default function TherapistRoutineView() {
                               { key: 'once', label: 'Uma Vez' },
                               { key: 'daily', label: 'Diário' },
                               { key: 'weekly', label: 'Semanal' },
-                              { key: 'monthly', label: 'Mensal' },
+                              { key: 'biweekly', label: 'Quinzenal' },
                             ] as const
                           ).map((freq) => (
                             <button
@@ -1529,7 +1426,6 @@ export default function TherapistRoutineView() {
                                   ...taskForm,
                                   frequency: freq.key,
                                   weekDays: [],
-                                  monthDay: undefined,
                                 })
                               }
                               type='button'
@@ -1540,7 +1436,7 @@ export default function TherapistRoutineView() {
                         </div>
 
                         {/* Week days selection */}
-                        {taskForm.frequency === 'weekly' && (
+                        {(taskForm.frequency === 'weekly' || taskForm.frequency === 'biweekly') && (
                           <div className='mt-3'>
                             <p className='mb-2 text-slate-500 text-xs dark:text-slate-400'>
                               Selecione os dias da semana:
@@ -1564,43 +1460,6 @@ export default function TherapistRoutineView() {
                                       setTaskForm({
                                         ...taskForm,
                                         weekDays: newDays,
-                                      })
-                                    }}
-                                    type='button'
-                                  >
-                                    {day}
-                                  </button>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Month days selection */}
-                        {taskForm.frequency === 'monthly' && (
-                          <div className='mt-3'>
-                            <p className='mb-2 text-slate-500 text-xs dark:text-slate-400'>
-                              Selecione os dias do mês:
-                            </p>
-                            <div className='grid grid-cols-7 gap-1'>
-                              {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => {
-                                const isSelected = taskForm.monthDays?.includes(day)
-                                return (
-                                  <button
-                                    className={`aspect-square rounded-lg border-2 font-bold text-xs transition-all ${
-                                      isSelected
-                                        ? 'border-emerald-500 bg-emerald-500 text-white'
-                                        : 'border-slate-200 bg-slate-50 text-slate-400 hover:border-emerald-300 hover:bg-emerald-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600'
-                                    }`}
-                                    key={day}
-                                    onClick={() => {
-                                      const currentDays = taskForm.monthDays || []
-                                      const newDays = isSelected
-                                        ? currentDays.filter((d) => d !== day)
-                                        : [...currentDays, day].sort((a, b) => a - b)
-                                      setTaskForm({
-                                        ...taskForm,
-                                        monthDays: newDays,
                                       })
                                     }}
                                     type='button'

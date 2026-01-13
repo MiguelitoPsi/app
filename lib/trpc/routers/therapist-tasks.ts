@@ -12,6 +12,7 @@ import { TASK_LIMITS } from '@/lib/constants'
 
 import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
 import { awardTherapistXP, type THERAPIST_XP_ACTIONS } from '@/lib/xp/therapist'
+import { getStartOfDay, nowInSP, formatDateSP } from '@/lib/utils/timezone'
 import { protectedProcedure, router } from '../trpc'
 import { therapistFinancial } from '@/lib/db/schema'
 
@@ -128,7 +129,7 @@ export const therapistTasksRouter = router({
         })
       }
 
-      const today = new Date()
+      const today = nowInSP()
 
       // Se for sessão, precisa ter um paciente selecionado
       if (input.taskCategory === 'sessao' && !input.patientId) {
@@ -186,15 +187,9 @@ export const therapistTasksRouter = router({
 
       // Validate that the date is not in the past
       if (input.dueDate) {
-        // Parse date components from the input (YYYY-MM-DD format)
-        const [year, month, day] = input.dueDate.split('-').map(Number)
-        
-        // Create date objects using LOCAL timezone for consistent comparison
-        // Both dates are set to midnight local time for fair comparison
-        const taskDate = new Date(year, month - 1, day, 0, 0, 0, 0)
-        const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
+        const todayStr = formatDateSP(today)
 
-        if (taskDate < todayLocal) {
+        if (input.dueDate < todayStr) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Não é possível criar tarefas para datas que já passaram',
@@ -206,11 +201,12 @@ export const therapistTasksRouter = router({
       const effectivePriority = input.taskCategory === 'sessao' ? 'high' : input.priority
       const xpReward = THERAPIST_TASK_XP[effectivePriority] || 20
 
-      // Parse date as UTC to avoid timezone issues
+      // Parse date and normalize to NOON to avoid timezone edge cases
       let parsedDueDate: Date | null = null
       if (input.dueDate) {
         const [year, month, day] = input.dueDate.split('-').map(Number)
-        parsedDueDate = new Date(Date.UTC(year, month - 1, day, 23, 0, 0, 0))
+        // Storing as noon localized to avoid jumps
+        parsedDueDate = new Date(year, month - 1, day, 12, 0, 0, 0)
       }
 
       // Gerar datas para tarefas recorrentes de sessão baseadas no dia da semana
@@ -248,9 +244,9 @@ export const therapistTasksRouter = router({
         const interval = frequency === 'weekly' ? 7 : 14
 
         while (currentDate <= lastDayOfMonth) {
-          // Criar data às 23:00 UTC para garantir exibição correta no frontend
-          const utcDate = new Date(Date.UTC(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 23, 0, 0, 0))
-          dates.push(utcDate)
+          // Criar data às 12:00 local para garantir exibição correta no frontend
+          const normalizedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 12, 0, 0, 0)
+          dates.push(normalizedDate)
           currentDate.setDate(currentDate.getDate() + interval)
         }
 
@@ -287,10 +283,8 @@ export const therapistTasksRouter = router({
           return []
         }
 
-        // Criar data às 23:00 UTC para garantir que a data seja exibida corretamente
-        // Independente do timezone do usuário (Brasil UTC-3 ou UTC-4), 23:00 UTC = 20:00 ou 19:00 local
         // Isso garante que a data nunca mude para o dia anterior
-        const date = new Date(Date.UTC(targetYear, targetMonth, input.monthDay, 23, 0, 0, 0))
+        const date = new Date(targetYear, targetMonth, input.monthDay, 12, 0, 0, 0)
 
         return [date]
       }
@@ -478,6 +472,24 @@ export const therapistTasksRouter = router({
             )
         }
 
+        // Sincronizar com a tarefa do paciente se for uma sessão
+        if (task.type === 'session' && task.patientId) {
+          await ctx.db
+            .update(patientTasksFromTherapist)
+            .set({
+              status: 'pending',
+              completedAt: null,
+              updatedAt: now,
+            })
+            .where(
+              and(
+                eq(patientTasksFromTherapist.therapistId, ctx.user.id),
+                eq(patientTasksFromTherapist.patientId, task.patientId),
+                eq(patientTasksFromTherapist.dueDate, task.dueDate!)
+              )
+            )
+        }
+
         return {
           xpAwarded: 0,
           levelUp: false,
@@ -494,6 +506,24 @@ export const therapistTasksRouter = router({
           updatedAt: now,
         })
         .where(eq(therapistTasks.id, input.id))
+
+      // Sincronizar com a tarefa do paciente se for uma sessão
+      if (task.type === 'session' && task.patientId) {
+        await ctx.db
+          .update(patientTasksFromTherapist)
+          .set({
+            status: 'completed',
+            completedAt: now,
+            updatedAt: now,
+          })
+          .where(
+            and(
+              eq(patientTasksFromTherapist.therapistId, ctx.user.id),
+              eq(patientTasksFromTherapist.patientId, task.patientId),
+              eq(patientTasksFromTherapist.dueDate, task.dueDate!)
+            )
+          )
+      }
 
       // Se for uma sessão com valor definido, criar registro financeiro
       if (task.type === 'session' && task.metadata?.sessionValue) {
@@ -522,6 +552,7 @@ export const therapistTasksRouter = router({
             patientId: task.patientId,
             date: now,
             isRecurring: false,
+            status: 'pending', // Pagamento pendente até confirmação manual
             metadata: {
               notes: 'Gerado automaticamente via rotina',
               taskId: task.id

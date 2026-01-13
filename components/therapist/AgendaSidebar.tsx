@@ -36,7 +36,12 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
       return isSameDay(selectedDate, taskDate)
     })
     .sort((a, b) => {
-      // Sort by priority or time if available
+      // Prioritize pending tasks over completed ones
+      if (a.status !== b.status) {
+        return a.status === 'completed' ? 1 : -1
+      }
+
+      // Within same status, sort by priority
       const priorityOrder = { high: 0, medium: 1, low: 2 }
       return (
         (priorityOrder[a.priority as keyof typeof priorityOrder] ?? 3) -
@@ -56,38 +61,38 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
   }
 
   return (
-    <div className='bg-slate-900/50 rounded-2xl p-5 backdrop-blur-sm border border-slate-800/50 flex flex-col h-full'>
+    <div className='bg-white dark:bg-slate-800/50 rounded-2xl p-4 border border-slate-100 dark:border-slate-800/50 flex flex-col h-full shadow-sm lg:shadow-none'>
       {/* Header with date navigation */}
-      <div className='flex items-center justify-between mb-6'>
+      <div className='flex items-center justify-between mb-4'>
         <div>
-          <h3 className='text-lg font-bold text-white'>Agendado</h3>
-          <p className='text-slate-400 text-sm mt-0.5'>
+          <h3 className='text-base font-bold text-slate-800 dark:text-white'>Agendado</h3>
+          <p className='text-slate-500 text-xs mt-0.5'>
             {format(selectedDate, "d 'de' MMMM, yyyy", { locale: ptBR })}
           </p>
         </div>
-        <div className='flex items-center gap-2'>
-          <div className='p-2 bg-slate-800/50 rounded-lg text-slate-400'>
-            <CalendarIcon size={16} />
+        <div className='flex items-center gap-1.5'>
+          <div className='p-1.5 bg-slate-100 dark:bg-slate-800/50 rounded-lg text-slate-400'>
+            <CalendarIcon size={14} />
           </div>
           <div className='flex gap-0.5'>
             <button
-              className='p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-400'
+              className='p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400'
               onClick={() => onDateChange(-1)}
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} />
             </button>
             <button
-              className='p-1.5 hover:bg-slate-800 rounded-lg transition-colors text-slate-400'
+              className='p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400'
               onClick={() => onDateChange(1)}
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} />
             </button>
           </div>
         </div>
       </div>
 
       {/* Tasks list */}
-      <div className='flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar'>
+      <div className='flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar'>
         {filteredTasks.length === 0 ? (
           <div className='flex flex-col items-center justify-center py-12 text-slate-500'>
             <Circle size={40} className='mb-3 opacity-20' />
@@ -97,7 +102,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
           filteredTasks.map((task) => (
             <div className='group transition-all' key={task.id}>
               {/* Time and intensity bar */}
-              <div className='flex items-center gap-3 mb-2'>
+              <div className='flex items-center gap-3 mb-1.5'>
                 <span className='text-[10px] font-bold text-slate-500 tracking-tight w-10 text-right'>
                   {task.type === 'session' ? 'SESSÃO' : 'TAREFA'}
                 </span>
@@ -110,7 +115,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
               {/* Task card */}
               <div
                 className={`
-                  relative p-4 rounded-xl border transition-all
+                  relative p-3 rounded-xl border transition-all
                   ${
                     task.status === 'completed'
                       ? 'bg-slate-800/30 border-slate-700/50 opacity-60'
@@ -170,7 +175,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                 </div>
 
                 {/* Footer with patient and duration */}
-                <div className='mt-3 flex items-center justify-between'>
+                <div className='mt-2 flex items-center justify-between'>
                   <div className='flex items-center gap-2'>
                     <div className='flex -space-x-1.5'>
                       <div className='w-5 h-5 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center overflow-hidden'>

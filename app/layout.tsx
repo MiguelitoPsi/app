@@ -4,6 +4,7 @@ import './globals.css'
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 import { SuspensionCheck } from '@/components/SuspensionCheck'
 import { SoundProvider } from '@/context/SoundContext'
+import { Toaster } from 'sonner'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -60,6 +61,7 @@ export default function RootLayout({
           <SoundProvider>
             <SuspensionCheck />
             <ServiceWorkerRegister />
+            <Toaster richColors position='top-right' />
             {children}
           </SoundProvider>
         </TRPCProvider>

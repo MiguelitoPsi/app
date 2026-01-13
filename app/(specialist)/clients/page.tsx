@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
+import { InvitePatientModal } from '@/components/InvitePatientModal'
 
 type Patient = {
   id: string
@@ -33,7 +34,9 @@ export default function ClientsPage() {
   const [unlinkReason, setUnlinkReason] = useState('')
   const [referralReason, setReferralReason] = useState('')
   const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
+
   const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
+  const [showInviteModal, setShowInviteModal] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -113,114 +116,31 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className='box-border h-full overflow-y-auto'>
-      {/* Dashboard Header */}
-      <header className='sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/80'>
-        <div className='flex h-16 items-center justify-between px-4'>
-          <div className='relative flex-1 max-w-xl'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
-              <input
-                className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder='Buscar cliente...'
-                type='text'
-                value={searchQuery}
-              />
-            </div>
-          </div>
-          <div className='flex items-center gap-2 pl-4'>
-            <a
-              className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:from-amber-600 hover:to-orange-600 hover:shadow-md'
-              href='/upgrade'
-            >
-              <svg
-                className='h-4 w-4'
-                fill='none'
-                height='24'
-                stroke='currentColor'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                viewBox='0 0 24 24'
-                width='24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path d='M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z' />
-                <path d='M20 2v4' />
-                <path d='M22 4h-4' />
-                <circle cx='4' cy='20' r='2' />
-              </svg>
-              <span className='hidden sm:inline'>Assinar</span>
-            </a>
-            <a
-              className='flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-              href='/videos'
-              title='Vídeos'
-            >
-              <svg
-                className='h-5 w-5'
-                fill='none'
-                height='24'
-                stroke='currentColor'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                viewBox='0 0 24 24'
-                width='24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path d='m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5' />
-                <rect height='12' rx='2' width='14' x='2' y='6' />
-              </svg>
-            </a>
-            <div className='relative'>
-              <button
-                className='flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-                title='Notificações'
-              >
-                <svg
-                  className='h-5 w-5'
-                  fill='none'
-                  height='24'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  viewBox='0 0 24 24'
-                  width='24'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path d='M10.268 21a2 2 0 0 0 3.464 0' />
-                  <path d='M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326' />
-                </svg>
-                <span className='absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500' />
-              </button>
-            </div>
-            <div className='relative'>
-              <button className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-sky-500 transition-all hover:ring-2 hover:ring-sky-500/30'>
-                <img
-                  alt='Perfil'
-                  className='h-full w-full object-cover'
-                  height={36}
-                  src='/avatar-default.png'
-                  width={36}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+    <div className='box-border h-full overflow-y-auto pb-10'>
 
       {/* Content */}
       <div className='px-4 py-6 sm:px-6 lg:px-8'>
         {/* Header */}
-        <div className='mb-6'>
-          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Meus Pacientes</h2>
-          <p className='text-slate-500 dark:text-slate-400'>
-            {patients?.length || 0} pacientes cadastrados
-          </p>
+        <div className='mb-6 flex items-center justify-between'>
+          <div>
+            <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Meus Pacientes</h2>
+            <p className='text-slate-500 dark:text-slate-400'>
+              {patients?.length || 0} pacientes cadastrados
+            </p>
+          </div>
+          <button
+            onClick={() => setShowInviteModal(true)}
+            className='flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-600 active:scale-95'
+          >
+            <UserPlus className='h-4 w-4' />
+            Convidar Paciente
+          </button>
         </div>
+
+        <InvitePatientModal 
+          isOpen={showInviteModal} 
+          onClose={() => setShowInviteModal(false)} 
+        />
 
         {/* Stats */}
         <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
@@ -258,10 +178,24 @@ export default function ClientsPage() {
               <div>
                 <p className='text-sm text-slate-500 dark:text-slate-400'>Com sessões</p>
                 <p className='text-xl font-bold text-slate-800 dark:text-white'>
-                  {patientsData?.length || 0}
+                  {patientsData?.filter((p) => (p as any).sessionCount > 0).length || 0}
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className='mb-8 relative max-w-md'>
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
+            <input
+              className='w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 shadow-sm transition-all'
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder='Buscar por nome ou email...'
+              type='text'
+              value={searchQuery}
+            />
           </div>
         </div>
 
@@ -321,39 +255,38 @@ export default function ClientsPage() {
                     {/* Dropdown Menu */}
                     {openDropdownId === patient.id && (
                       <div
-                        className='absolute right-0 top-8 z-50 w-48 rounded-xl border border-slate-700 bg-[#161b22] shadow-xl'
+                        className='absolute right-0 top-8 z-50 w-56 rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800'
                         ref={dropdownRef}
-                        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)' }}
                       >
-                        <div className='py-1'>
+                        <div className='p-1.5'>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowUnlinkConfirm(true)
                               handleCloseDropdown()
                             }}
                           >
-                            <LogOut className='h-4 w-4 text-red-400' />
+                            <LogOut className='h-4 w-4 text-red-500' />
                             Desvincular paciente
                           </button>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowReferralModal(true)
                               handleCloseDropdown()
                             }}
                           >
-                            <UserPlus className='h-4 w-4 text-sky-400' />
+                            <UserPlus className='h-4 w-4 text-sky-500' />
                             Encaminhamento
                           </button>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowDischargeConfirm(true)
                               handleCloseDropdown()
                             }}
                           >
-                            <CheckCircle className='h-4 w-4 text-emerald-400' />
+                            <CheckCircle className='h-4 w-4 text-emerald-500' />
                             Dar alta ao paciente
                           </button>
                         </div>

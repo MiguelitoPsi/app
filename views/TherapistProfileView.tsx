@@ -76,8 +76,8 @@ export const TherapistProfileView: React.FC = () => {
       <div className='mx-auto box-border max-w-6xl'>
         {/* Título */}
         <div className='mb-6'>
-          <h1 className='box-border text-2xl font-bold text-slate-900 dark:text-white'>Perfil</h1>
-          <p className='text-sm text-slate-500 dark:text-slate-400'>
+          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Perfil</h2>
+          <p className='text-slate-500 dark:text-slate-400'>
             Gerencie suas informações pessoais e dados da clínica
           </p>
         </div>

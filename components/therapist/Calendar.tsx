@@ -30,7 +30,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
 
   const renderHeader = () => {
     return (
-      <div className='flex items-center justify-between px-2 py-3'>
+      <div className='flex items-center justify-between px-2 py-2'>
         <div className='flex items-center gap-2'>
           <h2 className='text-lg font-semibold text-white capitalize'>
             {format(currentMonth, 'MMMM', { locale: ptBR })}
@@ -58,7 +58,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
   const renderDays = () => {
     const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
     return (
-      <div className='grid grid-cols-7 mb-2 px-1'>
+      <div className='grid grid-cols-7 mb-1.5 px-1'>
         {days.map((day) => (
           <div
             key={day}
@@ -99,7 +99,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
           return (
             <div
               className={`
-                relative h-16 p-1.5 rounded-xl cursor-pointer transition-all border-2
+                relative h-12 p-1.5 rounded-xl cursor-pointer transition-all border-2
                 ${!isCurrentMonth ? 'opacity-25' : 'opacity-100'}
                 ${
                   isSelected
@@ -150,7 +150,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
   }
 
   return (
-    <div className='bg-slate-900/50 rounded-2xl p-4 backdrop-blur-sm border border-slate-800/50'>
+    <div className='bg-slate-900/50 rounded-2xl p-3 backdrop-blur-sm border border-slate-800/50'>
       {renderHeader()}
       {renderDays()}
       {renderCells()}

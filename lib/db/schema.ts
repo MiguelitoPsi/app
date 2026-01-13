@@ -218,8 +218,8 @@ export const patientInvites = sqliteTable('patient_invites', {
   psychologistId: text('psychologist_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
-  email: text('email').notNull(),
-  name: text('name').notNull(),
+  email: text('email'),
+  name: text('name'),
   phone: text('phone'),
   birthdate: text('birthdate'),
   gender: text('gender'),
@@ -423,6 +423,7 @@ export const therapistFinancial = sqliteTable('therapist_financial', {
   therapistId: text('therapist_id')
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
+  accountType: text('account_type', { enum: ['pj', 'cpf'] }).notNull().default('cpf'),
   type: text('type', { enum: ['income', 'expense'] }).notNull(),
   category: text('category', {
     enum: [
@@ -450,6 +451,9 @@ export const therapistFinancial = sqliteTable('therapist_financial', {
     onDelete: 'set null',
   }),
   date: integer('date', { mode: 'timestamp' }).notNull(),
+  status: text('status', { enum: ['paid', 'pending'] })
+    .notNull()
+    .default('paid'),
   isRecurring: integer('is_recurring', { mode: 'boolean' }).notNull().default(false),
   frequency: text('frequency', { enum: ['weekly', 'monthly', 'yearly'] }),
   metadata: text('metadata', { mode: 'json' }).$type<{
@@ -779,169 +783,7 @@ export type PsychologistSubscription = typeof psychologistSubscriptions.$inferSe
 export type NewPsychologistSubscription = typeof psychologistSubscriptions.$inferInsert
 
 // Relations
-export const usersRelations = relations(users, ({ many, one }) => ({
-  stats: one(userStats, {
-    fields: [users.id],
-    references: [userStats.userId],
-  }),
-  therapistStats: one(therapistStats, {
-    fields: [users.id],
-    references: [therapistStats.therapistId],
-  }),
-  patientsAsTherapist: many(psychologistPatients, {
-    relationName: 'psychologist',
-  }),
-  therapistsAsPatient: many(psychologistPatients, {
-    relationName: 'patient',
-  }),
-  therapistAchievements: many(therapistAchievements),
-  therapistTasks: many(therapistTasks),
-  therapistChallenges: many(therapistChallenges),
-  therapistFinancial: many(therapistFinancial),
-  therapistGoals: many(therapistGoals),
-}))
-
-export const psychologistPatientsRelations = relations(psychologistPatients, ({ one }) => ({
-  psychologist: one(users, {
-    fields: [psychologistPatients.psychologistId],
-    references: [users.id],
-    relationName: 'psychologist',
-  }),
-  patient: one(users, {
-    fields: [psychologistPatients.patientId],
-    references: [users.id],
-    relationName: 'patient',
-  }),
-}))
-
-export const userStatsRelations = relations(userStats, ({ one }) => ({
-  user: one(users, {
-    fields: [userStats.userId],
-    references: [users.id],
-  }),
-}))
-
-// Therapist relations
-export const therapistStatsRelations = relations(therapistStats, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistStats.therapistId],
-    references: [users.id],
-  }),
-}))
-
-export const therapistAchievementsRelations = relations(therapistAchievements, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistAchievements.therapistId],
-    references: [users.id],
-  }),
-}))
-
-export const therapistTasksRelations = relations(therapistTasks, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistTasks.therapistId],
-    references: [users.id],
-  }),
-  patient: one(users, {
-    fields: [therapistTasks.patientId],
-    references: [users.id],
-  }),
-}))
-
-export const therapistChallengesRelations = relations(therapistChallenges, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistChallenges.therapistId],
-    references: [users.id],
-  }),
-}))
-
-export const therapistFinancialRelations = relations(therapistFinancial, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistFinancial.therapistId],
-    references: [users.id],
-  }),
-  patient: one(users, {
-    fields: [therapistFinancial.patientId],
-    references: [users.id],
-  }),
-}))
-
-export const therapistGoalsRelations = relations(therapistGoals, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapistGoals.therapistId],
-    references: [users.id],
-  }),
-}))
-
-export const weeklyReportsRelations = relations(weeklyReports, ({ one }) => ({
-  therapist: one(users, {
-    fields: [weeklyReports.therapistId],
-    references: [users.id],
-  }),
-  patient: one(users, {
-    fields: [weeklyReports.patientId],
-    references: [users.id],
-  }),
-}))
-
-export const patientTasksFromTherapistRelations = relations(
-  patientTasksFromTherapist,
-  ({ one }) => ({
-    therapist: one(users, {
-      fields: [patientTasksFromTherapist.therapistId],
-      references: [users.id],
-    }),
-    patient: one(users, {
-      fields: [patientTasksFromTherapist.patientId],
-      references: [users.id],
-    }),
-  })
-)
-
-export const therapySessionsRelations = relations(therapySessions, ({ one }) => ({
-  therapist: one(users, {
-    fields: [therapySessions.therapistId],
-    references: [users.id],
-  }),
-  patient: one(users, {
-    fields: [therapySessions.patientId],
-    references: [users.id],
-  }),
-}))
-
-export const sessionDocumentsRelations = relations(sessionDocuments, ({ one }) => ({
-  therapist: one(users, {
-    fields: [sessionDocuments.therapistId],
-    references: [users.id],
-  }),
-  patient: one(users, {
-    fields: [sessionDocuments.patientId],
-    references: [users.id],
-  }),
-}))
-
-export const cognitiveConceptualizationRelations = relations(
-  cognitiveConceptualization,
-  ({ one }) => ({
-    therapist: one(users, {
-      fields: [cognitiveConceptualization.therapistId],
-      references: [users.id],
-    }),
-    patient: one(users, {
-      fields: [cognitiveConceptualization.patientId],
-      references: [users.id],
-    }),
-  })
-)
-
-export const psychologistSubscriptionsRelations = relations(
-  psychologistSubscriptions,
-  ({ one }) => ({
-    psychologist: one(users, {
-      fields: [psychologistSubscriptions.psychologistId],
-      references: [users.id],
-    }),
-  })
-)
+// Relations moved to relations.ts
 
 // Password reset tokens - LGPD compliant
 export const passwordResetTokens = sqliteTable('password_reset_tokens', {

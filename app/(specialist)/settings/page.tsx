@@ -115,47 +115,13 @@ export default function SettingsPage() {
     <div className='h-full overflow-y-auto px-4 py-6 pb-28 pt-safe sm:px-6 sm:py-8 sm:pb-32 lg:px-8 lg:py-6 lg:pb-8'>
       {/* Header */}
       <div className='mb-6'>
-        <h2 className='font-bold text-slate-800 text-xl dark:text-white'>Configurações</h2>
-        <p className='text-slate-500 text-xs dark:text-slate-400'>
+        <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Perfil</h2>
+        <p className='text-slate-500 dark:text-slate-400'>
           Gerencie suas preferências e conta
         </p>
       </div>
 
       <div className='mx-auto max-w-2xl space-y-4'>
-        {/* Modo Escuro */}
-        <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
-          <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
-            <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 sm:h-12 sm:w-12 dark:bg-violet-900/30 dark:text-violet-400'>
-              {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
-            </div>
-            <div className='min-w-0'>
-              <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
-                Modo Escuro
-              </h4>
-              <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
-                Ajustar aparência do app para ambientes com pouca luz
-              </p>
-            </div>
-          </div>
-          <div
-            aria-checked={theme === 'dark'}
-            aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
-            className={`relative h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
-              theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
-            }`}
-            onClick={toggleTheme}
-            onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
-            role='switch'
-            tabIndex={0}
-          >
-            <div
-              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
-                theme === 'dark' ? 'left-[26px]' : 'left-1'
-              }`}
-            />
-          </div>
-        </div>
-
         {/* Perfil Profissional */}
         <button
           className='flex w-full items-center justify-between rounded-xl border border-indigo-100 bg-white p-4 shadow-sm transition-all hover:bg-indigo-50 hover:shadow-md sm:p-5 dark:border-indigo-900/30 dark:bg-slate-900 dark:hover:bg-indigo-900/20'
@@ -331,6 +297,40 @@ export default function SettingsPage() {
               )}
             </div>
           )}
+        </div>
+
+        {/* Modo Escuro */}
+        <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
+          <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
+            <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 sm:h-12 sm:w-12 dark:bg-violet-900/30 dark:text-violet-400'>
+              {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            </div>
+            <div className='min-w-0'>
+              <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
+                Modo Escuro
+              </h4>
+              <p className='text-slate-500 text-xs sm:text-sm dark:text-slate-400'>
+                Ajustar aparência do app para ambientes com pouca luz
+              </p>
+            </div>
+          </div>
+          <div
+            aria-checked={theme === 'dark'}
+            aria-label={theme === 'dark' ? 'Desativar modo escuro' : 'Ativar modo escuro'}
+            className={`relative h-7 w-12 flex-shrink-0 cursor-pointer rounded-full transition-colors duration-200 ${
+              theme === 'dark' ? 'bg-violet-600' : 'bg-slate-300'
+            }`}
+            onClick={toggleTheme}
+            onKeyDown={(e) => e.key === 'Enter' && toggleTheme()}
+            role='switch'
+            tabIndex={0}
+          >
+            <div
+              className={`absolute top-1 h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
+                theme === 'dark' ? 'left-[26px]' : 'left-1'
+              }`}
+            />
+          </div>
         </div>
 
         {/* Termo de Responsabilidade */}

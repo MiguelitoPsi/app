@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
 import { addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek, subDays } from 'date-fns'
-import { and, asc, desc, eq, gte, isNull, lte } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import {
@@ -9,8 +9,11 @@ import {
   moodHistory,
   patientInvites,
   psychologistPatients,
+  rewards,
   tasks,
+  therapistFinancial,
   therapistTasks,
+  therapySessions,
   users,
 } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
@@ -329,6 +332,314 @@ export const analyticsRouter = router({
       scheduledSessions,
       upcomingSessions,
       pendingInvitesCount: pendingInvites.length,
+    }
+  }),
+
+  // Get pending items for dashboard (psychologist only)
+  getPendingItems: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+
+    // Get all patient IDs for this therapist
+    const relationships = await db.query.psychologistPatients.findMany({
+      where: eq(psychologistPatients.psychologistId, ctx.user.id),
+      with: {
+        patient: true,
+      },
+    })
+    const patientIds = relationships.map((r) => r.patientId)
+
+    if (patientIds.length === 0) {
+      return {
+        pendingRewards: [],
+        unpaidSessions: [],
+        pendingJournals: [],
+        totalPendingRewards: 0,
+        totalUnpaidSessions: 0,
+        totalPendingJournals: 0,
+      }
+    }
+
+    // 1. Prêmios dos pacientes sem custo definido (cost = 0)
+    const patientRewards = await db.query.rewards.findMany({
+      where: and(
+        inArray(rewards.userId, patientIds),
+        eq(rewards.cost, 0),
+        eq(rewards.claimed, false),
+        isNull(rewards.deletedAt)
+      ),
+      with: {
+        user: true,
+      },
+    })
+
+    const pendingRewards = patientRewards.map((reward) => ({
+      id: reward.id,
+      title: reward.title,
+      patientId: reward.userId,
+      patientName: reward.user?.name || 'Paciente',
+      createdAt: reward.createdAt,
+    }))
+
+    // 2. Sessões completadas mas não pagas (PENDING PAYMENTS)
+    // Agora busca direto do financeiro com status 'pending'
+    const pendingFinancialRecords = await db
+      .select({
+        id: therapistFinancial.id,
+        patientId: therapistFinancial.patientId,
+        amount: therapistFinancial.amount,
+        date: therapistFinancial.date,
+        description: therapistFinancial.description,
+        patientName: users.name
+      })
+      .from(therapistFinancial)
+      .leftJoin(users, eq(therapistFinancial.patientId, users.id))
+      .where(
+        and(
+          eq(therapistFinancial.therapistId, ctx.user.id),
+          eq(therapistFinancial.status, 'pending'),
+          eq(therapistFinancial.type, 'income')
+        )
+      )
+      .orderBy(desc(therapistFinancial.date));
+
+    // Mantemos compatibilidade com sessions antigas (isPaid=false) se necessário,
+    // mas o foco agora é o status 'pending' na tabela financeira.
+    // Vamos priorizar os registros financeiros pendentes.
+    
+    const unpaidSessions = pendingFinancialRecords.map((record) => ({
+      id: record.id,
+      patientId: record.patientId || '',
+      patientName: record.patientName || 'Paciente',
+      sessionValue: record.amount,
+      completedAt: record.date,
+      description: record.description
+    }))
+
+    // 3. Diários/Registros de pensamento sem feedback
+    const journals = await db.query.journalEntries.findMany({
+      where: and(
+        inArray(journalEntries.userId, patientIds),
+        eq(journalEntries.isRead, false),
+        isNull(journalEntries.deletedAt)
+      ),
+      with: {
+        user: true,
+      },
+      orderBy: [desc(journalEntries.createdAt)],
+      limit: 50,
+    })
+
+    const pendingJournals = journals.map((journal) => ({
+      id: journal.id,
+      patientId: journal.userId,
+      patientName: journal.user?.name || 'Paciente',
+      createdAt: journal.createdAt,
+      mood: journal.mood,
+    }))
+
+    return {
+      pendingRewards,
+      unpaidSessions,
+      pendingJournals,
+      totalPendingRewards: pendingRewards.length,
+      totalUnpaidSessions: unpaidSessions.length,
+      totalPendingJournals: pendingJournals.length,
+    }
+  }),
+
+  // Consolidated dashboard data (combines getDashboardSummary + getPendingItems for better performance)
+  getTherapistDashboardData: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
+
+    const now = new Date()
+    const sevenDaysAgo = subDays(now, 7)
+    const monthStart = startOfMonth(now)
+    const monthEnd = endOfMonth(now)
+    const weekStart = startOfWeek(now, { weekStartsOn: 0 })
+    const weekEnd = endOfWeek(now, { weekStartsOn: 0 })
+
+    // Get all patients with stats (single query reused)
+    const relationships = await db.query.psychologistPatients.findMany({
+      where: eq(psychologistPatients.psychologistId, ctx.user.id),
+      with: {
+        patient: {
+          with: {
+            stats: true,
+          },
+        },
+      },
+    })
+
+    const patientIds = relationships.map((r) => r.patientId)
+    const totalPatients = relationships.length
+
+    // Run all independent queries in parallel
+    const [
+      activePatientResults,
+      scheduledSessionTasks,
+      weekSessionTasks,
+      pendingInvites,
+      patientRewards,
+      pendingFinancialRecords,
+      journals,
+    ] = await Promise.all([
+      // Active patients check
+      Promise.all(
+        relationships.map(async (rel) => {
+          const hasActivity = await db.query.tasks.findFirst({
+            where: and(eq(tasks.userId, rel.patientId), gte(tasks.createdAt, sevenDaysAgo)),
+          })
+          return hasActivity ? 1 : 0
+        })
+      ),
+      // Scheduled sessions for the month
+      db.query.therapistTasks.findMany({
+        where: and(
+          eq(therapistTasks.therapistId, ctx.user.id),
+          eq(therapistTasks.type, 'session'),
+          eq(therapistTasks.status, 'pending'),
+          gte(therapistTasks.dueDate, monthStart),
+          lte(therapistTasks.dueDate, monthEnd)
+        ),
+      }),
+      // Week sessions with patient details
+      db.query.therapistTasks.findMany({
+        where: and(
+          eq(therapistTasks.therapistId, ctx.user.id),
+          eq(therapistTasks.type, 'session'),
+          eq(therapistTasks.status, 'pending'),
+          gte(therapistTasks.dueDate, weekStart),
+          lte(therapistTasks.dueDate, weekEnd)
+        ),
+        with: {
+          patient: true,
+        },
+        orderBy: [asc(therapistTasks.dueDate)],
+      }),
+      // Pending invites
+      db.query.patientInvites.findMany({
+        where: and(
+          eq(patientInvites.psychologistId, ctx.user.id),
+          eq(patientInvites.status, 'pending')
+        ),
+      }),
+      // Patient rewards without cost
+      patientIds.length > 0
+        ? db.query.rewards.findMany({
+            where: and(
+              inArray(rewards.userId, patientIds),
+              eq(rewards.cost, 0),
+              eq(rewards.claimed, false),
+              isNull(rewards.deletedAt)
+            ),
+            with: {
+              user: true,
+            },
+          })
+        : Promise.resolve([]),
+      // Pending financial records
+      db
+        .select({
+          id: therapistFinancial.id,
+          patientId: therapistFinancial.patientId,
+          amount: therapistFinancial.amount,
+          date: therapistFinancial.date,
+          description: therapistFinancial.description,
+          patientName: users.name,
+        })
+        .from(therapistFinancial)
+        .leftJoin(users, eq(therapistFinancial.patientId, users.id))
+        .where(
+          and(
+            eq(therapistFinancial.therapistId, ctx.user.id),
+            eq(therapistFinancial.status, 'pending'),
+            eq(therapistFinancial.type, 'income')
+          )
+        )
+        .orderBy(desc(therapistFinancial.date)),
+      // Pending journals
+      patientIds.length > 0
+        ? db.query.journalEntries.findMany({
+            where: and(
+              inArray(journalEntries.userId, patientIds),
+              eq(journalEntries.isRead, false),
+              isNull(journalEntries.deletedAt)
+            ),
+            with: {
+              user: true,
+            },
+            orderBy: [desc(journalEntries.createdAt)],
+            limit: 50,
+          })
+        : Promise.resolve([]),
+    ])
+
+    // Process results
+    const activePatients = activePatientResults.reduce((sum: number, val) => sum + val, 0 as number)
+
+    const topStreaks = relationships
+      .map((rel) => ({
+        id: rel.patient.id,
+        name: rel.patient.name,
+        streak: rel.patient.streak,
+      }))
+      .sort((a, b) => b.streak - a.streak)
+      .slice(0, 5)
+
+    const upcomingSessions = weekSessionTasks.map((task) => ({
+      id: task.id,
+      patientId: task.patientId,
+      patientName: task.patient?.name || 'Paciente',
+      dueDate: task.dueDate,
+      title: task.title,
+      sessionValue: (task.metadata as { sessionValue?: number } | null)?.sessionValue,
+    }))
+
+    const pendingRewards = (patientRewards as Array<{ id: string; title: string; userId: string; user?: { name: string } | null; createdAt: Date | null }>).map((reward) => ({
+      id: reward.id,
+      title: reward.title,
+      patientId: reward.userId,
+      patientName: reward.user?.name || 'Paciente',
+      createdAt: reward.createdAt,
+    }))
+
+    const unpaidSessions = pendingFinancialRecords.map((record) => ({
+      id: record.id,
+      patientId: record.patientId || '',
+      patientName: record.patientName || 'Paciente',
+      sessionValue: record.amount,
+      completedAt: record.date,
+      description: record.description,
+    }))
+
+    const pendingJournals = (journals as Array<{ id: string; userId: string; user?: { name: string } | null; createdAt: Date | null; mood: string | null }>).map((journal) => ({
+      id: journal.id,
+      patientId: journal.userId,
+      patientName: journal.user?.name || 'Paciente',
+      createdAt: journal.createdAt,
+      mood: journal.mood,
+    }))
+
+    return {
+      // Dashboard summary
+      totalPatients,
+      activePatients,
+      inactivePatients: totalPatients - activePatients,
+      topStreaks,
+      scheduledSessions: scheduledSessionTasks.length,
+      upcomingSessions,
+      pendingInvitesCount: pendingInvites.length,
+      // Pending items
+      pendingRewards,
+      unpaidSessions,
+      pendingJournals,
+      totalPendingRewards: pendingRewards.length,
+      totalUnpaidSessions: unpaidSessions.length,
+      totalPendingJournals: pendingJournals.length,
     }
   }),
 })

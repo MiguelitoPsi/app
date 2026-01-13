@@ -20,6 +20,7 @@ import {
   Sun,
   Zap,
 } from 'lucide-react'
+import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -119,18 +120,18 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
   }
 
   const moods: { id: Mood; icon: React.ElementType; label: string }[] = [
-    { id: 'excited', icon: Zap, label: 'Empolgado' },
-    { id: 'happy', icon: Smile, label: 'Feliz' },
-    { id: 'grateful', icon: Heart, label: 'Grato' },
-    { id: 'calm', icon: Sun, label: 'Calmo' },
-    { id: 'neutral', icon: Meh, label: 'Confuso' },
-    { id: 'tired', icon: BatteryLow, label: 'Cansado' },
-    { id: 'bored', icon: Clock, label: 'Entediado' },
-    { id: 'sad', icon: Frown, label: 'Triste' },
-    { id: 'anxious', icon: CloudRain, label: 'Ansioso' },
-    { id: 'fearful', icon: EyeOff, label: 'Com Medo' },
-    { id: 'angry', icon: Flame, label: 'Bravo' },
-    { id: 'disgusted', icon: Skull, label: 'Enojado' },
+    { id: 'excited', icon: Zap, label: translateMood('excited') },
+    { id: 'happy', icon: Smile, label: translateMood('happy') },
+    { id: 'grateful', icon: Heart, label: translateMood('grateful') },
+    { id: 'calm', icon: Sun, label: translateMood('calm') },
+    { id: 'neutral', icon: Meh, label: translateMood('neutral') },
+    { id: 'tired', icon: BatteryLow, label: translateMood('tired') },
+    { id: 'bored', icon: Clock, label: translateMood('bored') },
+    { id: 'sad', icon: Frown, label: translateMood('sad') },
+    { id: 'anxious', icon: CloudRain, label: translateMood('anxious') },
+    { id: 'fearful', icon: EyeOff, label: translateMood('fearful') },
+    { id: 'angry', icon: Flame, label: translateMood('angry') },
+    { id: 'disgusted', icon: Skull, label: translateMood('disgusted') },
   ]
 
   return (

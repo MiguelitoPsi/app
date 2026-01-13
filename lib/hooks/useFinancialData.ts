@@ -257,6 +257,7 @@ export type UseFinancialDataOptions = {
   enableComparison?: boolean
   historyMonths?: number
   referenceDate?: Date
+  accountType?: 'pj' | 'cpf'
 }
 
 /**
@@ -268,6 +269,7 @@ export function useFinancialData(options: UseFinancialDataOptions) {
     enableComparison = true,
     historyMonths = 12,
     referenceDate = new Date(),
+    accountType,
   } = options
 
   const currentRange = useMemo(() => getPeriodRange(period, referenceDate), [period, referenceDate])
@@ -285,6 +287,7 @@ export function useFinancialData(options: UseFinancialDataOptions) {
     {
       startDate: currentRange.startDate,
       endDate: currentRange.endDate,
+      accountType,
     },
     {
       staleTime: 2 * 60 * 1000, // 2 minutes
@@ -297,6 +300,7 @@ export function useFinancialData(options: UseFinancialDataOptions) {
       {
         startDate: previousRange?.startDate ?? new Date(),
         endDate: previousRange?.endDate ?? new Date(),
+        accountType,
       },
       {
         enabled: enableComparison && previousRange !== null,
@@ -319,6 +323,7 @@ export function useFinancialData(options: UseFinancialDataOptions) {
       {
         startDate: currentRange.startDate,
         endDate: currentRange.endDate,
+        accountType,
         limit: 100,
       },
       {

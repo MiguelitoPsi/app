@@ -16,6 +16,7 @@ import { trpc } from '@/lib/trpc/client'
 function SpecialistContent({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const isDashboard = pathname === '/dashboard'
+  const isRoutine = pathname === '/therapist-routine'
   const isProfile = pathname === '/profile'
   const { isPatientViewActive } = useSelectedPatient()
 
@@ -51,7 +52,8 @@ function SpecialistContent({ children }: { children: ReactNode }) {
   const { showTerms, showProfile } = getModalState()
 
   // Se estiver na visão detalhada do paciente, não mostra sidebar e header
-  if (isPatientViewActive) {
+  // Exceto na rota de relatórios e configurações, onde precisamos da sidebar
+  if (isPatientViewActive && pathname !== '/reports' && pathname !== '/settings') {
     return (
       <div className='min-h-screen bg-slate-50 dark:bg-slate-900'>
         <TherapistTermsModal isOpen={showTerms} />
@@ -78,7 +80,7 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       <TherapistXPGainToast />
 
       {/* Sidebar based on route */}
-      {isDashboard ? (
+      {isDashboard || isRoutine ? (
         <>
           <DashboardSidebar />
           <main className='ml-16 h-screen overflow-hidden bg-slate-50 dark:bg-slate-900'>

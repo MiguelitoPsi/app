@@ -10,7 +10,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { PUSH_TEMPLATES, sendPushToUser } from "@/lib/push";
-import { getStartOfDay } from "@/lib/utils/timezone";
+import { getStartOfDay, nowInSP } from "@/lib/utils/timezone";
 import {
   awardXPAndCoins,
   COIN_REWARDS,
@@ -603,6 +603,44 @@ export const taskRouter = router({
       return { success: true };
     }),
 
+  // Toggle completion of a task assigned by therapist (Psychologist only)
+  togglePatientTaskByTherapist: protectedProcedure
+    .input(z.object({ taskId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== "psychologist") {
+        throw new Error("Only psychologists can toggle patient tasks");
+      }
+
+      const [task] = await ctx.db
+        .select()
+        .from(patientTasksFromTherapist)
+        .where(
+          and(
+            eq(patientTasksFromTherapist.id, input.taskId),
+            eq(patientTasksFromTherapist.therapistId, ctx.user.id)
+          )
+        )
+        .limit(1);
+
+      if (!task) {
+        throw new Error("Task not found or not created by you");
+      }
+
+      const newStatus = task.status === "completed" ? "pending" : "completed";
+      const now = new Date();
+
+      await ctx.db
+        .update(patientTasksFromTherapist)
+        .set({
+          status: newStatus,
+          completedAt: newStatus === "completed" ? now : null,
+          updatedAt: now,
+        })
+        .where(eq(patientTasksFromTherapist.id, input.taskId));
+
+      return { success: true, status: newStatus };
+    }),
+
   // ================== THERAPIST TASK MANAGEMENT ==================
 
   // Get tasks created by therapist for a specific patient
@@ -672,20 +710,16 @@ export const taskRouter = router({
         throw new Error("Patient not found or not linked to you");
       }
 
-      // Validate that the date is not in the past
-      // Parse date as local time (YYYY-MM-DD) to avoid timezone issues
       let parsedDueDate: Date | null = null;
       if (input.dueDate) {
         const [year, month, day] = input.dueDate.split("-").map(Number);
         parsedDueDate = new Date(year, month - 1, day);
         parsedDueDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone edge cases
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const taskDateForValidation = new Date(year, month - 1, day);
-        taskDateForValidation.setHours(0, 0, 0, 0);
+        const today = nowInSP();
+        const todayStr = formatDateSP(today);
 
-        if (taskDateForValidation < today) {
+        if (input.dueDate < todayStr) {
           throw new Error(
             "Não é possível criar tarefas para datas que já passaram"
           );

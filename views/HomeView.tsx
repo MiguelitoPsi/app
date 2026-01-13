@@ -42,6 +42,7 @@ import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
+import { translateMood } from '@/lib/utils/mood'
 import { XP_REWARDS } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
@@ -467,12 +468,12 @@ export const HomeView: React.FC = () => {
   }, [moodHistoryData])
 
   const moods: { id: Mood; label: string; image: string; emoji: string }[] = [
-    { id: 'happy', label: 'Feliz', image: '/mascote/feliz.png', emoji: '😄' },
-    { id: 'calm', label: 'Calmo', image: '/mascote/calmo.png', emoji: '😌' },
-    { id: 'neutral', label: 'Neutro', image: '/mascote/neutro.png', emoji: '😐' },
-    { id: 'sad', label: 'Triste', image: '/mascote/triste.png', emoji: '😢' },
-    { id: 'anxious', label: 'Ansioso', image: '/mascote/ansioso.png', emoji: '😰' },
-    { id: 'angry', label: 'Bravo', image: '/mascote/raiva.png', emoji: '😡' },
+    { id: 'happy', label: translateMood('happy'), image: '/mascote/feliz.png', emoji: '😄' },
+    { id: 'calm', label: translateMood('calm'), image: '/mascote/calmo.png', emoji: '😌' },
+    { id: 'neutral', label: translateMood('neutral'), image: '/mascote/neutro.png', emoji: '😐' },
+    { id: 'sad', label: translateMood('sad'), image: '/mascote/triste.png', emoji: '😢' },
+    { id: 'anxious', label: translateMood('anxious'), image: '/mascote/ansioso.png', emoji: '😰' },
+    { id: 'angry', label: translateMood('angry'), image: '/mascote/raiva.png', emoji: '😡' },
   ]
 
   return (

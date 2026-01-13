@@ -40,8 +40,9 @@ import {
   X,
 } from 'lucide-react'
 import { getIconByKey } from '@/lib/utils/icon-map'
+import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, useDeferredValue, useCallback } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
 
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
@@ -144,15 +145,18 @@ export const TherapistView: React.FC = () => {
     { enabled: !!selectedPatientId }
   )
 
-  // Fetch patient journal entries
+  // Fetch patient journal entries - only when journal tab is active
   const { data: patientJournalData = [] } = trpc.journal.getAll.useQuery(
     { userId: selectedPatientId },
-    { enabled: !!selectedPatientId }
+    { enabled: !!selectedPatientId && (activeSection === 'journal' || activeSection === 'overview') }
   )
 
-  // Fetch patient rewards
+  // Fetch patient rewards - only when rewards tab is active
   const { data: patientRewardsData = [], refetch: refetchPatientRewards } =
-    trpc.reward.getAll.useQuery({ userId: selectedPatientId }, { enabled: !!selectedPatientId })
+    trpc.reward.getAll.useQuery(
+      { userId: selectedPatientId }, 
+      { enabled: !!selectedPatientId && (activeSection === 'rewards' || activeSection === 'overview') }
+    )
 
   // Update reward cost mutation
   const updateRewardCostMutation = trpc.reward.updateCost.useMutation()
@@ -362,29 +366,35 @@ export const TherapistView: React.FC = () => {
   const _patientName = selectedPatient?.name || 'Nenhum paciente'
   const stats = normalizePatientStats(selectedPatient)
 
-  // Transform patient journal data from DB format to component format
-  const transformedJournalData: JournalEntry[] = patientJournalData.map((entry) => ({
-    id: entry.id,
-    timestamp: entry.createdAt ? new Date(entry.createdAt).getTime() : Date.now(),
-    emotion: (entry.mood || 'neutral') as Mood,
-    intensity: 5, // Default intensity since DB doesn't have this field
-    thought: entry.content,
-    aiAnalysis: entry.aiAnalysis || undefined,
-    isRead: entry.isRead ?? undefined,
-    therapistFeedback: entry.therapistFeedback || undefined,
-    feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
-    feedbackViewed: entry.feedbackViewed ?? undefined,
-  }))
+  // Transform patient journal data from DB format to component format (memoized)
+  const transformedJournalData: JournalEntry[] = useMemo(() => 
+    patientJournalData.map((entry) => ({
+      id: entry.id,
+      timestamp: entry.createdAt ? new Date(entry.createdAt).getTime() : Date.now(),
+      emotion: (entry.mood || 'neutral') as Mood,
+      intensity: 5, // Default intensity since DB doesn't have this field
+      thought: entry.content,
+      aiAnalysis: entry.aiAnalysis || undefined,
+      isRead: entry.isRead ?? undefined,
+      therapistFeedback: entry.therapistFeedback || undefined,
+      feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
+      feedbackViewed: entry.feedbackViewed ?? undefined,
+    })),
+    [patientJournalData]
+  )
 
-  // Transform patient rewards data from DB format to component format
-  const transformedRewardsData: Reward[] = patientRewardsData.map((reward) => ({
-    id: reward.id,
-    title: reward.title,
-    category: (reward.category || 'lazer') as RewardCategory,
-    cost: reward.cost,
-    status: reward.claimed ? 'redeemed' : reward.cost > 0 ? 'approved' : 'pending',
-    createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
-  }))
+  // Transform patient rewards data from DB format to component format (memoized)
+  const transformedRewardsData: Reward[] = useMemo(() =>
+    patientRewardsData.map((reward) => ({
+      id: reward.id,
+      title: reward.title,
+      category: (reward.category || 'lazer') as RewardCategory,
+      cost: reward.cost,
+      status: reward.claimed ? 'redeemed' : reward.cost > 0 ? 'approved' : 'pending',
+      createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
+    })),
+    [patientRewardsData]
+  )
 
   // Use patient data when a patient is selected (terapeuta não tem journal/rewards próprios nesta view)
   const journalDataRaw = selectedPatientId ? transformedJournalData : []
@@ -963,7 +973,7 @@ export const TherapistView: React.FC = () => {
                             })()}
                           </span>
                           <span className='font-bold text-[10px] capitalize sm:text-xs'>
-                            {item.emotion}
+                            {translateMood(item.emotion)}
                           </span>
                           <span className='rounded-full bg-black/10 px-1.5 py-0.5 font-bold text-[9px] sm:px-2 sm:text-[10px] dark:bg-white/10'>
                             {item.count}x
@@ -1074,12 +1084,12 @@ export const TherapistView: React.FC = () => {
                     </label>
                     <div className='flex flex-wrap gap-1.5 sm:gap-2'>
                       {[
-                        { id: 'happy', emoji: 'happy', label: 'Feliz' },
-                        { id: 'calm', emoji: 'calm', label: 'Calmo' },
-                        { id: 'neutral', emoji: 'neutral', label: 'Confuso' },
-                        { id: 'sad', emoji: 'sad', label: 'Triste' },
-                        { id: 'anxious', emoji: 'anxious', label: 'Ansioso' },
-                        { id: 'angry', emoji: 'angry', label: 'Raiva' },
+                        { id: 'happy', emoji: 'happy', label: translateMood('happy') },
+                        { id: 'calm', emoji: 'calm', label: translateMood('calm') },
+                        { id: 'neutral', emoji: 'neutral', label: translateMood('neutral') },
+                        { id: 'sad', emoji: 'sad', label: translateMood('sad') },
+                        { id: 'anxious', emoji: 'anxious', label: translateMood('anxious') },
+                        { id: 'angry', emoji: 'angry', label: translateMood('angry') },
                       ].map((mood) => {
                         const count = emotionCounts[mood.id] || 0
                         return (

@@ -3,14 +3,14 @@
 import {
   AlertCircle,
   Banknote,
+  BookOpen,
   Calendar,
   CheckSquare,
   ChevronRight,
   Clock,
-  ExternalLink,
+  FileText,
   Flag,
   Gift,
-  MoreHorizontal,
   Plus,
   RefreshCw,
   Repeat,
@@ -18,9 +18,14 @@ import {
   User,
   Users,
   X,
+  Check,
+  UserPlus,
 } from 'lucide-react'
+import Link from 'next/link'
 import React, { useState, useMemo } from 'react'
 import { trpc } from '@/lib/trpc/client'
+import { translateMood } from '@/lib/utils/mood'
+import { InvitePatientModal } from '@/components/InvitePatientModal'
 
 // Types for session form
 type SessionFormData = {
@@ -76,63 +81,60 @@ const SummaryCard: React.FC<{
   </div>
 )
 
-// Filtro Pill
-const FilterPill: React.FC<{
-  active: boolean
-  onClick: () => void
-  children: React.ReactNode
-}> = ({ active, onClick, children }) => (
-  <button
-    className={`flex items-center rounded-full px-3 py-1 text-xs font-medium transition-all ${
-      active
-        ? 'bg-purple-600 text-white'
-        : 'border border-slate-200 text-slate-600 hover:border-purple-500 dark:border-slate-600 dark:text-slate-400'
-    }`}
-    onClick={onClick}
-    type='button'
-  >
-    {children}
-  </button>
-)
+
 
 // Item de pendência - flexbox alinhado
 const PendingItem: React.FC<{
   icon: React.ElementType
   iconBg: string
   text: string
-}> = ({ icon: Icon, iconBg, text }) => (
-  <div className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
-    <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${iconBg}`}>
-      <Icon className='h-4 w-4' />
+  href?: string
+}> = ({ icon: Icon, iconBg, text, href }) => {
+  const content = (
+    <>
+      <div className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg ${iconBg}`}>
+        <Icon className='h-4 w-4' />
+      </div>
+      <p className='flex-1 text-sm text-slate-700 dark:text-slate-300'>{text}</p>
+      <ChevronRight className='h-5 w-5 flex-shrink-0 text-slate-400' />
+    </>
+  )
+
+  if (href) {
+    return (
+      <Link 
+        href={href}
+        className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-5 transition-all hover:border-sky-500 hover:shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:hover:border-sky-500'
+      >
+        {content}
+      </Link>
+    )
+  }
+
+  return (
+    <div className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
+      {content}
     </div>
-    <p className='flex-1 text-sm text-slate-700 dark:text-slate-300'>{text}</p>
-    <ChevronRight className='h-5 w-5 flex-shrink-0 text-slate-400' />
-  </div>
-)
+  )
+}
 
 // ===========================================
 // DASHBOARD VIEW
 // ===========================================
 
 export const TherapistDashboardView: React.FC = () => {
-  const [activeFilter, setActiveFilter] = useState<'all' | 'registrations' | 'sessions'>('all')
+
   const [showSessionModal, setShowSessionModal] = useState(false)
   const [sessionForm, setSessionForm] = useState<SessionFormData>(defaultSessionForm)
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
   const [showPatientDropdown, setShowPatientDropdown] = useState(false)
 
-  // Dados reais do backend
-  const { data: patientsData, isLoading: isLoadingPatients } = trpc.patient.getMyPatients.useQuery(undefined, {
+  // Consolidated query for all dashboard data (combines summary + pending items)
+  const { data: dashboardData, isLoading } = trpc.analytics.getTherapistDashboardData.useQuery(undefined, {
     staleTime: 60000,
   })
 
-  const { data: invitesData, isLoading: isLoadingInvites } = trpc.patient.getInvites.useQuery(undefined, {
-    staleTime: 60000,
-  })
-
-  const { data: dashboardSummary, isLoading: isLoadingSummary } = trpc.analytics.getDashboardSummary.useQuery(undefined, {
-    staleTime: 60000,
-  })
+  const [showInviteModal, setShowInviteModal] = useState(false)
 
   // All patients for search
   const { data: allPatients } = trpc.patient.getAll.useQuery()
@@ -146,22 +148,28 @@ export const TherapistDashboardView: React.FC = () => {
       setSessionForm(defaultSessionForm)
       setPatientSearchQuery('')
       setShowPatientDropdown(false)
-      // Invalidate both dashboard and routine queries
-      utils.analytics.getDashboardSummary.invalidate()
+      // Invalidate dashboard data
+      utils.analytics.getTherapistDashboardData.invalidate()
       utils.therapistTasks.getAll.invalidate()
     },
   })
 
-  const totalPatients = patientsData?.length ?? 0
-  const pendingInvites = invitesData?.filter((inv) => inv.status === 'pending').length ?? 0
-  const scheduledSessions = dashboardSummary?.scheduledSessions ?? 0
+  // Mutation for confirming payment
+  const confirmPaymentMutation = trpc.therapistFinancial.confirmPayment.useMutation({
+    onSuccess: () => {
+      utils.analytics.getTherapistDashboardData.invalidate()
+    },
+  })
 
-  // Dynamic pending items based on real data
-  const pendingItems = pendingInvites > 0
-    ? [{ id: 1, icon: Users, iconBg: 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400', text: `${pendingInvites} convite(s) pendente(s) de resposta` }]
-    : []
+  // Extract data from consolidated query
+  const totalPatients = dashboardData?.totalPatients ?? 0
+  const scheduledSessions = dashboardData?.scheduledSessions ?? 0
 
-  const isLoading = isLoadingPatients || isLoadingInvites || isLoadingSummary
+  // Contadores de pendências
+  const totalPendingRewards = dashboardData?.totalPendingRewards ?? 0
+  const totalUnpaidSessions = dashboardData?.totalUnpaidSessions ?? 0
+  const totalPendingJournals = dashboardData?.totalPendingJournals ?? 0
+  const totalPendingItems = totalPendingRewards + totalUnpaidSessions + totalPendingJournals
 
   // Filter patients for search
   const filteredPatients = useMemo(() => {
@@ -217,9 +225,32 @@ export const TherapistDashboardView: React.FC = () => {
   }
 
   return (
-    <div className='box-border h-full w-full overflow-hidden bg-slate-50 p-5 dark:bg-slate-900'>
+    <div className='flex h-full w-full flex-col box-border overflow-hidden bg-slate-50 p-5 dark:bg-slate-900'>
+      {/* Header */}
+      <div className='mb-6 flex items-center justify-between'>
+        <div>
+          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Dashboard</h2>
+          <p className='text-slate-500 dark:text-slate-400'>
+            Visão geral do seu consultório
+          </p>
+        </div>
+        <button
+          onClick={() => setShowInviteModal(true)}
+          className='flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-600 active:scale-95'
+        >
+          <UserPlus className='h-4 w-4' />
+          Convidar Paciente
+        </button>
+      </div>
+
+      {/* Invite Modal */}
+      <InvitePatientModal 
+        isOpen={showInviteModal} 
+        onClose={() => setShowInviteModal(false)} 
+      />
+
       {/* CORPO PRINCIPAL - GRID */}
-      <div className='grid h-full grid-cols-12 gap-5'>
+      <div className='grid min-h-0 flex-1 grid-cols-12 gap-5'>
         {/* COLUNA ESQUERDA (30%) */}
         <div className='col-span-12 flex flex-col gap-5 lg:col-span-4'>
           {/* Próximas Sessões */}
@@ -229,15 +260,25 @@ export const TherapistDashboardView: React.FC = () => {
                 <Calendar className='h-5 w-5 flex-shrink-0 text-purple-500' />
                 <h2 className='text-base font-semibold text-slate-800 dark:text-white'>Próximas sessões</h2>
               </div>
-              {(dashboardSummary?.upcomingSessions?.length ?? 0) > 0 && (
-                <button
-                  className='flex items-center gap-1 rounded-lg bg-purple-100 px-2 py-1 text-xs font-medium text-purple-600 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
-                  onClick={() => setShowSessionModal(true)}
-                  type='button'
-                >
-                  <Plus className='h-3 w-3' />
-                  Adicionar
-                </button>
+              {(dashboardData?.upcomingSessions?.length ?? 0) > 0 && (
+                <div className='flex gap-2'>
+                  <button
+                    className='flex items-center gap-1 rounded-lg bg-sky-100 px-2 py-1 text-xs font-medium text-sky-600 hover:bg-sky-200 dark:bg-sky-900/30 dark:text-sky-400'
+                    onClick={() => setShowInviteModal(true)}
+                    type='button'
+                  >
+                    <UserPlus className='h-3 w-3' />
+                    Convidar
+                  </button>
+                  <button
+                    className='flex items-center gap-1 rounded-lg bg-purple-100 px-2 py-1 text-xs font-medium text-purple-600 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-400'
+                    onClick={() => setShowSessionModal(true)}
+                    type='button'
+                  >
+                    <Plus className='h-3 w-3' />
+                    Adicionar
+                  </button>
+                </div>
               )}
             </div>
             <div className='flex flex-col gap-3'>
@@ -246,7 +287,7 @@ export const TherapistDashboardView: React.FC = () => {
                   <div className='h-12 w-full rounded-lg bg-slate-100 dark:bg-slate-700' />
                   <div className='h-12 w-full rounded-lg bg-slate-100 dark:bg-slate-700' />
                 </div>
-              ) : (dashboardSummary?.upcomingSessions?.length ?? 0) === 0 ? (
+              ) : (dashboardData?.upcomingSessions?.length ?? 0) === 0 ? (
                 <div className='flex flex-col gap-4'>
                   <p className='text-sm text-slate-500 dark:text-slate-400'>
                     Você ainda não cadastrou sessões para esta semana.
@@ -262,7 +303,7 @@ export const TherapistDashboardView: React.FC = () => {
                 </div>
               ) : (
                 <div className='flex flex-col gap-2 max-h-[200px] overflow-y-auto'>
-                  {dashboardSummary?.upcomingSessions?.map((session) => {
+                  {dashboardData?.upcomingSessions?.map((session) => {
                     const sessionDate = session.dueDate ? new Date(session.dueDate) : null
                     const formattedDate = sessionDate
                       ? sessionDate.toLocaleDateString('pt-BR', {
@@ -316,14 +357,14 @@ export const TherapistDashboardView: React.FC = () => {
               iconColor='bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
               count={scheduledSessions}
               label='Sessões agendadas no mês'
-              isLoading={isLoadingSummary}
+              isLoading={isLoading}
             />
             <SummaryCard
               icon={Users}
               iconColor='bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400'
               count={totalPatients}
               label='Pacientes ativos'
-              isLoading={isLoadingPatients}
+              isLoading={isLoading}
             />
           </div>
         </div>
@@ -333,49 +374,138 @@ export const TherapistDashboardView: React.FC = () => {
           {/* Pendências */}
           <Card>
             <div className='flex flex-row items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700'>
-            <div className='flex flex-row items-center gap-2'>
+              <div className='flex flex-row items-center gap-2'>
                 <Clock className='h-5 w-5 flex-shrink-0 text-slate-400' />
                 <h2 className='text-base font-semibold text-slate-800 dark:text-white'>Pendências</h2>
-                {pendingItems.length > 0 && <CounterBadge count={pendingItems.length} />}
-              </div>
-              <div className='flex flex-row items-center gap-2'>
-                <button className='flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'>
-                  <RefreshCw className='h-4 w-4' />
-                </button>
-                <button className='flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'>
-                  <ExternalLink className='h-4 w-4' />
-                </button>
+                {totalPendingItems > 0 && <CounterBadge count={totalPendingItems} />}
               </div>
             </div>
 
-            {/* Filtros */}
-            <div className='flex flex-row gap-2 pb-4 mb-4'>
-              <FilterPill active={activeFilter === 'all'} onClick={() => setActiveFilter('all')}>
-                Todos
-              </FilterPill>
-              <FilterPill active={activeFilter === 'registrations'} onClick={() => setActiveFilter('registrations')}>
-                Cadastros ({pendingInvites})
-              </FilterPill>
-              <FilterPill active={activeFilter === 'sessions'} onClick={() => setActiveFilter('sessions')}>
-                Sessões
-              </FilterPill>
-            </div>
-
-            {/* Lista */}
-            <div className='flex flex-col gap-3'>
+            {/* Lista de Pendências por Categoria */}
+            <div className='flex flex-col gap-6 max-h-[400px] overflow-y-auto'>
               {isLoading ? (
                 <>
-                  <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
-                  <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
+                  <div className='animate-pulse space-y-3'>
+                    <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
+                    <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
+                    <div className='h-14 rounded-lg bg-slate-100 dark:bg-slate-700' />
+                  </div>
                 </>
-              ) : pendingItems.length === 0 ? (
+              ) : totalPendingItems === 0 ? (
                 <p className='py-4 text-center text-sm text-slate-500 dark:text-slate-400'>
                   Nenhuma pendência no momento. 🎉
                 </p>
               ) : (
-                pendingItems.map((item) => (
-                  <PendingItem key={item.id} icon={item.icon} iconBg={item.iconBg} text={item.text} />
-                ))
+                <>
+                  {/* Prêmios para Precificar */}
+                  {totalPendingRewards > 0 && (
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <Gift className='h-4 w-4 text-rose-500' />
+                        <h3 className='text-sm font-semibold text-slate-700 dark:text-slate-300'>
+                          Prêmios para Precificar
+                        </h3>
+                        <span className='rounded-full bg-rose-100 px-2 py-0.5 text-xs font-medium text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'>
+                          {totalPendingRewards}
+                        </span>
+                      </div>
+                      {dashboardData?.pendingRewards.slice(0, 5).map((reward) => (
+                        <PendingItem
+                          key={reward.id}
+                          icon={Gift}
+                          iconBg='bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400'
+                          text={`${reward.title} - ${reward.patientName}`}
+                          href={`/clients/${reward.patientId}?tab=rewards`}
+                        />
+                      ))}
+                      {totalPendingRewards > 5 && (
+                        <p className='text-xs text-slate-500 text-center dark:text-slate-400'>
+                          e mais {totalPendingRewards - 5} prêmio(s)...
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Sessões Não Pagas */}
+                  {totalUnpaidSessions > 0 && (
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <Banknote className='h-4 w-4 text-amber-500' />
+                        <h3 className='text-sm font-semibold text-slate-700 dark:text-slate-300'>
+                          Pagamentos Pendentes
+                        </h3>
+                        <span className='rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'>
+                          {totalUnpaidSessions}
+                        </span>
+                      </div>
+                      {dashboardData?.unpaidSessions.slice(0, 5).map((session) => (
+                        <div
+                          key={session.id}
+                          className='flex flex-row items-center gap-3 rounded-lg border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-800'
+                        >
+                          <div className='flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'>
+                            <Banknote className='h-4 w-4' />
+                          </div>
+                          <div className='flex-1'>
+                            <p className='text-sm text-slate-700 dark:text-slate-300'>
+                              {session.description || `Sessão de ${session.patientName}`}
+                            </p>
+                            <p className='text-xs font-medium text-slate-500 dark:text-slate-400'>
+                              {session.sessionValue ? `R$ ${session.sessionValue}` : 'Valor a definir'}
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => confirmPaymentMutation.mutate({ id: session.id })}
+                            disabled={confirmPaymentMutation.isPending}
+                            className='flex items-center gap-1 rounded-md bg-emerald-100 px-3 py-1.5 text-xs font-medium text-emerald-700 hover:bg-emerald-200 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-400 dark:hover:bg-emerald-900/50'
+                            title='Confirmar recebimento'
+                          >
+                            {confirmPaymentMutation.isPending ? (
+                              <RefreshCw className='h-3 w-3 animate-spin' />
+                            ) : (
+                              <Check className='h-3 w-3' />
+                            )}
+                            Confirmar
+                          </button>
+                        </div>
+                      ))}
+                      {totalUnpaidSessions > 5 && (
+                        <p className='text-xs text-slate-500 text-center dark:text-slate-400'>
+                          e mais {totalUnpaidSessions - 5} sessão(ões)...
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Registros de Pensamento sem Feedback */}
+                  {totalPendingJournals > 0 && (
+                    <div className='flex flex-col gap-2'>
+                      <div className='flex items-center gap-2 mb-2'>
+                        <BookOpen className='h-4 w-4 text-sky-500' />
+                        <h3 className='text-sm font-semibold text-slate-700 dark:text-slate-300'>
+                          Registros para Feedback
+                        </h3>
+                        <span className='rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
+                          {totalPendingJournals}
+                        </span>
+                      </div>
+                      {dashboardData?.pendingJournals.slice(0, 5).map((journal) => (
+                        <PendingItem
+                          key={journal.id}
+                          icon={BookOpen}
+                          iconBg='bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'
+                          text={`Registro de ${journal.patientName}${journal.mood ? ` (${translateMood(journal.mood)})` : ''}`}
+                          href={`/clients/${journal.patientId}?tab=journal`}
+                        />
+                      ))}
+                      {totalPendingJournals > 5 && (
+                        <p className='text-xs text-slate-500 text-center dark:text-slate-400'>
+                          e mais {totalPendingJournals - 5} registro(s)...
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </Card>
@@ -387,18 +517,17 @@ export const TherapistDashboardView: React.FC = () => {
                 <CheckSquare className='h-4 w-4 flex-shrink-0 text-slate-400' />
                 <h2 className='text-sm font-semibold text-slate-800 dark:text-white'>Tarefas</h2>
               </div>
-              <button className='flex h-6 w-6 items-center justify-center rounded text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700'>
-                <MoreHorizontal className='h-4 w-4' />
-              </button>
             </div>
 
-            {/* Input */}
+            {/* Button to Routine */}
             <div className='mb-4'>
-              <input
-                className='box-border w-full rounded bg-slate-50 py-2.5 px-3 text-xs text-slate-800 placeholder:text-slate-400 border border-slate-200 dark:border-slate-600 dark:bg-slate-700 dark:text-white dark:placeholder:text-slate-500'
-                placeholder='Adicionar tarefa'
-                type='text'
-              />
+              <Link
+                href='/therapist-routine'
+                className='flex w-full items-center justify-center gap-2 rounded-lg bg-slate-900 py-2.5 text-xs font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-700 dark:hover:bg-slate-600'
+              >
+                <Plus className='h-3 w-3' />
+                Nova Tarefa
+              </Link>
             </div>
 
             {/* Lista */}

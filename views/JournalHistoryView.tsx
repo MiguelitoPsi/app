@@ -14,6 +14,7 @@ import {
   X,
 } from 'lucide-react'
 import { getIconByKey } from '@/lib/utils/icon-map'
+import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -592,7 +593,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                             <div className='min-w-0 flex-1'>
                               <div className='mb-1 flex items-center gap-2'>
                                 <span className='font-bold text-slate-700 text-xs uppercase dark:text-slate-300'>
-                                  {entry.emotion}
+                                  {translateMood(entry.emotion)}
                                 </span>
                                 {hasNewFeedback && (
                                   <span className='rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'>

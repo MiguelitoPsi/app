@@ -89,7 +89,37 @@ export const patientRouter = router({
         // Don't throw - invite is still created
       }
 
-      return { success: true, inviteId: invite.id }
+    }),
+
+  // Create generic invite (returns link)
+  createGenericInvite: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas psicólogos podem enviar convites',
+        })
+      }
+
+      const token = nanoid(32)
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+
+      const [invite] = await db
+        .insert(patientInvites)
+        .values({
+          id: nanoid(),
+          psychologistId: ctx.user.id,
+          token,
+          status: 'pending',
+          expiresAt,
+        })
+        .returning()
+
+      return {
+        success: true,
+        inviteId: invite.id,
+        link: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`
+      }
     }),
 
   // Get all invites (psychologist only)
@@ -145,10 +175,12 @@ export const patientRouter = router({
         })
         .where(eq(patientInvites.id, input.inviteId))
 
-      try {
-        await sendInviteEmail(invite.email, invite.name, ctx.user.name || 'Seu psicólogo', newToken)
-      } catch (error) {
-        console.error('Failed to resend invite email:', error)
+      if (invite.email) {
+        try {
+          await sendInviteEmail(invite.email, invite.name || 'Paciente', ctx.user.name || 'Seu psicólogo', newToken)
+        } catch (error) {
+          console.error('Failed to resend invite email:', error)
+        }
       }
 
       return { success: true }
@@ -244,6 +276,8 @@ export const patientRouter = router({
         patient: {
           with: {
             stats: true,
+            therapySessionsAsPatient: true,
+            sessionDocumentsAsPatient: true,
           },
         },
       },
@@ -275,6 +309,8 @@ export const patientRouter = router({
           birthdate: invite?.birthdate || null,
           gender: invite?.gender || null,
           address: invite?.address || null,
+          sessionCount: patient.therapySessionsAsPatient?.length || 0,
+          documentCount: patient.sessionDocumentsAsPatient?.length || 0,
         }
       })
       .filter((p): p is NonNullable<typeof p> => p !== null)

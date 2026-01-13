@@ -569,8 +569,8 @@ export default function TherapistReportsView(): React.ReactElement {
       {/* Header */}
       <div className='mb-6 flex items-end justify-between'>
         <div>
-          <h2 className='font-bold text-slate-800 text-xl dark:text-white'>Relatórios</h2>
-          <p className='text-slate-500 text-xs dark:text-slate-400'>
+          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Relatórios</h2>
+          <p className='text-slate-500 dark:text-slate-400'>
             Documentos e conceituação do paciente
           </p>
         </div>

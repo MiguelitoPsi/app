@@ -42,6 +42,7 @@
     "react-dom": "^19.2.0",
     "recharts": "^3.4.1",
     "resend": "^6.5.2",
+    "sonner": "^2.0.7",
     "superjson": "^2.2.5",
     "web-push": "^3.6.7",
     "zod": "^4.1.12"

@@ -3,7 +3,7 @@
  */
 
 import { TRPCError } from '@trpc/server'
-import { and, desc, eq, gte, lte, sum } from 'drizzle-orm'
+import { and, desc, eq, gte, isNull, lte, or, sum } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
 import { FINANCIAL_CATEGORIES, GOAL_CATEGORIES } from '@/lib/constants/therapist'
@@ -25,6 +25,7 @@ export const therapistFinancialRouter = router({
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         type: z.enum(['income', 'expense']).optional(),
+        accountType: z.enum(['pj', 'cpf']).optional(),
         category: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
       })
@@ -39,11 +40,14 @@ export const therapistFinancialRouter = router({
         .select()
         .from(therapistFinancial)
         .where(eq(therapistFinancial.therapistId, ctx.user.id))
-        .orderBy(desc(therapistFinancial.date))
+        .orderBy(desc(therapistFinancial.date));
 
       const result: typeof allRecords = []
 
       for (const record of allRecords) {
+        // Apply accountType filter first
+        if (input.accountType && record.accountType !== input.accountType) continue
+
         // If no date range specified, just filter normally
         if (!(input.startDate && input.endDate)) {
           // Apply type and category filters
@@ -117,6 +121,7 @@ export const therapistFinancialRouter = router({
   addRecord: protectedProcedure
     .input(
       z.object({
+        accountType: z.enum(['pj', 'cpf']).default('cpf'),
         type: z.enum(['income', 'expense']),
         category: z.enum([
           'session',
@@ -161,6 +166,7 @@ export const therapistFinancialRouter = router({
         .values({
           id: nanoid(),
           therapistId: ctx.user.id,
+          accountType: input.accountType,
           type: input.type,
           category: input.category,
           amount: input.amount,
@@ -247,6 +253,7 @@ export const therapistFinancialRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
+        accountType: z.enum(['pj', 'cpf']).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
@@ -261,10 +268,15 @@ export const therapistFinancialRouter = router({
         .where(eq(therapistFinancial.therapistId, ctx.user.id))
 
       // Expand recurring records
-      const expandedRecords: typeof allRecords = []
+      const expandedRecords: typeof allRecords = [];
 
       for (const record of allRecords) {
-        const recordDate = new Date(record.date)
+        // Ignorar pagamentos pendentes nos totais
+        if (record.status === 'pending') continue;
+        // Filter by accountType if specified
+        if (input.accountType && record.accountType !== input.accountType) continue;
+
+        const recordDate = new Date(record.date);
 
         // Non-recurring records: check if within range
         if (!record.isRecurring) {
@@ -390,7 +402,10 @@ export const therapistFinancialRouter = router({
       // Agrupar por mês
       const monthly = records.reduce(
         (acc, r) => {
-          const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`
+          // Ignorar pagamentos pendentes
+          if (r.status === 'pending') return acc;
+          
+          const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`;
           if (!acc[monthKey]) {
             acc[monthKey] = { month: monthKey, income: 0, expense: 0, balance: 0 }
           }
@@ -433,8 +448,8 @@ export const therapistFinancialRouter = router({
 
       // Totais
       const totalIncome = records
-        .filter((r) => r.type === 'income')
-        .reduce((acc, r) => acc + r.amount, 0)
+        .filter((r) => r.type === 'income' && r.status !== 'pending')
+        .reduce((acc, r) => acc + r.amount, 0);
       const totalExpenses = records
         .filter((r) => r.type === 'expense')
         .reduce((acc, r) => acc + r.amount, 0)
@@ -442,18 +457,21 @@ export const therapistFinancialRouter = router({
       // Por mês
       const byMonth: Record<string, { income: number; expense: number; balance: number }> = {}
       for (let month = 0; month < 12; month++) {
-        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`
-        byMonth[monthKey] = { income: 0, expense: 0, balance: 0 }
+        const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+        byMonth[monthKey] = { income: 0, expense: 0, balance: 0 };
       }
 
       for (const r of records) {
-        const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`
+        // Ignorar pagamentos pendentes nas estatísticas
+        if (r.status === 'pending') continue;
+
+        const monthKey = `${r.date.getFullYear()}-${String(r.date.getMonth() + 1).padStart(2, '0')}`;
         if (r.type === 'income') {
-          byMonth[monthKey].income += r.amount
+          byMonth[monthKey].income += r.amount;
         } else {
-          byMonth[monthKey].expense += r.amount
+          byMonth[monthKey].expense += r.amount;
         }
-        byMonth[monthKey].balance = byMonth[monthKey].income - byMonth[monthKey].expense
+        byMonth[monthKey].balance = byMonth[monthKey].income - byMonth[monthKey].expense;
       }
 
       // Por categoria
@@ -598,17 +616,19 @@ export const therapistFinancialRouter = router({
         throw new TRPCError({ code: 'FORBIDDEN' })
       }
 
-      const now = new Date()
+      const now = new Date();
       const records = await db
         .select()
         .from(therapistFinancial)
         .where(
           and(
             eq(therapistFinancial.therapistId, ctx.user.id),
+            // Ignorar pendentes
+            or(eq(therapistFinancial.status, 'paid'), isNull(therapistFinancial.status)),
             gte(therapistFinancial.date, input.startDate),
             lte(therapistFinancial.date, now)
           )
-        )
+        );
 
       const currentIncome = records
         .filter((r) => r.type === 'income')

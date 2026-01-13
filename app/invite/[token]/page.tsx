@@ -104,11 +104,11 @@ export default function InvitePage() {
             <dl className='mt-2 space-y-1'>
               <div className='flex justify-between text-sm'>
                 <dt className='text-gray-500'>Nome:</dt>
-                <dd className='text-gray-900 font-medium'>{invite.name}</dd>
+                <dd className='text-gray-900 font-medium'>{invite.name || 'Não especificado'}</dd>
               </div>
               <div className='flex justify-between text-sm'>
                 <dt className='text-gray-500'>Email:</dt>
-                <dd className='text-gray-900'>{invite.email}</dd>
+                <dd className='text-gray-900'>{invite.email || 'Não especificado'}</dd>
               </div>
               <div className='flex justify-between text-sm'>
                 <dt className='text-gray-500'>Psicólogo(a):</dt>
