@@ -6,7 +6,6 @@ import {
   FileText,
   LogOut,
   Mail,
-  Phone,
   Search,
   User,
   UserPlus,
@@ -18,8 +17,9 @@ type Patient = {
   id: string
   name: string | null
   email: string
-  phone: string | null
-  createdAt: Date
+  image: string | null
+  isPrimary: boolean
+  relationshipId: string
 }
 
 export default function ClientsPage() {
@@ -363,12 +363,6 @@ export default function ClientsPage() {
                 </div>
 
                 <div className='mt-4 space-y-2'>
-                  {patient.phone && (
-                    <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
-                      <Phone className='h-4 w-4' />
-                      {patient.phone}
-                    </div>
-                  )}
                   <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
                     <Mail className='h-4 w-4' />
                     {patient.email}
