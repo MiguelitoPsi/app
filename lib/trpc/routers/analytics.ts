@@ -1,14 +1,16 @@
 import { TRPCError } from '@trpc/server'
-import { subDays } from 'date-fns'
-import { and, desc, eq, gte, isNull } from 'drizzle-orm'
+import { addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek, subDays } from 'date-fns'
+import { and, asc, desc, eq, gte, isNull, lte } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import {
   journalEntries,
   meditationSessions,
   moodHistory,
+  patientInvites,
   psychologistPatients,
   tasks,
+  therapistTasks,
   users,
 } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
@@ -267,11 +269,67 @@ export const analyticsRouter = router({
       .sort((a, b) => b.streak - a.streak)
       .slice(0, 5)
 
+    // Get scheduled sessions for the current month (from therapistTasks with type 'session')
+    const now = new Date()
+    const monthStart = startOfMonth(now)
+    const monthEnd = endOfMonth(now)
+
+    const scheduledSessionTasks = await db.query.therapistTasks.findMany({
+      where: and(
+        eq(therapistTasks.therapistId, ctx.user.id),
+        eq(therapistTasks.type, 'session'),
+        eq(therapistTasks.status, 'pending'),
+        gte(therapistTasks.dueDate, monthStart),
+        lte(therapistTasks.dueDate, monthEnd)
+      ),
+    })
+
+    const scheduledSessions = scheduledSessionTasks.length
+
+    // Get upcoming sessions for the week with patient details
+    const weekStart = startOfWeek(now, { weekStartsOn: 0 }) // Sunday
+    const weekEnd = endOfWeek(now, { weekStartsOn: 0 }) // Saturday
+
+    const weekSessionTasks = await db.query.therapistTasks.findMany({
+      where: and(
+        eq(therapistTasks.therapistId, ctx.user.id),
+        eq(therapistTasks.type, 'session'),
+        eq(therapistTasks.status, 'pending'),
+        gte(therapistTasks.dueDate, weekStart),
+        lte(therapistTasks.dueDate, weekEnd)
+      ),
+      with: {
+        patient: true,
+      },
+      orderBy: [asc(therapistTasks.dueDate)],
+    })
+
+    const upcomingSessions = weekSessionTasks.map((task) => ({
+      id: task.id,
+      patientId: task.patientId,
+      patientName: task.patient?.name || 'Paciente',
+      dueDate: task.dueDate,
+      title: task.title,
+      sessionValue: (task.metadata as { sessionValue?: number } | null)?.sessionValue,
+    }))
+
+    // Get pending invites
+    const pendingInvites = await db.query.patientInvites.findMany({
+      where: and(
+        eq(patientInvites.psychologistId, ctx.user.id),
+        eq(patientInvites.status, 'pending')
+      ),
+    })
+
     return {
       totalPatients,
       activePatients,
       inactivePatients: totalPatients - activePatients,
       topStreaks,
+      scheduledSessions,
+      upcomingSessions,
+      pendingInvitesCount: pendingInvites.length,
     }
   }),
 })
+

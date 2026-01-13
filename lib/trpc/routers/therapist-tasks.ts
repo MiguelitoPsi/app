@@ -186,12 +186,15 @@ export const therapistTasksRouter = router({
 
       // Validate that the date is not in the past
       if (input.dueDate) {
-        // Parse date as UTC midnight to avoid timezone issues
+        // Parse date components from the input (YYYY-MM-DD format)
         const [year, month, day] = input.dueDate.split('-').map(Number)
-        const taskDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0, 0))
-        const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 0, 0, 0, 0))
+        
+        // Create date objects using LOCAL timezone for consistent comparison
+        // Both dates are set to midnight local time for fair comparison
+        const taskDate = new Date(year, month - 1, day, 0, 0, 0, 0)
+        const todayLocal = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
 
-        if (taskDate < todayUTC) {
+        if (taskDate < todayLocal) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
             message: 'Não é possível criar tarefas para datas que já passaram',
