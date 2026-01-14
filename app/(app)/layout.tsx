@@ -47,22 +47,22 @@ function AppHeader() {
   return (
     <header className='relative z-10   pt-safe  '>
       <div
-        className={`px-4 transition-all duration-300 sm:px-6 ${
-          isScrolled ? 'pb-3 pt-3 sm:pb-4 sm:pt-4' : 'pb-4 sm:pb-6'
+        className={`px-3 transition-all duration-300 sm:px-4 ${
+          isScrolled ? 'pb-2 pt-2' : 'pb-2 pt-2'
         }`}
       >
         <section
           aria-label='Seu progresso'
-          className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-3 text-white shadow-xl sm:rounded-2xl sm:p-5'
+          className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-2.5 text-white shadow-xl sm:rounded-2xl sm:p-4'
         >
-          <div className='mb-2 flex items-center justify-between sm:mb-3'>
+          <div className='mb-1.5 flex items-center justify-between sm:mb-2'>
             <div>
-              <p className='font-medium text-xs text-violet-100'>{stats.name || 'Carregando...'}</p>
-              <h2 className='font-bold text-lg sm:text-xl'>{currentRank.name}</h2>
+              <p className='font-medium text-[10px] text-violet-100'>{stats.name || 'Carregando...'}</p>
+              <h2 className='font-bold text-base sm:text-lg'>{currentRank.name}</h2>
             </div>
             <div className='text-right'>
-              <p className='text-xs text-violet-100'>Nível {stats.level}</p>
-              <p className='font-bold text-lg sm:text-xl'>
+              <p className='text-[10px] text-violet-100'>Nível {stats.level}</p>
+              <p className='font-bold text-base sm:text-lg'>
                 {stats.xp} XP
                 <span className='sr-only'> pontos de experiência</span>
               </p>
@@ -73,7 +73,7 @@ function AppHeader() {
             aria-valuemax={100}
             aria-valuemin={0}
             aria-valuenow={xpProgress}
-            className='h-2 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm sm:h-2.5'
+            className='h-1.5 overflow-hidden rounded-full bg-white/20 backdrop-blur-sm sm:h-2'
             role='progressbar'
           >
             <div
@@ -81,7 +81,7 @@ function AppHeader() {
               style={{ width: `${xpProgress}%` }}
             />
           </div>
-          <p className='mt-1.5 text-xs text-violet-100'>{xpToNext} XP para o próximo nível</p>
+          <p className='mt-1 text-[10px] text-violet-100'>{xpToNext} XP para o próximo nível</p>
         </section>
       </div>
     </header>

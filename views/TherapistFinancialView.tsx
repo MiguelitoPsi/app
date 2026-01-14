@@ -695,9 +695,23 @@ export default function TherapistFinancialView(): React.ReactElement {
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   value={formData.category}
                 >
-                  {Object.entries(FINANCIAL_CATEGORIES).map(([key, info]) => (
+                  {Object.entries(FINANCIAL_CATEGORIES)
+                    .filter(([_, info]) => {
+                      // Filter by transaction type (income/expense)
+                      if (info.type !== 'both' && info.type !== formData.type) return false
+                      
+                      // Filter by account type (pj/cpf)
+                      if (
+                        info.allowedAccounts &&
+                        !info.allowedAccounts.includes(formData.accountType)
+                      )
+                        return false
+                        
+                      return true
+                    })
+                    .map(([key, info]) => (
                     <option key={key} value={key}>
-                      {info.icon} {info.label}
+                      {info.label}
                     </option>
                   ))}
                 </select>

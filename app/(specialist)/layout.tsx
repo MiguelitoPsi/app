@@ -53,7 +53,7 @@ function SpecialistContent({ children }: { children: ReactNode }) {
 
   // Se estiver na visão detalhada do paciente, não mostra sidebar e header
   // Exceto na rota de relatórios e configurações, onde precisamos da sidebar
-  if (isPatientViewActive && pathname !== '/reports' && pathname !== '/settings') {
+  if (isPatientViewActive && pathname !== '/reports' && pathname !== '/settings' && pathname !== '/financial') {
     return (
       <div className='min-h-screen bg-slate-50 dark:bg-slate-900'>
         <TherapistTermsModal isOpen={showTerms} />

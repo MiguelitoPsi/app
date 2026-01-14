@@ -25,7 +25,7 @@ import Image from "next/image";
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-sky-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-sky-500/30 relative overflow-x-hidden scroll-smooth">
       {/* Animated gradient orbs */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <motion.div

@@ -479,7 +479,7 @@ export const HomeView: React.FC = () => {
   return (
     <>
       <XPAnimationContainer particles={particles} />
-      <div className='flex h-full flex-col bg-slate-50 dark:bg-slate-950'>
+      <div className='flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
         {/* Live region for screen reader announcements */}
         <div aria-atomic='true' aria-live='polite' className='sr-only'>
           {xpFeedback && `Você ganhou ${xpFeedback.amount} pontos de experiência!`}
@@ -502,7 +502,7 @@ export const HomeView: React.FC = () => {
         )}
 
         {/* Header Section */}
-        <div className='mb-3 flex justify-end gap-2 px-4 sm:mb-4 sm:px-6'>
+        <div className='mb-1 flex justify-end gap-2 px-3 sm:mb-2 sm:px-4 shrink-0'>
           <HelpButton screenId='home' />
           <button
             aria-label='Abrir configurações'
@@ -520,10 +520,11 @@ export const HomeView: React.FC = () => {
 
         {/* Scrollable Content - Main area */}
         <main
-          className='flex-1 space-y-4 overflow-y-auto px-4 py-4 pb-28 sm:space-y-6 sm:px-6 sm:py-6 sm:pb-32'
+          className='flex-1 flex flex-col justify-between overflow-hidden px-3 py-2 sm:px-4 sm:py-3'
           id='main-content'
           ref={scrollContainerRef}
         >
+          <div className='flex flex-col gap-2 shrink-0'>
           {/* Feedback Notification Alert */}
           {unviewedFeedbackCount > 0 && (
             <button
@@ -611,13 +612,14 @@ export const HomeView: React.FC = () => {
             </button>
           )}
 
+          </div>
           {/* Avatar Section */}
-          <div className='flex justify-center py-2'>
-            <AvatarOficial mood={selectedMood} size='lg' />
+          <div className='flex justify-center shrink-0 py-1'>
+            <AvatarOficial mood={selectedMood} size='md' />
           </div>
 
           {/* Quick Mood Check-in */}
-          <fieldset className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
+          <fieldset className='shrink-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition-colors sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'>
             <legend className='sr-only'>Selecione como você está se sentindo</legend>
             <h3
               className='mb-3 flex items-center gap-2 font-bold text-slate-800 text-xs sm:mb-4 sm:text-sm dark:text-white'
@@ -655,10 +657,10 @@ export const HomeView: React.FC = () => {
           </fieldset>
 
           {/* Quick Actions */}
-          <section aria-label='Ações rápidas' className='grid grid-cols-2 gap-3 sm:gap-4'>
+          <section aria-label='Ações rápidas' className='grid shrink-0 grid-cols-2 gap-3'>
             <button
               aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
-              className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
+              className='group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
               onClick={() => {
                 playNavigation()
                 router.push('/journal')
@@ -666,10 +668,10 @@ export const HomeView: React.FC = () => {
               type='button'
             >
               <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
-              <div className='relative flex h-full flex-col items-center justify-center gap-2 text-white sm:gap-3'>
-                <BookOpen className='h-8 w-8 sm:h-10 sm:w-10' />
-                <div className='text-center'>
-                  <div className='font-bold text-sm leading-tight sm:text-base'>
+              <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
+                <BookOpen size={24} />
+                <div className='text-left'>
+                  <div className='font-bold text-sm leading-tight'>
                     Diário de
                     <br />
                     Pensamento
@@ -686,7 +688,7 @@ export const HomeView: React.FC = () => {
 
             <button
               aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
-              className='group relative aspect-square overflow-hidden rounded-xl p-3 transition-all duration-300 sm:rounded-2xl sm:p-4 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
+              className='group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
               onClick={() => {
                 playNavigation()
                 router.push('/meditation')
@@ -694,10 +696,10 @@ export const HomeView: React.FC = () => {
               type='button'
             >
               <div className='absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600' />
-              <div className='relative flex h-full flex-col items-center justify-center gap-2 text-white sm:gap-3'>
-                <Heart className='h-8 w-8 sm:h-10 sm:w-10' />
-                <div className='text-center'>
-                  <div className='font-bold text-sm leading-tight sm:text-base'>
+              <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
+                <Heart size={24} />
+                <div className='text-left'>
+                  <div className='font-bold text-sm leading-tight'>
                     Meditação
                     <br />
                     Rápida
@@ -716,7 +718,7 @@ export const HomeView: React.FC = () => {
           {/* Weekly Mood Chart */}
           <section
             aria-label='Gráfico de humor semanal'
-            className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:rounded-3xl sm:p-6 dark:border-slate-800 dark:bg-slate-900'
+            className='shrink-0 rounded-2xl border border-slate-100 bg-white px-4 py-2 shadow-sm transition-colors sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'
           >
             <div className='mb-4 flex items-center gap-2 sm:mb-6 sm:gap-3'>
               <div
@@ -729,7 +731,7 @@ export const HomeView: React.FC = () => {
               <h2 className='font-bold text-sm text-slate-800 dark:text-white'>Humor Semanal</h2>
             </div>
             {isMounted && (
-              <div className='h-32 w-full sm:h-40'>
+              <div className='h-16 w-full'>
                 <ResponsiveContainer height='100%' width='100%'>
                   <BarChart data={moodData}>
                     <XAxis

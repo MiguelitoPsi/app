@@ -28,10 +28,10 @@
 
 @layer base {
   html {
-    @apply h-full overflow-hidden;
+    @apply h-full;
   }
   body {
-    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50 h-full overflow-hidden m-0;
+    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50 h-full m-0;
     font-family: "Inter", sans-serif;
     -webkit-tap-highlight-color: transparent;
     /* Prevent pull-to-refresh and overscroll bounce */
@@ -45,7 +45,7 @@
     line-height: 1.5;
   }
   #root {
-    @apply h-full overflow-hidden;
+    @apply h-full;
   }
 }
 

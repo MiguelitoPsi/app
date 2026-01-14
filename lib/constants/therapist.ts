@@ -774,7 +774,13 @@ export type FinancialCategory =
 
 export const FINANCIAL_CATEGORIES: Record<
   FinancialCategory,
-  { label: string; icon: string; type: 'income' | 'expense' | 'both'; description?: string }
+  {
+    label: string
+    icon: string
+    type: 'income' | 'expense' | 'both'
+    description?: string
+    allowedAccounts?: ('pj' | 'cpf')[]
+  }
 > = {
   // Receitas
   session: {
