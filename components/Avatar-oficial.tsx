@@ -3,7 +3,7 @@ import type { Mood } from '@/lib/constants'
 
 type AvatarOficialProps = {
   mood?: Mood
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
 }
 
 // Subset of moods with specific images
@@ -42,6 +42,13 @@ const moodGlowColors: Partial<Record<Mood, string>> = {
 const defaultGlowColor = '148, 163, 184' // slate
 
 const sizeConfig = {
+  xs: {
+    container: 'h-28 w-28',
+    ball: 'h-20 w-20',
+    image: 80,
+    imageClass: 'h-16 w-16',
+    offset: 'top-2',
+  },
   sm: {
     container: 'h-24 w-24',
     ball: 'h-16 w-16',

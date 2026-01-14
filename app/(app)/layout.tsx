@@ -53,16 +53,16 @@ function AppHeader() {
       >
         <section
           aria-label='Seu progresso'
-          className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-2.5 text-white shadow-xl sm:rounded-2xl sm:p-4'
+          className='rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 p-2 text-white shadow-xl sm:rounded-2xl sm:p-3'
         >
           <div className='mb-1.5 flex items-center justify-between sm:mb-2'>
             <div>
               <p className='font-medium text-[10px] text-violet-100'>{stats.name || 'Carregando...'}</p>
-              <h2 className='font-bold text-base sm:text-lg'>{currentRank.name}</h2>
+              <h2 className='font-bold text-sm sm:text-base'>{currentRank.name}</h2>
             </div>
             <div className='text-right'>
               <p className='text-[10px] text-violet-100'>Nível {stats.level}</p>
-              <p className='font-bold text-base sm:text-lg'>
+              <p className='font-bold text-sm sm:text-base'>
                 {stats.xp} XP
                 <span className='sr-only'> pontos de experiência</span>
               </p>
@@ -101,7 +101,7 @@ function AppLayoutContent({ children }: { children: ReactNode }) {
       <div className='min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 transition-colors duration-300 dark:from-slate-900 dark:to-slate-800'>
         <div className='mx-auto flex h-screen max-w-md flex-col bg-slate-100 shadow-2xl dark:bg-slate-950'>
           {!hideHeader && <AppHeader />}
-          <main className='flex-1 overflow-y-auto' id='main-content'>
+          <main className='flex-1 overflow-hidden' id='main-content'>
             {children}
           </main>
           <BottomNav />

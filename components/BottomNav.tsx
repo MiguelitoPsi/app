@@ -13,7 +13,7 @@ export const BottomNav: React.FC = () => {
   const isActive = (path: string) => pathname === path
 
   const navItemClass = (path: string) => `
-    relative flex flex-col items-center justify-center w-full h-full space-y-1
+    relative flex flex-col items-center justify-center w-full h-full space-y-0.5
     ${
       isActive(path)
         ? 'text-sky-600 dark:text-sky-400'
@@ -33,7 +33,7 @@ export const BottomNav: React.FC = () => {
   return (
     <nav
       aria-label='Navegação principal'
-      className='fixed right-0 bottom-0 left-0 z-50 mx-auto h-[calc(5.5rem+env(safe-area-inset-bottom,0px))] max-w-md rounded-t-[2rem] border-slate-100 border-t bg-white/95 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom,0px))] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-300 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95'
+      className='relative z-50 h-[calc(4.5rem+env(safe-area-inset-bottom,0px))] w-full border-slate-100 border-t bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] shadow-[0_-5px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-300 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95'
     >
       <div className='relative flex h-full items-center justify-between'>
         {/* Home */}
@@ -55,7 +55,7 @@ export const BottomNav: React.FC = () => {
           >
             <Home
               className='transition-transform duration-300 group-active:scale-90'
-              size={22}
+              size={20}
               strokeWidth={isActive('/home') ? 2.5 : 2}
             />
           </div>
@@ -87,7 +87,7 @@ export const BottomNav: React.FC = () => {
           >
             <Calendar
               className='transition-transform duration-300 group-active:scale-90'
-              size={22}
+              size={20}
               strokeWidth={isActive('/routine') ? 2.5 : 2}
             />
           </div>
@@ -114,7 +114,7 @@ export const BottomNav: React.FC = () => {
                   ? 'Adicionar nova recompensa'
                   : 'Abrir diário de pensamentos'
             }
-            className='hover:-translate-y-1 relative flex h-14 w-14 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sky-300/50 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 sm:h-16 sm:w-16 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-4'
+            className='hover:-translate-y-1 relative flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sky-300/50 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 sm:h-14 sm:w-14 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-4'
             onClick={() => {
               playNavigation()
               // Context-aware action based on current page
@@ -131,8 +131,8 @@ export const BottomNav: React.FC = () => {
             }}
             type='button'
           >
-            <Plus aria-hidden='true' className='sm:hidden' size={28} strokeWidth={2.5} />
-            <Plus aria-hidden='true' className='hidden sm:block' size={32} strokeWidth={2.5} />
+            <Plus aria-hidden='true' className='sm:hidden' size={24} strokeWidth={2.5} />
+            <Plus aria-hidden='true' className='hidden sm:block' size={28} strokeWidth={2.5} />
             <span className='sr-only'>
               {pathname === '/routine'
                 ? 'Nova tarefa'
@@ -162,7 +162,7 @@ export const BottomNav: React.FC = () => {
           >
             <Gift
               className='transition-transform duration-300 group-active:scale-90'
-              size={22}
+              size={20}
               strokeWidth={isActive('/rewards') ? 2.5 : 2}
             />
           </div>
@@ -194,7 +194,7 @@ export const BottomNav: React.FC = () => {
           >
             <User
               className='transition-transform duration-300 group-active:scale-90'
-              size={22}
+              size={20}
               strokeWidth={isActive('/profile') ? 2.5 : 2}
             />
           </div>

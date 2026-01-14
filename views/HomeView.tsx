@@ -479,7 +479,7 @@ export const HomeView: React.FC = () => {
   return (
     <>
       <XPAnimationContainer particles={particles} />
-      <div className='flex h-screen flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
+      <div className='flex h-full flex-col overflow-hidden bg-slate-50 dark:bg-slate-950'>
         {/* Live region for screen reader announcements */}
         <div aria-atomic='true' aria-live='polite' className='sr-only'>
           {xpFeedback && `Você ganhou ${xpFeedback.amount} pontos de experiência!`}
@@ -502,7 +502,7 @@ export const HomeView: React.FC = () => {
         )}
 
         {/* Header Section */}
-        <div className='mb-1 flex justify-end gap-2 px-3 sm:mb-2 sm:px-4 shrink-0'>
+        <div className='flex justify-end gap-2 px-3 shrink-0'>
           <HelpButton screenId='home' />
           <button
             aria-label='Abrir configurações'
@@ -520,16 +520,16 @@ export const HomeView: React.FC = () => {
 
         {/* Scrollable Content - Main area */}
         <main
-          className='flex-1 flex flex-col justify-between overflow-hidden px-3 py-2 sm:px-4 sm:py-3'
+          className='flex-1 flex flex-col justify-evenly overflow-hidden px-3 py-1'
           id='main-content'
           ref={scrollContainerRef}
         >
-          <div className='flex flex-col gap-2 shrink-0'>
+          <div className='flex flex-col gap-1.5 shrink-0'>
           {/* Feedback Notification Alert */}
           {unviewedFeedbackCount > 0 && (
             <button
               aria-label={`Você tem ${unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta. Clique para ver.`}
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-emerald-100 bg-emerald-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
+              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
               onClick={() => router.push('/journal/history')}
               type='button'
             >
@@ -559,7 +559,7 @@ export const HomeView: React.FC = () => {
               aria-label={`Atenção: ${urgentTasks.length} tarefa${
                 urgentTasks.length > 1 ? 's' : ''
               } de alta prioridade hoje. Clique para ver.`}
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-red-100 bg-red-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-red-900/30 dark:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
+              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-red-100 bg-red-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-red-900/30 dark:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
               onClick={() => router.push('/routine')}
               type='button'
             >
@@ -588,7 +588,7 @@ export const HomeView: React.FC = () => {
           {selectedMood === 'anxious' && (
             <button
               aria-label='Sugestão: Que tal uma meditação para aliviar a ansiedade? Clique para meditar.'
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-2xl border border-teal-100 bg-teal-50 p-3 shadow-sm active:scale-[0.98] sm:rounded-3xl sm:p-4 dark:border-teal-900/30 dark:bg-teal-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2'
+              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-teal-100 bg-teal-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-teal-900/30 dark:bg-teal-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2'
               onClick={() => router.push('/meditation')}
               type='button'
             >
@@ -613,16 +613,18 @@ export const HomeView: React.FC = () => {
           )}
 
           </div>
-          {/* Avatar Section */}
-          <div className='flex justify-center shrink-0 py-1'>
+          {/* Middle Section: Avatar (More compact container) */}
+          <div className='flex shrink-0 items-center justify-center'>
             <AvatarOficial mood={selectedMood} size='md' />
           </div>
 
-          {/* Quick Mood Check-in */}
-          <fieldset className='shrink-0 rounded-2xl border border-slate-100 bg-white p-3 shadow-sm transition-colors sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'>
+          {/* Bottom Section: Inputs & Data */}
+          <div className='flex flex-col gap-1.5 shrink-0'>
+            {/* Quick Mood Check-in */}
+            <fieldset className='rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm transition-colors sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'>
             <legend className='sr-only'>Selecione como você está se sentindo</legend>
             <h3
-              className='mb-3 flex items-center gap-2 font-bold text-slate-800 text-xs sm:mb-4 sm:text-sm dark:text-white'
+              className='mb-2 flex items-center gap-2 font-bold text-slate-800 text-xs sm:text-sm dark:text-white'
               id='mood-heading'
             >
               Como você se sente?
@@ -648,7 +650,7 @@ export const HomeView: React.FC = () => {
                   onClick={(e) => handleMoodChange(m.id, e)}
                   type='button'
                   >
-                    <span className='flex h-7 w-7 items-center justify-center text-2xl sm:h-10 sm:w-10 sm:text-3xl'>
+                    <span className='flex h-6 w-6 items-center justify-center text-xl sm:h-8 sm:w-8 sm:text-2xl'>
                       {m.emoji}
                     </span>
                   </button>
@@ -656,11 +658,11 @@ export const HomeView: React.FC = () => {
             </div>
           </fieldset>
 
-          {/* Quick Actions */}
-          <section aria-label='Ações rápidas' className='grid shrink-0 grid-cols-2 gap-3'>
+            {/* Quick Actions */}
+            <section aria-label='Ações rápidas' className='grid grid-cols-2 gap-2'>
             <button
               aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
-              className='group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
+              className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
               onClick={() => {
                 playNavigation()
                 router.push('/journal')
@@ -671,11 +673,9 @@ export const HomeView: React.FC = () => {
               <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
                 <BookOpen size={24} />
                 <div className='text-left'>
-                  <div className='font-bold text-sm leading-tight'>
-                    Diário de
-                    <br />
-                    Pensamento
-                  </div>
+                    <div className='font-bold text-sm leading-tight'>
+                      Diário de Pensamento
+                    </div>
                   <div
                     aria-hidden='true'
                     className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
@@ -688,7 +688,7 @@ export const HomeView: React.FC = () => {
 
             <button
               aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
-              className='group relative overflow-hidden rounded-xl p-3 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
+              className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
               onClick={() => {
                 playNavigation()
                 router.push('/meditation')
@@ -699,11 +699,9 @@ export const HomeView: React.FC = () => {
               <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
                 <Heart size={24} />
                 <div className='text-left'>
-                  <div className='font-bold text-sm leading-tight'>
-                    Meditação
-                    <br />
-                    Rápida
-                  </div>
+                    <div className='font-bold text-sm leading-tight'>
+                      Meditação Rápida
+                    </div>
                   <div
                     aria-hidden='true'
                     className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
@@ -714,24 +712,24 @@ export const HomeView: React.FC = () => {
               </div>
             </button>
           </section>
+          </div>
 
-          {/* Weekly Mood Chart */}
-          <section
-            aria-label='Gráfico de humor semanal'
-            className='shrink-0 rounded-2xl border border-slate-100 bg-white px-4 py-2 shadow-sm transition-colors sm:rounded-3xl dark:border-slate-800 dark:bg-slate-900'
-          >
-            <div className='mb-4 flex items-center gap-2 sm:mb-6 sm:gap-3'>
+            {/* Weekly Mood Chart */}
+            <section
+              aria-label='Gráfico de humor semanal'
+              className='shrink-0 rounded-xl border border-slate-100 bg-white px-3 py-1.5 shadow-sm transition-colors sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'
+            >
+            <div className='mb-1 flex items-center gap-1.5'>
               <div
                 aria-hidden='true'
-                className='rounded-lg bg-sky-50 p-1.5 text-sky-600 sm:rounded-xl sm:p-2 dark:bg-sky-900/20 dark:text-sky-400'
+                className='rounded-md bg-sky-50 p-1 text-sky-600 dark:bg-sky-900/20 dark:text-sky-400'
               >
-                <BarChart2 className='sm:hidden' size={16} />
-                <BarChart2 className='hidden sm:block' size={18} />
+                <BarChart2 size={12} />
               </div>
-              <h2 className='font-bold text-sm text-slate-800 dark:text-white'>Humor Semanal</h2>
+              <h2 className='font-bold text-[10px] text-slate-800 dark:text-white'>Humor Semanal</h2>
             </div>
             {isMounted && (
-              <div className='h-16 w-full'>
+              <div className='h-20 w-full'>
                 <ResponsiveContainer height='100%' width='100%'>
                   <BarChart data={moodData}>
                     <XAxis
@@ -756,7 +754,7 @@ export const HomeView: React.FC = () => {
                         marginBottom: '4px',
                       }}
                     />
-                    <Bar barSize={20} dataKey='score' fill='#0ea5e9' radius={[4, 4, 4, 4]} />
+                    <Bar barSize={10} dataKey='score' fill='#0ea5e9' radius={[1, 1, 1, 1]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
