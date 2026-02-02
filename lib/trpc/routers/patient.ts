@@ -329,6 +329,16 @@ export const patientRouter = router({
       },
     })
 
+    // Fetch accepted invites to get additional patient info (phone)
+    const acceptedInvites = await db.query.patientInvites.findMany({
+      where: and(
+        eq(patientInvites.psychologistId, ctx.user.id),
+        eq(patientInvites.status, 'accepted')
+      ),
+    })
+
+    const inviteByEmail = new Map(acceptedInvites.map((invite) => [invite.email, invite]))
+
     return relationships
       .filter(
         (rel): rel is typeof rel & { patient: NonNullable<typeof rel.patient> } =>
@@ -341,6 +351,7 @@ export const patientRouter = router({
         image: rel.patient.image,
         isPrimary: rel.isPrimary,
         relationshipId: rel.id,
+        phone: inviteByEmail.get(rel.patient.email)?.phone || null,
       }))
   }),
 
