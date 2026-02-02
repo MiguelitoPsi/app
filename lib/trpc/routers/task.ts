@@ -10,7 +10,7 @@ import {
   users,
 } from "@/lib/db/schema";
 import { PUSH_TEMPLATES, sendPushToUser } from "@/lib/push";
-import { getStartOfDay, nowInSP } from "@/lib/utils/timezone";
+import { getStartOfDay, nowInSP, formatDateSP } from "@/lib/utils/timezone";
 import {
   awardXPAndCoins,
   COIN_REWARDS,
@@ -729,7 +729,7 @@ export const taskRouter = router({
         // Limit: 2 High Priority, 5 Medium Priority
         // This must count tasks from BOTH 'tasks' (patient self-assigned) and 'patientTasksFromTherapist' (therapist assigned)
 
-        const dayStart = new Date(taskDateForValidation);
+        const dayStart = new Date(parsedDueDate!);
         const dayEnd = new Date(dayStart);
         dayEnd.setDate(dayEnd.getDate() + 1);
 
