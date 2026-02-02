@@ -230,6 +230,42 @@ export const therapistFinancialRouter = router({
       return record
     }),
 
+  // Confirmar pagamento
+  confirmPayment: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      const [record] = await db
+        .select()
+        .from(therapistFinancial)
+        .where(
+          and(eq(therapistFinancial.id, input.id), eq(therapistFinancial.therapistId, ctx.user.id))
+        )
+        .limit(1)
+
+      if (!record) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Registro não encontrado',
+        })
+      }
+
+      await db
+        .update(therapistFinancial)
+        .set({ status: 'paid', updatedAt: new Date() })
+        .where(eq(therapistFinancial.id, input.id))
+
+      // Atualizar metas de receita
+      if (record.type === 'income') {
+        await updateGoalsByCategory(db, ctx.user.id, 'revenue')
+      }
+
+      return { success: true }
+    }),
+
   // Excluir registro financeiro
   deleteRecord: protectedProcedure
     .input(z.object({ id: z.string() }))

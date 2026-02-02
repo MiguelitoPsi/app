@@ -496,7 +496,7 @@ export default function TherapistRoutineView() {
     }
 
     if (mainView === 'patients') {
-      if (!selectedPatientId) return
+      if (!selectedPatientId || !selectedPatient) return
       if (!taskForm.title && taskForm.taskCategory !== 'sessao') return
 
       if (taskForm.taskCategory === 'sessao') {
@@ -1109,7 +1109,7 @@ export default function TherapistRoutineView() {
                           taskCategory: 'sessao',
                           priority: 'high',
                           type: 'session',
-                          sessionPatientId: mainView === 'patients' ? selectedPatientId : undefined,
+                          sessionPatientId: mainView === 'patients' ? (selectedPatientId || undefined) : undefined,
                         })
                       }
                       type='button'
