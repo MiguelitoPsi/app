@@ -1,0 +1,64 @@
+﻿   Ôû▓ Next.js 15.5.7
+   - Environments: .env.local, .env.production, .env
+
+   Creating an optimized production build ...
+ Ô£ô Compiled successfully in 6.0s
+   Linting and checking validity of types ...
+node.exe : Failed to compile.
+No linha:1 caractere:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Failed   
+  to compile.:String) [],    
+ RemoteException
+    + FullyQualifiedErrorId  
+   : NativeCommandError
+ 
+
+./app/(specialist)/clients/pa
+ge.tsx:300:47
+Type error: Argument of type 
+'{ id: string; name: string; 
+email: string; image: string 
+| null; isPrimary: boolean; 
+relationshipId: string; }' 
+is not assignable to 
+parameter of type 'Patient'.
+  Type '{ id: string; name: 
+string; email: string; 
+image: string | null; 
+isPrimary: boolean; 
+relationshipId: string; }' 
+is missing the following 
+properties from type 
+'Patient': phone, createdAt
+
+[0m [90m 298 |[39m        
+                 
+openDropdownId [33m===[39m 
+patient[33m.[39mid
+ [90m 299 |[39m            
+               [33m?[39m 
+handleCloseDropdown()
+[31m[1m>[22m[39m[90m 
+300 |[39m                   
+        [33m:[39m 
+handleOpenActions(patient)
+ [90m     |[39m            
+                             
+      [31m[1m^[22m[39m
+ [90m 301 |[39m            
+           }
+ [90m 302 |[39m            
+         [33m>[39m
+ [90m 303 |[39m            
+           
+[33m<[39m[33msvg[39m[0m
+Next.js build worker exited 
+with code: 1 and signal: null

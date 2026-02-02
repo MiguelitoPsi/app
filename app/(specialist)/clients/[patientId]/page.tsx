@@ -63,16 +63,6 @@ type CognitiveConceptualization = {
   situations: string | null
 }
 
-type JournalEntry = {
-  id: string
-  createdAt: Date
-  title: string | null
-  content: string | null
-  aiAnalysis: string | null
-  mood: string | null
-  isRead: boolean
-  therapistFeedback: string | null
-}
 
 
 export default function PatientProfilePage() {
@@ -674,7 +664,7 @@ export default function PatientProfilePage() {
                           <div className='flex items-center justify-between'>
                             <div className='flex items-center gap-3'>
                               <h3 className='font-semibold text-slate-900 dark:text-white'>
-                                {entry.title || 'Registro de Pensamento'}
+                                Registro de Pensamento
                               </h3>
                               {!entry.isRead && (
                                 <span className='rounded-full bg-sky-500/20 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-400 border border-sky-500/30'>

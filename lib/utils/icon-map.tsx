@@ -187,7 +187,6 @@ export const getIconByKey = (key: string): React.ElementType => {
     // Dashboard new icons
     clients: Users,
     agenda: Calendar,
-    marketing: Megaphone,
     video: Video,
     search: Activity,
     upgrade: Sparkles,
