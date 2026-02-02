@@ -374,7 +374,7 @@ export const analyticsRouter = router({
       },
     })
 
-    const pendingRewards = patientRewards.map((reward) => ({
+    const pendingRewards = (patientRewards as any[]).map((reward) => ({
       id: reward.id,
       title: reward.title,
       patientId: reward.userId,
@@ -431,7 +431,7 @@ export const analyticsRouter = router({
       limit: 50,
     })
 
-    const pendingJournals = journals.map((journal) => ({
+    const pendingJournals = (journals as any[]).map((journal) => ({
       id: journal.id,
       patientId: journal.userId,
       patientName: journal.user?.name || 'Paciente',
