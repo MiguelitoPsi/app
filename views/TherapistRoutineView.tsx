@@ -75,7 +75,7 @@ export default function TherapistRoutineView() {
     d.setHours(0, 0, 0, 0)
     return d
   })
-  const [showAiSuggestions, setShowAiSuggestions] = useState(true)
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false)
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
   const [showPatientDropdown, setShowPatientDropdown] = useState(false)
   const [showAlert, setShowAlert] = useState(false)

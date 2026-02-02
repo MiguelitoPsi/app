@@ -117,103 +117,7 @@ export default function ClientsPage() {
 
   return (
     <div className='box-border h-full overflow-y-auto'>
-      {/* Dashboard Header */}
-      <header className='sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/80'>
-        <div className='flex h-16 items-center justify-between px-4'>
-          <div className='relative flex-1 max-w-xl'>
-            <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
-              <input
-                className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder='Buscar cliente...'
-                type='text'
-                value={searchQuery}
-              />
-            </div>
-          </div>
-          <div className='flex items-center gap-2 pl-4'>
-            <a
-              className='flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition-all hover:from-amber-600 hover:to-orange-600 hover:shadow-md'
-              href='/upgrade'
-            >
-              <svg
-                className='h-4 w-4'
-                fill='none'
-                height='24'
-                stroke='currentColor'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                viewBox='0 0 24 24'
-                width='24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path d='M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z' />
-                <path d='M20 2v4' />
-                <path d='M22 4h-4' />
-                <circle cx='4' cy='20' r='2' />
-              </svg>
-              <span className='hidden sm:inline'>Assinar</span>
-            </a>
-            <a
-              className='flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-              href='/videos'
-              title='Vídeos'
-            >
-              <svg
-                className='h-5 w-5'
-                fill='none'
-                height='24'
-                stroke='currentColor'
-                strokeLinecap='round'
-                strokeLinejoin='round'
-                strokeWidth='2'
-                viewBox='0 0 24 24'
-                width='24'
-                xmlns='http://www.w3.org/2000/svg'
-              >
-                <path d='m16 13 5.223 3.482a.5.5 0 0 0 .777-.416V7.87a.5.5 0 0 0-.752-.432L16 10.5' />
-                <rect height='12' rx='2' width='14' x='2' y='6' />
-              </svg>
-            </a>
-            <div className='relative'>
-              <button
-                className='flex h-9 w-9 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-                title='Notificações'
-              >
-                <svg
-                  className='h-5 w-5'
-                  fill='none'
-                  height='24'
-                  stroke='currentColor'
-                  strokeLinecap='round'
-                  strokeLinejoin='round'
-                  strokeWidth='2'
-                  viewBox='0 0 24 24'
-                  width='24'
-                  xmlns='http://www.w3.org/2000/svg'
-                >
-                  <path d='M10.268 21a2 2 0 0 0 3.464 0' />
-                  <path d='M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326' />
-                </svg>
-                <span className='absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500' />
-              </button>
-            </div>
-            <div className='relative'>
-              <button className='flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border-2 border-sky-500 transition-all hover:ring-2 hover:ring-sky-500/30'>
-                <img
-                  alt='Perfil'
-                  className='h-full w-full object-cover'
-                  height={36}
-                  src='/avatar-default.png'
-                  width={36}
-                />
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
+
 
       {/* Content */}
       <div className='px-4 py-6 sm:px-6 lg:px-8'>
@@ -265,6 +169,20 @@ export default function ClientsPage() {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className='mb-6'>
+          <div className='relative'>
+            <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
+            <input
+              className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder='Buscar cliente...'
+              type='text'
+              value={searchQuery}
+            />
           </div>
         </div>
 

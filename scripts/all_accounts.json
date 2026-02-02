@@ -1,0 +1,50 @@
+[
+  {
+    "id": "43ABHocAAGQuocsoolVzaGKjeRjWR7Y1",
+    "userId": "PZOqGN95ZtwBHagMSqB0jFqsorHIl7Tp",
+    "accountId": "PZOqGN95ZtwBHagMSqB0jFqsorHIl7Tp",
+    "providerId": "credential",
+    "accessToken": null,
+    "refreshToken": null,
+    "password": "4bb2857266f1d3ff95d82f94c4be95f2:893b32f4000121ed2b064c9274136d867836b38d06fa2b0529aa92d4b0e53faddb65d1a9211b6d9a34554a212699711a0b60f0e99ac5f044819912c7682d25b7",
+    "expiresAt": null,
+    "createdAt": "2025-12-11T22:07:46.000Z",
+    "updatedAt": "2025-12-11T22:07:46.000Z"
+  },
+  {
+    "id": "hYB9TV2aV0hWbz4ryKzpqFPDXIg7F7Em",
+    "userId": "UHS3SLkVgCUex53uh6Yhoqm92GOl1z9u",
+    "accountId": "UHS3SLkVgCUex53uh6Yhoqm92GOl1z9u",
+    "providerId": "credential",
+    "accessToken": null,
+    "refreshToken": null,
+    "password": "a1368c72f6ebd7f71c9a03bb956e9c48:f64b9376670cb108abfa84a17de66bde6c4308a4fabdafec553947320c5709a52da83dd39c37c2350ebd64b58f417aa43cc2fee5f109b832bbc3edf11d7d3b68",
+    "expiresAt": null,
+    "createdAt": "2025-12-11T22:33:23.000Z",
+    "updatedAt": "2025-12-11T22:33:23.000Z"
+  },
+  {
+    "id": "mcDTgWrcykLA0Wy0W40lUEBt8rswFKHG",
+    "userId": "tbb0Hgu5g446mBRS1cas2w3ChwiXW66I",
+    "accountId": "tbb0Hgu5g446mBRS1cas2w3ChwiXW66I",
+    "providerId": "credential",
+    "accessToken": null,
+    "refreshToken": null,
+    "password": "34883ec97fb0afcec7f54aa039b07854:c693fbc6a00b963eca7de08657b0793c41be981111311549ea420bc0ca5a2a4b2a233c8ca9cd00fd99681458bb405f679dff33e48e6edcc1524b40ebdaaf3460",
+    "expiresAt": null,
+    "createdAt": "2026-01-11T20:46:44.000Z",
+    "updatedAt": "2026-01-11T20:46:44.000Z"
+  },
+  {
+    "id": "Ij5AkCQuKmh2WyBCt54Hx",
+    "userId": "Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu",
+    "accountId": "Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu",
+    "providerId": "credential",
+    "accessToken": null,
+    "refreshToken": null,
+    "password": "$2b$12$O.Be9zEoH4a5RcrieGnmGeqlGmoXdEeRafUw04Eg2EjLIjFee/N6S",
+    "expiresAt": null,
+    "createdAt": "2026-02-02T21:36:07.000Z",
+    "updatedAt": "2026-02-02T21:54:15.000Z"
+  }
+]

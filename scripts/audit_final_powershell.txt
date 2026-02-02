@@ -1,0 +1,10 @@
+﻿[dotenv@17.2.3] injecting env (9) from .env.local -- tip: Ô£à audit secrets and track compliance: https://dotenvx.com/ops
+--- DATA AUDIT FOR ID: Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu ---
+User Record: OK
+Therapist Profile: OK
+Therapist Stats: OK
+Financial Records: 9
+Linked Patients: 7
+Pending Invites: 0
+Auth Accounts: 1
+- Provider: credential, AccountID: Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu, ID: Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu
