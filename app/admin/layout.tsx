@@ -11,6 +11,7 @@ const navItems = [
   { href: '/admin/users', label: 'Usuários', icon: '👥' },
   { href: '/admin/subscriptions', label: 'Assinaturas', icon: '💳' },
   { href: '/admin/terms', label: 'Termos', icon: '📄' },
+  { href: '/admin/settings', label: 'Configurações', icon: '⚙️' },
 ]
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
