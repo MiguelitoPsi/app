@@ -38,7 +38,7 @@ export const therapistFinancialRouter = router({
         accountType: z.enum(["pj", "cpf"]).optional(),
         category: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -127,7 +127,7 @@ export const therapistFinancialRouter = router({
 
       // Sort by date descending and apply limit
       result.sort(
-        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
       );
 
       return result.slice(0, input.limit);
@@ -170,7 +170,7 @@ export const therapistFinancialRouter = router({
             invoiceNumber: z.string().optional(),
           })
           .optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -221,7 +221,7 @@ export const therapistFinancialRouter = router({
             invoiceNumber: z.string().optional(),
           })
           .optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -236,8 +236,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistFinancial.id, id),
-            eq(therapistFinancial.therapistId, ctx.user.id)
-          )
+            eq(therapistFinancial.therapistId, ctx.user.id),
+          ),
         )
         .returning();
 
@@ -252,40 +252,6 @@ export const therapistFinancialRouter = router({
     }),
 
   // Confirmar pagamento
-  confirmPayment: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      if (ctx.user.role !== 'psychologist') {
-        throw new TRPCError({ code: 'FORBIDDEN' })
-      }
-
-      const [record] = await db
-        .select()
-        .from(therapistFinancial)
-        .where(
-          and(eq(therapistFinancial.id, input.id), eq(therapistFinancial.therapistId, ctx.user.id))
-        )
-        .limit(1)
-
-      if (!record) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Registro não encontrado',
-        })
-      }
-
-      await db
-        .update(therapistFinancial)
-        .set({ status: 'paid', updatedAt: new Date() })
-        .where(eq(therapistFinancial.id, input.id))
-
-      // Atualizar metas de receita
-      if (record.type === 'income') {
-        await updateGoalsByCategory(db, ctx.user.id, 'revenue')
-      }
-
-      return { success: true }
-    }),
 
   // Excluir registro financeiro
   deleteRecord: protectedProcedure
@@ -300,8 +266,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistFinancial.id, input.id),
-            eq(therapistFinancial.therapistId, ctx.user.id)
-          )
+            eq(therapistFinancial.therapistId, ctx.user.id),
+          ),
         );
 
       return { success: true };
@@ -314,7 +280,7 @@ export const therapistFinancialRouter = router({
         startDate: z.date(),
         endDate: z.date(),
         accountType: z.enum(["pj", "cpf"]).optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -391,17 +357,20 @@ export const therapistFinancialRouter = router({
       const balance = income - expenses;
 
       // Agrupar por categoria
-      const byCategory = expandedRecords.reduce((acc, r) => {
-        if (!acc[r.category]) {
-          acc[r.category] = { income: 0, expense: 0 };
-        }
-        if (r.type === "income") {
-          acc[r.category].income += r.amount;
-        } else {
-          acc[r.category].expense += r.amount;
-        }
-        return acc;
-      }, {} as Record<string, { income: number; expense: number }>);
+      const byCategory = expandedRecords.reduce(
+        (acc, r) => {
+          if (!acc[r.category]) {
+            acc[r.category] = { income: 0, expense: 0 };
+          }
+          if (r.type === "income") {
+            acc[r.category].income += r.amount;
+          } else {
+            acc[r.category].expense += r.amount;
+          }
+          return acc;
+        },
+        {} as Record<string, { income: number; expense: number }>,
+      );
 
       // Calcular sessões do período
       const sessions = await db
@@ -411,16 +380,16 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapySessions.therapistId, ctx.user.id),
             gte(therapySessions.scheduledAt, input.startDate),
-            lte(therapySessions.scheduledAt, input.endDate)
-          )
+            lte(therapySessions.scheduledAt, input.endDate),
+          ),
         );
 
       const completedSessions = sessions.filter(
-        (s) => s.status === "completed"
+        (s) => s.status === "completed",
       );
       const sessionRevenue = completedSessions.reduce(
         (total, s) => total + (s.sessionValue || 0),
-        0
+        0,
       );
 
       return {
@@ -457,37 +426,43 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapistFinancial.therapistId, ctx.user.id),
             gte(therapistFinancial.date, startDate),
-            lte(therapistFinancial.date, endDate)
-          )
+            lte(therapistFinancial.date, endDate),
+          ),
         );
 
       // Agrupar por mês
-      const monthly = records.reduce((acc, r) => {
-        // Ignorar pagamentos pendentes
-        if (r.status === "pending") return acc;
+      const monthly = records.reduce(
+        (acc, r) => {
+          // Ignorar pagamentos pendentes
+          if (r.status === "pending") return acc;
 
-        const monthKey = `${r.date.getFullYear()}-${String(
-          r.date.getMonth() + 1
-        ).padStart(2, "0")}`;
-        if (!acc[monthKey]) {
-          acc[monthKey] = {
-            month: monthKey,
-            income: 0,
-            expense: 0,
-            balance: 0,
-          };
-        }
-        if (r.type === "income") {
-          acc[monthKey].income += r.amount;
-        } else {
-          acc[monthKey].expense += r.amount;
-        }
-        acc[monthKey].balance = acc[monthKey].income - acc[monthKey].expense;
-        return acc;
-      }, {} as Record<string, { month: string; income: number; expense: number; balance: number }>);
+          const monthKey = `${r.date.getFullYear()}-${String(
+            r.date.getMonth() + 1,
+          ).padStart(2, "0")}`;
+          if (!acc[monthKey]) {
+            acc[monthKey] = {
+              month: monthKey,
+              income: 0,
+              expense: 0,
+              balance: 0,
+            };
+          }
+          if (r.type === "income") {
+            acc[monthKey].income += r.amount;
+          } else {
+            acc[monthKey].expense += r.amount;
+          }
+          acc[monthKey].balance = acc[monthKey].income - acc[monthKey].expense;
+          return acc;
+        },
+        {} as Record<
+          string,
+          { month: string; income: number; expense: number; balance: number }
+        >,
+      );
 
       return Object.values(monthly).sort((a, b) =>
-        a.month.localeCompare(b.month)
+        a.month.localeCompare(b.month),
       );
     }),
 
@@ -510,8 +485,8 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapistFinancial.therapistId, ctx.user.id),
             gte(therapistFinancial.date, startDate),
-            lte(therapistFinancial.date, endDate)
-          )
+            lte(therapistFinancial.date, endDate),
+          ),
         );
 
       // Totais
@@ -537,7 +512,7 @@ export const therapistFinancialRouter = router({
         if (r.status === "pending") continue;
 
         const monthKey = `${r.date.getFullYear()}-${String(
-          r.date.getMonth() + 1
+          r.date.getMonth() + 1,
         ).padStart(2, "0")}`;
         if (r.type === "income") {
           byMonth[monthKey].income += r.amount;
@@ -549,17 +524,20 @@ export const therapistFinancialRouter = router({
       }
 
       // Por categoria
-      const byCategory = records.reduce((acc, r) => {
-        if (!acc[r.category]) {
-          acc[r.category] = { income: 0, expense: 0 };
-        }
-        if (r.type === "income") {
-          acc[r.category].income += r.amount;
-        } else {
-          acc[r.category].expense += r.amount;
-        }
-        return acc;
-      }, {} as Record<string, { income: number; expense: number }>);
+      const byCategory = records.reduce(
+        (acc, r) => {
+          if (!acc[r.category]) {
+            acc[r.category] = { income: 0, expense: 0 };
+          }
+          if (r.type === "income") {
+            acc[r.category].income += r.amount;
+          } else {
+            acc[r.category].expense += r.amount;
+          }
+          return acc;
+        },
+        {} as Record<string, { income: number; expense: number }>,
+      );
 
       // Sessões do ano
       const sessions = await db
@@ -569,12 +547,12 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapySessions.therapistId, ctx.user.id),
             gte(therapySessions.scheduledAt, startDate),
-            lte(therapySessions.scheduledAt, endDate)
-          )
+            lte(therapySessions.scheduledAt, endDate),
+          ),
         );
 
       const completedSessions = sessions.filter(
-        (s) => s.status === "completed"
+        (s) => s.status === "completed",
       );
 
       // Melhores meses
@@ -586,7 +564,7 @@ export const therapistFinancialRouter = router({
 
       // Média mensal
       const monthsWithData = Object.values(byMonth).filter(
-        (m) => m.income > 0 || m.expense > 0
+        (m) => m.income > 0 || m.expense > 0,
       ).length;
       const avgMonthlyIncome =
         monthsWithData > 0 ? totalIncome / monthsWithData : 0;
@@ -618,7 +596,7 @@ export const therapistFinancialRouter = router({
       z.object({
         current: z.object({ startDate: z.date(), endDate: z.date() }),
         previous: z.object({ startDate: z.date(), endDate: z.date() }),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -633,8 +611,8 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapistFinancial.therapistId, ctx.user.id),
             gte(therapistFinancial.date, input.current.startDate),
-            lte(therapistFinancial.date, input.current.endDate)
-          )
+            lte(therapistFinancial.date, input.current.endDate),
+          ),
         );
 
       // Buscar dados do período anterior
@@ -645,8 +623,8 @@ export const therapistFinancialRouter = router({
           and(
             eq(therapistFinancial.therapistId, ctx.user.id),
             gte(therapistFinancial.date, input.previous.startDate),
-            lte(therapistFinancial.date, input.previous.endDate)
-          )
+            lte(therapistFinancial.date, input.previous.endDate),
+          ),
         );
 
       const calculateTotals = (recs: typeof currentRecords) => ({
@@ -679,7 +657,7 @@ export const therapistFinancialRouter = router({
           expenses: calcChange(current.expenses, previous.expenses),
           balance: calcChange(
             current.income - current.expenses,
-            previous.income - previous.expenses
+            previous.income - previous.expenses,
           ),
         },
       };
@@ -691,7 +669,7 @@ export const therapistFinancialRouter = router({
       z.object({
         startDate: z.date(),
         endDate: z.date(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -708,11 +686,11 @@ export const therapistFinancialRouter = router({
             // Ignorar pendentes
             or(
               eq(therapistFinancial.status, "paid"),
-              isNull(therapistFinancial.status)
+              isNull(therapistFinancial.status),
             ),
             gte(therapistFinancial.date, input.startDate),
-            lte(therapistFinancial.date, now)
-          )
+            lte(therapistFinancial.date, now),
+          ),
         );
 
       const currentIncome = records
@@ -725,13 +703,13 @@ export const therapistFinancialRouter = router({
       const totalDays =
         Math.ceil(
           (input.endDate.getTime() - input.startDate.getTime()) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         ) + 1;
       const daysPassed = Math.max(
         1,
         Math.ceil(
-          (now.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24)
-        )
+          (now.getTime() - input.startDate.getTime()) / (1000 * 60 * 60 * 24),
+        ),
       );
       const daysRemaining = Math.max(0, totalDays - daysPassed);
 
@@ -788,7 +766,7 @@ export const therapistFinancialRouter = router({
           .enum(["active", "completed", "paused", "cancelled"])
           .optional(),
         autoRecalculate: z.boolean().default(false),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -839,7 +817,7 @@ export const therapistFinancialRouter = router({
         unit: z.string().default("count"),
         deadline: z.date().optional(),
         aiSuggested: z.boolean().default(false),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -872,7 +850,7 @@ export const therapistFinancialRouter = router({
       z.object({
         id: z.string(),
         currentValue: z.number().min(0),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -885,8 +863,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistGoals.id, input.id),
-            eq(therapistGoals.therapistId, ctx.user.id)
-          )
+            eq(therapistGoals.therapistId, ctx.user.id),
+          ),
         )
         .limit(1);
 
@@ -929,7 +907,7 @@ export const therapistFinancialRouter = router({
       z.object({
         id: z.string(),
         incrementBy: z.number().min(1).default(1),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -942,8 +920,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistGoals.id, input.id),
-            eq(therapistGoals.therapistId, ctx.user.id)
-          )
+            eq(therapistGoals.therapistId, ctx.user.id),
+          ),
         )
         .limit(1);
 
@@ -989,7 +967,7 @@ export const therapistFinancialRouter = router({
       z.object({
         id: z.string(),
         status: z.enum(["active", "paused", "cancelled"]),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -1002,8 +980,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistGoals.id, input.id),
-            eq(therapistGoals.therapistId, ctx.user.id)
-          )
+            eq(therapistGoals.therapistId, ctx.user.id),
+          ),
         )
         .returning();
 
@@ -1016,7 +994,7 @@ export const therapistFinancialRouter = router({
       z.object({
         id: z.string(),
         completed: z.boolean(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       if (ctx.user.role !== "psychologist") {
@@ -1029,8 +1007,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistGoals.id, input.id),
-            eq(therapistGoals.therapistId, ctx.user.id)
-          )
+            eq(therapistGoals.therapistId, ctx.user.id),
+          ),
         )
         .limit(1);
 
@@ -1078,8 +1056,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapistGoals.id, input.id),
-            eq(therapistGoals.therapistId, ctx.user.id)
-          )
+            eq(therapistGoals.therapistId, ctx.user.id),
+          ),
         );
 
       return { success: true };
@@ -1147,21 +1125,21 @@ export const therapistFinancialRouter = router({
       .where(
         and(
           eq(therapistFinancial.therapistId, ctx.user.id),
-          eq(therapistFinancial.isRecurring, true)
-        )
+          eq(therapistFinancial.isRecurring, true),
+        ),
       );
 
     const recurringExpenses = recurringRecords.filter(
-      (r) => r.type === "expense"
+      (r) => r.type === "expense",
     );
     const recurringIncome = recurringRecords.filter((r) => r.type === "income");
 
     if (recurringExpenses.length > 0) {
       const monthlyExpenses = recurringExpenses.filter(
-        (e) => e.frequency === "monthly"
+        (e) => e.frequency === "monthly",
       );
       const weeklyExpenses = recurringExpenses.filter(
-        (e) => e.frequency === "weekly"
+        (e) => e.frequency === "weekly",
       );
 
       let message = `Você tem ${recurringExpenses.length} despesa(s) recorrente(s)`;
@@ -1172,7 +1150,7 @@ export const therapistFinancialRouter = router({
       if (weeklyExpenses.length > 0) {
         const weeklyTotal = weeklyExpenses.reduce((t, e) => t + e.amount, 0);
         message += ` + R$${(weeklyTotal * 4).toFixed(
-          2
+          2,
         )}/mês em despesas semanais`;
       }
 
@@ -1185,7 +1163,7 @@ export const therapistFinancialRouter = router({
 
     if (recurringIncome.length > 0) {
       const monthlyIncome = recurringIncome.filter(
-        (e) => e.frequency === "monthly"
+        (e) => e.frequency === "monthly",
       );
 
       if (monthlyIncome.length > 0) {
@@ -1194,7 +1172,7 @@ export const therapistFinancialRouter = router({
           type: "success",
           title: "💰 Receitas Recorrentes",
           message: `Você tem R$${monthlyTotal.toFixed(
-            2
+            2,
           )} em receitas mensais garantidas de ${
             monthlyIncome.length
           } fonte(s).`,
@@ -1209,14 +1187,14 @@ export const therapistFinancialRouter = router({
       .where(
         and(
           eq(therapistGoals.therapistId, ctx.user.id),
-          eq(therapistGoals.status, "active")
-        )
+          eq(therapistGoals.status, "active"),
+        ),
       );
 
     const nearDeadline = upcomingDeadlines.filter((g) => {
       if (!g.deadline) return false;
       const daysUntil = Math.ceil(
-        (g.deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+        (g.deadline.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
       );
       return daysUntil <= 7 && daysUntil > 0;
     });
@@ -1238,8 +1216,8 @@ export const therapistFinancialRouter = router({
           eq(therapistFinancial.therapistId, ctx.user.id),
           eq(therapistFinancial.type, "income"),
           gte(therapistFinancial.date, monthStart),
-          lte(therapistFinancial.date, monthEnd)
-        )
+          lte(therapistFinancial.date, monthEnd),
+        ),
       );
 
     if (!monthlyIncome[0]?.total || Number(monthlyIncome[0].total) === 0) {
@@ -1267,8 +1245,8 @@ export const therapistFinancialRouter = router({
         .where(
           and(
             eq(therapySessions.id, input.id),
-            eq(therapySessions.therapistId, ctx.user.id)
-          )
+            eq(therapySessions.therapistId, ctx.user.id),
+          ),
         )
         .returning();
 
