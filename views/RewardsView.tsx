@@ -57,7 +57,12 @@ export const RewardsView: React.FC = () => {
     }
   }, [isAdding])
 
-  const categories: { id: RewardCategory; label: string; color: string; icon: React.ElementType }[] = [
+  const categories: {
+    id: RewardCategory
+    label: string
+    color: string
+    icon: React.ElementType
+  }[] = [
     { id: 'lazer', label: 'Lazer', color: 'from-blue-500 to-cyan-400', icon: Gamepad2 },
     { id: 'autocuidado', label: 'Cuidado', color: 'from-pink-500 to-rose-400', icon: Sparkles },
     { id: 'descanso', label: 'Relaxar', color: 'from-indigo-500 to-sky-400', icon: Moon },
@@ -219,7 +224,7 @@ export const RewardsView: React.FC = () => {
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${cat.color}`} />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1 text-white sm:gap-2'>
-                  <cat.icon className="w-6 h-6 sm:w-8 sm:h-8" />
+                  <cat.icon className='w-6 h-6 sm:w-8 sm:h-8' />
                   <span className='text-center font-semibold text-[8px] leading-tight sm:text-xs'>
                     {cat.label}
                   </span>
@@ -470,4 +475,3 @@ export const RewardsView: React.FC = () => {
     </div>
   )
 }
-

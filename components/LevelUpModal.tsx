@@ -134,4 +134,3 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
 }
 
 export default LevelUpModal
-

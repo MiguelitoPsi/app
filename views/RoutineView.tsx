@@ -684,18 +684,18 @@ export const RoutineView: React.FC = () => {
           </div>
         )}
 
-      {/* Add Task Modal */}
-      {isAdding && (
-        <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
-          {/* Backdrop */}
-          <div
-            aria-hidden='true'
-            className='absolute inset-0 bg-black/50 backdrop-blur-sm'
-            onClick={() => setIsAdding(false)}
-          />
-          {/* Modal Content */}
-          <div className='zoom-in-95 fade-in relative max-h-[85vh] w-full max-w-md animate-in overflow-y-auto rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
-            <div className='absolute top-0 left-0 h-1 w-full rounded-t-2xl bg-gradient-to-r from-sky-500 to-cyan-400 sm:rounded-t-3xl' />
+        {/* Add Task Modal */}
+        {isAdding && (
+          <div className='fixed inset-0 z-50 flex items-center justify-center p-4'>
+            {/* Backdrop */}
+            <div
+              aria-hidden='true'
+              className='absolute inset-0 bg-black/50 backdrop-blur-sm'
+              onClick={() => setIsAdding(false)}
+            />
+            {/* Modal Content */}
+            <div className='zoom-in-95 fade-in relative max-h-[85vh] w-full max-w-md animate-in overflow-y-auto rounded-2xl border border-slate-100 bg-white p-4 shadow-2xl duration-200 sm:rounded-3xl sm:p-6 dark:border-slate-700 dark:bg-slate-800'>
+              <div className='absolute top-0 left-0 h-1 w-full rounded-t-2xl bg-gradient-to-r from-sky-500 to-cyan-400 sm:rounded-t-3xl' />
 
               <h3 className='mb-3 flex items-center gap-2 font-bold text-base text-slate-800 sm:mb-4 sm:text-lg dark:text-white'>
                 <Plus className='text-sky-500' size={16} />
@@ -879,9 +879,9 @@ export const RoutineView: React.FC = () => {
                   </button>
                 </div>
               </form>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Tasks List */}
         <div className='space-y-2 sm:space-y-3'>
@@ -1164,9 +1164,7 @@ export const RoutineView: React.FC = () => {
             }}
           />
         ))}
-
       </div>
     </>
   )
 }
-

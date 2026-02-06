@@ -1,4 +1,16 @@
-export type Mood = 'happy' | 'excited' | 'grateful' | 'calm' | 'neutral' | 'tired' | 'bored' | 'sad' | 'anxious' | 'fearful' | 'angry' | 'disgusted'
+export type Mood =
+  | 'happy'
+  | 'excited'
+  | 'grateful'
+  | 'calm'
+  | 'neutral'
+  | 'tired'
+  | 'bored'
+  | 'sad'
+  | 'anxious'
+  | 'fearful'
+  | 'angry'
+  | 'disgusted'
 
 export type JournalEntry = {
   id: string

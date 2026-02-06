@@ -352,4 +352,3 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
     </>
   )
 }
-

@@ -10,7 +10,6 @@ import {
   EyeOff,
   Flame,
   Frown,
-  Ghost,
   Heart,
   Meh,
   Save,
@@ -20,7 +19,6 @@ import {
   Sun,
   Zap,
 } from 'lucide-react'
-import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
 import { useId, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -28,16 +26,19 @@ import { XPAnimationContainer } from '@/components/XPAnimation/XPAnimationContai
 import { useSound } from '@/hooks/useSound'
 import { useXPAnimation } from '@/hooks/useXPAnimation'
 import { trpc } from '@/lib/trpc/client'
+import { translateMood } from '@/lib/utils/mood'
 import { XP_REWARDS } from '@/lib/xp'
 import { useGame } from '../context/GameContext'
 import { analyzeThought } from '../services/geminiService'
 import type { Mood } from '../types'
 
 type JournalViewProps = {
-  goHome: () => void
+  goHomeAction?: () => void
+  goHome?: () => void
 }
 
-export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
+export const JournalView: React.FC<JournalViewProps> = ({ goHomeAction, goHome }) => {
+  const goHomeHandler = goHomeAction || goHome
   const { addJournalEntry } = useGame()
   const utils = trpc.useUtils()
   const thoughtId = useId()
@@ -113,7 +114,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
     // Delay navigation to show animation (or less delay if no animation)
     setTimeout(
       () => {
-        goHome()
+        goHomeHandler?.()
       },
       canEarnXp ? 400 : 200
     )
@@ -151,7 +152,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
               <button
                 aria-label='Voltar para página inicial'
                 className='touch-target flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-slate-100 transition-colors active:scale-95 hover:bg-slate-200 sm:h-10 sm:w-10 dark:border-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2'
-                onClick={goHome}
+                onClick={goHomeHandler}
                 type='button'
               >
                 <ArrowLeft
@@ -253,7 +254,7 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
                           aria-hidden='true'
                           className='text-2xl drop-shadow-sm filter sm:text-3xl'
                         >
-                          <m.icon className="w-6 h-6 sm:w-8 sm:h-8" />
+                          <m.icon className='w-6 h-6 sm:w-8 sm:h-8' />
                         </span>
                         <span className='font-bold text-[10px] sm:text-xs'>{m.label}</span>
                       </button>
@@ -415,4 +416,3 @@ export const JournalView: React.FC<JournalViewProps> = ({ goHome }) => {
     </>
   )
 }
-

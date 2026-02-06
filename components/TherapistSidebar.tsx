@@ -4,7 +4,8 @@ import { Flame, Sparkles } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import React, { memo, useState } from 'react'
+import type React from 'react'
+import { memo, useState } from 'react'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 
@@ -28,14 +29,14 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
   const handleLogout = async () => {
     if (isLoggingOut) return
     setIsLoggingOut(true)
-    
+
     try {
       // Executar logout e limpeza em paralelo para otimizar tempo
       await Promise.all([
         authClient.signOut(),
         fetch('/api/auth/clear-role-cookie', { method: 'POST' }),
       ])
-      
+
       router.push('/auth/signin')
     } catch (error) {
       console.error('Erro ao fazer logout:', error)
@@ -49,7 +50,13 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
         {/* Logo */}
         <div className='flex h-14 items-center justify-center gap-2.5 border-b border-slate-200 px-4 lg:justify-start dark:border-slate-700'>
           <div className='flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white overflow-hidden p-0.5 shadow-sm'>
-            <img src='/logo.jpg' alt='Logo Nepsis' className='h-full w-full object-cover rounded-md' />
+            <Image
+              alt='Logo Nepsis'
+              className='h-full w-full object-cover rounded-md'
+              height={32}
+              src='/logo.jpg'
+              width={32}
+            />
           </div>
           <span className='hidden text-base font-bold text-slate-800 lg:block dark:text-white'>
             Nepsis
@@ -176,10 +183,10 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
           </Link>
           <button
             className='flex w-full items-center justify-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 lg:justify-start dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white disabled:opacity-70 disabled:cursor-not-allowed'
+            disabled={isLoggingOut}
             onClick={handleLogout}
             title='Sair'
             type='button'
-            disabled={isLoggingOut}
           >
             <span className='shrink-0'>
               {isLoggingOut ? (
@@ -198,4 +205,3 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
     </aside>
   )
 })
-

@@ -1,7 +1,15 @@
 'use client'
 
 import type React from 'react'
-import { createContext, type ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react'
 import { BADGE_DEFINITIONS } from '@/lib/constants'
 import { trpc } from '@/lib/trpc/client'
 import type {
@@ -52,10 +60,30 @@ export const RANKS = [
     xpRequired: 2500,
     description: 'Domínio sobre a mente.',
   },
-  { level: 7, name: 'Artífice da Mente', xpRequired: 3300, description: 'Um exemplo para todos.' },
-  { level: 8, name: 'Alinhado ao Propósito', xpRequired: 4200, description: 'Enxergando além.' },
-  { level: 9, name: 'Integrado', xpRequired: 5200, description: 'Além dos limites.' },
-  { level: 10, name: 'Consciência Plena', xpRequired: 6500, description: 'O auge da evolução.' },
+  {
+    level: 7,
+    name: 'Artífice da Mente',
+    xpRequired: 3300,
+    description: 'Um exemplo para todos.',
+  },
+  {
+    level: 8,
+    name: 'Alinhado ao Propósito',
+    xpRequired: 4200,
+    description: 'Enxergando além.',
+  },
+  {
+    level: 9,
+    name: 'Integrado',
+    xpRequired: 5200,
+    description: 'Além dos limites.',
+  },
+  {
+    level: 10,
+    name: 'Consciência Plena',
+    xpRequired: 6500,
+    description: 'O auge da evolução.',
+  },
 ]
 
 export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
@@ -350,8 +378,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return BADGE_DEFINITIONS.map((def) => {
       const isUnlocked = stats.badges.some((b) => b.id === def.id)
       // Extra UI check: if it's a level badge, ensure we actually have the level
-      const meetsLevelRequirement = def.metric !== 'level' || (stats.level >= def.requirement)
-      
+      const meetsLevelRequirement = def.metric !== 'level' || stats.level >= def.requirement
+
       return {
         ...def,
         isUnlocked: isUnlocked && meetsLevelRequirement,
@@ -374,33 +402,32 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     console.log('Points awarded:', amount)
   }
 
-  const checkBadges = () => {
+  const checkBadges = useCallback(() => {
     // Fire and forget - don't block UI
     utils.client.badge.checkAndUnlock
       .mutate()
       .then((result) => {
-          if (result.newBadges && result.newBadges.length > 0) {
-            const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
-              result.newBadges.includes(def.id)
-            )
-            setNewBadges((prev) => [...prev, ...unlockedBadges])
-          }
-          // Always invalidate to ensure consistency (e.g. if DB cleanup happened)
-          utils.badge.getAll.invalidate()
-          utils.user.getProfile.invalidate()
+        if (result.newBadges && result.newBadges.length > 0) {
+          const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
+            result.newBadges.includes(def.id)
+          )
+          setNewBadges((prev) => [...prev, ...unlockedBadges])
+        }
+        // Always invalidate to ensure consistency (e.g. if DB cleanup happened)
+        utils.badge.getAll.invalidate()
+        utils.user.getProfile.invalidate()
       })
       .catch((error) => {
         console.error('Error checking badges:', error)
       })
-  }
+  }, [utils])
 
   // Check badges on mount/user load to ensure consistency
   useEffect(() => {
     if (userProfile?.id) {
       checkBadges()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userProfile?.id])
+  }, [userProfile?.id, checkBadges])
 
   const dismissNewBadge = () => {
     setNewBadges((prev) => prev.slice(1))
@@ -476,8 +503,16 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       xp = 40
       coins = 40
     } else {
-      const xpRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
-      const coinRewards: Record<string, number> = { high: 30, medium: 10, low: 5 }
+      const xpRewards: Record<string, number> = {
+        high: 30,
+        medium: 10,
+        low: 5,
+      }
+      const coinRewards: Record<string, number> = {
+        high: 30,
+        medium: 10,
+        low: 5,
+      }
       xp = xpRewards[priority] || 10
       coins = coinRewards[priority] || 10
     }
@@ -587,41 +622,40 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const deleteTask = async (id: string) => {
     // Find the task to check if it's from therapist
-    const regularTask = tasksData.find((t) => t.id === id);
-    const therapistTask = therapistTasksData.find((t) => t.id === id);
-    const isFromTherapist = !!therapistTask;
+    const therapistTask = therapistTasksData.find((t) => t.id === id)
+    const isFromTherapist = !!therapistTask
 
     // Optimistic delete
     if (isFromTherapist) {
       utils.task.getMyTasksFromTherapist.setData(undefined, (old) => {
-        if (!old) return old;
-        return old.filter((task) => task.id !== id);
-      });
+        if (!old) return old
+        return old.filter((task) => task.id !== id)
+      })
     } else {
       utils.task.getAll.setData(undefined, (old) => {
-        if (!old) return old;
-        return old.filter((task) => task.id !== id);
-      });
+        if (!old) return old
+        return old.filter((task) => task.id !== id)
+      })
     }
 
     try {
       if (id.startsWith('temp-')) {
-        return;
+        return
       }
 
       if (isFromTherapist) {
-        await utils.client.task.rejectTherapistTask.mutate({ taskId: id });
-        utils.task.getMyTasksFromTherapist.invalidate();
+        await utils.client.task.rejectTherapistTask.mutate({ taskId: id })
+        utils.task.getMyTasksFromTherapist.invalidate()
       } else {
-        await utils.client.task.delete.mutate({ id });
-        utils.task.getAll.invalidate();
+        await utils.client.task.delete.mutate({ id })
+        utils.task.getAll.invalidate()
       }
     } catch (error) {
-      utils.task.getAll.invalidate();
-      utils.task.getMyTasksFromTherapist.invalidate();
-      console.error("Error deleting task:", error);
+      utils.task.getAll.invalidate()
+      utils.task.getMyTasksFromTherapist.invalidate()
+      console.error('Error deleting task:', error)
     }
-  };
+  }
 
   const addJournalEntry = async (entryData: {
     emotion: Mood

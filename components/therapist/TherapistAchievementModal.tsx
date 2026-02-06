@@ -3,11 +3,11 @@
 import { Award, Star, X } from 'lucide-react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
-import { getIconByKey } from '@/lib/utils/icon-map'
 import {
   THERAPIST_BADGE_CATEGORIES,
   type TherapistBadgeDefinition,
 } from '@/lib/constants/therapist'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 type TherapistAchievementModalProps = {
   achievement: TherapistBadgeDefinition | null

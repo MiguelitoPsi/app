@@ -136,4 +136,3 @@ const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
 }
 
 export default AchievementModal
-

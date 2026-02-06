@@ -66,8 +66,9 @@ export function RoleGuard({ children, allowedRoles, fallbackPath }: RoleGuardPro
         </div>
         <p className='text-sm text-slate-500'>Tente fazer login novamente.</p>
         <button
-          onClick={() => router.push('/auth/signin')}
           className='rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700'
+          onClick={() => router.push('/auth/signin')}
+          type='button'
         >
           Voltar para Login
         </button>
@@ -100,18 +101,22 @@ export function RoleGuard({ children, allowedRoles, fallbackPath }: RoleGuardPro
         </div>
         <div className='flex gap-3'>
           <button
-            onClick={() => window.location.href = '/auth/signin'}
             className='rounded-lg bg-violet-600 px-4 py-2 text-white hover:bg-violet-700'
+            onClick={() => {
+              window.location.href = '/auth/signin'
+            }}
+            type='button'
           >
             Ir para Login
           </button>
-           <button
-            onClick={() => {
-               // Tentar limpar dados se for logout
-               localStorage.clear();
-               window.location.href = '/auth/signin';
-            }}
+          <button
             className='rounded-lg bg-red-100 px-4 py-2 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400'
+            onClick={() => {
+              // Tentar limpar dados se for logout
+              localStorage.clear()
+              window.location.href = '/auth/signin'
+            }}
+            type='button'
           >
             Sair e Limpar Cache
           </button>

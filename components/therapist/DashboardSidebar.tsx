@@ -1,22 +1,11 @@
 'use client'
 
-import {
-  Bell,
-  Calendar,
-  DollarSign,
-  FileText,
-  Home,
-  Megaphone,
-
-  Sparkles,
-  User,
-  Users,
-  Video,
-} from 'lucide-react'
+import { Bell, Calendar, DollarSign, FileText, Home, Sparkles, Users, Video } from 'lucide-react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React, { useState } from 'react'
+import type React from 'react'
+import { useState } from 'react'
 import { useAuth } from '@/lib/hooks/useAuth'
 
 const navItems = [
@@ -39,11 +28,11 @@ export const DashboardSidebar: React.FC = () => {
         {/* Logo */}
         <div className='flex h-16 items-center justify-center border-b border-slate-200 dark:border-slate-700 flex-shrink-0'>
           <Image
-            src="/logo.jpg"
-            alt="Logo"
-            width={32}
+            alt='Logo'
+            className='h-8 w-8 rounded-lg object-cover'
             height={32}
-            className="h-8 w-8 rounded-lg object-cover"
+            src='/logo.jpg'
+            width={32}
           />
         </div>
 
@@ -94,6 +83,7 @@ export const DashboardSidebar: React.FC = () => {
               className='flex w-full items-center justify-center gap-2 rounded-lg p-2.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
               onClick={() => setShowNotifications(!showNotifications)}
               title='Notificações'
+              type='button'
             >
               <Bell className='h-5 w-5' strokeWidth={1.5} />
               <span className='absolute right-1 top-1 h-2 w-2 rounded-full bg-red-500' />
@@ -133,8 +123,6 @@ export const DashboardSidebar: React.FC = () => {
               </div>
             )}
           </Link>
-
-
         </div>
       </div>
     </aside>

@@ -1,25 +1,30 @@
 'use client'
 
-import React from 'react'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
-  format,
   addMonths,
-  subMonths,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  isSameMonth,
-  isSameDay,
   eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
+  format,
+  isSameDay,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
+import React from 'react'
 
-interface CalendarProps {
+type CalendarProps = {
   selectedDate: Date
   onChange: (date: Date) => void
-  tasks?: any[]
+  tasks?: Array<{
+    dueDate: Date | string
+    id?: string
+    type?: string
+    priority?: string
+  }>
 }
 
 const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] }) => {
@@ -28,32 +33,32 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
   const nextMonth = () => setCurrentMonth(addMonths(currentMonth, 1))
   const prevMonth = () => setCurrentMonth(subMonths(currentMonth, 1))
 
-  const renderHeader = () => {
-    return (
-      <div className='flex items-center justify-between px-2 py-2'>
-        <div className='flex items-center gap-2'>
-          <h2 className='text-lg font-semibold text-white capitalize'>
-            {format(currentMonth, 'MMMM', { locale: ptBR })}
-          </h2>
-          <span className='text-lg font-light text-slate-500'>{format(currentMonth, 'yyyy')}</span>
-        </div>
-        <div className='flex gap-1'>
-          <button
-            className='p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors'
-            onClick={prevMonth}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <button
-            className='p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors'
-            onClick={nextMonth}
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
+  const renderHeader = () => (
+    <div className='flex items-center justify-between px-2 py-2'>
+      <div className='flex items-center gap-2'>
+        <h2 className='text-lg font-semibold text-white capitalize'>
+          {format(currentMonth, 'MMMM', { locale: ptBR })}
+        </h2>
+        <span className='text-lg font-light text-slate-500'>{format(currentMonth, 'yyyy')}</span>
       </div>
-    )
-  }
+      <div className='flex gap-1'>
+        <button
+          className='p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors'
+          onClick={prevMonth}
+          type='button'
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <button
+          className='p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors'
+          onClick={nextMonth}
+          type='button'
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </div>
+  )
 
   const renderDays = () => {
     const days = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
@@ -61,8 +66,8 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
       <div className='grid grid-cols-7 mb-1.5 px-1'>
         {days.map((day) => (
           <div
-            key={day}
             className='text-center text-[10px] font-medium text-slate-500 uppercase tracking-wider'
+            key={day}
           >
             {day}
           </div>
@@ -100,7 +105,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
             <div
               className={`
                 relative h-12 p-1.5 rounded-xl cursor-pointer transition-all border-2
-                ${!isCurrentMonth ? 'opacity-25' : 'opacity-100'}
+                ${isCurrentMonth ? 'opacity-100' : 'opacity-25'}
                 ${
                   isSelected
                     ? 'bg-sky-500/20 border-sky-500/50'
@@ -112,7 +117,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
             >
               <span
                 className={`
-                  text-xs font-medium block w-5 h-5 flex items-center justify-center rounded-full
+                  text-xs font-medium w-5 h-5 flex items-center justify-center rounded-full
                   ${isSelected ? 'text-sky-400' : isToday ? 'text-emerald-400' : 'text-slate-300'}
                 `}
               >
@@ -122,7 +127,6 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
               <div className='mt-1 flex flex-col gap-0.5'>
                 {dayTasks.slice(0, 2).map((task) => (
                   <div
-                    key={task.id}
                     className={`h-1 rounded-full ${
                       task.type === 'session'
                         ? 'bg-sky-500'
@@ -132,6 +136,7 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
                             ? 'bg-orange-400'
                             : 'bg-slate-500'
                     }`}
+                    key={task.id}
                   />
                 ))}
                 {dayTasks.length > 2 && (

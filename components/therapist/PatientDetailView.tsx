@@ -9,30 +9,36 @@ import {
   Phone,
   Play,
   XCircle,
-  X,
 } from 'lucide-react'
-import React, { useState } from 'react'
+import type React from 'react'
+import { useState } from 'react'
 
 // Icons for metrics
 const PresentIcon = () => (
   <div className='flex h-8 w-8 items-center justify-center rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'>
-    <CheckCircle2 className='h-5 w-5' />
+    <CheckCircle2 className='h-5 w-5'>
+      <title>Presente</title>
+    </CheckCircle2>
   </div>
 )
 
 const AbsentIcon = () => (
   <div className='flex h-8 w-8 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400'>
-    <Clock className='h-5 w-5' />
+    <Clock className='h-5 w-5'>
+      <title>Ausente</title>
+    </Clock>
   </div>
 )
 
 const CancelledIcon = () => (
   <div className='flex h-8 w-8 items-center justify-center rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'>
-    <XCircle className='h-5 w-5' />
+    <XCircle className='h-5 w-5'>
+      <title>Cancelado</title>
+    </XCircle>
   </div>
 )
 
-interface MetricCardProps {
+type MetricCardProps = {
   icon: React.ReactNode
   label: string
   value: string | number
@@ -50,7 +56,7 @@ const MetricCard: React.FC<MetricCardProps> = ({ icon, label, value, sublabel })
   </div>
 )
 
-interface PatientDetailViewProps {
+type PatientDetailViewProps = {
   patientName: string
   patientEmail: string
   patientPhone?: string
@@ -81,9 +87,9 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
   absentSessions,
   cancelledSessions,
   missedScore,
-  onBack,
+  onBack: _onBack,
 }) => {
-  const [activeTab, setActiveTab] = useState('dashboard')
+  const [_activeTab, _setActiveTab] = useState('dashboard')
 
   return (
     <div className='flex-1 overflow-auto'>
@@ -122,16 +128,8 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
                 value='Não agendada'
               />
             )}
-            <MetricCard
-              icon={<PresentIcon />}
-              label='Sessões Presentes'
-              value={presentSessions}
-            />
-            <MetricCard
-              icon={<AbsentIcon />}
-              label='Sessões Ausentes'
-              value={absentSessions}
-            />
+            <MetricCard icon={<PresentIcon />} label='Sessões Presentes' value={presentSessions} />
+            <MetricCard icon={<AbsentIcon />} label='Sessões Ausentes' value={absentSessions} />
             <MetricCard
               icon={<CancelledIcon />}
               label='Sessões Canceladas'
@@ -162,12 +160,18 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
                 <span className='text-sm font-medium text-slate-800 dark:text-white'>{plan}</span>
               </div>
               <div className='flex items-center justify-between'>
-                <span className='text-sm text-slate-600 dark:text-slate-400'>Modelo de Cobrança</span>
-                <span className='text-sm font-medium text-slate-800 dark:text-white'>{billingModel}</span>
+                <span className='text-sm text-slate-600 dark:text-slate-400'>
+                  Modelo de Cobrança
+                </span>
+                <span className='text-sm font-medium text-slate-800 dark:text-white'>
+                  {billingModel}
+                </span>
               </div>
               <div className='flex items-center justify-between'>
                 <span className='text-sm text-slate-600 dark:text-slate-400'>Valor da Sessão</span>
-                <span className='text-sm font-bold text-sky-600 dark:text-sky-400'>{sessionValue}</span>
+                <span className='text-sm font-bold text-sky-600 dark:text-sky-400'>
+                  {sessionValue}
+                </span>
               </div>
             </div>
           </div>
@@ -184,7 +188,9 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
                 </div>
                 <div>
                   <p className='text-xs text-slate-500 dark:text-slate-400'>Nome</p>
-                  <p className='text-sm font-medium text-slate-800 dark:text-white'>{patientName}</p>
+                  <p className='text-sm font-medium text-slate-800 dark:text-white'>
+                    {patientName}
+                  </p>
                 </div>
               </div>
               {patientPhone && (
@@ -197,8 +203,8 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
                     <a
                       className='text-sm font-medium text-sky-600 hover:underline dark:text-sky-400'
                       href={`https://wa.me/${patientPhone.replace(/\D/g, '')}`}
-                      target='_blank'
                       rel='noopener noreferrer'
+                      target='_blank'
                     >
                       {patientPhone}
                     </a>
@@ -211,15 +217,19 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
                 </div>
                 <div>
                   <p className='text-xs text-slate-500 dark:text-slate-400'>E-mail</p>
-                  <p className='text-sm font-medium text-slate-800 dark:text-white'>{patientEmail}</p>
+                  <p className='text-sm font-medium text-slate-800 dark:text-white'>
+                    {patientEmail}
+                  </p>
                 </div>
               </div>
               <div className='flex items-center gap-3'>
-                <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
-                  status === 'Ativo'
-                    ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
-                    : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
-                }`}>
+                <div
+                  className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                    status === 'Ativo'
+                      ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400'
+                  }`}
+                >
                   <Calendar className='h-4 w-4' />
                 </div>
                 <div>
@@ -278,7 +288,19 @@ export const PatientDetailView: React.FC<PatientDetailViewProps> = ({
 
 // Simple User icon component
 const User = ({ className }: { className?: string }) => (
-  <svg className={className} fill='none' height='24' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'>
+  <svg
+    className={className}
+    fill='none'
+    height='24'
+    stroke='currentColor'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+    strokeWidth='2'
+    viewBox='0 0 24 24'
+    width='24'
+    xmlns='http://www.w3.org/2000/svg'
+  >
+    <title>Usuário</title>
     <path d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2' />
     <circle cx='12' cy='7' r='4' />
   </svg>
@@ -286,7 +308,19 @@ const User = ({ className }: { className?: string }) => (
 
 // Simple Settings icon component
 const Settings = ({ className }: { className?: string }) => (
-  <svg className={className} fill='none' height='24' stroke='currentColor' strokeLinecap='round' strokeLinejoin='round' strokeWidth='2' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'>
+  <svg
+    className={className}
+    fill='none'
+    height='24'
+    stroke='currentColor'
+    strokeLinecap='round'
+    strokeLinejoin='round'
+    strokeWidth='2'
+    viewBox='0 0 24 24'
+    width='24'
+    xmlns='http://www.w3.org/2000/svg'
+  >
+    <title>Configurações</title>
     <circle cx='12' cy='12' r='3' />
     <path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z' />
   </svg>

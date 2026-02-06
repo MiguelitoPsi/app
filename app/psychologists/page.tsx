@@ -1,12 +1,26 @@
 'use client'
 
-import { ArrowLeft, Brain, ChevronRight, MapPin, Phone, Search, User, Video } from 'lucide-react'
+import { ArrowLeft, ChevronRight, MapPin, Phone, Search, User, Video } from 'lucide-react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 import { PsychologistProfileModal } from './PsychologistProfileModal'
 
 type AttendanceType = 'all' | 'online' | 'presential' | 'both'
+
+type Therapist = {
+  id: string
+  fullName: string
+  crp: string
+  education: string
+  city: string
+  attendanceType: AttendanceType
+  clinicAddress: string | null
+  phone: string
+  bio: string | null
+  image: string | null
+}
 
 const attendanceLabels: Record<AttendanceType, string> = {
   all: 'Todos',
@@ -66,17 +80,7 @@ export default function PsychologistsPage() {
     return matchesSearch && matchesFilter
   })
 
-  const handleContactTherapist = (therapist: {
-    id: string
-    fullName: string
-    crp: string
-    education: string
-    city: string
-    attendanceType: 'online' | 'presential' | 'both'
-    clinicAddress: string | null
-    phone: string
-    image: string | null
-  }) => {
+  const handleContactTherapist = (therapist: Therapist) => {
     const phone = formatPhoneForWhatsApp(therapist.phone)
     const message = encodeURIComponent(
       `Olá ${therapist.fullName}, encontrei seu perfil no Nepsis e gostaria de conversar sobre a possibilidade de iniciar um tratamento.`
@@ -84,7 +88,7 @@ export default function PsychologistsPage() {
     window.open(`https://wa.me/${phone}?text=${message}`, '_blank')
   }
 
-  const handleCardClick = (therapist: any) => {
+  const handleCardClick = (therapist: Therapist) => {
     setSelectedTherapist(therapist)
   }
 
@@ -93,7 +97,7 @@ export default function PsychologistsPage() {
       <PsychologistProfileModal
         isOpen={!!selectedTherapist}
         onClose={() => setSelectedTherapist(null)}
-        therapist={selectedTherapist as any}
+        therapist={selectedTherapist}
       />
       {/* Header */}
       <header className='fixed top-0 z-40 w-full border-b border-slate-200/50 bg-white/80 dark:border-slate-800/50 dark:bg-slate-950/80 backdrop-blur-xl'>
@@ -108,7 +112,13 @@ export default function PsychologistsPage() {
             </Link>
             <div className='flex items-center gap-2'>
               <div className='rounded-lg bg-white overflow-hidden p-0.5'>
-                <img src='/logo.jpg' alt='Logo Nepsis' className='h-6 w-6 rounded-md' />
+                <Image
+                  alt='Logo Nepsis'
+                  className='h-6 w-6 rounded-md'
+                  height={24}
+                  src='/logo.jpg'
+                  width={24}
+                />
               </div>
               <span className='font-bold text-lg text-white'>Nepsis</span>
             </div>
@@ -234,20 +244,12 @@ export default function PsychologistsPage() {
                   <div className='flex items-start gap-3 sm:gap-4'>
                     <div className='flex h-11 w-11 sm:h-14 sm:w-14 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-base sm:text-xl font-bold text-white'>
                       {therapist.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
+                        <Image
                           alt={therapist.fullName}
                           className='h-full w-full object-cover'
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                            e.currentTarget.parentElement?.classList.remove('bg-transparent')
-                            e.currentTarget.parentElement?.classList.add(
-                              'bg-gradient-to-br',
-                              'from-emerald-500',
-                              'to-teal-600'
-                            )
-                          }}
+                          height={56}
                           src={therapist.image}
+                          width={56}
                         />
                       ) : (
                         therapist.fullName

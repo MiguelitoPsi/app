@@ -10,8 +10,8 @@ import {
   userStats,
   users,
 } from '@/lib/db/schema'
-import { protectedProcedure, router } from '../trpc'
 import { getLevelFromXP } from '@/lib/xp'
+import { protectedProcedure, router } from '../trpc'
 
 // Helper function to check and unlock badges
 export async function autoCheckBadges(
@@ -105,10 +105,8 @@ export async function autoCheckBadges(
     // Check if it's a level badge
     if (existingBadge.badgeId.startsWith('level_')) {
       const def = BADGE_DEFINITIONS.find((d) => d.id === existingBadge.badgeId)
-      if (def && def.metric === 'level') {
-        if (currentLevel < def.requirement) {
-           badgesToDelete.push(existingBadge.id)
-        }
+      if (def && def.metric === 'level' && currentLevel < def.requirement) {
+        badgesToDelete.push(existingBadge.id)
       }
     }
   }
@@ -116,7 +114,7 @@ export async function autoCheckBadges(
   if (badgesToDelete.length > 0) {
     // Delete invalid badges from DB
     for (const badgeId of badgesToDelete) {
-       await db.delete(badges).where(eq(badges.id, badgeId))
+      await db.delete(badges).where(eq(badges.id, badgeId))
     }
     // Update existing list in memory so we don't skip check (though check will fail anyway)
     // Actually, we just want to remove them from existingBadgeIds so the check loop runs?
@@ -155,8 +153,6 @@ export async function autoCheckBadges(
     } else if (badge.metric === 'totalMeditations') {
       shouldUnlock = stats.totalMeditations >= badge.requirement
     } else if (badge.metric === 'level') {
-      const currentLevel = getLevelFromXP(user.experience)
-
       // Self-healing: if stored level is incorrect, update it
       if (currentLevel !== user.level) {
         await db.update(users).set({ level: currentLevel }).where(eq(users.id, userId))
@@ -226,10 +222,10 @@ export const badgeRouter = router({
         }
         // Also check if badgeId string itself suggests a level badge (e.g. 'level_5')
         if (b.badgeId.startsWith('level_')) {
-             const manualDef = BADGE_DEFINITIONS.find(d => d.id === b.badgeId)
-             if (manualDef && manualDef.metric === 'level') {
-                 return currentLevel >= manualDef.requirement
-             }
+          const manualDef = BADGE_DEFINITIONS.find((d) => d.id === b.badgeId)
+          if (manualDef && manualDef.metric === 'level') {
+            return currentLevel >= manualDef.requirement
+          }
         }
         return true
       })

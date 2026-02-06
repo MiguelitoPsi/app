@@ -1,17 +1,13 @@
 /**
  * Redimensiona e comprime uma imagem para ser amigável ao banco de dados.
  * Reduz a dimensão máxima e aplica compressão JPEG.
- * 
+ *
  * @param file O arquivo de imagem original
  * @param maxWidth Largura máxima permitida (padrão: 1500px)
  * @param quality Qualidade JPEG (0 a 1, padrão: 0.85)
  * @returns Promise com a string Base64 da imagem processada
  */
-export async function compressImage(
-  file: File,
-  maxWidth = 1500,
-  quality = 0.85
-): Promise<string> {
+export function compressImage(file: File, maxWidth = 1500, quality = 0.85): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
     reader.readAsDataURL(file)

@@ -838,4 +838,3 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
     </>
   )
 }
-

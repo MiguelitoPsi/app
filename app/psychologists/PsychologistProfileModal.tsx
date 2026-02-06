@@ -1,11 +1,12 @@
 'use client'
 
-import { Brain, Calendar, GraduationCap, MapPin, Phone, Video, X } from 'lucide-react'
+import { Brain, GraduationCap, MapPin, Phone, Video, X } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
 type AttendanceType = 'all' | 'online' | 'presential' | 'both'
 
-interface Psychologist {
+type Psychologist = {
   id: string
   fullName: string
   crp: string
@@ -18,7 +19,7 @@ interface Psychologist {
   image: string | null
 }
 
-interface PsychologistProfileModalProps {
+type PsychologistProfileModalProps = {
   isOpen: boolean
   onClose: () => void
   therapist: Psychologist | null
@@ -59,7 +60,7 @@ export function PsychologistProfileModal({
     }
   }, [isOpen])
 
-  if (!isVisible && !isOpen) return null
+  if (!(isVisible || isOpen)) return null
 
   if (!therapist) return null
 
@@ -89,6 +90,7 @@ export function PsychologistProfileModal({
           <button
             className='absolute right-4 top-4 rounded-full bg-black/20 p-2 text-white/70 transition-colors hover:bg-black/40 hover:text-white'
             onClick={onClose}
+            type='button'
           >
             <X className='h-5 w-5' />
           </button>
@@ -100,20 +102,12 @@ export function PsychologistProfileModal({
             {/* Avatar */}
             <div className='h-24 w-24 shrink-0 overflow-hidden rounded-2xl ring-4 ring-slate-900 bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-xl'>
               {therapist.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   alt={therapist.fullName}
                   className='h-full w-full object-cover'
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none'
-                    e.currentTarget.parentElement?.classList.remove('bg-transparent')
-                    e.currentTarget.parentElement?.classList.add(
-                      'bg-gradient-to-br',
-                      'from-emerald-500',
-                      'to-teal-600'
-                    )
-                  }}
+                  height={96}
                   src={therapist.image}
+                  width={96}
                 />
               ) : (
                 <span className='text-3xl font-bold text-white'>
@@ -147,7 +141,7 @@ export function PsychologistProfileModal({
               <h3 className='text-sm font-semibold text-slate-500 uppercase tracking-wider'>
                 Formação e Atuação
               </h3>
-              
+
               <div className='space-y-3'>
                 <div className='flex items-start gap-3 text-slate-300'>
                   <GraduationCap className='h-5 w-5 text-violet-400 shrink-0 mt-0.5' />
@@ -169,7 +163,9 @@ export function PsychologistProfileModal({
                   <div className='flex items-start gap-3 text-slate-300'>
                     <MapPin className='h-5 w-5 text-amber-400 shrink-0 mt-0.5' />
                     <div>
-                      <span className='block text-sm font-medium text-slate-400'>Endereço Consultório</span>
+                      <span className='block text-sm font-medium text-slate-400'>
+                        Endereço Consultório
+                      </span>
                       <span>{therapist.clinicAddress}</span>
                     </div>
                   </div>
@@ -195,12 +191,14 @@ export function PsychologistProfileModal({
             <button
               className='rounded-xl px-4 py-2.5 text-sm font-medium text-slate-400 hover:text-white hover:bg-slate-800 transition-colors'
               onClick={onClose}
+              type='button'
             >
               Fechar
             </button>
             <button
               className='flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition-all hover:bg-emerald-500 hover:scale-105 active:scale-95'
               onClick={handleContact}
+              type='button'
             >
               <Phone className='h-4 w-4' />
               Entrar em contato pelo WhatsApp

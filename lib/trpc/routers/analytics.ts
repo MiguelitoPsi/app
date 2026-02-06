@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server'
-import { addDays, endOfMonth, endOfWeek, startOfMonth, startOfWeek, subDays } from 'date-fns'
-import { and, asc, desc, eq, gte, inArray, isNull, lte, or } from 'drizzle-orm'
+import { endOfMonth, endOfWeek, startOfMonth, startOfWeek, subDays } from 'date-fns'
+import { and, asc, desc, eq, gte, inArray, isNull, lte } from 'drizzle-orm'
 import { z } from 'zod'
 import { db } from '@/lib/db'
 import {
@@ -13,7 +13,6 @@ import {
   tasks,
   therapistFinancial,
   therapistTasks,
-  therapySessions,
   users,
 } from '@/lib/db/schema'
 import { protectedProcedure, router } from '../trpc'
@@ -391,7 +390,7 @@ export const analyticsRouter = router({
         amount: therapistFinancial.amount,
         date: therapistFinancial.date,
         description: therapistFinancial.description,
-        patientName: users.name
+        patientName: users.name,
       })
       .from(therapistFinancial)
       .leftJoin(users, eq(therapistFinancial.patientId, users.id))
@@ -402,19 +401,19 @@ export const analyticsRouter = router({
           eq(therapistFinancial.type, 'income')
         )
       )
-      .orderBy(desc(therapistFinancial.date));
+      .orderBy(desc(therapistFinancial.date))
 
     // Mantemos compatibilidade com sessions antigas (isPaid=false) se necessário,
     // mas o foco agora é o status 'pending' na tabela financeira.
     // Vamos priorizar os registros financeiros pendentes.
-    
+
     const unpaidSessions = pendingFinancialRecords.map((record) => ({
       id: record.id,
       patientId: record.patientId || '',
       patientName: record.patientName || 'Paciente',
       sessionValue: record.amount,
       completedAt: record.date,
-      description: record.description
+      description: record.description,
     }))
 
     // 3. Diários/Registros de pensamento sem feedback
@@ -599,7 +598,15 @@ export const analyticsRouter = router({
       sessionValue: (task.metadata as { sessionValue?: number } | null)?.sessionValue,
     }))
 
-    const pendingRewards = (patientRewards as Array<{ id: string; title: string; userId: string; user?: { name: string } | null; createdAt: Date | null }>).map((reward) => ({
+    const pendingRewards = (
+      patientRewards as Array<{
+        id: string
+        title: string
+        userId: string
+        user?: { name: string } | null
+        createdAt: Date | null
+      }>
+    ).map((reward) => ({
       id: reward.id,
       title: reward.title,
       patientId: reward.userId,
@@ -616,7 +623,15 @@ export const analyticsRouter = router({
       description: record.description,
     }))
 
-    const pendingJournals = (journals as Array<{ id: string; userId: string; user?: { name: string } | null; createdAt: Date | null; mood: string | null }>).map((journal) => ({
+    const pendingJournals = (
+      journals as Array<{
+        id: string
+        userId: string
+        user?: { name: string } | null
+        createdAt: Date | null
+        mood: string | null
+      }>
+    ).map((journal) => ({
       id: journal.id,
       patientId: journal.userId,
       patientName: journal.user?.name || 'Paciente',
@@ -643,4 +658,3 @@ export const analyticsRouter = router({
     }
   }),
 })
-

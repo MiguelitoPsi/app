@@ -12,11 +12,18 @@ import {
   type TherapistBadgeDefinition,
 } from '@/lib/constants/therapist'
 import { db } from '@/lib/db'
-import { therapistAchievements, therapistChallenges, therapistGoals, therapistStats } from '@/lib/db/schema'
-import { addTherapistRawXP, getOrCreateTherapistStats } from '@/lib/xp/therapist'
+import {
+  therapistAchievements,
+  therapistChallenges,
+  therapistGoals,
+  therapistStats,
+} from '@/lib/db/schema'
+import {
+  addTherapistRawXP,
+  getOrCreateTherapistStats,
+  getTherapistLevelFromXP,
+} from '@/lib/xp/therapist'
 import { protectedProcedure, router } from '../trpc'
-
-import { getTherapistLevelFromXP } from '@/lib/xp/therapist'
 
 export const therapistAchievementsRouter = router({
   // Listar todas as conquistas do terapeuta
@@ -37,12 +44,12 @@ export const therapistAchievementsRouter = router({
     const stats = await getOrCreateTherapistStats(db, ctx.user.id)
     const currentLevel = getTherapistLevelFromXP(stats.experience)
 
-    return achievements.filter(a => {
-        const def = THERAPIST_BADGE_DEFINITIONS.find(d => d.id === a.achievementId)
-        if (def && def.metric === 'level') {
-            return currentLevel >= def.requirement
-        }
-        return true
+    return achievements.filter((a) => {
+      const def = THERAPIST_BADGE_DEFINITIONS.find((d) => d.id === a.achievementId)
+      if (def && def.metric === 'level') {
+        return currentLevel >= def.requirement
+      }
+      return true
     })
   }),
 
@@ -59,14 +66,14 @@ export const therapistAchievementsRouter = router({
 
     const stats = await getOrCreateTherapistStats(db, ctx.user.id)
     const currentLevel = getTherapistLevelFromXP(stats.experience)
-    
+
     // Filter valid unlocked IDs
-    const validUnlocked = unlocked.filter(u => {
-         const def = THERAPIST_BADGE_DEFINITIONS.find(d => d.id === u.achievementId)
-         if (def && def.metric === 'level') {
-             return currentLevel >= def.requirement
-         }
-         return true
+    const validUnlocked = unlocked.filter((u) => {
+      const def = THERAPIST_BADGE_DEFINITIONS.find((d) => d.id === u.achievementId)
+      if (def && def.metric === 'level') {
+        return currentLevel >= def.requirement
+      }
+      return true
     })
 
     const unlockedIds = new Set(validUnlocked.map((a) => a.achievementId))
@@ -102,9 +109,10 @@ export const therapistAchievementsRouter = router({
 
     // Self-healing: Update stored level if incorrect
     if (stats.level !== currentLevel) {
-        await db.update(therapistStats)
-            .set({ level: currentLevel, updatedAt: new Date() })
-            .where(eq(therapistStats.therapistId, ctx.user.id))
+      await db
+        .update(therapistStats)
+        .set({ level: currentLevel, updatedAt: new Date() })
+        .where(eq(therapistStats.therapistId, ctx.user.id))
     }
 
     // Obter conquistas já desbloqueadas
@@ -116,22 +124,20 @@ export const therapistAchievementsRouter = router({
     // Cleanup: Delete invalid level badges
     const badgesToDelete: string[] = []
     for (const badge of existing) {
-        const def = THERAPIST_BADGE_DEFINITIONS.find(d => d.id === badge.achievementId)
-        if (def && def.metric === 'level') {
-            if (currentLevel < def.requirement) {
-                badgesToDelete.push(badge.id)
-            }
-        }
+      const def = THERAPIST_BADGE_DEFINITIONS.find((d) => d.id === badge.achievementId)
+      if (def && def.metric === 'level' && currentLevel < def.requirement) {
+        badgesToDelete.push(badge.id)
+      }
     }
 
     if (badgesToDelete.length > 0) {
-        for (const id of badgesToDelete) {
-            await db.delete(therapistAchievements).where(eq(therapistAchievements.id, id))
-        }
+      for (const id of badgesToDelete) {
+        await db.delete(therapistAchievements).where(eq(therapistAchievements.id, id))
+      }
     }
-    
+
     // Refresh existing list after cleanup (filter in memory)
-    const validExisting = existing.filter(e => !badgesToDelete.includes(e.id))
+    const validExisting = existing.filter((e) => !badgesToDelete.includes(e.id))
     const unlockedIds = new Set(validExisting.map((a) => a.achievementId))
 
     // Obter contagens adicionais para métricas especiais
@@ -292,10 +298,10 @@ export const therapistAchievementsRouter = router({
 
     return THERAPIST_BADGE_DEFINITIONS.map((badge) => {
       let isUnlocked = unlockedIds.has(badge.id)
-      
+
       // Strict level check for UI
       if (badge.metric === 'level' && currentLevel < badge.requirement) {
-          isUnlocked = false
+        isUnlocked = false
       }
 
       let currentValue = 0

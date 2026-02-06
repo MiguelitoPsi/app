@@ -1,14 +1,14 @@
 'use client'
 
-import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
 import { RoleGuard } from '@/components/RoleGuard'
-import { DashboardHeader } from '@/components/therapist/DashboardHeader'
-import { DashboardSidebar } from '@/components/therapist/DashboardSidebar'
 import { TherapistLevelUpManager } from '@/components/TherapistLevelUpManager'
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
 import { TherapistXPGainToast } from '@/components/TherapistXPGainToast'
+import { DashboardHeader } from '@/components/therapist/DashboardHeader'
+import { DashboardSidebar } from '@/components/therapist/DashboardSidebar'
 import { SelectedPatientProvider, useSelectedPatient } from '@/context/SelectedPatientContext'
 import { TherapistGameProvider } from '@/context/TherapistGameContext'
 import { trpc } from '@/lib/trpc/client'
@@ -53,7 +53,12 @@ function SpecialistContent({ children }: { children: ReactNode }) {
 
   // Se estiver na visão detalhada do paciente, não mostra sidebar e header
   // Exceto na rota de relatórios e configurações, onde precisamos da sidebar
-  if (isPatientViewActive && pathname !== '/reports' && pathname !== '/settings' && pathname !== '/financial') {
+  if (
+    isPatientViewActive &&
+    pathname !== '/reports' &&
+    pathname !== '/settings' &&
+    pathname !== '/financial'
+  ) {
     return (
       <div className='min-h-screen bg-slate-50 dark:bg-slate-900'>
         <TherapistTermsModal isOpen={showTerms} />

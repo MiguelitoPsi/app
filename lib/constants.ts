@@ -19,7 +19,11 @@ export const BADGE_CATEGORIES: Record<
 > = {
   evolution: { label: 'Evolução de Nível', icon: 'evolution', color: 'text-amber-500' },
   tasks_general: { label: 'Tarefas Concluídas', icon: 'tasks_general', color: 'text-emerald-500' },
-  tasks_priority: { label: 'Tarefas por Prioridade', icon: 'tasks_priority', color: 'text-blue-500' },
+  tasks_priority: {
+    label: 'Tarefas por Prioridade',
+    icon: 'tasks_priority',
+    color: 'text-blue-500',
+  },
   meditation: { label: 'Meditação', icon: 'meditation', color: 'text-violet-500' },
   journal: { label: 'Diário de Pensamento', icon: 'journal', color: 'text-pink-500' },
   mood: { label: 'Registro de Humor', icon: 'mood', color: 'text-orange-500' },
@@ -420,7 +424,19 @@ export const RANKS: RankDefinition[] = [
   },
 ]
 
-export type Mood = 'happy' | 'excited' | 'grateful' | 'calm' | 'neutral' | 'tired' | 'bored' | 'sad' | 'anxious' | 'fearful' | 'angry' | 'disgusted'
+export type Mood =
+  | 'happy'
+  | 'excited'
+  | 'grateful'
+  | 'calm'
+  | 'neutral'
+  | 'tired'
+  | 'bored'
+  | 'sad'
+  | 'anxious'
+  | 'fearful'
+  | 'angry'
+  | 'disgusted'
 
 export const MOOD_SCORE_MAP: Record<Mood, number> = {
   happy: 100,

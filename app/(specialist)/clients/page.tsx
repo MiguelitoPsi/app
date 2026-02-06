@@ -1,28 +1,17 @@
 'use client'
 
-import {
-  Calendar,
-  CheckCircle,
-  FileText,
-  LogOut,
-  Mail,
-  Phone,
-  Search,
-  User,
-  UserPlus,
-} from 'lucide-react'
+import { Calendar, CheckCircle, FileText, LogOut, Mail, Search, User, UserPlus } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { InvitePatientModal } from '@/components/InvitePatientModal'
 import { trpc } from '@/lib/trpc/client'
 
 type Patient = {
   id: string
   name: string | null
   email: string
-  phone?: string | null
-  createdAt?: Date | null
-  image?: string | null
-  isPrimary?: boolean | null
-  relationshipId?: string | null
+  image: string | null
+  isPrimary: boolean
+  relationshipId: string
 }
 
 export default function ClientsPage() {
@@ -36,7 +25,9 @@ export default function ClientsPage() {
   const [unlinkReason, setUnlinkReason] = useState('')
   const [referralReason, setReferralReason] = useState('')
   const [selectedNewTherapistId, setSelectedNewTherapistId] = useState<string | null>(null)
+
   const [therapistSearchQuery, setTherapistSearchQuery] = useState('')
+  const [showInviteModal, setShowInviteModal] = useState(false)
 
   const dropdownRef = useRef<HTMLDivElement>(null)
 
@@ -116,18 +107,28 @@ export default function ClientsPage() {
   }
 
   return (
-    <div className='box-border h-full overflow-y-auto'>
-
-
+    <div className='box-border h-full overflow-y-auto pb-10'>
       {/* Content */}
       <div className='px-4 py-6 sm:px-6 lg:px-8'>
         {/* Header */}
-        <div className='mb-6'>
-          <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Meus Pacientes</h2>
-          <p className='text-slate-500 dark:text-slate-400'>
-            {patients?.length || 0} pacientes cadastrados
-          </p>
+        <div className='mb-6 flex items-center justify-between'>
+          <div>
+            <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Meus Pacientes</h2>
+            <p className='text-slate-500 dark:text-slate-400'>
+              {patients?.length || 0} pacientes cadastrados
+            </p>
+          </div>
+          <button
+            className='flex items-center gap-2 rounded-xl bg-sky-500 px-4 py-2.5 text-sm font-bold text-white shadow-lg shadow-sky-500/25 transition-all hover:bg-sky-600 active:scale-95'
+            onClick={() => setShowInviteModal(true)}
+            type='button'
+          >
+            <UserPlus className='h-4 w-4' />
+            Convidar Paciente
+          </button>
         </div>
+
+        <InvitePatientModal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} />
 
         {/* Stats */}
         <div className='mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3'>
@@ -165,7 +166,8 @@ export default function ClientsPage() {
               <div>
                 <p className='text-sm text-slate-500 dark:text-slate-400'>Com sessões</p>
                 <p className='text-xl font-bold text-slate-800 dark:text-white'>
-                  {patientsData?.length || 0}
+                  {patientsData?.filter((p) => (p as { sessionCount: number }).sessionCount > 0)
+                    .length || 0}
                 </p>
               </div>
             </div>
@@ -173,13 +175,13 @@ export default function ClientsPage() {
         </div>
 
         {/* Search Bar */}
-        <div className='mb-6'>
+        <div className='mb-8 relative max-w-md'>
           <div className='relative'>
             <Search className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
             <input
-              className='w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500'
+              className='w-full rounded-xl border border-slate-200 bg-white py-2.5 pl-10 pr-4 text-sm text-slate-800 placeholder:text-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder:text-slate-500 shadow-sm transition-all'
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder='Buscar cliente...'
+              placeholder='Buscar por nome ou email...'
               type='text'
               value={searchQuery}
             />
@@ -220,6 +222,7 @@ export default function ClientsPage() {
                           ? handleCloseDropdown()
                           : handleOpenActions(patient)
                       }
+                      type='button'
                     >
                       <svg
                         className='h-5 w-5'
@@ -233,6 +236,7 @@ export default function ClientsPage() {
                         width='24'
                         xmlns='http://www.w3.org/2000/svg'
                       >
+                        <title>Ações</title>
                         <circle cx='12' cy='12' r='1' />
                         <circle cx='19' cy='12' r='1' />
                         <circle cx='5' cy='12' r='1' />
@@ -242,39 +246,41 @@ export default function ClientsPage() {
                     {/* Dropdown Menu */}
                     {openDropdownId === patient.id && (
                       <div
-                        className='absolute right-0 top-8 z-50 w-48 rounded-xl border border-slate-700 bg-[#161b22] shadow-xl'
+                        className='absolute right-0 top-8 z-50 w-56 rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800'
                         ref={dropdownRef}
-                        style={{ boxShadow: '0 8px 24px rgba(0, 0, 0, 0.4)' }}
                       >
-                        <div className='py-1'>
+                        <div className='p-1.5'>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowUnlinkConfirm(true)
                               handleCloseDropdown()
                             }}
+                            type='button'
                           >
-                            <LogOut className='h-4 w-4 text-red-400' />
+                            <LogOut className='h-4 w-4 text-red-500' />
                             Desvincular paciente
                           </button>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowReferralModal(true)
                               handleCloseDropdown()
                             }}
+                            type='button'
                           >
-                            <UserPlus className='h-4 w-4 text-sky-400' />
+                            <UserPlus className='h-4 w-4 text-sky-500' />
                             Encaminhamento
                           </button>
                           <button
-                            className='flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-slate-300 transition-colors hover:bg-[#1c2128]'
+                            className='flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700'
                             onClick={() => {
                               setShowDischargeConfirm(true)
                               handleCloseDropdown()
                             }}
+                            type='button'
                           >
-                            <CheckCircle className='h-4 w-4 text-emerald-400' />
+                            <CheckCircle className='h-4 w-4 text-emerald-500' />
                             Dar alta ao paciente
                           </button>
                         </div>
@@ -284,12 +290,6 @@ export default function ClientsPage() {
                 </div>
 
                 <div className='mt-4 space-y-2'>
-                  {patient.phone && (
-                    <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
-                      <Phone className='h-4 w-4' />
-                      {patient.phone}
-                    </div>
-                  )}
                   <div className='flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400'>
                     <Mail className='h-4 w-4' />
                     {patient.email}
@@ -364,6 +364,7 @@ export default function ClientsPage() {
                   setShowUnlinkConfirm(false)
                   setUnlinkReason('')
                 }}
+                type='button'
               >
                 Cancelar
               </button>
@@ -378,6 +379,7 @@ export default function ClientsPage() {
                     })
                   }
                 }}
+                type='button'
               >
                 {unlinkPatientMutation.isPending ? 'Desvinculando...' : 'Desvincular'}
               </button>
@@ -401,6 +403,7 @@ export default function ClientsPage() {
               <button
                 className='flex-1 rounded-xl border border-slate-200 bg-white px-4 py-3 font-bold text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
                 onClick={() => setShowDischargeConfirm(false)}
+                type='button'
               >
                 Cancelar
               </button>
@@ -414,6 +417,7 @@ export default function ClientsPage() {
                     })
                   }
                 }}
+                type='button'
               >
                 {dischargePatientMutation.isPending ? 'Processando...' : 'Dar Alta'}
               </button>
@@ -461,6 +465,7 @@ export default function ClientsPage() {
                       }`}
                       key={therapist.id}
                       onClick={() => setSelectedNewTherapistId(therapist.id)}
+                      type='button'
                     >
                       <div className='flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 font-semibold text-white'>
                         {therapist.fullName?.charAt(0) || 'T'}
@@ -508,6 +513,7 @@ export default function ClientsPage() {
                   setSelectedNewTherapistId(null)
                   setTherapistSearchQuery('')
                 }}
+                type='button'
               >
                 Cancelar
               </button>
@@ -523,6 +529,7 @@ export default function ClientsPage() {
                     })
                   }
                 }}
+                type='button'
               >
                 {transferPatientMutation.isPending ? 'Processando...' : 'Confirmar Encaminhamento'}
               </button>

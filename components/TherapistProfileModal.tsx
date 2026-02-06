@@ -6,13 +6,14 @@ import {
   Calendar,
   CheckCircle,
   CreditCard,
+  Image as ImageIcon,
   MapPin,
   Phone,
   User,
   UserCircle,
   X,
-  Image as ImageIcon,
 } from 'lucide-react'
+import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 import { compressImage } from '@/lib/utils/image-compression'
@@ -101,8 +102,6 @@ export function TherapistProfileModal({
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -231,8 +230,6 @@ export function TherapistProfileModal({
       newErrors.phone = 'Telefone deve ter pelo menos 10 dígitos'
     }
 
-
-
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -334,48 +331,56 @@ export function TherapistProfileModal({
               <div className='flex gap-4'>
                 {/* Image Upload */}
                 <div className='flex flex-col gap-2'>
-                  <div 
-                    onClick={() => document.getElementById('profile-image-upload')?.click()}
+                  <button
                     className='relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-slate-50 transition-colors hover:border-sky-500 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-800'
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        document.getElementById('profile-image-upload')?.click()
-                      }
-                    }}
+                    onClick={() => document.getElementById('profile-image-upload')?.click()}
+                    type='button'
                   >
                     {formData.image ? (
-                      <div className="relative h-full w-full group cursor-pointer">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                      <div className='relative h-full w-full group cursor-pointer'>
+                        <Image
                           alt='Preview'
                           className='h-full w-full object-cover transition-opacity group-hover:opacity-75'
+                          height={96}
                           src={formData.image}
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                          }}
+                          width={96}
                         />
-                         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
-                          <span className="rounded-full bg-black/50 p-1.5 text-white">
-                             <ImageIcon className="h-4 w-4" />
+                        <div className='absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100'>
+                          <span className='rounded-full bg-black/50 p-1.5 text-white'>
+                            <ImageIcon className='h-4 w-4' />
                           </span>
                         </div>
                       </div>
                     ) : (
-                      <div className="flex h-full w-full cursor-pointer items-center justify-center text-slate-300 dark:text-slate-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-image h-8 w-8" aria-hidden="true"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+                      <div className='flex h-full w-full cursor-pointer items-center justify-center text-slate-300 dark:text-slate-600'>
+                        <svg
+                          aria-hidden='true'
+                          className='lucide lucide-image h-8 w-8'
+                          fill='none'
+                          height='24'
+                          stroke='currentColor'
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth='2'
+                          viewBox='0 0 24 24'
+                          width='24'
+                          xmlns='http://www.w3.org/2000/svg'
+                        >
+                          <rect height='18' rx='2' ry='2' width='18' x='3' y='3' />
+                          <circle cx='9' cy='9' r='2' />
+                          <path d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21' />
+                        </svg>
                       </div>
                     )}
-                  </div>
+                  </button>
                   <input
-                    id="profile-image-upload"
-                    type="file"
-                    accept="image/jpeg, image/png"
+                    accept='image/jpeg, image/png'
+                    className='hidden'
+                    id='profile-image-upload'
                     onChange={handleImageUpload}
-                    className="hidden"
+                    type='file'
                   />
-                  <p className="w-24 text-center text-[10px] text-slate-500">
+                  <p className='w-24 text-center text-[10px] text-slate-500'>
                     JPG/PNG alta qualidade
                   </p>
                 </div>
@@ -388,10 +393,12 @@ export function TherapistProfileModal({
                       Nome Completo *
                     </label>
                     <input
-                      className={`w-full rounded-xl border ${errors.fullName ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                      onChange={(e) =>
-                        setFormData({ ...formData, fullName: e.target.value })
-                      }
+                      className={`w-full rounded-xl border ${
+                        errors.fullName
+                          ? 'border-red-300 dark:border-red-700'
+                          : 'border-slate-200 dark:border-slate-700'
+                      } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
                       placeholder='Seu nome completo'
                       type='text'
                       value={formData.fullName}
@@ -410,7 +417,11 @@ export function TherapistProfileModal({
                   CPF *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.cpf ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${
+                    errors.cpf
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, cpf: formatCPF(e.target.value) })}
                   placeholder='000.000.000-00'
                   type='text'
@@ -426,9 +437,16 @@ export function TherapistProfileModal({
                   Data de Nascimento *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.birthDate ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${
+                    errors.birthDate
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) =>
-                    setFormData({ ...formData, birthDate: formatDate(e.target.value) })
+                    setFormData({
+                      ...formData,
+                      birthDate: formatDate(e.target.value),
+                    })
                   }
                   placeholder='DD/MM/AAAA'
                   type='text'
@@ -446,7 +464,11 @@ export function TherapistProfileModal({
                   CRP *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.crp ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${
+                    errors.crp
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, crp: formatCRP(e.target.value) })}
                   placeholder='00/00000'
                   type='text'
@@ -462,7 +484,11 @@ export function TherapistProfileModal({
                   Formação *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.education ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${
+                    errors.education
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, education: e.target.value })}
                   placeholder='Ex: Psicologia - PUC-SP'
                   type='text'
@@ -480,7 +506,11 @@ export function TherapistProfileModal({
                   Cidade *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.city ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  className={`w-full rounded-xl border ${
+                    errors.city
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
                   onChange={(e) => setFormData({ ...formData, city: e.target.value })}
                   placeholder='São Paulo, SP'
                   type='text'
@@ -496,7 +526,11 @@ export function TherapistProfileModal({
                   Biografia
                 </label>
                 <textarea
-                  className={`w-full rounded-xl border ${errors.bio ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200 resize-none`}
+                  className={`w-full rounded-xl border ${
+                    errors.bio
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200 resize-none`}
                   maxLength={500}
                   onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                   placeholder='Conte um pouco sobre você, sua experiência e abordagem terapêutica...'
@@ -552,8 +586,17 @@ export function TherapistProfileModal({
                     Endereço da Clínica *
                   </label>
                   <input
-                    className={`w-full rounded-xl border ${errors.clinicAddress ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                    onChange={(e) => setFormData({ ...formData, clinicAddress: e.target.value })}
+                    className={`w-full rounded-xl border ${
+                      errors.clinicAddress
+                        ? 'border-red-300 dark:border-red-700'
+                        : 'border-slate-200 dark:border-slate-700'
+                    } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        clinicAddress: e.target.value,
+                      })
+                    }
                     placeholder='Rua, número, bairro, cidade - UF'
                     type='text'
                     value={formData.clinicAddress}
@@ -571,8 +614,17 @@ export function TherapistProfileModal({
                   Telefone *
                 </label>
                 <input
-                  className={`w-full rounded-xl border ${errors.phone ? 'border-red-300 dark:border-red-700' : 'border-slate-200 dark:border-slate-700'} bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
-                  onChange={(e) => setFormData({ ...formData, phone: formatPhone(e.target.value) })}
+                  className={`w-full rounded-xl border ${
+                    errors.phone
+                      ? 'border-red-300 dark:border-red-700'
+                      : 'border-slate-200 dark:border-slate-700'
+                  } bg-white px-4 py-3 text-slate-800 placeholder-slate-400 transition-colors focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20 dark:bg-slate-800 dark:text-slate-200`}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      phone: formatPhone(e.target.value),
+                    })
+                  }
                   placeholder='(00) 00000-0000'
                   type='text'
                   value={formData.phone}

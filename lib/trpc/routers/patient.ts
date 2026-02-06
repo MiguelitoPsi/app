@@ -64,7 +64,7 @@ export const patientRouter = router({
       const token = nanoid(32)
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
-      const [invite] = await db
+      await db
         .insert(patientInvites)
         .values({
           id: nanoid(),
@@ -88,39 +88,37 @@ export const patientRouter = router({
         console.error('Failed to send invite email:', error)
         // Don't throw - invite is still created
       }
-
     }),
 
   // Create generic invite (returns link)
-  createGenericInvite: protectedProcedure
-    .mutation(async ({ ctx }) => {
-      if (ctx.user.role !== 'psychologist') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Apenas psicólogos podem enviar convites',
-        })
-      }
+  createGenericInvite: protectedProcedure.mutation(async ({ ctx }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Apenas psicólogos podem enviar convites',
+      })
+    }
 
-      const token = nanoid(32)
-      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
+    const token = nanoid(32)
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
 
-      const [invite] = await db
-        .insert(patientInvites)
-        .values({
-          id: nanoid(),
-          psychologistId: ctx.user.id,
-          token,
-          status: 'pending',
-          expiresAt,
-        })
-        .returning()
+    const [invite] = await db
+      .insert(patientInvites)
+      .values({
+        id: nanoid(),
+        psychologistId: ctx.user.id,
+        token,
+        status: 'pending',
+        expiresAt,
+      })
+      .returning()
 
-      return {
-        success: true,
-        inviteId: invite.id,
-        link: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`
-      }
-    }),
+    return {
+      success: true,
+      inviteId: invite.id,
+      link: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/invite/${token}`,
+    }
+  }),
 
   // Get all invites (psychologist only)
   getInvites: protectedProcedure.query(async ({ ctx }) => {
@@ -177,7 +175,12 @@ export const patientRouter = router({
 
       if (invite.email) {
         try {
-          await sendInviteEmail(invite.email, invite.name || 'Paciente', ctx.user.name || 'Seu psicólogo', newToken)
+          await sendInviteEmail(
+            invite.email,
+            invite.name || 'Paciente',
+            ctx.user.name || 'Seu psicólogo',
+            newToken
+          )
         } catch (error) {
           console.error('Failed to resend invite email:', error)
         }
@@ -356,64 +359,54 @@ export const patientRouter = router({
   }),
 
   // Get patient by ID (psychologist only)
-  getById: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      if (ctx.user.role !== 'psychologist') {
-        throw new TRPCError({ code: 'FORBIDDEN' })
-      }
+  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    if (ctx.user.role !== 'psychologist') {
+      throw new TRPCError({ code: 'FORBIDDEN' })
+    }
 
-      // Verify relationship exists
-      const relationship = await db.query.psychologistPatients.findFirst({
-        where: and(
-          eq(psychologistPatients.psychologistId, ctx.user.id),
-          eq(psychologistPatients.patientId, input.id)
-        ),
-        with: {
-          patient: {
-            with: {
-              stats: true,
-            },
+    // Verify relationship exists
+    const relationship = await db.query.psychologistPatients.findFirst({
+      where: and(
+        eq(psychologistPatients.psychologistId, ctx.user.id),
+        eq(psychologistPatients.patientId, input.id)
+      ),
+      with: {
+        patient: {
+          with: {
+            stats: true,
           },
         },
+      },
+    })
+
+    if (!relationship?.patient) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Paciente não encontrado',
       })
+    }
 
-      if (!relationship?.patient) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Paciente não encontrado',
-        })
-      }
+    // Also check for invite by email
+    const inviteByEmail = await db.query.patientInvites.findFirst({
+      where: and(
+        eq(patientInvites.email, relationship.patient.email),
+        eq(patientInvites.status, 'accepted')
+      ),
+    })
 
-      // Fetch additional info from accepted invite
-      const acceptedInvite = await db.query.patientInvites.findFirst({
-        where: and(
-          eq(patientInvites.psychologistId, ctx.user.id),
-          eq(patientInvites.status, 'accepted')
-        ),
-      })
-
-      // Also check for invite by email
-      const inviteByEmail = await db.query.patientInvites.findFirst({
-        where: and(
-          eq(patientInvites.email, relationship.patient.email),
-          eq(patientInvites.status, 'accepted')
-        ),
-      })
-
-      return {
-        ...relationship.patient,
-        phone: inviteByEmail?.phone || null,
-        birthdate: inviteByEmail?.birthdate || null,
-        gender: inviteByEmail?.gender || null,
-        address: inviteByEmail?.address || null,
-        city: inviteByEmail?.address?.city || null,
-        profession: null, // Campo não existe na tabela atual
-        status: 'Ativo', // Status default, pode ser expandido
-        isPrimary: relationship.isPrimary,
-        relationshipId: relationship.id,
-      }
-    }),
+    return {
+      ...relationship.patient,
+      phone: inviteByEmail?.phone || null,
+      birthdate: inviteByEmail?.birthdate || null,
+      gender: inviteByEmail?.gender || null,
+      address: inviteByEmail?.address || null,
+      city: inviteByEmail?.address?.city || null,
+      profession: null, // Campo não existe na tabela atual
+      status: 'Ativo', // Status default, pode ser expandido
+      isPrimary: relationship.isPrimary,
+      relationshipId: relationship.id,
+    }
+  }),
 
   // Get my psychologists (patient only)
   getMyPsychologists: protectedProcedure.query(async ({ ctx }) => {

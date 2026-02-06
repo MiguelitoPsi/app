@@ -1,21 +1,23 @@
 'use client'
 
-import { Edit2, Mail, MapPin, Phone, Shield, User, Building, FileText } from 'lucide-react'
+import { Building, Edit2, FileText, Mail, MapPin, Phone, Shield, User } from 'lucide-react'
 import Image from 'next/image'
-import { useAuth } from '@/lib/hooks/useAuth'
 import { useState } from 'react'
+import { useAuth } from '@/lib/hooks/useAuth'
 
 // Item de informação com linha divisória
-const InfoRow: React.FC<{ label: string; value: React.ReactNode; icon?: React.ReactNode; hasBorder?: boolean }> = ({
-  label,
-  value,
-  icon,
-  hasBorder = true,
-}) => (
-  <div className={`flex flex-col gap-1 pb-4 mb-0 ${hasBorder ? 'border-b border-slate-100 dark:border-slate-700' : ''}`}>
-    <label className='text-xs font-medium text-slate-500 dark:text-slate-400'>
-      {label}
-    </label>
+const InfoRow: React.FC<{
+  label: string
+  value: React.ReactNode
+  icon?: React.ReactNode
+  hasBorder?: boolean
+}> = ({ label, value, icon, hasBorder = true }) => (
+  <div
+    className={`flex flex-col gap-1 pb-4 mb-0 ${
+      hasBorder ? 'border-b border-slate-100 dark:border-slate-700' : ''
+    }`}
+  >
+    <label className='text-xs font-medium text-slate-500 dark:text-slate-400'>{label}</label>
     <div className='flex flex-row items-center gap-2 text-slate-900 dark:text-white'>
       {icon && <span className='flex-shrink-0'>{icon}</span>}
       <span className='font-medium'>{value}</span>
@@ -24,12 +26,12 @@ const InfoRow: React.FC<{ label: string; value: React.ReactNode; icon?: React.Re
 )
 
 // Card wrapper com flex-column
-const ProfileCard: React.FC<{ title: string; icon: React.ReactNode; children: React.ReactNode; action?: React.ReactNode }> = ({
-  title,
-  icon,
-  children,
-  action,
-}) => (
+const ProfileCard: React.FC<{
+  title: string
+  icon: React.ReactNode
+  children: React.ReactNode
+  action?: React.ReactNode
+}> = ({ title, icon, children, action }) => (
   <div className='flex flex-col rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-800'>
     <div className='flex flex-row items-center justify-between pb-4 mb-4 border-b border-slate-100 dark:border-slate-700'>
       <h2 className='flex flex-row items-center gap-2 font-semibold text-slate-900 dark:text-white'>
@@ -38,9 +40,7 @@ const ProfileCard: React.FC<{ title: string; icon: React.ReactNode; children: Re
       </h2>
       {action}
     </div>
-    <div className='flex flex-col'>
-      {children}
-    </div>
+    <div className='flex flex-col'>{children}</div>
   </div>
 )
 
@@ -49,12 +49,13 @@ export const TherapistProfileView: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false)
 
   // Fallback para iniciais
-  const initials = user?.name
-    ?.split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2) ?? '?'
+  const initials =
+    user?.name
+      ?.split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2) ?? '?'
 
   // Dados mockados para demonstração - depois virão do banco
   const therapistData = {
@@ -88,17 +89,18 @@ export const TherapistProfileView: React.FC = () => {
           <div className='flex flex-col gap-6'>
             {/* Card: Perfil do Profissional */}
             <ProfileCard
-              title='Perfil do profissional'
-              icon={<User className='h-5 w-5 text-sky-500' />}
               action={
                 <button
                   className='flex flex-row items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-900/20'
                   onClick={() => setIsEditing(!isEditing)}
+                  type='button'
                 >
                   <Edit2 className='h-4 w-4' />
                   Editar
                 </button>
               }
+              icon={<User className='h-5 w-5 text-sky-500' />}
+              title='Perfil do profissional'
             >
               {/* Foto de perfil */}
               <div className='flex flex-col items-center pb-6 mb-6 border-b border-slate-100 dark:border-slate-700'>
@@ -125,43 +127,39 @@ export const TherapistProfileView: React.FC = () => {
 
               {/* Infos com linhas divisórias */}
               <div className='flex flex-col'>
+                <InfoRow hasBorder={true} label='Nome' value={therapistData.name} />
                 <InfoRow
-                  label='Nome'
-                  value={therapistData.name}
                   hasBorder={true}
-                />
-                <InfoRow
+                  icon={<Phone className='h-4 w-4 text-slate-400' />}
                   label='Telefone'
                   value={therapistData.phone}
-                  icon={<Phone className='h-4 w-4 text-slate-400' />}
-                  hasBorder={true}
                 />
                 <InfoRow
+                  hasBorder={false}
+                  icon={<User className='h-4 w-4 text-slate-400' />}
                   label='Nascimento'
                   value={therapistData.birthdate}
-                  icon={<User className='h-4 w-4 text-slate-400' />}
-                  hasBorder={false}
                 />
               </div>
             </ProfileCard>
 
             {/* Card: Conta */}
-            <ProfileCard
-              title='Conta'
-              icon={<Shield className='h-5 w-5 text-sky-500' />}
-            >
+            <ProfileCard icon={<Shield className='h-5 w-5 text-sky-500' />} title='Conta'>
               <div className='flex flex-col'>
                 <InfoRow
+                  hasBorder={true}
+                  icon={<Mail className='h-4 w-4 text-slate-400' />}
                   label='E-mail'
                   value={therapistData.email}
-                  icon={<Mail className='h-4 w-4 text-slate-400' />}
-                  hasBorder={true}
                 />
                 <div className='flex flex-col pt-2'>
                   <label className='mb-2 block text-xs font-medium text-slate-500 dark:text-slate-400'>
                     Senha
                   </label>
-                  <button className='flex flex-row items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'>
+                  <button
+                    className='flex flex-row items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                    type='button'
+                  >
                     <Edit2 className='h-4 w-4' />
                     Alterar senha
                   </button>
@@ -173,14 +171,17 @@ export const TherapistProfileView: React.FC = () => {
           {/* Coluna Direita - Dados da Clínica */}
           <div className='lg:col-span-2'>
             <ProfileCard
-              title='Dados da clínica'
-              icon={<Building className='h-5 w-5 text-sky-500' />}
               action={
-                <button className='flex flex-row items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-900/20'>
+                <button
+                  className='flex flex-row items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium text-sky-600 transition-colors hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-900/20'
+                  type='button'
+                >
                   <Edit2 className='h-4 w-4' />
                   Editar
                 </button>
               }
+              icon={<Building className='h-5 w-5 text-sky-500' />}
+              title='Dados da clínica'
             >
               <div className='grid grid-cols-1 gap-6 md:grid-cols-2'>
                 {/* Nome da Clínica */}

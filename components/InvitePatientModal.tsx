@@ -2,7 +2,7 @@ import { Check, Copy, Loader2, X } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
-interface InvitePatientModalProps {
+type InvitePatientModalProps = {
   isOpen: boolean
   onClose: () => void
 }
@@ -17,7 +17,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
     onSuccess: (data) => {
       setInviteLink(data.link)
     },
-    onError: (err) => {
+    onError: (_err) => {
       setError('Erro ao gerar link de convite. Tente novamente.')
     },
   })
@@ -27,7 +27,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
     if (isOpen && !inviteLink) {
       createInviteMutation.mutate()
     }
-  }, [isOpen])
+  }, [isOpen, inviteLink, createInviteMutation.mutate])
 
   // Reset state on close
   const handleClose = () => {
@@ -43,7 +43,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
       await navigator.clipboard.writeText(inviteLink)
       setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
-    } catch (err) {
+    } catch (_err) {
       setIsCopied(false)
     }
   }
@@ -55,8 +55,10 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
       <div className='w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl dark:bg-slate-800 relative animate-in zoom-in-95 duration-200'>
         {/* Close Button */}
         <button
-          onClick={handleClose}
+          aria-label='Fechar'
           className='absolute right-4 top-4 rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-200 transition-colors'
+          onClick={handleClose}
+          type='button'
         >
           <X size={20} />
         </button>
@@ -67,10 +69,15 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
               className='h-8 w-8 text-white'
               fill='none'
               stroke='currentColor'
-              viewBox='0 0 24 24'
               strokeWidth={2}
+              viewBox='0 0 24 24'
             >
-              <path strokeLinecap='round' strokeLinejoin='round' d='M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' />
+              <title>Link de Convite</title>
+              <path
+                d='M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1'
+                strokeLinecap='round'
+                strokeLinejoin='round'
+              />
             </svg>
           </div>
           <h2 className='text-2xl font-bold text-slate-800 dark:text-white'>Link de Convite</h2>
@@ -83,8 +90,9 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
           <div className='mb-6 rounded-lg bg-red-50 p-4 text-center text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400'>
             {error}
             <button
-              onClick={() => createInviteMutation.mutate()}
               className='mt-2 block w-full rounded-md bg-red-100 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/40 dark:text-red-300'
+              onClick={() => createInviteMutation.mutate()}
+              type='button'
             >
               Tentar Novamente
             </button>
@@ -105,16 +113,17 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
                 )}
               </div>
             </div>
-            
+
             <div className='mt-4'>
               <button
-                onClick={handleCopy}
-                disabled={!inviteLink || createInviteMutation.isPending}
                 className={`flex w-full items-center justify-center gap-2 rounded-xl py-3 font-bold text-white shadow-lg transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed ${
                   isCopied
                     ? 'bg-emerald-500 shadow-emerald-500/25'
                     : 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-500/25 hover:from-sky-400 hover:to-blue-500'
                 }`}
+                disabled={!inviteLink || createInviteMutation.isPending}
+                onClick={handleCopy}
+                type='button'
               >
                 {isCopied ? (
                   <>
@@ -134,7 +143,8 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
 
         <div className='rounded-xl bg-amber-50 border border-amber-100 p-4 dark:bg-amber-900/10 dark:border-amber-900/20'>
           <p className='text-center text-xs text-amber-700 dark:text-amber-400'>
-            <strong>Nota:</strong> O paciente deverá criar uma conta com nome e email ao acessar o link.
+            <strong>Nota:</strong> O paciente deverá criar uma conta com nome e email ao acessar o
+            link.
           </p>
         </div>
       </div>

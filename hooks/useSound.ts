@@ -34,33 +34,77 @@ export function useSound() {
   }, [])
 
   // Helpers (no-ops)
-  const playClick = useCallback(() => {}, [])
-  const playSuccess = useCallback(() => {}, [])
-  const playXP = useCallback(() => {}, [])
-  const playCoins = useCallback(() => {}, [])
-  const playLevelUp = useCallback(() => {}, [])
-  const playAchievement = useCallback(() => {}, [])
-  const playNotification = useCallback(() => {}, [])
-  const playError = useCallback(() => {}, [])
-  const playPop = useCallback(() => {}, [])
-  const playToggle = useCallback(() => {}, [])
-  const playReward = useCallback(() => {}, [])
-  const playMeditation = useCallback(() => {}, [])
-  const playMeditationComplete = useCallback(() => {}, [])
-  const playJournal = useCallback(() => {}, [])
-  const playMood = useCallback(() => {}, [])
-  const playStreak = useCallback(() => {}, [])
-  const playNavigation = useCallback(() => {}, [])
-  const playDelete = useCallback(() => {}, [])
-  const playSwoosh = useCallback(() => {}, [])
+  const playClick = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playSuccess = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playXP = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playCoins = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playLevelUp = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playAchievement = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playNotification = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playError = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playPop = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playToggle = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playReward = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playMeditation = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playMeditationComplete = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playJournal = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playMood = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playStreak = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playNavigation = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playDelete = useCallback(() => {
+    /* disabled */
+  }, [])
+  const playSwoosh = useCallback(() => {
+    /* disabled */
+  }, [])
 
-  const toggleSound = useCallback(() => {}, [])
+  const toggleSound = useCallback(() => {
+    /* disabled */
+  }, [])
 
   return {
     soundEnabled,
     masterVolume,
-    setSoundEnabled: () => {},
-    setMasterVolume: () => {},
+    setSoundEnabled: () => {
+      /* disabled */
+    },
+    setMasterVolume: () => {
+      /* disabled */
+    },
     toggleSound,
     playSound,
     playClick,

@@ -1,7 +1,7 @@
-import { and, desc, eq, gte, isNull, sql, sum } from "drizzle-orm";
-import { nanoid } from "nanoid";
-import { z } from "zod";
-import { MOOD_SCORE_MAP } from "@/lib/constants";
+import { and, desc, eq, gte, isNull, sql, sum } from 'drizzle-orm'
+import { nanoid } from 'nanoid'
+import { z } from 'zod'
+import { MOOD_SCORE_MAP } from '@/lib/constants'
 import {
   badges,
   journalEntries,
@@ -11,21 +11,17 @@ import {
   tasks,
   userStats,
   users,
-} from "@/lib/db/schema";
-import { formatDateSP } from "@/lib/utils/timezone";
-import { addCoins, addRawXP, awardXPAndCoins } from "@/lib/xp";
-import { protectedProcedure, router, suspensionCheckProcedure } from "../trpc";
+} from '@/lib/db/schema'
+import { formatDateSP } from '@/lib/utils/timezone'
+import { addCoins, addRawXP, awardXPAndCoins } from '@/lib/xp'
+import { protectedProcedure, router, suspensionCheckProcedure } from '../trpc'
 
 export const userRouter = router({
   getProfile: protectedProcedure.query(async ({ ctx }) => {
-    const [user] = await ctx.db
-      .select()
-      .from(users)
-      .where(eq(users.id, ctx.user.id))
-      .limit(1);
+    const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found')
     }
 
     // Get user stats
@@ -33,59 +29,47 @@ export const userRouter = router({
       .select()
       .from(userStats)
       .where(eq(userStats.userId, ctx.user.id))
-      .limit(1);
+      .limit(1)
 
     // Get task counts by priority
     const tasksHigh = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(tasks)
       .where(
-        and(
-          eq(tasks.userId, ctx.user.id),
-          eq(tasks.completed, true),
-          eq(tasks.priority, "high")
-        )
-      );
+        and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, 'high'))
+      )
 
     const tasksMedium = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(tasks)
       .where(
-        and(
-          eq(tasks.userId, ctx.user.id),
-          eq(tasks.completed, true),
-          eq(tasks.priority, "medium")
-        )
-      );
+        and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, 'medium'))
+      )
 
     const tasksLow = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(tasks)
       .where(
-        and(
-          eq(tasks.userId, ctx.user.id),
-          eq(tasks.completed, true),
-          eq(tasks.priority, "low")
-        )
-      );
+        and(eq(tasks.userId, ctx.user.id), eq(tasks.completed, true), eq(tasks.priority, 'low'))
+      )
 
     // Get total mood logs
     const moodLogsResult = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(moodHistory)
-      .where(eq(moodHistory.userId, ctx.user.id));
+      .where(eq(moodHistory.userId, ctx.user.id))
 
     // Get redeemed rewards
     const rewardsResult = await ctx.db
       .select({ count: sql<number>`count(*)` })
       .from(rewards)
-      .where(and(eq(rewards.userId, ctx.user.id), eq(rewards.claimed, true)));
+      .where(and(eq(rewards.userId, ctx.user.id), eq(rewards.claimed, true)))
 
     // Get total meditation minutes
     const meditationMinutesResult = await ctx.db
       .select({ total: sum(meditationSessions.duration) })
       .from(meditationSessions)
-      .where(eq(meditationSessions.userId, ctx.user.id));
+      .where(eq(meditationSessions.userId, ctx.user.id))
 
     return {
       ...user,
@@ -104,7 +88,7 @@ export const userRouter = router({
         redeemedRewards: Number(rewardsResult[0]?.count || 0),
         totalMeditationMinutes: Number(meditationMinutesResult[0]?.total || 0),
       },
-    };
+    }
   }),
 
   getStats: protectedProcedure.query(async ({ ctx }) => {
@@ -112,7 +96,7 @@ export const userRouter = router({
       .select()
       .from(userStats)
       .where(eq(userStats.userId, ctx.user.id))
-      .limit(1);
+      .limit(1)
 
     if (!stats) {
       // Create stats if they don't exist
@@ -123,12 +107,12 @@ export const userRouter = router({
         totalMeditations: 0,
         totalJournalEntries: 0,
         longestStreak: 0,
-      };
-      await ctx.db.insert(userStats).values(newStats);
-      return newStats;
+      }
+      await ctx.db.insert(userStats).values(newStats)
+      return newStats
     }
 
-    return stats;
+    return stats
   }),
 
   updateProfile: protectedProcedure
@@ -139,7 +123,7 @@ export const userRouter = router({
         preferences: z
           .object({
             notifications: z.boolean().optional(),
-            theme: z.enum(["light", "dark"]).optional(),
+            theme: z.enum(['light', 'dark']).optional(),
             language: z.string().optional(),
           })
           .optional(),
@@ -152,9 +136,9 @@ export const userRouter = router({
           ...input,
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id));
+        .where(eq(users.id, ctx.user.id))
 
-      return { success: true };
+      return { success: true }
     }),
 
   addExperience: protectedProcedure
@@ -173,17 +157,13 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [user] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.id, ctx.user.id))
-        .limit(1);
+      const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error('User not found')
       }
 
-      const currentPreferences = user.preferences || {};
+      const currentPreferences = user.preferences || {}
 
       await ctx.db
         .update(users)
@@ -194,25 +174,21 @@ export const userRouter = router({
           },
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id));
+        .where(eq(users.id, ctx.user.id))
 
-      return { success: true };
+      return { success: true }
     }),
 
   updateTheme: protectedProcedure
-    .input(z.object({ theme: z.enum(["light", "dark"]) }))
+    .input(z.object({ theme: z.enum(['light', 'dark']) }))
     .mutation(async ({ ctx, input }) => {
-      const [user] = await ctx.db
-        .select()
-        .from(users)
-        .where(eq(users.id, ctx.user.id))
-        .limit(1);
+      const [user] = await ctx.db.select().from(users).where(eq(users.id, ctx.user.id)).limit(1)
 
       if (!user) {
-        throw new Error("User not found");
+        throw new Error('User not found')
       }
 
-      const currentPreferences = user.preferences || {};
+      const currentPreferences = user.preferences || {}
 
       await ctx.db
         .update(users)
@@ -223,34 +199,34 @@ export const userRouter = router({
           },
           updatedAt: new Date(),
         })
-        .where(eq(users.id, ctx.user.id));
+        .where(eq(users.id, ctx.user.id))
 
-      return { success: true };
+      return { success: true }
     }),
 
   trackMood: protectedProcedure
     .input(
       z.object({
         mood: z.enum([
-          "happy",
-          "excited",
-          "grateful",
-          "calm",
-          "neutral",
-          "tired",
-          "bored",
-          "sad",
-          "anxious",
-          "fearful",
-          "angry",
-          "disgusted",
+          'happy',
+          'excited',
+          'grateful',
+          'calm',
+          'neutral',
+          'tired',
+          'bored',
+          'sad',
+          'anxious',
+          'fearful',
+          'angry',
+          'disgusted',
         ]),
       })
     )
     .mutation(async ({ ctx, input }) => {
       // Award XP and Coins using centralized system
-      const result = await awardXPAndCoins(ctx.db, ctx.user.id, "mood");
-      const xpAwarded = result.xpAwarded;
+      const result = await awardXPAndCoins(ctx.db, ctx.user.id, 'mood')
+      const xpAwarded = result.xpAwarded
 
       // Always save mood
       await ctx.db.insert(moodHistory).values({
@@ -258,15 +234,12 @@ export const userRouter = router({
         userId: ctx.user.id,
         mood: input.mood,
         xpAwarded,
-      });
+      })
 
       // Update lastActiveAt on user action
-      await ctx.db
-        .update(users)
-        .set({ lastActiveAt: new Date() })
-        .where(eq(users.id, ctx.user.id));
+      await ctx.db.update(users).set({ lastActiveAt: new Date() }).where(eq(users.id, ctx.user.id))
 
-      return { xp: xpAwarded, saved: true };
+      return { xp: xpAwarded, saved: true }
     }),
 
   getMoodHistory: protectedProcedure
@@ -277,20 +250,19 @@ export const userRouter = router({
         .from(moodHistory)
         .where(eq(moodHistory.userId, ctx.user.id))
         .orderBy(desc(moodHistory.createdAt))
-        .limit(input.days * 5); // Get more to account for multiple entries per day
+        .limit(input.days * 5) // Get more to account for multiple entries per day
 
       // Group by day and calculate average score
-      const moodsByDay = new Map<string, number[]>();
+      const moodsByDay = new Map<string, number[]>()
 
       for (const mood of moods) {
-        const day = formatDateSP(mood.createdAt);
-        const score =
-          MOOD_SCORE_MAP[mood.mood as keyof typeof MOOD_SCORE_MAP] || 60;
+        const day = formatDateSP(mood.createdAt)
+        const score = MOOD_SCORE_MAP[mood.mood as keyof typeof MOOD_SCORE_MAP] || 60
 
         if (!moodsByDay.has(day)) {
-          moodsByDay.set(day, []);
+          moodsByDay.set(day, [])
         }
-        moodsByDay.get(day)?.push(score);
+        moodsByDay.get(day)?.push(score)
       }
 
       // Calculate averages
@@ -300,9 +272,9 @@ export const userRouter = router({
           score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
         }))
         .slice(0, input.days)
-        .reverse();
+        .reverse()
 
-      return result;
+      return result
     }),
 
   getLatestMood: protectedProcedure.query(async ({ ctx }) => {
@@ -311,14 +283,14 @@ export const userRouter = router({
       .from(moodHistory)
       .where(eq(moodHistory.userId, ctx.user.id))
       .orderBy(desc(moodHistory.createdAt))
-      .limit(1);
+      .limit(1)
 
-    return latestMood?.mood ?? null;
+    return latestMood?.mood ?? null
   }),
 
   hasRecentAnxiety: protectedProcedure.query(async ({ ctx }) => {
     // Check if the LATEST mood is anxious (not just any recent anxious mood)
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000)
 
     // Get the most recent mood entry
     const [latestMood] = await ctx.db
@@ -326,13 +298,11 @@ export const userRouter = router({
       .from(moodHistory)
       .where(eq(moodHistory.userId, ctx.user.id))
       .orderBy(desc(moodHistory.createdAt))
-      .limit(1);
+      .limit(1)
 
     // Check if latest mood is anxious and within last 24 hours
     const hasAnxiousMood =
-      latestMood &&
-      latestMood.mood === "anxious" &&
-      latestMood.createdAt >= oneDayAgo;
+      latestMood && latestMood.mood === 'anxious' && latestMood.createdAt >= oneDayAgo
 
     // Check journal entries for anxious mood in last 24 hours
     const [anxiousJournal] = await ctx.db
@@ -341,16 +311,16 @@ export const userRouter = router({
       .where(
         and(
           eq(journalEntries.userId, ctx.user.id),
-          eq(journalEntries.mood, "anxious"),
+          eq(journalEntries.mood, 'anxious'),
           gte(journalEntries.createdAt, oneDayAgo)
         )
       )
-      .limit(1);
+      .limit(1)
 
     return {
       hasAnxiety: Boolean(hasAnxiousMood || anxiousJournal),
-      source: hasAnxiousMood ? "mood" : anxiousJournal ? "journal" : null,
-    };
+      source: hasAnxiousMood ? 'mood' : anxiousJournal ? 'journal' : null,
+    }
   }),
 
   checkTermsAccepted: protectedProcedure.query(async ({ ctx }) => {
@@ -358,21 +328,21 @@ export const userRouter = router({
       .select({ termsAcceptedAt: users.termsAcceptedAt, role: users.role })
       .from(users)
       .where(eq(users.id, ctx.user.id))
-      .limit(1);
+      .limit(1)
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found')
     }
 
     // Both psychologists and patients need to accept terms
-    if (user.role !== "psychologist" && user.role !== "patient") {
-      return { needsToAcceptTerms: false, termsAcceptedAt: null };
+    if (user.role !== 'psychologist' && user.role !== 'patient') {
+      return { needsToAcceptTerms: false, termsAcceptedAt: null }
     }
 
     return {
       needsToAcceptTerms: !user.termsAcceptedAt,
       termsAcceptedAt: user.termsAcceptedAt,
-    };
+    }
   }),
 
   acceptTerms: protectedProcedure.mutation(async ({ ctx }) => {
@@ -380,14 +350,14 @@ export const userRouter = router({
       .select({ role: users.role })
       .from(users)
       .where(eq(users.id, ctx.user.id))
-      .limit(1);
+      .limit(1)
 
     if (!user) {
-      throw new Error("User not found");
+      throw new Error('User not found')
     }
 
-    if (user.role !== "psychologist" && user.role !== "patient") {
-      throw new Error("Only psychologists and patients need to accept terms");
+    if (user.role !== 'psychologist' && user.role !== 'patient') {
+      throw new Error('Only psychologists and patients need to accept terms')
     }
 
     await ctx.db
@@ -396,9 +366,9 @@ export const userRouter = router({
         termsAcceptedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(users.id, ctx.user.id));
+      .where(eq(users.id, ctx.user.id))
 
-    return { success: true };
+    return { success: true }
   }),
 
   // Verificar se a conta está suspensa ou deletada - usa procedimento especial que NÃO bloqueia suspensos
@@ -417,10 +387,10 @@ export const userRouter = router({
       })
       .from(users)
       .where(eq(users.id, ctx.user.id))
-      .limit(1);
+      .limit(1)
 
     if (!user) {
-      return { isSuspended: false, isDeleted: false };
+      return { isSuspended: false, isDeleted: false }
     }
 
     return {
@@ -435,7 +405,7 @@ export const userRouter = router({
       isDeleted: Boolean(user.deletedAt),
       deletedAt: user.deletedAt,
       deletedReason: user.deletedReason,
-    };
+    }
   }),
 
   // ============================================
@@ -444,7 +414,7 @@ export const userRouter = router({
 
   // Exportar todos os dados do usuário (Portabilidade - Art. 18, V LGPD)
   exportMyData: protectedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.user.id;
+    const userId = ctx.user.id
 
     // Buscar dados do usuário
     const [user] = await ctx.db
@@ -464,10 +434,10 @@ export const userRouter = router({
       })
       .from(users)
       .where(eq(users.id, userId))
-      .limit(1);
+      .limit(1)
 
     if (!user) {
-      throw new Error("Usuário não encontrado");
+      throw new Error('Usuário não encontrado')
     }
 
     // Buscar tarefas
@@ -485,7 +455,7 @@ export const userRouter = router({
         createdAt: tasks.createdAt,
       })
       .from(tasks)
-      .where(and(eq(tasks.userId, userId), isNull(tasks.deletedAt)));
+      .where(and(eq(tasks.userId, userId), isNull(tasks.deletedAt)))
 
     // Buscar entradas do diário
     const userJournals = await ctx.db
@@ -499,9 +469,7 @@ export const userRouter = router({
         createdAt: journalEntries.createdAt,
       })
       .from(journalEntries)
-      .where(
-        and(eq(journalEntries.userId, userId), isNull(journalEntries.deletedAt))
-      );
+      .where(and(eq(journalEntries.userId, userId), isNull(journalEntries.deletedAt)))
 
     // Buscar histórico de humor
     const userMoods = await ctx.db
@@ -511,7 +479,7 @@ export const userRouter = router({
         createdAt: moodHistory.createdAt,
       })
       .from(moodHistory)
-      .where(eq(moodHistory.userId, userId));
+      .where(eq(moodHistory.userId, userId))
 
     // Buscar sessões de meditação
     const userMeditations = await ctx.db
@@ -523,7 +491,7 @@ export const userRouter = router({
         createdAt: meditationSessions.createdAt,
       })
       .from(meditationSessions)
-      .where(eq(meditationSessions.userId, userId));
+      .where(eq(meditationSessions.userId, userId))
 
     // Buscar recompensas
     const userRewards = await ctx.db
@@ -538,7 +506,7 @@ export const userRouter = router({
         createdAt: rewards.createdAt,
       })
       .from(rewards)
-      .where(and(eq(rewards.userId, userId), isNull(rewards.deletedAt)));
+      .where(and(eq(rewards.userId, userId), isNull(rewards.deletedAt)))
 
     // Buscar conquistas (badges)
     const userBadges = await ctx.db
@@ -550,18 +518,18 @@ export const userRouter = router({
         unlockedAt: badges.unlockedAt,
       })
       .from(badges)
-      .where(eq(badges.userId, userId));
+      .where(eq(badges.userId, userId))
 
     // Buscar estatísticas
     const [stats] = await ctx.db
       .select()
       .from(userStats)
       .where(eq(userStats.userId, userId))
-      .limit(1);
+      .limit(1)
 
     const exportData = {
       exportedAt: new Date().toISOString(),
-      format: "LGPD_PORTABILITY_v1",
+      format: 'LGPD_PORTABILITY_v1',
       user: {
         ...user,
         createdAt: user.createdAt?.toISOString(),
@@ -596,9 +564,9 @@ export const userRouter = router({
         ...b,
         unlockedAt: b.unlockedAt?.toISOString(),
       })),
-    };
+    }
 
-    return exportData;
+    return exportData
   }),
 
   // Solicitar exclusão de conta (Eliminação - Art. 18, VI LGPD)
@@ -610,46 +578,43 @@ export const userRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.user.id;
+      const userId = ctx.user.id
 
       // Verificar se o email de confirmação está correto
       const [user] = await ctx.db
         .select({ email: users.email, role: users.role })
         .from(users)
         .where(eq(users.id, userId))
-        .limit(1);
+        .limit(1)
 
       if (!user) {
-        throw new Error("Usuário não encontrado");
+        throw new Error('Usuário não encontrado')
       }
 
       if (user.email.toLowerCase() !== input.confirmEmail.toLowerCase()) {
-        throw new Error(
-          "E-mail de confirmação não corresponde ao e-mail da conta"
-        );
+        throw new Error('E-mail de confirmação não corresponde ao e-mail da conta')
       }
 
       // Se for terapeuta, não permitir exclusão se tiver pacientes vinculados
       // (eles precisam primeiro desvincular todos os pacientes)
-      if (user.role === "psychologist") {
-        const { psychologistPatients } = await import("@/lib/db/schema");
+      if (user.role === 'psychologist') {
+        const { psychologistPatients } = await import('@/lib/db/schema')
         const linkedPatients = await ctx.db
           .select({ id: psychologistPatients.id })
           .from(psychologistPatients)
           .where(eq(psychologistPatients.psychologistId, userId))
-          .limit(1);
+          .limit(1)
 
         if (linkedPatients.length > 0) {
           throw new Error(
-            "Você possui pacientes vinculados. Desvincule todos os pacientes antes de excluir sua conta."
-          );
+            'Você possui pacientes vinculados. Desvincule todos os pacientes antes de excluir sua conta.'
+          )
         }
       }
 
       // Realizar soft delete
-      const now = new Date();
-      const deletionReason =
-        input.reason || "Solicitação do titular (LGPD Art. 18, VI)";
+      const now = new Date()
+      const deletionReason = input.reason || 'Solicitação do titular (LGPD Art. 18, VI)'
 
       await ctx.db
         .update(users)
@@ -658,12 +623,12 @@ export const userRouter = router({
           deletedReason: deletionReason,
           updatedAt: now,
         })
-        .where(eq(users.id, userId));
+        .where(eq(users.id, userId))
 
       return {
         success: true,
         message:
-          "Sua conta foi marcada para exclusão. Você será deslogado automaticamente. Seus dados serão anonimizados/excluídos em até 30 dias, conforme nossa política de privacidade.",
-      };
+          'Sua conta foi marcada para exclusão. Você será deslogado automaticamente. Seus dados serão anonimizados/excluídos em até 30 dias, conforme nossa política de privacidade.',
+      }
     }),
-});
+})

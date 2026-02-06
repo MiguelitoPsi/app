@@ -1,10 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { Toaster } from 'sonner'
 import { ServiceWorkerRegister } from '@/components/ServiceWorkerRegister'
 import { SuspensionCheck } from '@/components/SuspensionCheck'
 import { SoundProvider } from '@/context/SoundContext'
-import { Toaster } from 'sonner'
 import { TRPCProvider } from '@/lib/trpc/Provider'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -61,7 +61,7 @@ export default function RootLayout({
           <SoundProvider>
             <SuspensionCheck />
             <ServiceWorkerRegister />
-            <Toaster richColors position='top-right' />
+            <Toaster position='top-right' richColors />
             {children}
           </SoundProvider>
         </TRPCProvider>

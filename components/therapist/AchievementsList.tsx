@@ -3,13 +3,13 @@
 import { Award, Lock } from 'lucide-react'
 import type React from 'react'
 import { useState } from 'react'
-import { getIconByKey } from '@/lib/utils/icon-map'
 import {
   THERAPIST_BADGE_CATEGORIES,
   THERAPIST_BADGE_DEFINITIONS,
   type TherapistBadgeCategory,
 } from '@/lib/constants/therapist'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
 
 export const AchievementsList: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<TherapistBadgeCategory | 'all'>('all')

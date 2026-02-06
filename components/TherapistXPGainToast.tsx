@@ -22,19 +22,13 @@ export function TherapistXPGainToast() {
       <AnimatePresence>
         {xpGains.map((gain, index) => (
           <motion.div
-            key={gain.id}
-            initial={{ 
-              opacity: 0, 
-              x: 100, 
-              scale: 0.5,
-              rotate: 10,
-            }}
-            animate={{ 
-              opacity: 1, 
-              x: 0, 
+            animate={{
+              opacity: 1,
+              x: 0,
               scale: 1,
               rotate: 0,
             }}
+            className='relative'
             exit={{
               opacity: 0,
               x: 50,
@@ -42,41 +36,47 @@ export function TherapistXPGainToast() {
               y: -20,
               transition: { duration: 0.3, ease: 'easeOut' },
             }}
-            transition={{ 
-              type: 'spring', 
-              stiffness: 400, 
+            initial={{
+              opacity: 0,
+              x: 100,
+              scale: 0.5,
+              rotate: 10,
+            }}
+            key={gain.id}
+            transition={{
+              type: 'spring',
+              stiffness: 400,
               damping: 20,
               delay: index * 0.1, // Stagger effect
             }}
-            className='relative'
           >
             {/* Glow effect */}
             <motion.div
-              className='absolute inset-0 rounded-full bg-emerald-400 blur-xl'
               animate={{
                 opacity: [0.3, 0.5, 0.3],
                 scale: [1, 1.2, 1],
               }}
+              className='absolute inset-0 rounded-full bg-emerald-400 blur-xl'
               transition={{
                 duration: 1,
-                repeat: Infinity,
+                repeat: Number.POSITIVE_INFINITY,
                 ease: 'easeInOut',
               }}
             />
-            
+
             {/* Main toast */}
             <motion.div
-              className='relative flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 px-5 py-2.5 text-white shadow-xl shadow-emerald-500/30'
               animate={{
                 backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
               }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'linear',
-              }}
+              className='relative flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 px-5 py-2.5 text-white shadow-xl shadow-emerald-500/30'
               style={{
                 backgroundSize: '200% 100%',
+              }}
+              transition={{
+                duration: 3,
+                repeat: Number.POSITIVE_INFINITY,
+                ease: 'linear',
               }}
             >
               {/* Animated icon */}
@@ -87,45 +87,43 @@ export function TherapistXPGainToast() {
                 }}
                 transition={{
                   duration: 0.6,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                 }}
               >
                 <Sparkles className='h-5 w-5' />
               </motion.div>
-              
+
               {/* XP amount with counter effect would be nice but keeping it simple */}
-              <span className='font-bold text-base tracking-tight'>
-                +{gain.amount} XP
-              </span>
-              
+              <span className='font-bold text-base tracking-tight'>+{gain.amount} XP</span>
+
               {/* Floating stars */}
               <motion.div
-                className='absolute -right-1 -top-1'
                 animate={{
                   opacity: [0, 1, 0],
                   scale: [0.5, 1, 0.5],
                   y: [0, -8, 0],
                 }}
+                className='absolute -right-1 -top-1'
                 transition={{
                   duration: 1,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   delay: 0.3,
                 }}
               >
                 <Star className='h-3 w-3 fill-yellow-300 text-yellow-300' />
               </motion.div>
-              
+
               <motion.div
-                className='absolute -left-2 top-0'
                 animate={{
                   opacity: [0, 1, 0],
                   scale: [0.5, 1, 0.5],
                   y: [0, -6, 0],
                   x: [0, -4, 0],
                 }}
+                className='absolute -left-2 top-0'
                 transition={{
                   duration: 0.8,
-                  repeat: Infinity,
+                  repeat: Number.POSITIVE_INFINITY,
                   delay: 0.5,
                 }}
               >

@@ -13,12 +13,12 @@ import {
   Sparkles,
   X,
 } from 'lucide-react'
-import { getIconByKey } from '@/lib/utils/icon-map'
-import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
+import { translateMood } from '@/lib/utils/mood'
 import { useGame } from '../context/GameContext'
 import type { Mood } from '../types'
 
@@ -268,14 +268,12 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                 <div className='flex items-center gap-1.5'>
                   {filterMood !== null && (
                     <span className='rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400'>
-                      {filterMood === 'all' ? (
-                        'Todas'
-                      ) : (
-                        (() => {
-                          const Icon = getIconByKey(getMoodEmoji(filterMood))
-                          return <Icon size={10} />
-                        })()
-                      )}
+                      {filterMood === 'all'
+                        ? 'Todas'
+                        : (() => {
+                            const Icon = getIconByKey(getMoodEmoji(filterMood))
+                            return <Icon size={10} />
+                          })()}
                     </span>
                   )}
                   {filterDate !== 'all' && (
@@ -336,37 +334,38 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                     >
                       Todas
                     </button>
-                    {([
-                      'happy',
-                      'excited',
-                      'grateful',
-                      'calm',
-                      'neutral',
-                      'tired',
-                      'bored',
-                      'sad',
-                      'anxious',
-                      'fearful',
-                      'angry',
-                      'disgusted',
-                    ] as Mood[]).map((mood) => (
-                        <button
-                          className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
-                            filterMood === mood
-                              ? 'bg-sky-500 text-white shadow-sm dark:bg-sky-600'
-                              : 'bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
-                          }`}
-                          key={mood}
-                          onClick={() => setFilterMood(filterMood === mood ? null : mood)}
-                          type='button'
-                        >
-                          {(() => {
-                            const Icon = getIconByKey(getMoodEmoji(mood))
-                            return <Icon size={14} />
-                          })()}
-                        </button>
-                      )
-                    )}
+                    {(
+                      [
+                        'happy',
+                        'excited',
+                        'grateful',
+                        'calm',
+                        'neutral',
+                        'tired',
+                        'bored',
+                        'sad',
+                        'anxious',
+                        'fearful',
+                        'angry',
+                        'disgusted',
+                      ] as Mood[]
+                    ).map((mood) => (
+                      <button
+                        className={`rounded-lg px-2.5 py-1 text-[11px] font-semibold transition-all ${
+                          filterMood === mood
+                            ? 'bg-sky-500 text-white shadow-sm dark:bg-sky-600'
+                            : 'bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600'
+                        }`}
+                        key={mood}
+                        onClick={() => setFilterMood(filterMood === mood ? null : mood)}
+                        type='button'
+                      >
+                        {(() => {
+                          const Icon = getIconByKey(getMoodEmoji(mood))
+                          return <Icon size={14} />
+                        })()}
+                      </button>
+                    ))}
                   </div>
                 </div>
 
@@ -476,14 +475,12 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                     <span className='font-medium'>Filtros ativos:</span>
                     {filterMood !== null && (
                       <span className='rounded-full bg-sky-100 px-2 py-0.5 font-semibold text-sky-700 dark:bg-sky-900/30 dark:text-sky-400 overflow-hidden'>
-                        {filterMood === 'all' ? (
-                          'Todas emoções'
-                        ) : (
-                          (() => {
-                            const Icon = getIconByKey(getMoodEmoji(filterMood))
-                            return <Icon size={12} />
-                          })()
-                        )}
+                        {filterMood === 'all'
+                          ? 'Todas emoções'
+                          : (() => {
+                              const Icon = getIconByKey(getMoodEmoji(filterMood))
+                              return <Icon size={12} />
+                            })()}
                       </span>
                     )}
                     {filterDate !== 'all' && (
@@ -689,4 +686,3 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
     </div>
   )
 }
-

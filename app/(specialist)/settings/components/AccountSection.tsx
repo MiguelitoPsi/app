@@ -1,15 +1,15 @@
 'use client'
 
 import {
+  AlertTriangle,
   CheckCircle2,
   Eye,
   EyeOff,
   FileText,
   Key,
-  Trash2,
-  AlertTriangle,
   Moon,
   Sun,
+  Trash2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
@@ -124,7 +124,7 @@ export function AccountSection() {
     },
   })
 
-  const handleDeleteAccount = async () => {
+  const handleDeleteAccount = () => {
     setDeleteError('')
     if (!deleteEmail) {
       setDeleteError('Por favor, confirme seu e-mail')
@@ -381,20 +381,21 @@ export function AccountSection() {
                 <div className='text-sm'>
                   <p className='font-bold mb-1'>Atenção: Zona de Perigo</p>
                   <p>
-                    Ao excluir sua conta, todos os seus dados serão anonimizados ou removidos permanentemente após 30 dias. 
-                    Você perderá acesso a todos os registros, pacientes e histórico. 
-                    Se você é um especialista com pacientes vinculados, precisará desvinculá-los antes.
+                    Ao excluir sua conta, todos os seus dados serão anonimizados ou removidos
+                    permanentemente após 30 dias. Você perderá acesso a todos os registros,
+                    pacientes e histórico. Se você é um especialista com pacientes vinculados,
+                    precisará desvinculá-los antes.
                   </p>
                 </div>
               </div>
             </div>
 
             <form
+              className='space-y-4'
               onSubmit={(e) => {
                 e.preventDefault()
                 handleDeleteAccount()
               }}
-              className="space-y-4"
             >
               <div>
                 <label className='mb-1.5 block font-medium text-slate-700 text-xs sm:text-sm dark:text-slate-300'>
@@ -431,9 +432,9 @@ export function AccountSection() {
               <div className='flex justify-end gap-3'>
                 <button
                   className='rounded-xl border border-slate-200 px-4 py-2.5 font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+                  disabled={isDeleting}
                   onClick={() => setShowDeleteConfirm(false)}
                   type='button'
-                  disabled={isDeleting}
                 >
                   Cancelar
                 </button>

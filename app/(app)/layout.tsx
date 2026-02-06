@@ -57,7 +57,9 @@ function AppHeader() {
         >
           <div className='mb-1.5 flex items-center justify-between sm:mb-2'>
             <div>
-              <p className='font-medium text-[10px] text-violet-100'>{stats.name || 'Carregando...'}</p>
+              <p className='font-medium text-[10px] text-violet-100'>
+                {stats.name || 'Carregando...'}
+              </p>
               <h2 className='font-bold text-sm sm:text-base'>{currentRank.name}</h2>
             </div>
             <div className='text-right'>

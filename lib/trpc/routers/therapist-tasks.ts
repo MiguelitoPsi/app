@@ -7,14 +7,17 @@ import { TRPCError } from '@trpc/server'
 import { and, asc, eq, gte, isNull, lt, ne, or, sql } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 import { z } from 'zod'
-import { patientTasksFromTherapist, psychologistPatients, tasks, therapistTasks, users } from '@/lib/db/schema'
 import { TASK_LIMITS } from '@/lib/constants'
-
+import {
+  patientTasksFromTherapist,
+  psychologistPatients,
+  therapistFinancial,
+  therapistTasks,
+} from '@/lib/db/schema'
 import { PUSH_TEMPLATES, sendPushToUser } from '@/lib/push'
+import { formatDateSP, nowInSP } from '@/lib/utils/timezone'
 import { awardTherapistXP, type THERAPIST_XP_ACTIONS } from '@/lib/xp/therapist'
-import { getStartOfDay, nowInSP, formatDateSP } from '@/lib/utils/timezone'
 import { protectedProcedure, router } from '../trpc'
-import { therapistFinancial } from '@/lib/db/schema'
 
 // XP rewards for therapist tasks by priority
 const THERAPIST_TASK_XP: Record<string, number> = {
@@ -153,11 +156,7 @@ export const therapistTasksRouter = router({
       }
 
       // Se for sessão com frequência única, precisa ter dueDate selecionado
-      if (
-        input.taskCategory === 'sessao' &&
-        input.frequency === 'once' &&
-        !input.dueDate
-      ) {
+      if (input.taskCategory === 'sessao' && input.frequency === 'once' && !input.dueDate) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'É necessário selecionar a data para sessão única',
@@ -211,23 +210,23 @@ export const therapistTasksRouter = router({
 
       // Gerar datas para tarefas recorrentes de sessão baseadas no dia da semana
       const generateRecurringDatesFromWeekDays = (
-        targetMonth: number,
-        targetYear: number,
+        month: number,
+        year: number,
         frequency: 'weekly' | 'biweekly' | undefined
       ): Date[] => {
-        if (!frequency || !input.weekDays || input.weekDays.length === 0) {
+        if (!(frequency && input.weekDays) || input.weekDays.length === 0) {
           return []
         }
 
         const dates: Date[] = []
-        const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0)
+        const lastDayOfMonth = new Date(year, month + 1, 0)
         const todayStart = new Date(today)
         todayStart.setHours(0, 0, 0, 0)
 
         // Encontrar o primeiro dia da semana correto a partir de HOJE (usando getDay() local)
         const dayOfWeek = input.weekDays[0] // Usamos o primeiro dia selecionado (0-6, onde 0=Domingo)
 
-        let currentDate = new Date(todayStart)
+        const currentDate = new Date(todayStart)
 
         // Encontrar o primeiro dia da semana correto a partir de hoje
         // Se hoje é o dia correto, usamos hoje, senão procuramos a próxima ocorrência
@@ -245,7 +244,15 @@ export const therapistTasksRouter = router({
 
         while (currentDate <= lastDayOfMonth) {
           // Criar data às 12:00 local para garantir exibição correta no frontend
-          const normalizedDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate(), 12, 0, 0, 0)
+          const normalizedDate = new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            12,
+            0,
+            0,
+            0
+          )
           dates.push(normalizedDate)
           currentDate.setDate(currentDate.getDate() + interval)
         }
@@ -254,10 +261,7 @@ export const therapistTasksRouter = router({
       }
 
       // Gerar datas para sessões únicas baseadas em dia do mês
-      const generateRecurringDateFromMonthDay = (
-        targetMonth: number,
-        targetYear: number
-      ): Date[] => {
+      const generateRecurringDateFromMonthDay = (month: number, year: number): Date[] => {
         if (!input.monthDay) {
           return []
         }
@@ -267,16 +271,16 @@ export const therapistTasksRouter = router({
         const currentYear = today.getFullYear()
 
         // Se o dia selecionado for menor que hoje E não é o mês atual, não criar
-        if (input.monthDay < todayDay && targetMonth === currentMonth && targetYear === currentYear) {
+        if (input.monthDay < todayDay && month === currentMonth && year === currentYear) {
           return []
         }
 
         // Se o mês/ano alvo é anterior ao atual, não criar
-        if (targetYear < currentYear || (targetYear === currentYear && targetMonth < currentMonth)) {
+        if (year < currentYear || (year === currentYear && month < currentMonth)) {
           return []
         }
 
-        const lastDayOfMonth = new Date(targetYear, targetMonth + 1, 0)
+        const lastDayOfMonth = new Date(year, month + 1, 0)
 
         // Verificar se o dia existe no mês (evitar 31 em meses com 30 dias, etc)
         if (input.monthDay > lastDayOfMonth.getDate()) {
@@ -284,7 +288,7 @@ export const therapistTasksRouter = router({
         }
 
         // Isso garante que a data nunca mude para o dia anterior
-        const date = new Date(targetYear, targetMonth, input.monthDay, 12, 0, 0, 0)
+        const date = new Date(year, month, input.monthDay, 12, 0, 0, 0)
 
         return [date]
       }
@@ -305,7 +309,11 @@ export const therapistTasksRouter = router({
       const targetYear = today.getFullYear()
 
       const recurringDates = isSessionWithWeekDays
-        ? generateRecurringDatesFromWeekDays(targetMonth, targetYear, input.frequency as 'weekly' | 'biweekly')
+        ? generateRecurringDatesFromWeekDays(
+            targetMonth,
+            targetYear,
+            input.frequency as 'weekly' | 'biweekly'
+          )
         : isSessionWithMonthDay // Deprecated path, kept for safety but shouldn't be hit with new frontend
           ? generateRecurringDateFromMonthDay(targetMonth, targetYear)
           : parsedDueDate
@@ -315,12 +323,12 @@ export const therapistTasksRouter = router({
       // Validar limites para a rotina do TERAPEUTA (Minha Rotina)
       // Sessões são exceções e podem exceder o limite
       if (parsedDueDate && input.taskCategory !== 'sessao') {
-        const taskDateForValidation = new Date(parsedDueDate);
-        taskDateForValidation.setHours(0, 0, 0, 0);
-        
-        const dayStart = new Date(taskDateForValidation);
-        const dayEnd = new Date(dayStart);
-        dayEnd.setDate(dayEnd.getDate() + 1);
+        const taskDateForValidation = new Date(parsedDueDate)
+        taskDateForValidation.setHours(0, 0, 0, 0)
+
+        const dayStart = new Date(taskDateForValidation)
+        const dayEnd = new Date(dayStart)
+        dayEnd.setDate(dayEnd.getDate() + 1)
 
         const myTasksOnDate = await ctx.db
           .select()
@@ -335,22 +343,22 @@ export const therapistTasksRouter = router({
               // Não contar tarefas canceladas se houver status cancelado (mas aqui só temos pending/completed/in_progress)
               ne(therapistTasks.status, 'cancelled')
             )
-          );
-        
-        const totalMyTasks = myTasksOnDate.length;
+          )
+
+        const totalMyTasks = myTasksOnDate.length
 
         if (effectivePriority === 'high' && totalMyTasks >= TASK_LIMITS.high) {
-             throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: `Você já possui ${totalMyTasks} tarefas de prioridade ALTA para esta data (Limite: ${TASK_LIMITS.high}).`
-            })
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Você já possui ${totalMyTasks} tarefas de prioridade ALTA para esta data (Limite: ${TASK_LIMITS.high}).`,
+          })
         }
 
         if (effectivePriority === 'medium' && totalMyTasks >= TASK_LIMITS.medium) {
-             throw new TRPCError({
-                code: 'BAD_REQUEST',
-                message: `Você já possui ${totalMyTasks} tarefas de prioridade MÉDIA para esta data (Limite: ${TASK_LIMITS.medium}).`
-            })
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: `Você já possui ${totalMyTasks} tarefas de prioridade MÉDIA para esta data (Limite: ${TASK_LIMITS.medium}).`,
+          })
         }
       }
 
@@ -462,7 +470,7 @@ export const therapistTasksRouter = router({
 
         // Se a tarefa tinha um registro financeiro associado (sessão), remover
         if (task.type === 'session' && task.metadata?.sessionValue) {
-           await ctx.db
+          await ctx.db
             .delete(therapistFinancial)
             .where(
               and(
@@ -473,7 +481,7 @@ export const therapistTasksRouter = router({
         }
 
         // Sincronizar com a tarefa do paciente se for uma sessão
-        if (task.type === 'session' && task.patientId) {
+        if (task.type === 'session' && task.patientId && task.dueDate) {
           await ctx.db
             .update(patientTasksFromTherapist)
             .set({
@@ -485,7 +493,7 @@ export const therapistTasksRouter = router({
               and(
                 eq(patientTasksFromTherapist.therapistId, ctx.user.id),
                 eq(patientTasksFromTherapist.patientId, task.patientId),
-                eq(patientTasksFromTherapist.dueDate, task.dueDate!)
+                eq(patientTasksFromTherapist.dueDate, task.dueDate)
               )
             )
         }
@@ -508,7 +516,7 @@ export const therapistTasksRouter = router({
         .where(eq(therapistTasks.id, input.id))
 
       // Sincronizar com a tarefa do paciente se for uma sessão
-      if (task.type === 'session' && task.patientId) {
+      if (task.type === 'session' && task.patientId && task.dueDate) {
         await ctx.db
           .update(patientTasksFromTherapist)
           .set({
@@ -520,7 +528,7 @@ export const therapistTasksRouter = router({
             and(
               eq(patientTasksFromTherapist.therapistId, ctx.user.id),
               eq(patientTasksFromTherapist.patientId, task.patientId),
-              eq(patientTasksFromTherapist.dueDate, task.dueDate!)
+              eq(patientTasksFromTherapist.dueDate, task.dueDate)
             )
           )
       }
@@ -540,9 +548,7 @@ export const therapistTasksRouter = router({
           .limit(1)
 
         if (existingRecord.length === 0) {
-           const patientName = task.patientId ? (await ctx.db.select({ name: users.name }).from(users).where(eq(users.id, task.patientId)).limit(1))[0]?.name : 'Paciente'
-           
-           await ctx.db.insert(therapistFinancial).values({
+          await ctx.db.insert(therapistFinancial).values({
             id: nanoid(),
             therapistId: ctx.user.id,
             type: 'income',
@@ -555,10 +561,10 @@ export const therapistTasksRouter = router({
             status: 'pending', // Pagamento pendente até confirmação manual
             metadata: {
               notes: 'Gerado automaticamente via rotina',
-              taskId: task.id
-            }
+              taskId: task.id,
+            },
           })
-          
+
           await awardTherapistXP(ctx.db, ctx.user.id, 'updateFinancialRecord')
         }
       }

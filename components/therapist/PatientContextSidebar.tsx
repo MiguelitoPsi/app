@@ -1,18 +1,9 @@
 'use client'
 
-import {
-  Calendar,
-  CreditCard,
-  FileText,
-  Home,
-  Settings,
-  User,
-  Users,
-  Video,
-} from 'lucide-react'
+import { CreditCard, FileText, Home, Settings, User, Users, Video } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import React from 'react'
+import type React from 'react'
 
 const tabs = [
   { id: 'principal', label: 'Principal', icon: Home },
@@ -25,17 +16,20 @@ const tabs = [
   { id: 'preferencias', label: 'Preferências', icon: Settings },
 ]
 
-interface PatientContextSidebarProps {
+type PatientContextSidebarProps = {
   patientName: string
   patientInitials: string
-  onBack: () => void
+  onBackAction?: () => void
+  onBack?: () => void
 }
 
 export const PatientContextSidebar: React.FC<PatientContextSidebarProps> = ({
   patientName,
   patientInitials,
+  onBackAction,
   onBack,
 }) => {
+  const handleBack = onBackAction || onBack
   const pathname = usePathname()
   const patientId = pathname.split('/').pop()
 
@@ -46,7 +40,8 @@ export const PatientContextSidebar: React.FC<PatientContextSidebarProps> = ({
         <div className='border-b border-slate-200 p-4 dark:border-slate-700'>
           <button
             className='flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
-            onClick={onBack}
+            onClick={handleBack}
+            type='button'
           >
             <Home className='h-4 w-4' />
             Voltar ao Painel
@@ -59,9 +54,7 @@ export const PatientContextSidebar: React.FC<PatientContextSidebarProps> = ({
             <div className='flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-cyan-500 text-xl font-bold text-white'>
               {patientInitials}
             </div>
-            <h2 className='mt-3 font-semibold text-slate-800 dark:text-white'>
-              {patientName}
-            </h2>
+            <h2 className='mt-3 font-semibold text-slate-800 dark:text-white'>{patientName}</h2>
           </div>
         </div>
 

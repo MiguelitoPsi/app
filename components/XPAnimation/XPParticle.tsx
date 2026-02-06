@@ -1,7 +1,7 @@
 'use client'
 
-import type React from 'react'
 import { motion } from 'framer-motion'
+import type React from 'react'
 import type { Particle } from '@/hooks/useXPAnimation'
 import { getIconByKey } from '@/lib/utils/icon-map'
 
@@ -11,7 +11,7 @@ type XPParticleProps = {
 
 /**
  * XPParticle - Partícula animada de ganho de XP/Pontos
- * 
+ *
  * Usa Framer Motion para criar uma animação suave e gamificada:
  * - Aparece com scale-up + fade-in
  * - Voa em arco suave até o destino (XP bar)
@@ -25,23 +25,23 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
 
   return (
     <motion.div
-      className="pointer-events-none fixed z-[9999]"
-      style={{
-        left: 0,
-        top: 0,
-        transform: 'translate(-50%, -50%)',
-      }}
-      initial={{ 
-        x: origin.x, 
-        y: origin.y, 
-        opacity: 0, 
-        scale: 0.3,
-      }}
-      animate={{ 
+      animate={{
         x: target.x,
         y: target.y,
         opacity: [0, 1, 1, 0],
         scale: [0.3, 1.1, 1, 0.8],
+      }}
+      className='pointer-events-none fixed z-[9999]'
+      initial={{
+        x: origin.x,
+        y: origin.y,
+        opacity: 0,
+        scale: 0.3,
+      }}
+      style={{
+        left: 0,
+        top: 0,
+        transform: 'translate(-50%, -50%)',
       }}
       transition={{
         duration: 3.5,
@@ -57,58 +57,56 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
       }}
     >
       {/* Glow effect behind */}
-      <motion.div 
-        className={`absolute inset-0 rounded-full blur-md ${
-          isXP 
-            ? 'bg-violet-400' 
-            : 'bg-amber-400'
-        }`}
+      <motion.div
         animate={{
           opacity: [0.3, 0.6, 0.3],
           scale: [1, 1.3, 1],
         }}
-        transition={{
-          duration: 1.8,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        className={`absolute inset-0 rounded-full blur-md ${
+          isXP ? 'bg-violet-400' : 'bg-amber-400'
+        }`}
         style={{
           width: '100%',
           height: '100%',
         }}
+        transition={{
+          duration: 1.8,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: 'easeInOut',
+        }}
       />
-      
+
       {/* Main particle */}
       <motion.div
+        animate={{
+          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+        }}
         className={`relative flex items-center gap-1.5 rounded-full px-4 py-2 font-bold text-sm shadow-xl ${
           isXP
             ? 'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-violet-500 text-white shadow-violet-500/40'
             : 'bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 text-white shadow-amber-500/40'
         }`}
-        animate={{
-          backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: "linear",
-        }}
         style={{
           backgroundSize: '200% 100%',
           textShadow: '0 2px 8px rgba(0,0,0,0.3)',
         }}
+        transition={{
+          duration: 2,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: 'linear',
+        }}
       >
         {/* Sparkle icons */}
-        <motion.span 
-          className="text-lg"
+        <motion.span
           animate={{
             rotate: [0, 10, -10, 0],
             scale: [1, 1.15, 1],
           }}
+          className='text-lg'
           transition={{
             duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut",
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
           }}
         >
           {(() => {
@@ -116,24 +114,24 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
             return <Icon size={20} />
           })()}
         </motion.span>
-        
-        <span className="font-extrabold tracking-tight">
+
+        <span className='font-extrabold tracking-tight'>
           +{amount} {isXP ? 'XP' : 'Pts'}
         </span>
-        
+
         {/* Extra sparkle for visual interest */}
         <motion.span
-          className="absolute -right-1 -top-1 text-xs"
           animate={{
             opacity: [0, 1, 0],
             scale: [0.5, 1.1, 0.5],
             y: [-2, -10, -2],
           }}
+          className='absolute -right-1 -top-1 text-xs'
           transition={{
             duration: 2,
-            repeat: Infinity,
+            repeat: Number.POSITIVE_INFINITY,
             delay: 0.4,
-            ease: "easeInOut",
+            ease: 'easeInOut',
           }}
         >
           {(() => {
@@ -142,30 +140,34 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
           })()}
         </motion.span>
       </motion.div>
-      
+
       {/* Trail particles */}
       <motion.div
-        className={`absolute -z-10 h-2 w-2 rounded-full ${
-          isXP ? 'bg-violet-300' : 'bg-amber-300'
-        }`}
-        style={{
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)',
-        }}
         animate={{
           opacity: [0.7, 0],
           scale: [0.8, 0.2],
           y: [0, 25],
         }}
+        className={`absolute -z-10 h-2 w-2 rounded-full ${isXP ? 'bg-violet-300' : 'bg-amber-300'}`}
+        style={{
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)',
+        }}
         transition={{
           duration: 1.5,
-          repeat: Infinity,
+          repeat: Number.POSITIVE_INFINITY,
           delay: 0.2,
-          ease: "easeOut",
+          ease: 'easeOut',
         }}
       />
       <motion.div
+        animate={{
+          opacity: [0.5, 0],
+          scale: [0.6, 0.1],
+          y: [0, 18],
+          x: [-5, -12],
+        }}
         className={`absolute -z-10 h-1.5 w-1.5 rounded-full ${
           isXP ? 'bg-fuchsia-300' : 'bg-orange-300'
         }`}
@@ -174,17 +176,11 @@ export const XPParticle: React.FC<XPParticleProps> = ({ particle }) => {
           top: '50%',
           transform: 'translate(-50%, -50%)',
         }}
-        animate={{
-          opacity: [0.5, 0],
-          scale: [0.6, 0.1],
-          y: [0, 18],
-          x: [-5, -12],
-        }}
         transition={{
           duration: 1.2,
-          repeat: Infinity,
+          repeat: Number.POSITIVE_INFINITY,
           delay: 0.4,
-          ease: "easeOut",
+          ease: 'easeOut',
         }}
       />
     </motion.div>

@@ -24,11 +24,9 @@ import {
   Stethoscope,
   Sun,
   Trash2,
-  Volume2,
-  VolumeX,
   X,
 } from 'lucide-react'
-import { getIconByKey } from '@/lib/utils/icon-map'
+
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
 import type React from 'react'
@@ -109,7 +107,7 @@ export const HomeView: React.FC = () => {
   const { particles, triggerAnimation } = useXPAnimation()
 
   // Sound effects
-  const { playMood, playToggle, playPop, playNavigation, soundEnabled, toggleSound } = useSound()
+  const { playMood, playToggle, playPop, playNavigation } = useSound()
 
   // Fetch mood history from backend
   const { data: moodHistoryData = [] } = trpc.user.getMoodHistory.useQuery({
@@ -468,12 +466,42 @@ export const HomeView: React.FC = () => {
   }, [moodHistoryData])
 
   const moods: { id: Mood; label: string; image: string; emoji: string }[] = [
-    { id: 'happy', label: translateMood('happy'), image: '/mascote/feliz.png', emoji: '😄' },
-    { id: 'calm', label: translateMood('calm'), image: '/mascote/calmo.png', emoji: '😌' },
-    { id: 'neutral', label: translateMood('neutral'), image: '/mascote/neutro.png', emoji: '😐' },
-    { id: 'sad', label: translateMood('sad'), image: '/mascote/triste.png', emoji: '😢' },
-    { id: 'anxious', label: translateMood('anxious'), image: '/mascote/ansioso.png', emoji: '😰' },
-    { id: 'angry', label: translateMood('angry'), image: '/mascote/raiva.png', emoji: '😡' },
+    {
+      id: 'happy',
+      label: translateMood('happy'),
+      image: '/mascote/feliz.png',
+      emoji: '😄',
+    },
+    {
+      id: 'calm',
+      label: translateMood('calm'),
+      image: '/mascote/calmo.png',
+      emoji: '😌',
+    },
+    {
+      id: 'neutral',
+      label: translateMood('neutral'),
+      image: '/mascote/neutro.png',
+      emoji: '😐',
+    },
+    {
+      id: 'sad',
+      label: translateMood('sad'),
+      image: '/mascote/triste.png',
+      emoji: '😢',
+    },
+    {
+      id: 'anxious',
+      label: translateMood('anxious'),
+      image: '/mascote/ansioso.png',
+      emoji: '😰',
+    },
+    {
+      id: 'angry',
+      label: translateMood('angry'),
+      image: '/mascote/raiva.png',
+      emoji: '😡',
+    },
   ]
 
   return (
@@ -525,93 +553,92 @@ export const HomeView: React.FC = () => {
           ref={scrollContainerRef}
         >
           <div className='flex flex-col gap-1.5 shrink-0'>
-          {/* Feedback Notification Alert */}
-          {unviewedFeedbackCount > 0 && (
-            <button
-              aria-label={`Você tem ${unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta. Clique para ver.`}
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
-              onClick={() => router.push('/journal/history')}
-              type='button'
-            >
-              <div className='flex items-center gap-2 sm:gap-3'>
-                <div className='animate-pulse rounded-xl bg-emerald-100 p-2 text-emerald-600 sm:rounded-2xl sm:p-2.5 dark:bg-emerald-900/40 dark:text-emerald-400'>
-                  <MessageSquare className='sm:hidden' size={18} />
-                  <MessageSquare className='hidden sm:block' size={20} />
+            {/* Feedback Notification Alert */}
+            {unviewedFeedbackCount > 0 && (
+              <button
+                aria-label={`Você tem ${unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta. Clique para ver.`}
+                className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-emerald-100 bg-emerald-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-emerald-900/30 dark:bg-emerald-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2'
+                onClick={() => router.push('/journal/history')}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='animate-pulse rounded-xl bg-emerald-100 p-2 text-emerald-600 sm:rounded-2xl sm:p-2.5 dark:bg-emerald-900/40 dark:text-emerald-400'>
+                    <MessageSquare className='sm:hidden' size={18} />
+                    <MessageSquare className='hidden sm:block' size={20} />
+                  </div>
+                  <div className='text-left'>
+                    <h3 className='font-bold text-emerald-700 text-xs sm:text-sm dark:text-emerald-300'>
+                      Novo Feedback Recebido
+                    </h3>
+                    <p className='font-medium text-emerald-600/80 text-[10px] sm:text-xs dark:text-emerald-400/80'>
+                      Você tem {unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta.
+                    </p>
+                  </div>
                 </div>
-                <div className='text-left'>
-                  <h3 className='font-bold text-emerald-700 text-xs sm:text-sm dark:text-emerald-300'>
-                    Novo Feedback Recebido
-                  </h3>
-                  <p className='font-medium text-emerald-600/80 text-[10px] sm:text-xs dark:text-emerald-400/80'>
-                    Você tem {unviewedFeedbackCount} novo(s) feedback(s) do seu terapeuta.
-                  </p>
+                <div className='flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 sm:h-8 sm:w-8 dark:bg-emerald-900/30'>
+                  <ArrowRight className='text-emerald-600 dark:text-emerald-400' size={14} />
                 </div>
-              </div>
-              <div className='flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 sm:h-8 sm:w-8 dark:bg-emerald-900/30'>
-                <ArrowRight className='text-emerald-600 dark:text-emerald-400' size={14} />
-              </div>
-            </button>
-          )}
+              </button>
+            )}
 
-          {/* Urgent Tasks Alert */}
-          {urgentTasks.length > 0 && (
-            <button
-              aria-label={`Atenção: ${urgentTasks.length} tarefa${
-                urgentTasks.length > 1 ? 's' : ''
-              } de alta prioridade hoje. Clique para ver.`}
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-red-100 bg-red-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-red-900/30 dark:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
-              onClick={() => router.push('/routine')}
-              type='button'
-            >
-              <div className='flex items-center gap-2 sm:gap-3'>
-                <div className='animate-pulse rounded-xl bg-red-100 p-2 text-red-500 sm:rounded-2xl sm:p-2.5 dark:bg-red-900/40'>
-                  <AlertCircle className='sm:hidden' size={18} />
-                  <AlertCircle className='hidden sm:block' size={20} />
+            {/* Urgent Tasks Alert */}
+            {urgentTasks.length > 0 && (
+              <button
+                aria-label={`Atenção: ${urgentTasks.length} tarefa${
+                  urgentTasks.length > 1 ? 's' : ''
+                } de alta prioridade hoje. Clique para ver.`}
+                className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-red-100 bg-red-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-red-900/30 dark:bg-red-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2'
+                onClick={() => router.push('/routine')}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='animate-pulse rounded-xl bg-red-100 p-2 text-red-500 sm:rounded-2xl sm:p-2.5 dark:bg-red-900/40'>
+                    <AlertCircle className='sm:hidden' size={18} />
+                    <AlertCircle className='hidden sm:block' size={20} />
+                  </div>
+                  <div className='text-left'>
+                    <h3 className='font-bold text-red-700 text-xs sm:text-sm dark:text-red-300'>
+                      Atenção Necessária
+                    </h3>
+                    <p className='font-medium text-red-600/80 text-[10px] sm:text-xs dark:text-red-400/80'>
+                      Você tem {urgentTasks.length} tarefa
+                      {urgentTasks.length > 1 ? 's' : ''} de alta prioridade hoje.
+                    </p>
+                  </div>
                 </div>
-                <div className='text-left'>
-                  <h3 className='font-bold text-red-700 text-xs sm:text-sm dark:text-red-300'>
-                    Atenção Necessária
-                  </h3>
-                  <p className='font-medium text-red-600/80 text-[10px] sm:text-xs dark:text-red-400/80'>
-                    Você tem {urgentTasks.length} tarefa
-                    {urgentTasks.length > 1 ? 's' : ''} de alta prioridade hoje.
-                  </p>
+                <div className='flex h-7 w-7 items-center justify-center rounded-full bg-red-100 sm:h-8 sm:w-8 dark:bg-red-900/30'>
+                  <ArrowRight className='text-red-500 dark:text-red-400' size={14} />
                 </div>
-              </div>
-              <div className='flex h-7 w-7 items-center justify-center rounded-full bg-red-100 sm:h-8 sm:w-8 dark:bg-red-900/30'>
-                <ArrowRight className='text-red-500 dark:text-red-400' size={14} />
-              </div>
-            </button>
-          )}
+              </button>
+            )}
 
-          {/* Meditation Suggestion Alert for Anxiety */}
-          {selectedMood === 'anxious' && (
-            <button
-              aria-label='Sugestão: Que tal uma meditação para aliviar a ansiedade? Clique para meditar.'
-              className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-teal-100 bg-teal-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-teal-900/30 dark:bg-teal-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2'
-              onClick={() => router.push('/meditation')}
-              type='button'
-            >
-              <div className='flex items-center gap-2 sm:gap-3'>
-                <div className='animate-pulse rounded-xl bg-teal-100 p-2 text-teal-500 sm:rounded-2xl sm:p-2.5 dark:bg-teal-900/40'>
-                  <Sparkles className='sm:hidden' size={18} />
-                  <Sparkles className='hidden sm:block' size={20} />
+            {/* Meditation Suggestion Alert for Anxiety */}
+            {selectedMood === 'anxious' && (
+              <button
+                aria-label='Sugestão: Que tal uma meditação para aliviar a ansiedade? Clique para meditar.'
+                className='slide-in-from-top-4 flex w-full animate-in items-center justify-between rounded-xl border border-teal-100 bg-teal-50 p-1.5 shadow-sm active:scale-[0.98] sm:rounded-2xl dark:border-teal-900/30 dark:bg-teal-900/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2'
+                onClick={() => router.push('/meditation')}
+                type='button'
+              >
+                <div className='flex items-center gap-2 sm:gap-3'>
+                  <div className='animate-pulse rounded-xl bg-teal-100 p-2 text-teal-500 sm:rounded-2xl sm:p-2.5 dark:bg-teal-900/40'>
+                    <Sparkles className='sm:hidden' size={18} />
+                    <Sparkles className='hidden sm:block' size={20} />
+                  </div>
+                  <div className='text-left'>
+                    <h3 className='font-bold text-teal-700 text-xs sm:text-sm dark:text-teal-300'>
+                      Momento de Cuidar de Você
+                    </h3>
+                    <p className='font-medium text-teal-600/80 text-[10px] sm:text-xs dark:text-teal-400/80'>
+                      Que tal uma meditação para aliviar a ansiedade?
+                    </p>
+                  </div>
                 </div>
-                <div className='text-left'>
-                  <h3 className='font-bold text-teal-700 text-xs sm:text-sm dark:text-teal-300'>
-                    Momento de Cuidar de Você
-                  </h3>
-                  <p className='font-medium text-teal-600/80 text-[10px] sm:text-xs dark:text-teal-400/80'>
-                    Que tal uma meditação para aliviar a ansiedade?
-                  </p>
+                <div className='flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 sm:h-8 sm:w-8 dark:bg-teal-900/30'>
+                  <ArrowRight className='text-teal-500 dark:text-teal-400' size={14} />
                 </div>
-              </div>
-              <div className='flex h-7 w-7 items-center justify-center rounded-full bg-teal-100 sm:h-8 sm:w-8 dark:bg-teal-900/30'>
-                <ArrowRight className='text-teal-500 dark:text-teal-400' size={14} />
-              </div>
-            </button>
-          )}
-
+              </button>
+            )}
           </div>
           {/* Middle Section: Avatar (More compact container) */}
           <div className='flex shrink-0 items-center justify-center'>
@@ -622,103 +649,99 @@ export const HomeView: React.FC = () => {
           <div className='flex flex-col gap-1.5 shrink-0'>
             {/* Quick Mood Check-in */}
             <fieldset className='rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm transition-colors sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'>
-            <legend className='sr-only'>Selecione como você está se sentindo</legend>
-            <h3
-              className='mb-2 flex items-center gap-2 font-bold text-slate-800 text-xs sm:text-sm dark:text-white'
-              id='mood-heading'
-            >
-              Como você se sente?
-              {isXPAvailable && (
-                <span className='animate-pulse rounded-full bg-sky-100 px-2 py-0.5 font-bold text-[9px] text-sky-600 sm:text-[10px] dark:bg-sky-900/30 dark:text-sky-300'>
-                  +{XP_REWARDS.mood} XP
-                  <span className='sr-only'> disponível ao registrar seu humor</span>
-                </span>
-              )}
-            </h3>
-            <div className='flex justify-between gap-1'>
-              {moods.map((m) => (
-                <button
-                  aria-label={`${m.label}${selectedMood === m.id ? ' (selecionado)' : ''}`}
-                  aria-pressed={selectedMood === m.id}
-                  className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${
-                    selectedMood === m.id
-                      ? 'scale-105 bg-sky-50 shadow-sm ring-2 ring-sky-100 sm:scale-110 dark:bg-sky-900/20 dark:ring-sky-900/30'
-                      : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
-                  } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
-                  disabled={!isXPAvailable}
-                  key={m.id}
-                  onClick={(e) => handleMoodChange(m.id, e)}
-                  type='button'
+              <legend className='sr-only'>Selecione como você está se sentindo</legend>
+              <h3
+                className='mb-2 flex items-center gap-2 font-bold text-slate-800 text-xs sm:text-sm dark:text-white'
+                id='mood-heading'
+              >
+                Como você se sente?
+                {isXPAvailable && (
+                  <span className='animate-pulse rounded-full bg-sky-100 px-2 py-0.5 font-bold text-[9px] text-sky-600 sm:text-[10px] dark:bg-sky-900/30 dark:text-sky-300'>
+                    +{XP_REWARDS.mood} XP
+                    <span className='sr-only'> disponível ao registrar seu humor</span>
+                  </span>
+                )}
+              </h3>
+              <div className='flex justify-between gap-1'>
+                {moods.map((m) => (
+                  <button
+                    aria-label={`${m.label}${selectedMood === m.id ? ' (selecionado)' : ''}`}
+                    aria-pressed={selectedMood === m.id}
+                    className={`flex flex-1 flex-col items-center gap-1 rounded-xl p-1.5 transition-all duration-300 sm:rounded-2xl sm:p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 ${
+                      selectedMood === m.id
+                        ? 'scale-105 bg-sky-50 shadow-sm ring-2 ring-sky-100 sm:scale-110 dark:bg-sky-900/20 dark:ring-sky-900/30'
+                        : 'active:scale-95 hover:bg-slate-50 dark:hover:bg-slate-800'
+                    } ${isXPAvailable ? '' : 'cursor-not-allowed opacity-50'}`}
+                    disabled={!isXPAvailable}
+                    key={m.id}
+                    onClick={(e) => handleMoodChange(m.id, e)}
+                    type='button'
                   >
                     <span className='flex h-6 w-6 items-center justify-center text-xl sm:h-8 sm:w-8 sm:text-2xl'>
                       {m.emoji}
                     </span>
                   </button>
-              ))}
-            </div>
-          </fieldset>
+                ))}
+              </div>
+            </fieldset>
 
             {/* Quick Actions */}
             <section aria-label='Ações rápidas' className='grid grid-cols-2 gap-2'>
-            <button
-              aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
-              className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
-              onClick={() => {
-                playNavigation()
-                router.push('/journal')
-              }}
-              type='button'
-            >
-              <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
-              <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
-                <BookOpen size={24} />
-                <div className='text-left'>
-                    <div className='font-bold text-sm leading-tight'>
-                      Diário de Pensamento
+              <button
+                aria-label={`Abrir diário de pensamento. Ganhe ${XP_REWARDS.journal} XP e pontos.`}
+                className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400 focus-visible:ring-offset-2'
+                onClick={() => {
+                  playNavigation()
+                  router.push('/journal')
+                }}
+                type='button'
+              >
+                <div className='absolute inset-0 bg-gradient-to-br from-sky-400 to-sky-600' />
+                <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
+                  <BookOpen size={24} />
+                  <div className='text-left'>
+                    <div className='font-bold text-sm leading-tight'>Diário de Pensamento</div>
+                    <div
+                      aria-hidden='true'
+                      className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
+                    >
+                      +{XP_REWARDS.journal} XP & Pts
                     </div>
-                  <div
-                    aria-hidden='true'
-                    className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
-                  >
-                    +{XP_REWARDS.journal} XP & Pts
                   </div>
                 </div>
-              </div>
-            </button>
+              </button>
 
-            <button
-              aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
-              className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
-              onClick={() => {
-                playNavigation()
-                router.push('/meditation')
-              }}
-              type='button'
-            >
-              <div className='absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600' />
-              <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
-                <Heart size={24} />
-                <div className='text-left'>
-                    <div className='font-bold text-sm leading-tight'>
-                      Meditação Rápida
+              <button
+                aria-label={`Iniciar meditação rápida. Ganhe ${XP_REWARDS.meditation} XP e pontos.`}
+                className='group relative overflow-hidden rounded-xl p-4 transition-all duration-300 hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-2'
+                onClick={() => {
+                  playNavigation()
+                  router.push('/meditation')
+                }}
+                type='button'
+              >
+                <div className='absolute inset-0 bg-gradient-to-br from-teal-400 to-teal-600' />
+                <div className='relative flex flex-row items-center justify-center gap-3 text-white'>
+                  <Heart size={24} />
+                  <div className='text-left'>
+                    <div className='font-bold text-sm leading-tight'>Meditação Rápida</div>
+                    <div
+                      aria-hidden='true'
+                      className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
+                    >
+                      +{XP_REWARDS.meditation} XP & Pts
                     </div>
-                  <div
-                    aria-hidden='true'
-                    className='mt-1.5 inline-block rounded-full bg-white/20 px-2.5 py-0.5 font-bold text-[10px] sm:text-xs'
-                  >
-                    +{XP_REWARDS.meditation} XP & Pts
                   </div>
                 </div>
-              </div>
-            </button>
-          </section>
+              </button>
+            </section>
           </div>
 
-            {/* Weekly Mood Chart */}
-            <section
-              aria-label='Gráfico de humor semanal'
-              className='shrink-0 rounded-xl border border-slate-100 bg-white px-3 py-1.5 shadow-sm transition-colors sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'
-            >
+          {/* Weekly Mood Chart */}
+          <section
+            aria-label='Gráfico de humor semanal'
+            className='shrink-0 rounded-xl border border-slate-100 bg-white px-3 py-1.5 shadow-sm transition-colors sm:rounded-2xl dark:border-slate-800 dark:bg-slate-900'
+          >
             <div className='mb-1 flex items-center gap-1.5'>
               <div
                 aria-hidden='true'
@@ -726,7 +749,9 @@ export const HomeView: React.FC = () => {
               >
                 <BarChart2 size={12} />
               </div>
-              <h2 className='font-bold text-[10px] text-slate-800 dark:text-white'>Humor Semanal</h2>
+              <h2 className='font-bold text-[10px] text-slate-800 dark:text-white'>
+                Humor Semanal
+              </h2>
             </div>
             {isMounted && (
               <div className='h-20 w-full'>
@@ -1377,4 +1402,3 @@ export const HomeView: React.FC = () => {
     </>
   )
 }
-

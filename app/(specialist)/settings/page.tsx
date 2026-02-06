@@ -20,7 +20,7 @@ export default function SettingsPage() {
               Gerencie suas preferências e conta
             </p>
           </div>
-          
+
           <SettingsSidebar activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
       </aside>

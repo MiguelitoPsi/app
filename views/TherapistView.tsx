@@ -39,18 +39,16 @@ import {
   Users,
   X,
 } from 'lucide-react'
-import { getIconByKey } from '@/lib/utils/icon-map'
-import { translateMood } from '@/lib/utils/mood'
 import type React from 'react'
-import { useEffect, useMemo, useRef, useState, useDeferredValue, useCallback } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
-
 import { TherapistProfileModal } from '@/components/TherapistProfileModal'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
-
 import { useTherapistGame } from '@/context/TherapistGameContext'
 import { authClient } from '@/lib/auth-client'
 import { trpc } from '@/lib/trpc/client'
+import { getIconByKey } from '@/lib/utils/icon-map'
+import { translateMood } from '@/lib/utils/mood'
 import type { JournalEntry, Mood, Reward, RewardCategory } from '../types'
 
 const getMoodEmoji = (mood: Mood) => {
@@ -101,9 +99,10 @@ export const TherapistView: React.FC = () => {
   const [feedbackText, setFeedbackText] = useState('')
 
   // XP notification state
-  const [xpNotification, setXpNotification] = useState<{ amount: number; action: string } | null>(
-    null
-  )
+  const [xpNotification, setXpNotification] = useState<{
+    amount: number
+    action: string
+  } | null>(null)
 
   // Patient search state
   const [patientSearchQuery, setPatientSearchQuery] = useState('')
@@ -148,14 +147,19 @@ export const TherapistView: React.FC = () => {
   // Fetch patient journal entries - only when journal tab is active
   const { data: patientJournalData = [] } = trpc.journal.getAll.useQuery(
     { userId: selectedPatientId },
-    { enabled: !!selectedPatientId && (activeSection === 'journal' || activeSection === 'overview') }
+    {
+      enabled: !!selectedPatientId && (activeSection === 'journal' || activeSection === 'overview'),
+    }
   )
 
   // Fetch patient rewards - only when rewards tab is active
   const { data: patientRewardsData = [], refetch: refetchPatientRewards } =
     trpc.reward.getAll.useQuery(
-      { userId: selectedPatientId }, 
-      { enabled: !!selectedPatientId && (activeSection === 'rewards' || activeSection === 'overview') }
+      { userId: selectedPatientId },
+      {
+        enabled:
+          !!selectedPatientId && (activeSection === 'rewards' || activeSection === 'overview'),
+      }
     )
 
   // Update reward cost mutation
@@ -275,19 +279,6 @@ export const TherapistView: React.FC = () => {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false)
   const [inviteLink, setInviteLink] = useState<string>('')
   const [isLinkCopied, setIsLinkCopied] = useState(false)
-  const [nudgeSent, setNudgeSent] = useState(false)
-
-  const sendNudgeMutation = trpc.patient.sendNudge.useMutation({
-    onSuccess: () => {
-      setNudgeSent(true)
-      setTimeout(() => setNudgeSent(false), 3000)
-    },
-  })
-
-  const handleSendNudge = () => {
-    if (!selectedPatientId) return
-    sendNudgeMutation.mutate({ patientId: selectedPatientId })
-  }
 
   const openCostModal = (reward: Reward) => {
     setEditingReward(reward)
@@ -367,32 +358,34 @@ export const TherapistView: React.FC = () => {
   const stats = normalizePatientStats(selectedPatient)
 
   // Transform patient journal data from DB format to component format (memoized)
-  const transformedJournalData: JournalEntry[] = useMemo(() => 
-    patientJournalData.map((entry) => ({
-      id: entry.id,
-      timestamp: entry.createdAt ? new Date(entry.createdAt).getTime() : Date.now(),
-      emotion: (entry.mood || 'neutral') as Mood,
-      intensity: 5, // Default intensity since DB doesn't have this field
-      thought: entry.content,
-      aiAnalysis: entry.aiAnalysis || undefined,
-      isRead: entry.isRead ?? undefined,
-      therapistFeedback: entry.therapistFeedback || undefined,
-      feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
-      feedbackViewed: entry.feedbackViewed ?? undefined,
-    })),
+  const transformedJournalData: JournalEntry[] = useMemo(
+    () =>
+      patientJournalData.map((entry) => ({
+        id: entry.id,
+        timestamp: entry.createdAt ? new Date(entry.createdAt).getTime() : Date.now(),
+        emotion: (entry.mood || 'neutral') as Mood,
+        intensity: 5, // Default intensity since DB doesn't have this field
+        thought: entry.content,
+        aiAnalysis: entry.aiAnalysis || undefined,
+        isRead: entry.isRead ?? undefined,
+        therapistFeedback: entry.therapistFeedback || undefined,
+        feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
+        feedbackViewed: entry.feedbackViewed ?? undefined,
+      })),
     [patientJournalData]
   )
 
   // Transform patient rewards data from DB format to component format (memoized)
-  const transformedRewardsData: Reward[] = useMemo(() =>
-    patientRewardsData.map((reward) => ({
-      id: reward.id,
-      title: reward.title,
-      category: (reward.category || 'lazer') as RewardCategory,
-      cost: reward.cost,
-      status: reward.claimed ? 'redeemed' : reward.cost > 0 ? 'approved' : 'pending',
-      createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
-    })),
+  const transformedRewardsData: Reward[] = useMemo(
+    () =>
+      patientRewardsData.map((reward) => ({
+        id: reward.id,
+        title: reward.title,
+        category: (reward.category || 'lazer') as RewardCategory,
+        cost: reward.cost,
+        status: reward.claimed ? 'redeemed' : reward.cost > 0 ? 'approved' : 'pending',
+        createdAt: reward.createdAt ? new Date(reward.createdAt).getTime() : Date.now(),
+      })),
     [patientRewardsData]
   )
 
@@ -1084,12 +1077,36 @@ export const TherapistView: React.FC = () => {
                     </label>
                     <div className='flex flex-wrap gap-1.5 sm:gap-2'>
                       {[
-                        { id: 'happy', emoji: 'happy', label: translateMood('happy') },
-                        { id: 'calm', emoji: 'calm', label: translateMood('calm') },
-                        { id: 'neutral', emoji: 'neutral', label: translateMood('neutral') },
-                        { id: 'sad', emoji: 'sad', label: translateMood('sad') },
-                        { id: 'anxious', emoji: 'anxious', label: translateMood('anxious') },
-                        { id: 'angry', emoji: 'angry', label: translateMood('angry') },
+                        {
+                          id: 'happy',
+                          emoji: 'happy',
+                          label: translateMood('happy'),
+                        },
+                        {
+                          id: 'calm',
+                          emoji: 'calm',
+                          label: translateMood('calm'),
+                        },
+                        {
+                          id: 'neutral',
+                          emoji: 'neutral',
+                          label: translateMood('neutral'),
+                        },
+                        {
+                          id: 'sad',
+                          emoji: 'sad',
+                          label: translateMood('sad'),
+                        },
+                        {
+                          id: 'anxious',
+                          emoji: 'anxious',
+                          label: translateMood('anxious'),
+                        },
+                        {
+                          id: 'angry',
+                          emoji: 'angry',
+                          label: translateMood('angry'),
+                        },
                       ].map((mood) => {
                         const count = emotionCounts[mood.id] || 0
                         return (
@@ -2551,4 +2568,3 @@ export const TherapistView: React.FC = () => {
     </div>
   )
 }
-

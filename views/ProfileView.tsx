@@ -1,6 +1,3 @@
-
-import { getIconByKey } from '@/lib/utils/icon-map'
-
 import {
   AlertTriangle,
   Bell,
@@ -26,8 +23,6 @@ import {
   Target,
   Trash2,
   Trophy,
-  Volume2,
-  VolumeX,
   X,
 } from 'lucide-react'
 import type React from 'react'
@@ -35,12 +30,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import AvatarOficial from '@/components/Avatar-oficial'
 import { HelpButton } from '@/components/HelpButton'
 import { usePushNotifications } from '@/hooks/usePushNotifications'
-import { useSound } from '@/hooks/useSound'
 import { authClient } from '@/lib/auth-client'
 import { BADGE_CATEGORIES } from '@/lib/constants'
+import { getIconByKey } from '@/lib/utils/icon-map'
 import { getXPForLevel, getXPInfo } from '@/lib/xp'
 import { RANKS, useGame } from '../context/GameContext'
-import type { BadgeDefinition, Tab, UserStats } from '../types'
+import type { BadgeDefinition, Tab } from '../types'
 
 // Props allow parent navigation
 type ProfileViewProps = {
@@ -49,7 +44,7 @@ type ProfileViewProps = {
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   const { stats, currentMood, allBadges, toggleTheme } = useGame()
-  const { soundEnabled, toggleSound, playToggle } = useSound()
+
   const [selectedBadge, setSelectedBadge] = useState<BadgeDefinition | null>(null)
   const [activeTab, setActiveTab] = useState<'stats' | 'rank' | 'achievements'>('stats')
   const [showSettings, setShowSettings] = useState(false)
@@ -292,11 +287,11 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
   // Determine badge status, treating 100% progress as unlocked
   const getBadgeStatus = (badge: BadgeDefinition) => {
     const unlockedInfo = stats.badges.find((b) => b.id === badge.id)
-    
+
     let rawValue: number | boolean = 0
     if (badge.metric === 'auto') {
-       // Auto badges depend on whether they are unlocked in DB
-      rawValue = !!unlockedInfo ? 1 : 0
+      // Auto badges depend on whether they are unlocked in DB
+      rawValue = unlockedInfo ? 1 : 0
     } else if (badge.metric === 'level') {
       rawValue = stats.level
     } else {
@@ -304,7 +299,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
       rawValue = (stats as any)[badge.metric] || 0
     }
 
-    const metricValue = typeof rawValue === 'number' ? rawValue : (rawValue ? 1 : 0)
+    const metricValue = typeof rawValue === 'number' ? rawValue : rawValue ? 1 : 0
 
     const percentage =
       badge.requirement > 0
@@ -313,11 +308,12 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
 
     // Strict checks:
     // 1. Level requirement must be met (UI-side correction)
-    const meetsLevelRequirement = badge.metric !== 'level' || (stats.level >= badge.requirement)
+    const meetsLevelRequirement = badge.metric !== 'level' || stats.level >= badge.requirement
     // 2. Context must not explicitly say it's locked (if calculated there)
     const contextSaysLocked = badge.isUnlocked === false
-    
-    const isUnlocked = (!!unlockedInfo || percentage === 100) && meetsLevelRequirement && !contextSaysLocked
+
+    const isUnlocked =
+      (!!unlockedInfo || percentage === 100) && meetsLevelRequirement && !contextSaysLocked
 
     return {
       isUnlocked,
@@ -1375,4 +1371,3 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ onNavigate }) => {
     </div>
   )
 }
-

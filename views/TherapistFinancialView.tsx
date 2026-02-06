@@ -19,17 +19,7 @@ import {
 } from 'lucide-react'
 import type React from 'react'
 import { useMemo, useState } from 'react'
-import {
-  Bar,
-  BarChart,
-  Cell,
-  Pie,
-  PieChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip } from 'recharts'
 import { FINANCIAL_CATEGORIES } from '@/lib/constants/therapist'
 import {
   formatCurrency,
@@ -58,13 +48,6 @@ const defaultFormData: RecordFormData = {
   amount: '',
   description: '',
   date: new Date().toISOString().split('T')[0],
-}
-
-const CHART_COLORS = {
-  income: '#10B981',
-  expense: '#EF4444',
-  pj: '#3B82F6',
-  cpf: '#8B5CF6',
 }
 
 // Period Selector Component
@@ -100,9 +83,7 @@ function PeriodSelector({
         >
           <Calendar className='h-4 w-4' />
           <span>{selectedOption?.label}</span>
-          <ChevronDown
-            className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          />
+          <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
@@ -152,7 +133,12 @@ function AccountTypeTabs({
 }) {
   const tabs = [
     { id: 'all' as const, label: 'Geral', icon: Wallet, color: 'emerald' },
-    { id: 'pj' as const, label: 'Pessoa Jurídica', icon: Building2, color: 'blue' },
+    {
+      id: 'pj' as const,
+      label: 'Pessoa Jurídica',
+      icon: Building2,
+      color: 'blue',
+    },
     { id: 'cpf' as const, label: 'Pessoa Física', icon: User, color: 'purple' },
   ]
 
@@ -207,7 +193,9 @@ function DashboardCard({
   }
 
   return (
-    <div className={`rounded-2xl bg-gradient-to-br ${colorClasses[color]} p-5 text-white shadow-lg`}>
+    <div
+      className={`rounded-2xl bg-gradient-to-br ${colorClasses[color]} p-5 text-white shadow-lg`}
+    >
       <div className='mb-3 flex items-start justify-between'>
         <div className='rounded-xl bg-white/20 p-2.5'>
           <Icon className='h-5 w-5' />
@@ -237,10 +225,8 @@ function DashboardCard({
 // Mini Chart Component for category breakdown
 function CategoryBreakdown({
   data,
-  type,
 }: {
   data: Array<{ name: string; value: number; color: string }>
-  type: 'income' | 'expense'
 }) {
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
@@ -255,7 +241,7 @@ function CategoryBreakdown({
   return (
     <div className='flex items-center gap-4'>
       <div className='h-24 w-24 flex-shrink-0'>
-        <ResponsiveContainer width='100%' height='100%'>
+        <ResponsiveContainer height='100%' width='100%'>
           <PieChart>
             <Pie
               cx='50%'
@@ -288,10 +274,7 @@ function CategoryBreakdown({
         {data.slice(0, 4).map((item, index) => (
           <div className='flex items-center justify-between text-sm' key={index}>
             <div className='flex items-center gap-2'>
-              <div
-                className='h-2.5 w-2.5 rounded-full'
-                style={{ backgroundColor: item.color }}
-              />
+              <div className='h-2.5 w-2.5 rounded-full' style={{ backgroundColor: item.color }} />
               <span className='text-slate-600 dark:text-slate-400'>{item.name}</span>
             </div>
             <span className='font-medium text-slate-800 dark:text-slate-200'>
@@ -431,7 +414,7 @@ export default function TherapistFinancialView(): React.ReactElement {
   // Calculate profit margin
   const profitMargin = useMemo(() => {
     if (!currentSummary || currentSummary.income === 0) return 0
-    return ((currentSummary.balance / currentSummary.income) * 100)
+    return (currentSummary.balance / currentSummary.income) * 100
   }, [currentSummary])
 
   return (
@@ -470,7 +453,7 @@ export default function TherapistFinancialView(): React.ReactElement {
         </div>
 
         {/* Account Type Tabs */}
-        <AccountTypeTabs value={accountType} onChange={setAccountType} />
+        <AccountTypeTabs onChange={setAccountType} value={accountType} />
       </div>
 
       {/* Dashboard Grid */}
@@ -518,7 +501,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                 <ArrowUpCircle className='h-5 w-5 text-emerald-500' />
                 Receitas por Categoria
               </h3>
-              <CategoryBreakdown data={categoryChartData.income} type='income' />
+              <CategoryBreakdown data={categoryChartData.income} />
             </div>
 
             {/* Expense by Category */}
@@ -527,7 +510,7 @@ export default function TherapistFinancialView(): React.ReactElement {
                 <ArrowDownCircle className='h-5 w-5 text-rose-500' />
                 Despesas por Categoria
               </h3>
-              <CategoryBreakdown data={categoryChartData.expense} type='expense' />
+              <CategoryBreakdown data={categoryChartData.expense} />
             </div>
           </div>
 
@@ -615,9 +598,7 @@ export default function TherapistFinancialView(): React.ReactElement {
       {showAddForm && (
         <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
           <div className='w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl dark:bg-slate-900'>
-            <h3 className='mb-4 text-lg font-bold text-slate-800 dark:text-white'>
-              Novo Registro
-            </h3>
+            <h3 className='mb-4 text-lg font-bold text-slate-800 dark:text-white'>Novo Registro</h3>
             <form className='space-y-4' onSubmit={handleSubmit}>
               {/* Account Type */}
               <div>
@@ -699,21 +680,21 @@ export default function TherapistFinancialView(): React.ReactElement {
                     .filter(([_, info]) => {
                       // Filter by transaction type (income/expense)
                       if (info.type !== 'both' && info.type !== formData.type) return false
-                      
+
                       // Filter by account type (pj/cpf)
                       if (
                         info.allowedAccounts &&
                         !info.allowedAccounts.includes(formData.accountType)
                       )
                         return false
-                        
+
                       return true
                     })
                     .map(([key, info]) => (
-                    <option key={key} value={key}>
-                      {info.label}
-                    </option>
-                  ))}
+                      <option key={key} value={key}>
+                        {info.label}
+                      </option>
+                    ))}
                 </select>
               </div>
 
