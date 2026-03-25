@@ -1,15 +1,15 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
-import { db } from '../lib/db'
-import { users, accounts, sessions } from '../lib/db/schema'
 import { eq } from 'drizzle-orm'
+import { db } from '../lib/db'
+import { accounts, sessions, users } from '../lib/db/schema'
 
 async function fixAdminAccount() {
   const userId = 'tbb0Hgu5g446mBRS1cas2w3ChwiXW66I'
   const email = 'nepsis.app@gmail.com'
-  
+
   console.log(`--- STARTING FIX FOR ADMIN: ${email} ---`)
 
   try {
@@ -22,27 +22,30 @@ async function fixAdminAccount() {
 
     // 2. Update User: mark email as verified and terms as accepted
     console.log('Updating user flags (emailVerified, termsAcceptedAt)...')
-    await db.update(users).set({
-      emailVerified: true,
-      termsAcceptedAt: new Date(),
-      updatedAt: new Date()
-    }).where(eq(users.id, userId))
+    await db
+      .update(users)
+      .set({
+        emailVerified: true,
+        termsAcceptedAt: new Date(),
+        updatedAt: new Date(),
+      })
+      .where(eq(users.id, userId))
 
     // 3. Fix Account record ID pattern (id should equal userId)
     console.log('Fixing account record structure...')
     const [account] = await db.select().from(accounts).where(eq(accounts.userId, userId)).limit(1)
-    
+
     if (account) {
       if (account.id !== userId) {
         console.log(`Mismatch found! Current account ID: ${account.id}. Changing to: ${userId}`)
-        
-        // Drizzle/Better-sqlite3 doesn't easily allow updating primary keys, 
+
+        // Drizzle/Better-sqlite3 doesn't easily allow updating primary keys,
         // so we delete and re-insert the same account with the correct ID.
         await db.delete(accounts).where(eq(accounts.id, account.id))
         await db.insert(accounts).values({
           ...account,
           id: userId,
-          updatedAt: new Date()
+          updatedAt: new Date(),
         })
         console.log('Account ID updated successfully.')
       } else {

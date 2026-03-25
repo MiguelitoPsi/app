@@ -3,16 +3,21 @@
 import {
   Activity,
   AlertCircle,
+  AlertTriangle,
   ArrowLeft,
+  Banknote,
   BookOpen,
   Brain,
   Briefcase,
+  Calendar as CalendarIcon,
   CheckCircle,
+  CheckCircle2,
   Clock,
   Download,
   Eye,
   FileAudio,
   FileText,
+  Flag,
   Heart,
   Loader2,
   Mail,
@@ -21,33 +26,59 @@ import {
   Mic,
   Phone,
   Plus,
+  RefreshCw,
+  Repeat,
   Scale,
+  Search,
+  Sparkles,
+  Target,
   Trophy,
   Upload,
   User,
+  Users,
   X,
 } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import AgendaSidebar from "@/components/therapist/AgendaSidebar";
+import Calendar from "@/components/therapist/Calendar";
+import { CognitiveConceptualizationWizard } from "@/components/CognitiveConceptualizationWizard";
 import { trpc } from "@/lib/trpc/client";
 import { translateEmotionWithEmoji, translateMood } from "@/lib/utils/mood";
 
+type PatientTab =
+  | "overview"
+  | "agenda"
+  | "tcc"
+  | "journal"
+  | "documents"
+  | "rewards"
+  | "session";
+
 export default function PatientProfilePage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const params = useParams();
   const searchParams = useSearchParams();
   const patientId = params.patientId as string;
   const tabParam = searchParams.get("tab");
 
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "tcc" | "journal" | "documents" | "rewards" | "session"
-  >("overview");
+  const [activeTab, setActiveTab] = useState<PatientTab>("overview");
 
   // Upload modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  // Cognitive Conceptualization Wizard state
+  const [showCognitiveWizard, setShowCognitiveWizard] = useState(false);
 
   // Upload state
   const [isUploading, setIsUploading] = useState(false);
@@ -55,6 +86,11 @@ export default function PatientProfilePage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (!tabParam || tabParam === "overview") {
+      setActiveTab("overview");
+      return;
+    }
+
     if (tabParam === "journal" || tabParam === "sessions") {
       setActiveTab("journal");
     } else if (tabParam === "tcc") {
@@ -65,8 +101,23 @@ export default function PatientProfilePage() {
       setActiveTab("rewards");
     } else if (tabParam === "session") {
       setActiveTab("session");
+    } else if (tabParam === "agenda") {
+      setActiveTab("agenda");
+    } else {
+      setActiveTab("overview");
     }
   }, [tabParam]);
+
+  const handleTabChange = useCallback(
+    (tab: PatientTab) => {
+      setActiveTab(tab);
+
+      const nextSearchParams = new URLSearchParams(searchParams.toString());
+      nextSearchParams.set("tab", tab);
+      router.replace(`${pathname}?${nextSearchParams.toString()}`);
+    },
+    [pathname, router, searchParams],
+  );
 
   // Buscar dados do usuário atual (terapeuta)
   const { data: currentUser } = trpc.user.getProfile.useQuery();
@@ -114,6 +165,279 @@ export default function PatientProfilePage() {
   );
 
   const utils = trpc.useUtils();
+
+  // === AGENDA TAB STATE ===
+  const [agendaSelectedDate, setAgendaSelectedDate] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const defaultTaskForm = {
+    title: "",
+    frequency: "weekly" as "once" | "daily" | "weekly" | "biweekly" | "monthly",
+    priority: "medium" as "low" | "medium" | "high",
+    dueDate: undefined as string | undefined,
+    type: "custom" as
+      | "feedback"
+      | "session"
+      | "review_records"
+      | "create_plan"
+      | "approve_reward"
+      | "custom",
+    taskCategory: undefined as "geral" | "sessao" | undefined,
+    weekDays: undefined as number[] | undefined,
+    monthDay: undefined as number | undefined,
+    monthDays: undefined as number[] | undefined,
+    sessionValue: undefined as number | undefined,
+  };
+  const [taskForm, setTaskForm] = useState(defaultTaskForm);
+  const [showAiSuggestions, setShowAiSuggestions] = useState(true);
+  const [showAgendaAlert, setShowAgendaAlert] = useState(false);
+  const [agendaAlertMessage, setAgendaAlertMessage] = useState("");
+  const [agendaAlertTitle, setAgendaAlertTitle] = useState("Atenção");
+
+  // === AGENDA TAB QUERIES ===
+  const { data: patientTasks } =
+    trpc.task.getPatientTasksFromTherapist.useQuery(
+      { patientId },
+      { enabled: !!patientId && activeTab === "agenda" },
+    );
+  const { data: aiSuggestions } = trpc.task.getAISuggestedTasks.useQuery(
+    { patientId },
+    { enabled: !!patientId && activeTab === "agenda" },
+  );
+
+  // === AGENDA TAB MUTATIONS ===
+  const createPatientTaskMutation = trpc.task.createForPatient.useMutation({
+    onMutate: async (newTask) => {
+      await utils.task.getPatientTasksFromTherapist.cancel({ patientId });
+      const previous = utils.task.getPatientTasksFromTherapist.getData({
+        patientId,
+      });
+      utils.task.getPatientTasksFromTherapist.setData(
+        { patientId },
+        (old) => {
+          if (!old) return [];
+          const tempId = Math.random().toString();
+          return [
+            ...old,
+            {
+              id: tempId,
+              title: newTask.title,
+              frequency: newTask.frequency || "daily",
+              priority: newTask.priority || "medium",
+              dueDate:
+                newTask.dueDate || new Date().toISOString().split("T")[0],
+              status: "pending",
+              patientId,
+              createdAt: new Date(),
+              completedAt: null,
+              description: newTask.description || null,
+              createdByTherapistId: null,
+            } as (typeof old)[number],
+          ];
+        },
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId },
+          context.previous,
+        );
+      }
+      toast.error("Erro ao criar tarefa");
+    },
+    onSettled: () => {
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId });
+    },
+    onSuccess: () => {
+      toast.success("Tarefa criada com sucesso!");
+    },
+  });
+
+  const deletePatientTaskMutation = trpc.task.deletePatientTask.useMutation({
+    onMutate: async ({ taskId }) => {
+      await utils.task.getPatientTasksFromTherapist.cancel({ patientId });
+      const previous = utils.task.getPatientTasksFromTherapist.getData({
+        patientId,
+      });
+      utils.task.getPatientTasksFromTherapist.setData(
+        { patientId },
+        (old) => (old || []).filter((t) => t.id !== taskId),
+      );
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId },
+          context.previous,
+        );
+      }
+      toast.error("Erro ao deletar tarefa");
+    },
+    onSettled: () => {
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId });
+    },
+    onSuccess: () => {
+      toast.success("Tarefa removida!");
+    },
+  });
+
+  const completePatientTaskMutation =
+    trpc.task.togglePatientTaskByTherapist.useMutation({
+      onMutate: async ({ taskId }) => {
+        await utils.task.getPatientTasksFromTherapist.cancel({ patientId });
+        const previous = utils.task.getPatientTasksFromTherapist.getData({
+          patientId,
+        });
+        utils.task.getPatientTasksFromTherapist.setData(
+          { patientId },
+          (old) =>
+            (old || []).map((t) =>
+              t.id === taskId
+                ? {
+                    ...t,
+                    status:
+                      t.status === "completed" ? "pending" : "completed",
+                  }
+                : t,
+            ),
+        );
+        return { previous };
+      },
+      onError: (_err, _vars, context) => {
+        if (context?.previous) {
+          utils.task.getPatientTasksFromTherapist.setData(
+            { patientId },
+            context.previous,
+          );
+        }
+        toast.error("Erro ao atualizar tarefa");
+      },
+      onSettled: () => {
+        utils.task.getPatientTasksFromTherapist.invalidate({ patientId });
+      },
+    });
+
+  const createSessionTaskMutation = trpc.therapistTasks.create.useMutation({
+    onSuccess: () => {
+      toast.success("Sessão agendada com sucesso!");
+      utils.task.getPatientTasksFromTherapist.invalidate({ patientId });
+    },
+    onError: (error) => {
+      toast.error(`Erro ao agendar sessão: ${error.message}`);
+    },
+  });
+
+  // === AGENDA TAB COMPUTED VALUES ===
+  const agendaDisplayTasks = useMemo(() => {
+    if (!patientTasks) return [];
+    return patientTasks.filter((task) => {
+      if (!task.dueDate) return true;
+      const td = new Date(task.dueDate);
+      td.setHours(0, 0, 0, 0);
+      return td.getTime() === agendaSelectedDate.getTime();
+    });
+  }, [patientTasks, agendaSelectedDate]);
+
+  const agendaDayProgress = useMemo(() => {
+    if (!agendaDisplayTasks.length) return 0;
+    const completed = agendaDisplayTasks.filter(
+      (t) => t.status === "completed",
+    ).length;
+    return Math.round((completed / agendaDisplayTasks.length) * 100);
+  }, [agendaDisplayTasks]);
+
+  const agendaShowProgressBar = agendaDisplayTasks.length > 0;
+
+  const agendaCalendarTasks = useMemo(() => {
+    if (!patientTasks) return [];
+    return patientTasks.map((t) => ({
+      dueDate: t.dueDate || new Date(),
+      id: t.id,
+      priority: t.priority,
+    }));
+  }, [patientTasks]);
+
+  const handleCreateAgendaTask = () => {
+    if (!taskForm.title.trim()) {
+      setAgendaAlertTitle("Atenção");
+      setAgendaAlertMessage("Por favor, insira um título para a tarefa.");
+      setShowAgendaAlert(true);
+      return;
+    }
+
+    if (taskForm.taskCategory === "sessao") {
+      const freq =
+        taskForm.frequency === "monthly" ? "weekly" : taskForm.frequency;
+      createSessionTaskMutation.mutate({
+        title: taskForm.title,
+        type: "session",
+        priority: "high",
+        frequency: freq,
+        isRecurring: freq !== "once",
+        dueDate: taskForm.dueDate,
+        patientId,
+        taskCategory: "sessao",
+        weekDays: taskForm.weekDays,
+        monthDay: taskForm.monthDay,
+        monthDays: taskForm.monthDays,
+        sessionValue: taskForm.sessionValue,
+      });
+    } else {
+      createPatientTaskMutation.mutate({
+        patientId,
+        title: taskForm.title,
+        frequency:
+          taskForm.frequency === "biweekly" || taskForm.frequency === "monthly"
+            ? "weekly"
+            : taskForm.frequency,
+        priority: taskForm.priority,
+        dueDate: taskForm.dueDate,
+      });
+    }
+    setShowTaskForm(false);
+    setTaskForm(defaultTaskForm);
+  };
+
+  const handleCompleteAgendaTask = (task: { id: string; status: string }) => {
+    completePatientTaskMutation.mutate({ taskId: task.id });
+  };
+
+  const handleUseSuggestion = (suggestion: {
+    title: string;
+    frequency: string;
+    priority: string;
+  }) => {
+    createPatientTaskMutation.mutate({
+      patientId,
+      title: suggestion.title,
+      frequency:
+        suggestion.frequency === "daily" ||
+        suggestion.frequency === "weekly" ||
+        suggestion.frequency === "once"
+          ? suggestion.frequency
+          : "daily",
+      priority:
+        suggestion.priority === "low" ||
+        suggestion.priority === "medium" ||
+        suggestion.priority === "high"
+          ? suggestion.priority
+          : "medium",
+    });
+  };
+
+  const changeAgendaDate = (direction: number) => {
+    setAgendaSelectedDate((prev) => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + direction);
+      return d;
+    });
+  };
 
   // Mutation para criar transcrição local
   const createTranscriptionMutation = trpc.transcription.create.useMutation({
@@ -537,6 +861,7 @@ export default function PatientProfilePage() {
         <div className="flex gap-1 overflow-x-auto no-scrollbar">
           {[
             { id: "overview", label: "Visão Geral", icon: User },
+            { id: "agenda", label: "Agenda", icon: CalendarIcon },
             { id: "journal", label: "Diário e Registros", icon: BookOpen },
             { id: "session", label: "Sessões", icon: Mic },
             { id: "documents", label: "Documentos", icon: FileText },
@@ -550,7 +875,7 @@ export default function PatientProfilePage() {
                   : "border-transparent text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
               }`}
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as typeof activeTab)}
+              onClick={() => handleTabChange(tab.id as PatientTab)}
               type="button"
             >
               <tab.icon className="h-4 w-4" />
@@ -633,6 +958,449 @@ export default function PatientProfilePage() {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Agenda */}
+        {activeTab === "agenda" && (
+          <div className="space-y-6">
+            {/* Calendar + Sidebar Layout */}
+            <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
+              {/* Left Column - Calendar + Stats */}
+              <div className="space-y-6">
+                <Calendar
+                  onChange={setAgendaSelectedDate}
+                  selectedDate={agendaSelectedDate}
+                  tasks={agendaCalendarTasks}
+                />
+
+                {/* Progress Card */}
+                {agendaShowProgressBar && (
+                  <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-800/50 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                        <Target className="h-4 w-4 text-sky-500" />
+                        Progresso do Dia
+                      </h3>
+                      <span className="text-sm font-bold text-sky-400">
+                        {agendaDayProgress}%
+                      </span>
+                    </div>
+                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-sky-500 to-cyan-400 transition-all duration-500"
+                        style={{ width: `${agendaDayProgress}%` }}
+                      />
+                    </div>
+                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                      {
+                        agendaDisplayTasks.filter(
+                          (t) => t.status === "completed",
+                        ).length
+                      }{" "}
+                      de {agendaDisplayTasks.length} tarefas concluídas
+                    </p>
+                  </div>
+                )}
+
+                {/* Stats Cards */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-slate-800 dark:bg-slate-800/50 shadow-sm">
+                    <p className="text-2xl font-bold text-sky-400">
+                      {patientTasks?.length || 0}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Total
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-slate-800 dark:bg-slate-800/50 shadow-sm">
+                    <p className="text-2xl font-bold text-emerald-400">
+                      {patientTasks?.filter((t) => t.status === "completed")
+                        .length || 0}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Feitas
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-slate-200 bg-white p-4 text-center dark:border-slate-800 dark:bg-slate-800/50 shadow-sm">
+                    <p className="text-2xl font-bold text-amber-400">
+                      {patientTasks?.filter((t) => t.status === "pending")
+                        .length || 0}
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                      Pendentes
+                    </p>
+                  </div>
+                </div>
+
+                {/* AI Suggestions */}
+                {showAiSuggestions &&
+                  aiSuggestions &&
+                  aiSuggestions.length > 0 && (
+                    <div className="rounded-xl border border-purple-500/30 bg-purple-500/5 p-5 shadow-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-sm font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                          <Sparkles className="h-4 w-4 text-purple-400" />
+                          Sugestões da IA
+                        </h3>
+                        <button
+                          className="text-xs text-slate-500 hover:text-slate-300"
+                          onClick={() => setShowAiSuggestions(false)}
+                          type="button"
+                        >
+                          Ocultar
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {aiSuggestions.map((suggestion, idx) => (
+                          <div
+                            className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800/50"
+                            key={idx}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 dark:text-white truncate">
+                                {suggestion.title}
+                              </p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                {suggestion.description}
+                              </p>
+                            </div>
+                            <button
+                              className="ml-3 flex-shrink-0 rounded-lg bg-purple-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-purple-600 transition-colors"
+                              onClick={() => handleUseSuggestion(suggestion)}
+                              type="button"
+                            >
+                              Usar
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+              </div>
+
+              {/* Right Column - Sidebar */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
+                    Tarefas do Paciente
+                  </h3>
+                  <button
+                    className="flex items-center gap-1.5 rounded-lg bg-sky-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-sky-600 transition-colors"
+                    onClick={() => {
+                      setTaskForm({ ...defaultTaskForm });
+                      setShowTaskForm(true);
+                    }}
+                    type="button"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Nova Tarefa
+                  </button>
+                </div>
+                <AgendaSidebar
+                  onCompleteTask={handleCompleteAgendaTask}
+                  onDateChange={changeAgendaDate}
+                  onDeleteTask={(taskId) =>
+                    deletePatientTaskMutation.mutate({ taskId })
+                  }
+                  selectedDate={agendaSelectedDate}
+                  tasks={agendaDisplayTasks.map((t) => ({
+                    id: t.id,
+                    title: t.title,
+                    dueDate: t.dueDate || new Date(),
+                    status: t.status,
+                    priority: t.priority,
+                  }))}
+                />
+              </div>
+            </div>
+
+            {/* Task Form Modal */}
+            {showTaskForm && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900 max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-lg font-semibold text-slate-900 dark:text-white">
+                      Nova Tarefa
+                    </h2>
+                    <button
+                      className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      onClick={() => {
+                        setShowTaskForm(false);
+                        setTaskForm(defaultTaskForm);
+                      }}
+                      type="button"
+                    >
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+
+                  {/* Task Category */}
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                      Tipo
+                    </label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                          taskForm.taskCategory !== "sessao"
+                            ? "border-sky-500 bg-sky-500/10 text-sky-400"
+                            : "border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                        }`}
+                        onClick={() =>
+                          setTaskForm((f) => ({
+                            ...f,
+                            taskCategory: "geral",
+                            type: "custom",
+                          }))
+                        }
+                        type="button"
+                      >
+                        <Target className="h-4 w-4" />
+                        Tarefa
+                      </button>
+                      <button
+                        className={`flex items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                          taskForm.taskCategory === "sessao"
+                            ? "border-purple-500 bg-purple-500/10 text-purple-400"
+                            : "border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                        }`}
+                        onClick={() =>
+                          setTaskForm((f) => ({
+                            ...f,
+                            taskCategory: "sessao",
+                            type: "session",
+                            title: f.title || "Sessão de Terapia",
+                          }))
+                        }
+                        type="button"
+                      >
+                        <Users className="h-4 w-4" />
+                        Sessão
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Title */}
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                      Título
+                    </label>
+                    <input
+                      className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                      onChange={(e) =>
+                        setTaskForm((f) => ({ ...f, title: e.target.value }))
+                      }
+                      placeholder={
+                        taskForm.taskCategory === "sessao"
+                          ? "Ex: Sessão de Terapia"
+                          : "Ex: Praticar respiração profunda"
+                      }
+                      value={taskForm.title}
+                    />
+                  </div>
+
+                  {/* Session Value */}
+                  {taskForm.taskCategory === "sessao" && (
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                        <Banknote className="h-3 w-3 inline mr-1" />
+                        Valor da Sessão (R$)
+                      </label>
+                      <input
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        min="0"
+                        onChange={(e) =>
+                          setTaskForm((f) => ({
+                            ...f,
+                            sessionValue: e.target.value
+                              ? Number(e.target.value)
+                              : undefined,
+                          }))
+                        }
+                        placeholder="150"
+                        step="10"
+                        type="number"
+                        value={taskForm.sessionValue ?? ""}
+                      />
+                    </div>
+                  )}
+
+                  {/* Priority */}
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                      Prioridade
+                    </label>
+                    <div className="flex gap-2">
+                      {(["low", "medium", "high"] as const).map((p) => (
+                        <button
+                          className={`flex-1 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                            taskForm.priority === p
+                              ? p === "high"
+                                ? "border-red-500 bg-red-500/10 text-red-400"
+                                : p === "medium"
+                                  ? "border-amber-500 bg-amber-500/10 text-amber-400"
+                                  : "border-emerald-500 bg-emerald-500/10 text-emerald-400"
+                              : "border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                          }`}
+                          key={p}
+                          onClick={() =>
+                            setTaskForm((f) => ({ ...f, priority: p }))
+                          }
+                          type="button"
+                        >
+                          <Flag className="h-3 w-3 inline mr-1" />
+                          {p === "high"
+                            ? "Alta"
+                            : p === "medium"
+                              ? "Média"
+                              : "Baixa"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Frequency */}
+                  <div className="mb-4">
+                    <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                      <Repeat className="h-3 w-3 inline mr-1" />
+                      Frequência
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["once", "daily", "weekly"] as const).map((f) => (
+                        <button
+                          className={`rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
+                            taskForm.frequency === f
+                              ? "border-sky-500 bg-sky-500/10 text-sky-400"
+                              : "border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                          }`}
+                          key={f}
+                          onClick={() =>
+                            setTaskForm((prev) => ({ ...prev, frequency: f }))
+                          }
+                          type="button"
+                        >
+                          {f === "once"
+                            ? "Única"
+                            : f === "daily"
+                              ? "Diária"
+                              : "Semanal"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Week Days */}
+                  {taskForm.frequency === "weekly" && (
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                        Dias da Semana
+                      </label>
+                      <div className="flex gap-1">
+                        {["D", "S", "T", "Q", "Q", "S", "S"].map(
+                          (day, idx) => (
+                            <button
+                              className={`flex-1 rounded-lg border py-2 text-xs font-medium transition-colors ${
+                                taskForm.weekDays?.includes(idx)
+                                  ? "border-sky-500 bg-sky-500/10 text-sky-400"
+                                  : "border-slate-300 text-slate-500 dark:border-slate-700 dark:text-slate-400"
+                              }`}
+                              key={idx}
+                              onClick={() => {
+                                setTaskForm((f) => {
+                                  const current = f.weekDays || [];
+                                  const updated = current.includes(idx)
+                                    ? current.filter((d) => d !== idx)
+                                    : [...current, idx];
+                                  return { ...f, weekDays: updated };
+                                });
+                              }}
+                              type="button"
+                            >
+                              {day}
+                            </button>
+                          ),
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Due Date */}
+                  {taskForm.frequency === "once" && (
+                    <div className="mb-4">
+                      <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 uppercase mb-2">
+                        Data
+                      </label>
+                      <input
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-800 dark:text-white focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                        onChange={(e) =>
+                          setTaskForm((f) => ({
+                            ...f,
+                            dueDate: e.target.value,
+                          }))
+                        }
+                        type="date"
+                        value={taskForm.dueDate || ""}
+                      />
+                    </div>
+                  )}
+
+                  {/* Buttons */}
+                  <div className="flex gap-3 mt-6">
+                    <button
+                      className="flex-1 rounded-lg border border-slate-300 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                      onClick={() => {
+                        setShowTaskForm(false);
+                        setTaskForm(defaultTaskForm);
+                      }}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className="flex-1 rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-sky-600 disabled:opacity-50"
+                      disabled={
+                        createPatientTaskMutation.isPending ||
+                        createSessionTaskMutation.isPending
+                      }
+                      onClick={handleCreateAgendaTask}
+                      type="button"
+                    >
+                      {createPatientTaskMutation.isPending ||
+                      createSessionTaskMutation.isPending
+                        ? "Criando..."
+                        : "Criar"}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Alert Modal */}
+            {showAgendaAlert && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+                <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-amber-500/20">
+                      <AlertTriangle className="h-5 w-5 text-amber-500" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                      {agendaAlertTitle}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                    {agendaAlertMessage}
+                  </p>
+                  <button
+                    className="w-full rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-sky-600 transition-colors"
+                    onClick={() => setShowAgendaAlert(false)}
+                    type="button"
+                  >
+                    OK
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -727,9 +1495,19 @@ export default function PatientProfilePage() {
                       <Brain className="h-5 w-5 text-purple-400" />
                       Conceituação Cognitiva
                     </h2>
-                    <span className="text-sm text-slate-400">
-                      {conceptualization?.name || "Diagrama D. Hernandes"}
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-slate-400">
+                        {conceptualization?.name || "Diagrama D. Hernandes"}
+                      </span>
+                      <button
+                        className="flex items-center gap-2 rounded-lg bg-purple-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-purple-700 transition-colors"
+                        onClick={() => setShowCognitiveWizard(true)}
+                        type="button"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                        Refazer com IA
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -874,13 +1652,33 @@ export default function PatientProfilePage() {
                 <p className="text-slate-400">
                   Nenhuma conceituação cognitiva cadastrada
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  Você pode criar uma através dos relatórios do terapeuta
+                <p className="mt-1 mb-6 text-sm text-slate-500">
+                  Use a IA para analisar os dados do paciente e criar uma
+                  conceituação
                 </p>
+                <button
+                  className="flex items-center gap-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 px-6 py-3 font-medium text-white hover:from-purple-600 hover:to-indigo-600 transition-all shadow-lg shadow-purple-500/25"
+                  onClick={() => setShowCognitiveWizard(true)}
+                  type="button"
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Começar Conceituação Cognitiva
+                </button>
               </div>
             )}
           </div>
         )}
+
+        {/* Cognitive Conceptualization Wizard Modal */}
+        <CognitiveConceptualizationWizard
+          isOpen={showCognitiveWizard}
+          onClose={() => setShowCognitiveWizard(false)}
+          onComplete={() => {
+            utils.therapistReports.getCognitiveConceptualization.invalidate();
+          }}
+          patientId={patientId}
+          patientName={patient?.name || "Paciente"}
+        />
 
         {/* Diário e Registros (Journal Entries) */}
         {activeTab === "journal" && (

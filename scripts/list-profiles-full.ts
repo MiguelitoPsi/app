@@ -1,5 +1,5 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
 import { db } from '@/lib/db'
@@ -7,15 +7,17 @@ import { therapistProfiles } from '@/lib/db/schema'
 
 async function main() {
   try {
-    const list = await db.select({ 
-      username: therapistProfiles.username,
-      id: therapistProfiles.therapistId,
-      name: therapistProfiles.fullName,
-      cpf: therapistProfiles.cpf
-    }).from(therapistProfiles)
-    
+    const list = await db
+      .select({
+        username: therapistProfiles.username,
+        id: therapistProfiles.therapistId,
+        name: therapistProfiles.fullName,
+        cpf: therapistProfiles.cpf,
+      })
+      .from(therapistProfiles)
+
     console.log('--- ALL THERAPIST PROFILES ---')
-    list.forEach(item => {
+    list.forEach((item) => {
       console.log(`User: ${item.name}`)
       console.log(`  ID: ${item.id}`)
       console.log(`  Username: [${item.username}]`)

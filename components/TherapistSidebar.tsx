@@ -14,7 +14,7 @@ import { getIconByKey } from '@/lib/utils/icon-map'
 const navItems = [
   { path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
   { path: '/therapist-routine', label: 'Rotina', icon: 'routine' },
-  { path: '/reports', label: 'Relatórios', icon: 'reports_nav' },
+
   { path: '/financial', label: 'Financeiro', icon: 'finance' },
   { path: '/achievements', label: 'Conquistas', icon: 'achievements' },
 ] as const

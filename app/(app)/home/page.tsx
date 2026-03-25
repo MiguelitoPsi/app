@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { HomeView } from '@/views/HomeView'
+import HomeMain from "./main";
 
 export default function HomePage() {
-  return <HomeView />
+  return <HomeMain />;
 }

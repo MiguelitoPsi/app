@@ -1,259 +1,353 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { trpc } from '@/lib/trpc/client'
-import { getIconByKey } from '@/lib/utils/icon-map'
+import { useState } from "react";
+import { trpc } from "@/lib/trpc/client";
+import { toast } from "sonner";
+import {
+  Search,
+  Users,
+  TrendingUp,
+  AlertTriangle,
+  CreditCard,
+  Eye,
+  X,
+  RefreshCw,
+  DollarSign,
+} from "lucide-react";
 
-type SubscriptionPlan = 'trial' | 'monthly' | 'quarterly' | 'yearly'
-type SubscriptionStatus = 'active' | 'expired' | 'cancelled' | 'pending'
-type DisplayStatus =
-  | 'no_subscription'
-  | 'active'
-  | 'expired'
-  | 'expiring_soon'
-  | 'cancelled'
-  | 'pending'
+type SubStatus = "active" | "past_due" | "cancelled" | "expired" | "pending";
 
-const planLabels: Record<SubscriptionPlan, string> = {
-  trial: 'Trial',
-  monthly: 'Mensal',
-  quarterly: 'Trimestral',
-  yearly: 'Anual',
+interface AdminPlan {
+  id: string;
+  name: string;
+  slug: string;
+  subscriberCount: number;
 }
 
-const statusLabels: Record<DisplayStatus, string> = {
-  no_subscription: 'Sem Assinatura',
-  active: 'Ativa',
-  expired: 'Expirada',
-  expiring_soon: 'Expirando',
-  cancelled: 'Cancelada',
-  pending: 'Pendente',
+interface SubscriptionRow {
+  subscription: {
+    id: string;
+    therapistId: string;
+    planId: string;
+    status: string;
+    billingType: string | null;
+    cycle: string | null;
+    amount: string;
+    currentPeriodStart: Date | string | null;
+    currentPeriodEnd: Date | string | null;
+    asaasSubscriptionId: string | null;
+    createdAt: Date | string;
+  };
+  plan: { name: string; id: string };
+  therapistName: string | null;
+  therapistEmail: string | null;
 }
 
-const statusColors: Record<DisplayStatus, string> = {
-  no_subscription: 'bg-slate-500/20 text-slate-400',
-  active: 'bg-emerald-500/20 text-emerald-400',
-  expired: 'bg-red-500/20 text-red-400',
-  expiring_soon: 'bg-amber-500/20 text-amber-400',
-  cancelled: 'bg-rose-500/20 text-rose-400',
-  pending: 'bg-blue-500/20 text-blue-400',
+interface RevenueStat {
+  planId: string;
+  planName: string | null;
+  count: number;
+  revenue: string;
 }
+
+const statusLabels: Record<SubStatus, string> = {
+  active: "Ativa",
+  past_due: "Vencida",
+  cancelled: "Cancelada",
+  expired: "Expirada",
+  pending: "Pendente",
+};
+
+const statusColors: Record<SubStatus, string> = {
+  active: "bg-emerald-500/20 text-emerald-400",
+  past_due: "bg-amber-500/20 text-amber-400",
+  cancelled: "bg-rose-500/20 text-rose-400",
+  expired: "bg-red-500/20 text-red-400",
+  pending: "bg-blue-500/20 text-blue-400",
+};
+
+const cycleLabels: Record<string, string> = {
+  MONTHLY: "Mensal",
+  YEARLY: "Anual",
+};
+
+const billingLabels: Record<string, string> = {
+  CREDIT_CARD: "Cartão",
+  PIX: "PIX",
+};
 
 export default function SubscriptionsPage() {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<DisplayStatus | 'all'>('all')
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedPsychologist, setSelectedPsychologist] = useState<{
-    id: string
-    name: string
-    email: string
-    subscription: {
-      plan: SubscriptionPlan
-      status: SubscriptionStatus
-      amount: number
-      startDate: Date
-      endDate: Date
-      lastPaymentDate: Date | null
-      nextPaymentDate: Date | null
-      paymentMethod: string | null
-      notes: string | null
-    } | null
-  } | null>(null)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<SubStatus | "all">("all");
+  const [planFilter, setPlanFilter] = useState<string>("all");
+  const [detailSubId, setDetailSubId] = useState<string | null>(null);
+  const [overrideSubId, setOverrideSubId] = useState<string | null>(null);
+
+  const utils = trpc.useUtils();
+
+  const { data: stats } =
+    trpc.therapistSubscription.getRevenueStats.useQuery() as {
+      data:
+        | {
+            activeSubscriptions: number;
+            pastDueSubscriptions: number;
+            mrr: string;
+            byPlan: RevenueStat[];
+            byBillingType: { billingType: string; count: number }[];
+          }
+        | undefined;
+    };
+  const { data: plans } = trpc.subscriptionPlans.getAll.useQuery() as {
+    data: AdminPlan[] | undefined;
+  };
 
   const {
-    data: psychologists,
+    data: rawData,
     isLoading,
     refetch,
-  } = trpc.admin.getPsychologistsWithSubscriptions.useQuery()
-  const { data: stats } = trpc.admin.getSubscriptionStats.useQuery()
+  } = trpc.therapistSubscription.getAllSubscriptions.useQuery({
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    planId: planFilter !== "all" ? planFilter : undefined,
+    search: searchQuery || undefined,
+    limit: 50,
+    offset: 0,
+  });
 
-  const filteredPsychologists = psychologists?.filter((p) => {
-    const matchesSearch =
-      p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.email.toLowerCase().includes(searchQuery.toLowerCase())
-
-    const matchesStatus = statusFilter === 'all' || p.subscriptionStatus === statusFilter
-
-    return matchesSearch && matchesStatus
-  })
-
-  const openEditModal = (psychologist: typeof selectedPsychologist) => {
-    setSelectedPsychologist(psychologist)
-    setIsModalOpen(true)
-  }
+  const data = rawData as
+    | { subscriptions: SubscriptionRow[]; total: number }
+    | undefined;
 
   return (
-    <div className='space-y-6'>
+    <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className='text-3xl font-bold text-white'>Assinaturas</h1>
-        <p className='mt-1 text-slate-400'>Gerencie as assinaturas dos psicólogos</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Assinaturas</h1>
+          <p className="mt-1 text-slate-400">
+            Gerencie assinaturas Asaas dos terapeutas
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Atualizar
+        </button>
       </div>
 
       {/* Stats Cards */}
-      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-5'>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatsCard
-          color='violet'
-          icon='total_psychologists'
-          title='Total Psicólogos'
-          value={stats?.totalPsychologists ?? 0}
-        />
-        <StatsCard
-          color='emerald'
-          icon='active_subscriptions'
-          title='Assinaturas Ativas'
+          title="Assinaturas Ativas"
           value={stats?.activeSubscriptions ?? 0}
+          icon={<Users className="h-5 w-5" />}
+          color="emerald"
         />
         <StatsCard
-          color='amber'
-          icon='expiring_subscriptions'
-          title='Expirando em 7 dias'
-          value={stats?.expiringSoon ?? 0}
+          title="Vencidas"
+          value={stats?.pastDueSubscriptions ?? 0}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          color="amber"
         />
         <StatsCard
-          color='red'
-          icon='expired_subscriptions'
-          title='Expiradas'
-          value={stats?.expiredSubscriptions ?? 0}
+          title="MRR"
+          value={formatCurrency(Number(stats?.mrr ?? 0))}
+          icon={<TrendingUp className="h-5 w-5" />}
+          color="violet"
         />
         <StatsCard
-          color='blue'
-          icon='monthly_revenue'
-          isMonetary
-          title='Receita Mensal'
-          value={formatCurrency(stats?.monthlyRevenue ?? 0)}
+          title="Total Registros"
+          value={data?.total ?? 0}
+          icon={<CreditCard className="h-5 w-5" />}
+          color="blue"
         />
       </div>
 
+      {/* Revenue by plan */}
+      {stats?.byPlan && stats.byPlan.length > 0 && (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.byPlan.map((p) => (
+            <div
+              key={p.planId}
+              className="rounded-xl border border-slate-700 bg-slate-800/50 p-3"
+            >
+              <p className="text-xs text-slate-400">{p.planName}</p>
+              <p className="text-lg font-bold text-white">
+                {p.count} assinantes
+              </p>
+              <p className="text-xs text-emerald-400">
+                R$ {Number(p.revenue).toFixed(2)} total
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Filters */}
-      <div className='flex flex-col gap-4 sm:flex-row'>
-        <div className='relative flex-1'>
-          <SearchIcon className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
           <input
-            className='w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
+            className="w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder='Buscar por nome ou email...'
-            type='text'
+            placeholder="Buscar por nome ou email..."
+            type="text"
             value={searchQuery}
           />
         </div>
         <select
-          className='rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-          onChange={(e) => setStatusFilter(e.target.value as DisplayStatus | 'all')}
+          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none"
+          onChange={(e) => setStatusFilter(e.target.value as SubStatus | "all")}
           value={statusFilter}
         >
-          <option value='all'>Todos os Status</option>
-          <option value='active'>Ativas</option>
-          <option value='expiring_soon'>Expirando</option>
-          <option value='expired'>Expiradas</option>
-          <option value='pending'>Pendentes</option>
-          <option value='cancelled'>Canceladas</option>
-          <option value='no_subscription'>Sem Assinatura</option>
+          <option value="all">Todos os Status</option>
+          <option value="active">Ativas</option>
+          <option value="past_due">Vencidas</option>
+          <option value="expired">Expiradas</option>
+          <option value="pending">Pendentes</option>
+          <option value="cancelled">Canceladas</option>
+        </select>
+        <select
+          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none"
+          onChange={(e) => setPlanFilter(e.target.value)}
+          value={planFilter}
+        >
+          <option value="all">Todos os Planos</option>
+          {plans?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
         </select>
       </div>
 
       {/* Table */}
-      <div className='overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50'>
-        <div className='overflow-x-auto'>
-          <table className='w-full'>
+      <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50">
+        <div className="overflow-x-auto">
+          <table className="w-full">
             <thead>
-              <tr className='border-b border-slate-700 bg-slate-800'>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
-                  Psicólogo
+              <tr className="border-b border-slate-700 bg-slate-800">
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Terapeuta
                 </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
-                  Status
-                </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Plano
                 </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Status
+                </th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Ciclo
+                </th>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Valor
                 </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
-                  Vencimento
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                  Período
                 </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
-                  Último Pagamento
-                </th>
-                <th className='px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
+                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className='divide-y divide-slate-700'>
+            <tbody className="divide-y divide-slate-700">
               {isLoading ? (
-                [...new Array(5)].map((_, i) => (
+                [...Array(5)].map((_, i) => (
                   <tr key={i}>
-                    <td className='px-6 py-4' colSpan={7}>
-                      <div className='h-10 animate-pulse rounded bg-slate-700' />
+                    <td className="px-5 py-4" colSpan={7}>
+                      <div className="h-10 animate-pulse rounded bg-slate-700" />
                     </td>
                   </tr>
                 ))
-              ) : filteredPsychologists?.length === 0 ? (
+              ) : data?.subscriptions.length === 0 ? (
                 <tr>
-                  <td className='px-6 py-12 text-center text-slate-400' colSpan={7}>
-                    Nenhum psicólogo encontrado
+                  <td
+                    className="px-5 py-12 text-center text-slate-400"
+                    colSpan={7}
+                  >
+                    Nenhuma assinatura encontrada
                   </td>
                 </tr>
               ) : (
-                filteredPsychologists?.map((psychologist) => (
-                  <tr className='transition-colors hover:bg-slate-800/50' key={psychologist.id}>
-                    <td className='px-6 py-4'>
-                      <div className='flex items-center gap-3'>
-                        <div className='flex h-10 w-10 items-center justify-center rounded-full bg-emerald-600/20 text-emerald-400'>
-                          {psychologist.name.charAt(0).toUpperCase()}
+                data?.subscriptions.map((row) => (
+                  <tr
+                    key={row.subscription.id}
+                    className="transition-colors hover:bg-slate-800/50"
+                  >
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600/20 text-sm font-medium text-violet-400">
+                          {row.therapistName?.charAt(0).toUpperCase() ?? "?"}
                         </div>
                         <div>
-                          <p className='font-medium text-white'>{psychologist.name}</p>
-                          <p className='text-sm text-slate-400'>{psychologist.email}</p>
+                          <p className="text-sm font-medium text-white">
+                            {row.therapistName}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {row.therapistEmail}
+                          </p>
                         </div>
                       </div>
                     </td>
-                    <td className='px-6 py-4'>
+                    <td className="px-5 py-3 text-sm text-slate-300">
+                      {row.plan.name}
+                    </td>
+                    <td className="px-5 py-3">
                       <span
-                        className={`inline-flex rounded-full px-2.5 py-1 text-xs font-medium ${
-                          statusColors[psychologist.subscriptionStatus]
+                        className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                          statusColors[row.subscription.status as SubStatus] ??
+                          "bg-slate-500/20 text-slate-400"
                         }`}
                       >
-                        {statusLabels[psychologist.subscriptionStatus]}
+                        {statusLabels[row.subscription.status as SubStatus] ??
+                          row.subscription.status}
                       </span>
                     </td>
-                    <td className='px-6 py-4 text-slate-300'>
-                      {psychologist.subscription
-                        ? planLabels[psychologist.subscription.plan as SubscriptionPlan]
-                        : '-'}
+                    <td className="px-5 py-3 text-sm text-slate-300">
+                      <span className="text-xs">
+                        {cycleLabels[row.subscription.cycle ?? ""] ??
+                          row.subscription.cycle}
+                      </span>
+                      <span className="ml-1 text-xs text-slate-500">
+                        (
+                        {billingLabels[row.subscription.billingType ?? ""] ??
+                          row.subscription.billingType}
+                        )
+                      </span>
                     </td>
-                    <td className='px-6 py-4 text-slate-300'>
-                      {psychologist.subscription
-                        ? formatCurrency(psychologist.subscription.amount)
-                        : '-'}
+                    <td className="px-5 py-3 text-sm font-medium text-white">
+                      R$ {Number(row.subscription.amount).toFixed(2)}
                     </td>
-                    <td className='px-6 py-4 text-slate-300'>
-                      {psychologist.subscription
-                        ? formatDate(psychologist.subscription.endDate)
-                        : '-'}
+                    <td className="px-5 py-3 text-xs text-slate-400">
+                      {row.subscription.currentPeriodStart
+                        ? formatDate(row.subscription.currentPeriodStart)
+                        : "-"}
+                      {" → "}
+                      {row.subscription.currentPeriodEnd
+                        ? formatDate(row.subscription.currentPeriodEnd)
+                        : "-"}
                     </td>
-                    <td className='px-6 py-4 text-slate-300'>
-                      {psychologist.subscription?.lastPaymentDate
-                        ? formatDate(psychologist.subscription.lastPaymentDate)
-                        : '-'}
-                    </td>
-                    <td className='px-6 py-4'>
-                      <button
-                        className='rounded-lg bg-violet-600/20 px-3 py-1.5 text-sm font-medium text-violet-400 transition-colors hover:bg-violet-600/30'
-                        onClick={() =>
-                          openEditModal({
-                            id: psychologist.id,
-                            name: psychologist.name,
-                            email: psychologist.email,
-                            subscription: psychologist.subscription,
-                          })
-                        }
-                        type='button'
-                      >
-                        {psychologist.subscription ? 'Editar' : 'Adicionar'}
-                      </button>
+                    <td className="px-5 py-3">
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => setDetailSubId(row.subscription.id)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
+                          title="Detalhes"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setOverrideSubId(row.subscription.id)}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
+                          title="Alterar status"
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -261,431 +355,353 @@ export default function SubscriptionsPage() {
             </tbody>
           </table>
         </div>
+        {data && data.total > 50 && (
+          <div className="border-t border-slate-700 px-5 py-3 text-center text-xs text-slate-400">
+            Mostrando 50 de {data.total} assinaturas
+          </div>
+        )}
       </div>
 
-      {/* Edit Modal */}
-      {isModalOpen && selectedPsychologist && (
-        <SubscriptionModal
-          onClose={() => {
-            setIsModalOpen(false)
-            setSelectedPsychologist(null)
-          }}
+      {/* Detail Modal */}
+      {detailSubId && (
+        <DetailModal
+          subscriptionId={detailSubId}
+          onClose={() => setDetailSubId(null)}
+        />
+      )}
+
+      {/* Override Modal */}
+      {overrideSubId && (
+        <OverrideModal
+          subscriptionId={overrideSubId}
+          onClose={() => setOverrideSubId(null)}
           onSuccess={() => {
-            setIsModalOpen(false)
-            setSelectedPsychologist(null)
-            refetch()
+            setOverrideSubId(null);
+            utils.therapistSubscription.getAllSubscriptions.invalidate();
+            utils.therapistSubscription.getRevenueStats.invalidate();
           }}
-          psychologist={selectedPsychologist}
         />
       )}
     </div>
-  )
+  );
 }
 
-function SubscriptionModal({
-  psychologist,
+// ============================================
+// Detail Modal
+// ============================================
+
+function DetailModal({
+  subscriptionId,
   onClose,
-  onSuccess,
 }: {
-  psychologist: {
-    id: string
-    name: string
-    email: string
-    subscription: {
-      plan: SubscriptionPlan
-      status: SubscriptionStatus
-      amount: number
-      startDate: Date
-      endDate: Date
-      lastPaymentDate: Date | null
-      nextPaymentDate: Date | null
-      paymentMethod: string | null
-      notes: string | null
-    } | null
-  }
-  onClose: () => void
-  onSuccess: () => void
+  subscriptionId: string;
+  onClose: () => void;
 }) {
-  const [plan, setPlan] = useState<SubscriptionPlan>(psychologist.subscription?.plan ?? 'monthly')
-  const [status, setStatus] = useState<SubscriptionStatus>(
-    psychologist.subscription?.status ?? 'active'
-  )
-  const [amount, setAmount] = useState(
-    psychologist.subscription ? (psychologist.subscription.amount / 100).toString() : ''
-  )
-  const [startDate, setStartDate] = useState(
-    psychologist.subscription
-      ? formatDateInput(psychologist.subscription.startDate)
-      : formatDateInput(new Date())
-  )
-  const [endDate, setEndDate] = useState(
-    psychologist.subscription
-      ? formatDateInput(psychologist.subscription.endDate)
-      : formatDateInput(addMonths(new Date(), 1))
-  )
-  const [lastPaymentDate, setLastPaymentDate] = useState(
-    psychologist.subscription?.lastPaymentDate
-      ? formatDateInput(psychologist.subscription.lastPaymentDate)
-      : ''
-  )
-  const [paymentMethod, setPaymentMethod] = useState(psychologist.subscription?.paymentMethod ?? '')
-  const [notes, setNotes] = useState(psychologist.subscription?.notes ?? '')
-  const [error, setError] = useState('')
+  const { data: rawDetail, isLoading } =
+    trpc.therapistSubscription.getSubscriptionDetail.useQuery({
+      subscriptionId,
+    });
 
-  const upsertSubscription = trpc.admin.upsertSubscription.useMutation({
-    onSuccess: () => {
-      onSuccess()
-    },
-    onError: (err) => {
-      setError(err.message)
-    },
-  })
-
-  const deleteSubscription = trpc.admin.deleteSubscription.useMutation({
-    onSuccess: () => {
-      onSuccess()
-    },
-    onError: (err) => {
-      setError(err.message)
-    },
-  })
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-
-    if (amount === '' || startDate === '' || endDate === '') {
-      setError('Preencha os campos obrigatórios')
-      return
-    }
-
-    const amountInCents = Math.round(Number.parseFloat(amount) * 100)
-    if (Number.isNaN(amountInCents) || amountInCents < 0) {
-      setError('Valor inválido')
-      return
-    }
-
-    upsertSubscription.mutate({
-      psychologistId: psychologist.id,
-      plan,
-      status,
-      amount: amountInCents,
-      startDate: new Date(startDate),
-      endDate: new Date(endDate),
-      lastPaymentDate: lastPaymentDate !== '' ? new Date(lastPaymentDate) : undefined,
-      nextPaymentDate: undefined,
-      paymentMethod: paymentMethod !== '' ? paymentMethod : undefined,
-      notes: notes !== '' ? notes : undefined,
-    })
-  }
-
-  const handleDelete = () => {
-    if (window.confirm('Tem certeza que deseja remover a assinatura deste psicólogo?')) {
-      deleteSubscription.mutate({ psychologistId: psychologist.id })
-    }
-  }
-
-  // Auto-calculate end date when plan changes
-  const handlePlanChange = (newPlan: SubscriptionPlan) => {
-    setPlan(newPlan)
-    const start = new Date(startDate)
-    let months = 1
-    switch (newPlan) {
-      case 'trial':
-        months = 0
-        setEndDate(formatDateInput(addDays(start, 14))) // 14 days trial
-        return
-      case 'monthly':
-        months = 1
-        break
-      case 'quarterly':
-        months = 3
-        break
-      case 'yearly':
-        months = 12
-        break
-    }
-    setEndDate(formatDateInput(addMonths(start, months)))
-  }
+  const data = rawDetail as
+    | {
+        subscription: SubscriptionRow["subscription"];
+        plan: { name: string; id: string };
+        therapistName: string | null;
+        therapistEmail: string | null;
+        payments: {
+          id: string;
+          amount: string;
+          status: string | null;
+          dueDate: Date | string | null;
+          invoiceUrl: string | null;
+        }[];
+      }
+    | null
+    | undefined;
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm'>
-      <div className='max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-slate-700 bg-slate-900 p-6 shadow-2xl'>
-        <div className='mb-6 flex items-center justify-between'>
-          <div>
-            <h2 className='text-xl font-semibold text-white'>
-              {psychologist.subscription ? 'Editar Assinatura' : 'Nova Assinatura'}
-            </h2>
-            <p className='text-sm text-slate-400'>{psychologist.name}</p>
-          </div>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-700 bg-slate-800 px-6 py-4">
+          <h2 className="text-lg font-bold text-white">
+            Detalhes da Assinatura
+          </h2>
           <button
-            aria-label='Fechar modal'
-            className='flex h-8 w-8 items-center justify-center rounded-full bg-slate-800 text-slate-400 transition-all duration-200 hover:bg-slate-700 hover:text-white hover:scale-110 active:scale-95'
+            type="button"
             onClick={onClose}
-            type='button'
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
           >
-            <CloseIcon />
+            <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form className='space-y-4' onSubmit={handleSubmit}>
-          {error && (
-            <div className='rounded-lg bg-red-500/20 px-4 py-3 text-sm text-red-400'>{error}</div>
-          )}
-
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <div>
-              <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='plan'>
-                Plano
-              </label>
-              <select
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='plan'
-                onChange={(e) => handlePlanChange(e.target.value as SubscriptionPlan)}
-                value={plan}
-              >
-                <option value='trial'>Trial (14 dias)</option>
-                <option value='monthly'>Mensal</option>
-                <option value='quarterly'>Trimestral</option>
-                <option value='yearly'>Anual</option>
-              </select>
-            </div>
-
-            <div>
-              <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='status'>
-                Status
-              </label>
-              <select
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='status'
-                onChange={(e) => setStatus(e.target.value as SubscriptionStatus)}
-                value={status}
-              >
-                <option value='active'>Ativa</option>
-                <option value='pending'>Pendente</option>
-                <option value='expired'>Expirada</option>
-                <option value='cancelled'>Cancelada</option>
-              </select>
-            </div>
+        {isLoading ? (
+          <div className="p-6 space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-6 animate-pulse rounded bg-slate-700" />
+            ))}
           </div>
-
-          <div>
-            <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='amount'>
-              Valor (R$)
-            </label>
-            <input
-              className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-              id='amount'
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder='99.90'
-              step='0.01'
-              type='number'
-              value={amount}
-            />
-          </div>
-
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <div>
-              <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='startDate'>
-                Data de Início
-              </label>
-              <input
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='startDate'
-                onChange={(e) => setStartDate(e.target.value)}
-                type='date'
-                value={startDate}
+        ) : data ? (
+          <div className="p-6 space-y-6">
+            {/* Therapist info */}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <InfoRow label="Terapeuta" value={data.therapistName ?? "-"} />
+              <InfoRow label="Email" value={data.therapistEmail ?? "-"} />
+              <InfoRow label="Plano" value={data.plan.name} />
+              <InfoRow
+                label="Status"
+                value={
+                  statusLabels[data.subscription.status as SubStatus] ??
+                  data.subscription.status
+                }
+              />
+              <InfoRow
+                label="Ciclo"
+                value={cycleLabels[data.subscription.cycle ?? ""] ?? "-"}
+              />
+              <InfoRow
+                label="Forma de pagamento"
+                value={
+                  billingLabels[data.subscription.billingType ?? ""] ?? "-"
+                }
+              />
+              <InfoRow
+                label="Valor"
+                value={`R$ ${Number(data.subscription.amount).toFixed(2)}`}
+              />
+              <InfoRow
+                label="Asaas ID"
+                value={data.subscription.asaasSubscriptionId ?? "-"}
               />
             </div>
 
+            {/* Payment history */}
             <div>
-              <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='endDate'>
-                Data de Vencimento
-              </label>
-              <input
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='endDate'
-                onChange={(e) => setEndDate(e.target.value)}
-                type='date'
-                value={endDate}
-              />
+              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
+                Histórico de Pagamentos
+              </h3>
+              {data.payments.length === 0 ? (
+                <p className="text-sm text-slate-500">
+                  Nenhum pagamento registrado
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {data.payments.map((pmt) => (
+                    <div
+                      key={pmt.id}
+                      className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5"
+                    >
+                      <div className="flex items-center gap-3">
+                        <DollarSign className="h-4 w-4 text-slate-500" />
+                        <div>
+                          <p className="text-sm text-white">
+                            R$ {Number(pmt.amount).toFixed(2)}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {pmt.dueDate ? formatDate(pmt.dueDate) : "-"}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span
+                          className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
+                            pmt.status === "RECEIVED" ||
+                            pmt.status === "CONFIRMED"
+                              ? "bg-emerald-500/20 text-emerald-400"
+                              : pmt.status === "OVERDUE"
+                                ? "bg-red-500/20 text-red-400"
+                                : pmt.status === "PENDING"
+                                  ? "bg-blue-500/20 text-blue-400"
+                                  : "bg-slate-500/20 text-slate-400"
+                          }`}
+                        >
+                          {pmt.status}
+                        </span>
+                        {pmt.invoiceUrl && (
+                          <a
+                            href={pmt.invoiceUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-2 text-xs text-violet-400 hover:underline"
+                          >
+                            Fatura
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
-
-          <div className='grid gap-4 sm:grid-cols-2'>
-            <div>
-              <label
-                className='mb-2 block text-sm font-medium text-slate-300'
-                htmlFor='lastPaymentDate'
-              >
-                Último Pagamento
-              </label>
-              <input
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='lastPaymentDate'
-                onChange={(e) => setLastPaymentDate(e.target.value)}
-                type='date'
-                value={lastPaymentDate}
-              />
-            </div>
-
-            <div>
-              <label
-                className='mb-2 block text-sm font-medium text-slate-300'
-                htmlFor='paymentMethod'
-              >
-                Método de Pagamento
-              </label>
-              <select
-                className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-                id='paymentMethod'
-                onChange={(e) => setPaymentMethod(e.target.value)}
-                value={paymentMethod}
-              >
-                <option value=''>Selecionar...</option>
-                <option value='pix'>PIX</option>
-                <option value='credit_card'>Cartão de Crédito</option>
-                <option value='debit_card'>Cartão de Débito</option>
-                <option value='bank_transfer'>Transferência</option>
-                <option value='boleto'>Boleto</option>
-              </select>
-            </div>
+        ) : (
+          <div className="p-6 text-center text-slate-400">
+            Assinatura não encontrada
           </div>
-
-          <div>
-            <label className='mb-2 block text-sm font-medium text-slate-300' htmlFor='notes'>
-              Observações
-            </label>
-            <textarea
-              className='w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
-              id='notes'
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder='Observações sobre a assinatura...'
-              rows={3}
-              value={notes}
-            />
-          </div>
-
-          <div className='flex gap-3 pt-4'>
-            {psychologist.subscription && (
-              <button
-                className='rounded-lg border border-red-500/50 px-4 py-2.5 text-sm font-medium text-red-400 transition-colors hover:bg-red-500/20'
-                disabled={deleteSubscription.isPending}
-                onClick={handleDelete}
-                type='button'
-              >
-                Remover
-              </button>
-            )}
-            <div className='flex flex-1 gap-3'>
-              <button
-                className='flex-1 rounded-lg border border-slate-700 px-4 py-2.5 text-sm font-medium text-slate-300 transition-colors hover:bg-slate-800'
-                onClick={onClose}
-                type='button'
-              >
-                Cancelar
-              </button>
-              <button
-                className='flex-1 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-50'
-                disabled={upsertSubscription.isPending}
-                type='submit'
-              >
-                {upsertSubscription.isPending ? 'Salvando...' : 'Salvar'}
-              </button>
-            </div>
-          </div>
-        </form>
+        )}
       </div>
     </div>
-  )
+  );
 }
 
-// Stats Card Component
-type StatsCardProps = {
-  title: string
-  value: number | string
-  icon: string
-  color: 'violet' | 'emerald' | 'amber' | 'red' | 'blue'
-  isMonetary?: boolean
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-slate-500">{label}</p>
+      <p className="text-sm font-medium text-white">{value}</p>
+    </div>
+  );
 }
 
-function StatsCard({ title, value, icon, color }: StatsCardProps) {
-  const colorClasses = {
-    violet: 'bg-violet-600/20 text-violet-400',
-    emerald: 'bg-emerald-600/20 text-emerald-400',
-    amber: 'bg-amber-600/20 text-amber-400',
-    red: 'bg-red-600/20 text-red-400',
-    blue: 'bg-blue-600/20 text-blue-400',
-  }
+// ============================================
+// Override Status Modal
+// ============================================
+
+function OverrideModal({
+  subscriptionId,
+  onClose,
+  onSuccess,
+}: {
+  subscriptionId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [newStatus, setNewStatus] = useState<
+    "active" | "past_due" | "cancelled" | "expired"
+  >("active");
+  const [reason, setReason] = useState("");
+
+  const mutation = trpc.therapistSubscription.overrideStatus.useMutation({
+    onSuccess: () => {
+      toast.success("Status alterado com sucesso");
+      onSuccess();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   return (
-    <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-4'>
-      <div className='flex items-center justify-between'>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
+          <h2 className="text-lg font-bold text-white">Alterar Status</h2>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-4 p-6">
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Novo Status
+            </label>
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value as typeof newStatus)}
+              className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-violet-500 focus:outline-none"
+            >
+              <option value="active">Ativa</option>
+              <option value="past_due">Vencida</option>
+              <option value="cancelled">Cancelada</option>
+              <option value="expired">Expirada</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+              Motivo (opcional)
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={2}
+              className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none"
+              placeholder="Motivo da alteração manual..."
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:bg-slate-700"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={() =>
+                mutation.mutate({
+                  subscriptionId,
+                  status: newStatus,
+                  reason: reason || undefined,
+                })
+              }
+              disabled={mutation.isPending}
+              className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+            >
+              {mutation.isPending ? "Salvando..." : "Confirmar"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// Stats Card
+// ============================================
+
+function StatsCard({
+  title,
+  value,
+  icon,
+  color,
+}: {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  color: "violet" | "emerald" | "amber" | "blue";
+}) {
+  const colorClasses = {
+    violet: "bg-violet-600/20 text-violet-400",
+    emerald: "bg-emerald-600/20 text-emerald-400",
+    amber: "bg-amber-600/20 text-amber-400",
+    blue: "bg-blue-600/20 text-blue-400",
+  };
+
+  return (
+    <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
+      <div className="flex items-center justify-between">
         <div>
-          <p className='text-xs text-slate-400'>{title}</p>
-          <p className='mt-1 text-xl font-bold text-white'>{value}</p>
+          <p className="text-xs text-slate-400">{title}</p>
+          <p className="mt-1 text-xl font-bold text-white">{value}</p>
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${colorClasses[color]}`}
         >
-          {(() => {
-            const Icon = getIconByKey(icon)
-            return <Icon size={20} />
-          })()}
+          {icon}
         </div>
       </div>
     </div>
-  )
+  );
 }
 
-// Helper functions
-function formatCurrency(cents: number): string {
-  return new Intl.NumberFormat('pt-BR', {
-    style: 'currency',
-    currency: 'BRL',
-  }).format(cents / 100)
+// ============================================
+// Helpers
+// ============================================
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(value);
 }
 
 function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('pt-BR')
-}
-
-function formatDateInput(date: Date): string {
-  return date.toISOString().split('T')[0]
-}
-
-function addMonths(date: Date, months: number): Date {
-  const result = new Date(date)
-  result.setMonth(result.getMonth() + months)
-  return result
-}
-
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date)
-  result.setDate(result.getDate() + days)
-  return result
-}
-
-// Icons
-function SearchIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-      <title>Buscar</title>
-      <path
-        d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-        strokeLinecap='round'
-        strokeLinejoin='round'
-        strokeWidth={2}
-      />
-    </svg>
-  )
-}
-
-function CloseIcon() {
-  return (
-    <svg className='h-4 w-4' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
-      <title>Fechar</title>
-      <path d='M6 18L18 6M6 6l12 12' strokeLinecap='round' strokeLinejoin='round' strokeWidth={2} />
-    </svg>
-  )
+  return new Date(date).toLocaleDateString("pt-BR");
 }

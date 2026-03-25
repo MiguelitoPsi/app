@@ -1,16 +1,16 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
+import { eq } from 'drizzle-orm'
 import { db } from '../lib/db'
 import { users } from '../lib/db/schema'
-import { eq } from 'drizzle-orm'
 
 async function main() {
   try {
     const email = 'nepsis.app@gmail.com'
     const [user] = await db.select().from(users).where(eq(users.email, email)).limit(1)
-    
+
     if (user) {
       console.log('--- USER FOUND ---')
       console.log(JSON.stringify(user, null, 2))

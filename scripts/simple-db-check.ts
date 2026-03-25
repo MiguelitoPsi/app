@@ -1,10 +1,10 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
+import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { therapistProfiles, users } from '@/lib/db/schema'
-import { sql } from 'drizzle-orm'
 
 async function main() {
   try {

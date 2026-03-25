@@ -1,12 +1,12 @@
 'use client'
 
+import { CheckCircle2, Eye, EyeOff, Key } from 'lucide-react'
 import { useState } from 'react'
-import { Key, Eye, EyeOff, CheckCircle2 } from 'lucide-react'
 import { authClient } from '@/lib/auth-client'
 
 export default function AdminSettingsPage() {
   const [showChangePassword, setShowChangePassword] = useState(false)
-  
+
   // Password Change State
   const [isChangingPassword, setIsChangingPassword] = useState(false)
   const [passwordError, setPasswordError] = useState('')
@@ -33,7 +33,7 @@ export default function AdminSettingsPage() {
     setPasswordError('')
     setPasswordSuccess(false)
 
-    if (!currentPassword || !newPassword || !confirmPassword) {
+    if (!(currentPassword && newPassword && confirmPassword)) {
       setPasswordError('Preencha todos os campos')
       return
     }
@@ -129,11 +129,11 @@ export default function AdminSettingsPage() {
                 </div>
               ) : (
                 <form
+                  className='space-y-4'
                   onSubmit={(e) => {
                     e.preventDefault()
                     handleChangePassword()
                   }}
-                  className='space-y-4'
                 >
                   <div className='space-y-4'>
                     <div>

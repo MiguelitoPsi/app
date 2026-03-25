@@ -31,7 +31,7 @@
     @apply h-full;
   }
   body {
-    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-50 h-full m-0;
+    @apply text-slate-900 dark:bg-slate-950 dark:text-slate-50 h-full m-0 bg-white;
     font-family: "Inter", sans-serif;
     -webkit-tap-highlight-color: transparent;
     /* Prevent pull-to-refresh and overscroll bounce */

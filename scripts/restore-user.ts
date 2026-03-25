@@ -1,10 +1,10 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
+import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
-import { eq } from 'drizzle-orm'
 
 async function main() {
   const email = 'psijmrodrigues@gmail.com'
@@ -13,17 +13,20 @@ async function main() {
 
   try {
     console.log('--- RESTORING PSYCHOLOGIST ACCOUNT ---')
-    
+
     // Check if it already exists (unlikely but safe)
     const [existing] = await db.select().from(users).where(eq(users.id, userId))
-    
+
     if (existing) {
       console.log('User record already exists. Restoring role and email...')
-      await db.update(users).set({ 
-        role: 'psychologist',
-        email,
-        name
-      }).where(eq(users.id, userId))
+      await db
+        .update(users)
+        .set({
+          role: 'psychologist',
+          email,
+          name,
+        })
+        .where(eq(users.id, userId))
     } else {
       console.log(`Re-inserting user ${userId}...`)
       await db.insert(users).values({

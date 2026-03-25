@@ -1,10 +1,10 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
+import * as fs from 'fs'
 import { db } from '@/lib/db'
 import { users } from '@/lib/db/schema'
-import * as fs from 'fs'
 
 async function main() {
   const all = await db.select().from(users)

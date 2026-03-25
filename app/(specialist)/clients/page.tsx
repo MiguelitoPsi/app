@@ -1,6 +1,7 @@
 'use client'
 
 import { Calendar, CheckCircle, FileText, LogOut, Mail, Search, User, UserPlus } from 'lucide-react'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import { InvitePatientModal } from '@/components/InvitePatientModal'
 import { trpc } from '@/lib/trpc/client'
@@ -297,18 +298,18 @@ export default function ClientsPage() {
                 </div>
 
                 <div className='mt-4 flex gap-2'>
-                  <a
+                  <Link
                     className='flex-1 rounded-lg bg-sky-50 py-2 text-center text-sm font-medium text-sky-600 transition-colors hover:bg-sky-100 dark:bg-sky-900/20 dark:text-sky-400 dark:hover:bg-sky-900/30'
                     href={`/clients/${patient.id}`}
                   >
                     Ver perfil
-                  </a>
-                  <a
+                  </Link>
+                  <Link
                     className='flex-1 rounded-lg border border-slate-200 py-2 text-center text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700'
                     href={`/therapist-routine?patientId=${patient.id}`}
                   >
                     Agendar
-                  </a>
+                  </Link>
                 </div>
               </div>
             ))}

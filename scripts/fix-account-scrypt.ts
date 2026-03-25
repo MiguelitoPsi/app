@@ -1,11 +1,11 @@
-
 import { randomBytes, scrypt } from 'node:crypto'
 import { config as dotenvConfig } from 'dotenv'
+
 dotenvConfig({ path: '.env.local' })
 
+import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { accounts, sessions } from '@/lib/db/schema'
-import { eq, and } from 'drizzle-orm'
 
 // Better Auth scrypt config (from scripts/add-passwords.ts)
 const scryptConfig = {
@@ -41,9 +41,9 @@ function hashPasswordScrypt(password: string): Promise<string> {
 async function fixAccount() {
   const userId = 'Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu'
   const password = 'mudar12345'
-  
+
   console.log('--- APPLYING DEFINITIVE AUTH FIX ---')
-  
+
   // 1. Hash the password correctly
   const hashedPassword = await hashPasswordScrypt(password)
   console.log('New scrypt hash generated.')
@@ -51,23 +51,26 @@ async function fixAccount() {
   // 2. Update the account record
   // Pattern: id = userId (observed in working accounts), accountId = userId
   const [existingAcc] = await db.select().from(accounts).where(eq(accounts.userId, userId))
-  
+
   if (existingAcc) {
     console.log('Updating existing account record...')
-    await db.update(accounts).set({
+    await db
+      .update(accounts)
+      .set({
         id: userId, // Match working pattern id == userId
         accountId: userId,
         password: hashedPassword,
-        updatedAt: new Date()
-    }).where(eq(accounts.userId, userId))
+        updatedAt: new Date(),
+      })
+      .where(eq(accounts.userId, userId))
   } else {
     console.log('Creating new account record...')
     await db.insert(accounts).values({
-        id: userId,
-        userId: userId,
-        accountId: userId,
-        providerId: 'credential',
-        password: hashedPassword
+      id: userId,
+      userId,
+      accountId: userId,
+      providerId: 'credential',
+      password: hashedPassword,
     })
   }
 

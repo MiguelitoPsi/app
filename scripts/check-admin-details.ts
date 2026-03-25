@@ -1,19 +1,19 @@
-
 import { config } from 'dotenv'
+
 config({ path: '.env.local' })
 
+import { eq, or } from 'drizzle-orm'
 import { db } from '../lib/db'
 import { users } from '../lib/db/schema'
-import { or, eq } from 'drizzle-orm'
 
 async function main() {
   try {
     const userIds = ['Ibahp2rLhlMCu3CiJJW0PGKRaijREtWu', 'tbb0Hgu5g446mBRS1cas2w3ChwiXW66I']
-    const list = await db.select().from(users).where(or(
-      eq(users.id, userIds[0]),
-      eq(users.id, userIds[1])
-    ))
-    
+    const list = await db
+      .select()
+      .from(users)
+      .where(or(eq(users.id, userIds[0]), eq(users.id, userIds[1])))
+
     console.log('--- ADMIN USERS ---')
     console.log(JSON.stringify(list, null, 2))
   } catch (error) {

@@ -8,12 +8,14 @@ import { notificationRouter } from "./routers/notification";
 import { patientRouter } from "./routers/patient";
 import { pushRouter } from "./routers/push";
 import { rewardRouter } from "./routers/reward";
+import { subscriptionPlansRouter } from "./routers/subscription-plans";
 import { taskRouter } from "./routers/task";
 import { therapistAchievementsRouter } from "./routers/therapist-achievements";
 import { therapistChallengesRouter } from "./routers/therapist-challenges";
 import { therapistFinancialRouter } from "./routers/therapist-financial";
 import { therapistProfileRouter } from "./routers/therapist-profile";
 import { therapistReportsRouter } from "./routers/therapist-reports";
+import { therapistSubscriptionRouter } from "./routers/therapist-subscription";
 import { therapistTasksRouter } from "./routers/therapist-tasks";
 import { therapistXpRouter } from "./routers/therapist-xp";
 import { transcriptionRouter } from "./routers/transcription";
@@ -44,6 +46,9 @@ export const appRouter = router({
   therapistProfile: therapistProfileRouter,
   therapistReports: therapistReportsRouter,
   therapistTasks: therapistTasksRouter,
+  // Subscription system
+  subscriptionPlans: subscriptionPlansRouter,
+  therapistSubscription: therapistSubscriptionRouter,
 });
 
 export type AppRouter = typeof appRouter;

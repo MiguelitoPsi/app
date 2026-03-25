@@ -1,212 +1,173 @@
-'use client'
+"use client";
 
-import { Calendar, Gift, Home, Plus, User } from 'lucide-react'
-import { usePathname, useRouter } from 'next/navigation'
-import type React from 'react'
-import { useSound } from '@/hooks/useSound'
+import {
+  RiCalendarTodoLine,
+  RiGift2Line,
+  RiHomeHeartLine,
+  RiAddLine,
+  RiUserSmileLine,
+  type RemixiconComponentType,
+  RiIdCardLine,
+  RiUser3Line,
+} from "@remixicon/react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import type React from "react";
+import { useSound } from "@/hooks/useSound";
+
+interface NavItem {
+  path: string;
+  label: string;
+  ariaLabel: string;
+  allPaths?: string[]; // Para destacar o item em múltiplas rotas relacionadas
+  icon: RemixiconComponentType;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    path: "/home",
+    label: "Início",
+    ariaLabel: "Ir para página inicial",
+
+    icon: RiHomeHeartLine,
+  },
+  {
+    path: "/routine",
+    allPaths: ["/routine", "/routine/new"],
+    label: "Rotina",
+    ariaLabel: "Ir para rotina de tarefas",
+    icon: RiCalendarTodoLine,
+  },
+  // Central FAB placeholder — rendered separately
+  {
+    path: "/rewards",
+    label: "Prêmios",
+    ariaLabel: "Ir para loja de prêmios",
+    icon: RiGift2Line,
+  },
+  {
+    path: "/pacient/profile",
+    label: "Perfil",
+    ariaLabel: "Ir para seu perfil",
+    icon: RiUser3Line,
+  },
+];
+
+// Items rendered before the central FAB
+const LEFT_ITEMS = NAV_ITEMS.slice(0, 2);
+// Items rendered after the central FAB
+const RIGHT_ITEMS = NAV_ITEMS.slice(2);
 
 export const BottomNav: React.FC = () => {
-  const router = useRouter()
-  const pathname = usePathname()
-  const { playNavigation } = useSound()
+  const router = useRouter();
+  const pathname = usePathname();
+  const { playNavigation } = useSound();
 
-  const isActive = (path: string) => pathname === path
-
-  const navItemClass = (path: string) => `
-    relative flex flex-col items-center justify-center w-full h-full space-y-0.5
-    ${
-      isActive(path)
-        ? 'text-sky-600 dark:text-sky-400'
-        : 'text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300'
+  const isActive = (path: string, allPaths?: string[]) => {
+    if (allPaths) {
+      return allPaths.includes(pathname);
     }
-    transition-all duration-300 group
-    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2 rounded-lg
-  `
+    return pathname === path;
+  };
 
-  const _activeIndicator = (
-    <span
-      aria-hidden='true'
-      className='-top-3 fade-in zoom-in absolute h-1 w-8 animate-in rounded-b-full bg-sky-600 shadow-[0_2px_8px_rgba(14,165,233,0.5)] duration-300 dark:bg-sky-400 dark:shadow-[0_2px_8px_rgba(56,189,248,0.3)]'
-    />
-  )
+  const fabAriaLabel =
+    pathname === "/routine"
+      ? "Adicionar nova tarefa"
+      : pathname === "/rewards"
+        ? "Adicionar nova recompensa"
+        : "Abrir diário de pensamentos";
+
+  const fabSrText =
+    pathname === "/routine"
+      ? "Nova tarefa"
+      : pathname === "/rewards"
+        ? "Nova recompensa"
+        : "Novo registro no diário";
+
+  const handleFabClick = () => {
+    playNavigation();
+    if (pathname === "/routine") {
+      router.push("/routine/new");
+    } else if (pathname === "/rewards") {
+      window.dispatchEvent(new CustomEvent("toggleRewardsAdd"));
+    } else {
+      router.push("/journal");
+    }
+  };
+
+  const renderNavButton = ({ path, label, ariaLabel, icon: Icon }: NavItem) => (
+    <Link
+      key={path}
+      href={path}
+      prefetch
+      aria-current={
+        isActive(path, NAV_ITEMS.find((item) => item.path === path)?.allPaths)
+          ? "page"
+          : undefined
+      }
+      aria-label={ariaLabel}
+      className="group relative flex items-center justify-center rounded-full p-2 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B87C4C] focus-visible:ring-offset-2"
+      onClick={() => playNavigation()}
+    >
+      <div
+        className={`flex flex-col items-center gap-1 rounded-full px-4 py-1.5 transition-all duration-300 ${
+          isActive(path, NAV_ITEMS.find((item) => item.path === path)?.allPaths)
+            ? "bg-[#c7aa97]/25 "
+            : ""
+        }`}
+      >
+        <Icon
+          className="transition-transform duration-300 group-active:scale-90"
+          size={22}
+          color={
+            isActive(
+              path,
+              NAV_ITEMS.find((item) => item.path === path)?.allPaths,
+            )
+              ? "#B87C4C"
+              : "#C4A484"
+          }
+        />
+        {isActive(
+          path,
+          NAV_ITEMS.find((item) => item.path === path)?.allPaths,
+        ) && <div className="size-1 bg-[#C4A484] rounded-full"></div>}
+      </div>
+    </Link>
+  );
 
   return (
     <nav
-      aria-label='Navegação principal'
-      className='relative z-50 h-[calc(4.5rem+env(safe-area-inset-bottom,0px))] w-full border-slate-100 border-t bg-white/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] shadow-[0_-5px_20px_rgba(0,0,0,0.05)] backdrop-blur-xl transition-colors duration-300 sm:px-6 dark:border-slate-800 dark:bg-slate-900/95'
+      aria-label="Navegação principal"
+      className="fixed bottom-4 left-1/2 transform -translate-x-1/2 rounded-full z-50 h-16 w-full max-w-[428px]  bg-[#C4A484]/10 px-4 transition-colors duration-300 "
     >
-      <div className='relative flex h-full items-center justify-between'>
-        {/* Home */}
-        <button
-          aria-current={isActive('/home') ? 'page' : undefined}
-          aria-label='Ir para página inicial'
-          className={navItemClass('/home')}
-          onClick={() => {
-            playNavigation()
-            router.push('/home')
-          }}
-          type='button'
-        >
-          <div
-            aria-hidden='true'
-            className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/home') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
-            }`}
-          >
-            <Home
-              className='transition-transform duration-300 group-active:scale-90'
-              size={20}
-              strokeWidth={isActive('/home') ? 2.5 : 2}
-            />
-          </div>
-          <span
-            className={`font-bold text-[10px] transition-all duration-300 sm:text-[11px] ${
-              isActive('/home') ? 'translate-y-0 opacity-100' : 'hidden translate-y-2 opacity-0'
-            }`}
-          >
-            Início
-          </span>
-        </button>
-
-        {/* Routine */}
-        <button
-          aria-current={isActive('/routine') ? 'page' : undefined}
-          aria-label='Ir para rotina de tarefas'
-          className={navItemClass('/routine')}
-          onClick={() => {
-            playNavigation()
-            router.push('/routine')
-          }}
-          type='button'
-        >
-          <div
-            aria-hidden='true'
-            className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/routine') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
-            }`}
-          >
-            <Calendar
-              className='transition-transform duration-300 group-active:scale-90'
-              size={20}
-              strokeWidth={isActive('/routine') ? 2.5 : 2}
-            />
-          </div>
-          <span
-            className={`font-bold text-[10px] transition-all duration-300 sm:text-[11px] ${
-              isActive('/routine') ? 'translate-y-0 opacity-100' : 'hidden translate-y-2 opacity-0'
-            }`}
-          >
-            Rotina
-          </span>
-        </button>
+      <div className="relative flex h-full items-center justify-around">
+        {LEFT_ITEMS.map(renderNavButton)}
 
         {/* Central Floating Action Button */}
-        <div className='-top-6 group relative sm:-top-8'>
+        <div className=" group relative ">
           <div
-            aria-hidden='true'
-            className='absolute inset-0 rounded-full bg-sky-500 opacity-30 blur-lg transition-opacity duration-300 group-hover:opacity-50'
+            aria-hidden="true"
+            className="absolute inset-0 rounded-full bg-[#a1c797] opacity-25 blur-xl transition-opacity duration-300 group-hover:opacity-40"
           />
           <button
-            aria-label={
-              pathname === '/routine'
-                ? 'Adicionar nova tarefa'
-                : pathname === '/rewards'
-                  ? 'Adicionar nova recompensa'
-                  : 'Abrir diário de pensamentos'
-            }
-            className='hover:-translate-y-1 relative flex h-12 w-12 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-sky-300/50 shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 sm:h-14 sm:w-14 dark:border-slate-900 dark:shadow-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-4'
-            onClick={() => {
-              playNavigation()
-              // Context-aware action based on current page
-              if (pathname === '/routine') {
-                // Dispatch event to toggle add task form in RoutineView
-                window.dispatchEvent(new CustomEvent('toggleRoutineAdd'))
-              } else if (pathname === '/rewards') {
-                // Dispatch event to toggle add reward form in RewardsView
-                window.dispatchEvent(new CustomEvent('toggleRewardsAdd'))
-              } else {
-                // Default action: open journal
-                router.push('/journal')
-              }
-            }}
-            type='button'
+            aria-label={fabAriaLabel}
+            className=" relative flex h-12 w-12 items-center justify-center rounded-full  shadow-[#7f9c77]  bg-[#a1c797] text-white transition-all ring-4 ring-[#a1c797]/40 duration-300 hover:scale-105 active:scale-95  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#a1c797] focus-visible:ring-offset-4"
+            onClick={handleFabClick}
+            type="button"
           >
-            <Plus aria-hidden='true' className='sm:hidden' size={24} strokeWidth={2.5} />
-            <Plus aria-hidden='true' className='hidden sm:block' size={28} strokeWidth={2.5} />
-            <span className='sr-only'>
-              {pathname === '/routine'
-                ? 'Nova tarefa'
-                : pathname === '/rewards'
-                  ? 'Nova recompensa'
-                  : 'Novo registro no diário'}
-            </span>
+            <RiAddLine aria-hidden="true" className="sm:hidden" size={26} />
+            <RiAddLine
+              aria-hidden="true"
+              className="hidden sm:block"
+              size={30}
+            />
+            <span className="sr-only">{fabSrText}</span>
           </button>
         </div>
 
-        {/* Rewards */}
-        <button
-          aria-current={isActive('/rewards') ? 'page' : undefined}
-          aria-label='Ir para loja de prêmios'
-          className={navItemClass('/rewards')}
-          onClick={() => {
-            playNavigation()
-            router.push('/rewards')
-          }}
-          type='button'
-        >
-          <div
-            aria-hidden='true'
-            className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/rewards') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
-            }`}
-          >
-            <Gift
-              className='transition-transform duration-300 group-active:scale-90'
-              size={20}
-              strokeWidth={isActive('/rewards') ? 2.5 : 2}
-            />
-          </div>
-          <span
-            className={`font-bold text-[10px] transition-all duration-300 sm:text-[11px] ${
-              isActive('/rewards') ? 'translate-y-0 opacity-100' : 'hidden translate-y-2 opacity-0'
-            }`}
-          >
-            Prêmios
-          </span>
-        </button>
-
-        {/* Profile */}
-        <button
-          aria-current={isActive('/profile') ? 'page' : undefined}
-          aria-label='Ir para seu perfil'
-          className={navItemClass('/profile')}
-          onClick={() => {
-            playNavigation()
-            router.push('/profile')
-          }}
-          type='button'
-        >
-          <div
-            aria-hidden='true'
-            className={`touch-target flex items-center justify-center rounded-xl p-2 transition-all duration-300 ${
-              isActive('/profile') ? 'bg-sky-50 dark:bg-sky-900/20' : ''
-            }`}
-          >
-            <User
-              className='transition-transform duration-300 group-active:scale-90'
-              size={20}
-              strokeWidth={isActive('/profile') ? 2.5 : 2}
-            />
-          </div>
-          <span
-            className={`font-bold text-[10px] transition-all duration-300 sm:text-[11px] ${
-              isActive('/profile') ? 'translate-y-0 opacity-100' : 'hidden translate-y-2 opacity-0'
-            }`}
-          >
-            Perfil
-          </span>
-        </button>
+        {RIGHT_ITEMS.map(renderNavButton)}
       </div>
     </nav>
-  )
-}
+  );
+};

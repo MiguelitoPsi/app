@@ -263,11 +263,19 @@ export const analyticsRouter = router({
 
     // Get patients with longest streaks
     const topStreaks = relationships
-      .map((rel) => ({
-        id: rel.patient.id,
-        name: rel.patient.name,
-        streak: rel.patient.streak,
-      }))
+      .flatMap((rel) => {
+        if (!rel.patient) {
+          return []
+        }
+
+        return [
+          {
+            id: rel.patient.id,
+            name: rel.patient.name,
+            streak: rel.patient.streak,
+          },
+        ]
+      })
       .sort((a, b) => b.streak - a.streak)
       .slice(0, 5)
 
@@ -581,11 +589,19 @@ export const analyticsRouter = router({
     const activePatients = activePatientResults.reduce((sum: number, val) => sum + val, 0 as number)
 
     const topStreaks = relationships
-      .map((rel) => ({
-        id: rel.patient.id,
-        name: rel.patient.name,
-        streak: rel.patient.streak,
-      }))
+      .flatMap((rel) => {
+        if (!rel.patient) {
+          return []
+        }
+
+        return [
+          {
+            id: rel.patient.id,
+            name: rel.patient.name,
+            streak: rel.patient.streak,
+          },
+        ]
+      })
       .sort((a, b) => b.streak - a.streak)
       .slice(0, 5)
 

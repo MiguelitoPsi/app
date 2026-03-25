@@ -7,6 +7,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://26.229.172.247:3000',
     'https://app.guiadomiguel.com.br',
     process.env.NEXT_PUBLIC_APP_URL || '',
   ].filter(Boolean),

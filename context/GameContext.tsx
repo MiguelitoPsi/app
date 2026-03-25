@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import type React from 'react'
+import type React from "react";
 import {
   createContext,
   type ReactNode,
@@ -9,9 +9,9 @@ import {
   useEffect,
   useMemo,
   useState,
-} from 'react'
-import { BADGE_DEFINITIONS } from '@/lib/constants'
-import { trpc } from '@/lib/trpc/client'
+} from "react";
+import { BADGE_DEFINITIONS } from "@/lib/constants";
+import { trpc } from "@/lib/trpc/client";
 import type {
   AvatarConfig,
   GameContextType,
@@ -19,170 +19,178 @@ import type {
   RewardCategory,
   UrgentTask,
   UserStats,
-} from '../types'
+} from "../types";
 
-const GameContext = createContext<GameContextType | undefined>(undefined)
+const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const RANKS = [
   {
     level: 1,
-    name: 'Primeiro Passo',
+    name: "Primeiro Passo",
     xpRequired: 0,
-    description: 'O começo de uma grande jornada.',
+    description: "O começo de uma grande jornada.",
   },
   {
     level: 2,
-    name: 'Observador de Si',
+    name: "Observador de Si",
     xpRequired: 300,
-    description: 'Aprendendo os fundamentos.',
+    description: "Aprendendo os fundamentos.",
   },
   {
     level: 3,
-    name: 'Cultivador da Clareza',
+    name: "Cultivador da Clareza",
     xpRequired: 700,
-    description: 'Descobrindo novos horizontes.',
+    description: "Descobrindo novos horizontes.",
   },
   {
     level: 4,
-    name: 'Construtor de Hábitos',
+    name: "Construtor de Hábitos",
     xpRequired: 1200,
-    description: 'Enfrentando desafios maiores.',
+    description: "Enfrentando desafios maiores.",
   },
   {
     level: 5,
-    name: 'Navegador Emocional',
+    name: "Navegador Emocional",
     xpRequired: 1800,
-    description: 'Experiência acumulada.',
+    description: "Experiência acumulada.",
   },
   {
     level: 6,
-    name: 'Praticante da Presença',
+    name: "Praticante da Presença",
     xpRequired: 2500,
-    description: 'Domínio sobre a mente.',
+    description: "Domínio sobre a mente.",
   },
   {
     level: 7,
-    name: 'Artífice da Mente',
+    name: "Artífice da Mente",
     xpRequired: 3300,
-    description: 'Um exemplo para todos.',
+    description: "Um exemplo para todos.",
   },
   {
     level: 8,
-    name: 'Alinhado ao Propósito',
+    name: "Alinhado ao Propósito",
     xpRequired: 4200,
-    description: 'Enxergando além.',
+    description: "Enxergando além.",
   },
   {
     level: 9,
-    name: 'Integrado',
+    name: "Integrado",
     xpRequired: 5200,
-    description: 'Além dos limites.',
+    description: "Além dos limites.",
   },
   {
     level: 10,
-    name: 'Consciência Plena',
+    name: "Consciência Plena",
     xpRequired: 6500,
-    description: 'O auge da evolução.',
+    description: "O auge da evolução.",
   },
-]
+];
 
-export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const utils = trpc.useUtils()
+export const GameProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
+  const utils = trpc.useUtils();
 
   // Fetch user profile - core data, refresh less often
   // Fetch user profile - keep it fresh
   const { data: userProfile } = trpc.user.getProfile.useQuery(undefined, {
     staleTime: 0,
     refetchOnMount: true,
-  })
+  });
 
   // Fetch tasks - can change frequently
-  const { data: tasksData = [], refetch: refetchTasks } = trpc.task.getAll.useQuery(undefined, {
-    staleTime: 30 * 1000, // 30 seconds
-    refetchOnMount: false,
-  })
+  const { data: tasksData = [], refetch: refetchTasks } =
+    trpc.task.getAll.useQuery(undefined, {
+      staleTime: 30 * 1000, // 30 seconds
+      refetchOnMount: false,
+    });
 
   // Fetch tasks from therapist (for patients)
-  const { data: therapistTasksData = [] } = trpc.task.getMyTasksFromTherapist.useQuery(undefined, {
-    staleTime: 30 * 1000, // 30 seconds
-    refetchOnMount: false,
-  })
+  const { data: therapistTasksData = [] } =
+    trpc.task.getMyTasksFromTherapist.useQuery(undefined, {
+      staleTime: 30 * 1000, // 30 seconds
+      refetchOnMount: false,
+    });
 
   // Transfer overdue tasks mutation
   const transferOverdueMutation = trpc.task.transferOverdueTasks.useMutation({
     onSuccess: (result) => {
       if (result.transferredCount > 0) {
         // Refresh tasks after transfer
-        refetchTasks()
+        refetchTasks();
       }
       // Update urgent tasks from the result
       if (result.urgentTasks.length > 0) {
         setUrgentOverdueTasks(
           result.urgentTasks.map((t) => ({
             ...t,
-            originalDueDate: t.originalDueDate ? new Date(t.originalDueDate) : null,
-          }))
-        )
+            originalDueDate: t.originalDueDate
+              ? new Date(t.originalDueDate)
+              : null,
+          })),
+        );
       }
     },
-  })
+  });
 
   // State for urgent overdue tasks (2+ days)
-  const [urgentOverdueTasks, setUrgentOverdueTasks] = useState<UrgentTask[]>([])
-  const [hasTransferredToday, setHasTransferredToday] = useState(false)
+  const [urgentOverdueTasks, setUrgentOverdueTasks] = useState<UrgentTask[]>(
+    [],
+  );
+  const [hasTransferredToday, setHasTransferredToday] = useState(false);
 
   // Transfer overdue tasks on mount (once per day)
   useEffect(() => {
     if (!hasTransferredToday && tasksData.length > 0) {
-      const lastTransferDate = localStorage.getItem('lastTaskTransferDate')
-      const today = new Date().toDateString()
+      const lastTransferDate = localStorage.getItem("lastTaskTransferDate");
+      const today = new Date().toDateString();
 
       if (lastTransferDate !== today) {
-        transferOverdueMutation.mutate()
-        localStorage.setItem('lastTaskTransferDate', today)
-        setHasTransferredToday(true)
+        transferOverdueMutation.mutate();
+        localStorage.setItem("lastTaskTransferDate", today);
+        setHasTransferredToday(true);
       }
     }
-  }, [hasTransferredToday, tasksData.length, transferOverdueMutation])
+  }, [hasTransferredToday, tasksData.length, transferOverdueMutation]);
 
   // Fetch journal entries - rarely changes
   const { data: journalData = [] } = trpc.journal.getAll.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: false,
-  })
+  });
 
   // Fetch latest mood from moodHistory - used for currentMood
   const { data: latestMood } = trpc.user.getLatestMood.useQuery(undefined, {
     staleTime: 1 * 60 * 1000, // 1 minute
     refetchOnMount: false,
-  })
+  });
 
   // Fetch badges - rarely changes
   // Fetch badges - refresh often to catch updates/cleanups
   const { data: badgesData = [] } = trpc.badge.getAll.useQuery(undefined, {
     staleTime: 0, // Always fetch fresh to catch cleanups
     refetchOnMount: true,
-  })
+  });
 
   // Fetch rewards - can change with purchases
   const { data: rewardsData = [] } = trpc.reward.getAll.useQuery(undefined, {
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchOnMount: false,
-  })
+  });
 
   // Convert user profile to UserStats format
   const stats: UserStats = useMemo(() => {
     if (!userProfile) {
       return {
-        name: '',
+        name: "",
         xp: 0,
         level: 1,
         points: 0,
         streak: 0,
         longestStreak: 0,
         badges: [],
-        avatarConfig: { accessory: 'none', shirtColor: 'bg-blue-500' },
-        theme: 'light',
+        avatarConfig: { accessory: "none", shirtColor: "bg-blue-500" },
+        theme: "light",
         totalMeditationMinutes: 0,
         dailyMeditationCount: 0,
         lastMeditationDate: 0,
@@ -200,61 +208,63 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         completedTasks: 0,
         totalMeditations: 0,
         totalJournalEntries: 0,
-      }
+      };
     }
 
-    const avatarConfig = (userProfile.preferences as Record<string, unknown> | null)
-      ?.avatar_config as AvatarConfig | undefined
-    const theme = (userProfile.preferences as Record<string, unknown> | null)?.theme as
-      | 'light'
-      | 'dark'
-      | undefined
+    const avatarConfig = (
+      userProfile.preferences as Record<string, unknown> | null
+    )?.avatar_config as AvatarConfig | undefined;
+    const theme = (userProfile.preferences as Record<string, unknown> | null)
+      ?.theme as "light" | "dark" | undefined;
 
     // Cast userProfile to any to access extendedStats since type inference might lag
     // biome-ignore lint/suspicious/noExplicitAny: extendedStats added in router
-    const extendedStats = (userProfile as any).extendedStats || {}
+    const extendedStats = (userProfile as any).extendedStats || {};
     // biome-ignore lint/suspicious/noExplicitAny: stats added in router
-    const dbStats = (userProfile as any).stats || {}
+    const dbStats = (userProfile as any).stats || {};
 
     // Calculate engagement for today
-    const now = new Date()
+    const now = new Date();
     const isSameDay = (d1: number, d2: Date) => {
-      if (!d1) return false
-      const date1 = new Date(d1)
+      if (!d1) return false;
+      const date1 = new Date(d1);
       return (
         date1.getDate() === d2.getDate() &&
         date1.getMonth() === d2.getMonth() &&
         date1.getFullYear() === d2.getFullYear()
-      )
-    }
+      );
+    };
 
     const lastTaskDate = userProfile.lastTaskXpDate
       ? new Date(userProfile.lastTaskXpDate).getTime()
-      : 0
+      : 0;
     const lastJournalDate = userProfile.lastJournalXpDate
       ? new Date(userProfile.lastJournalXpDate).getTime()
-      : 0
+      : 0;
     const lastMeditationDate = userProfile.lastMeditationXpDate
       ? new Date(userProfile.lastMeditationXpDate).getTime()
-      : 0
+      : 0;
 
-    const hasTaskToday = isSameDay(lastTaskDate, now)
-    const hasJournalToday = isSameDay(lastJournalDate, now)
-    const hasMeditationToday = isSameDay(lastMeditationDate, now)
+    const hasTaskToday = isSameDay(lastTaskDate, now);
+    const hasJournalToday = isSameDay(lastJournalDate, now);
+    const hasMeditationToday = isSameDay(lastMeditationDate, now);
 
     const engagementScore =
-      (hasTaskToday ? 1 : 0) + (hasJournalToday ? 1 : 0) + (hasMeditationToday ? 1 : 0)
-    const isEngaged = engagementScore >= 3 ? 1 : 0
+      (hasTaskToday ? 1 : 0) +
+      (hasJournalToday ? 1 : 0) +
+      (hasMeditationToday ? 1 : 0);
+    const isEngaged = engagementScore >= 3 ? 1 : 0;
 
     return {
       id: userProfile.id,
-      name: userProfile.name || '',
-      role: userProfile.role as 'admin' | 'psychologist' | 'patient',
+      name: userProfile.name || "",
+      role: userProfile.role as "admin" | "psychologist" | "patient",
       xp: userProfile.experience || 0,
       level:
         RANKS.slice()
           .reverse()
-          .find((rank) => (userProfile.experience || 0) >= rank.xpRequired)?.level || 1,
+          .find((rank) => (userProfile.experience || 0) >= rank.xpRequired)
+          ?.level || 1,
       points: userProfile.coins || 0,
       streak: userProfile.streak || 0,
       longestStreak: dbStats.longestStreak || userProfile.streak || 0,
@@ -263,10 +273,10 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         date: b.unlockedAt ? new Date(b.unlockedAt).getTime() : Date.now(),
       })),
       avatarConfig: avatarConfig || {
-        accessory: 'none',
-        shirtColor: 'bg-blue-500',
+        accessory: "none",
+        shirtColor: "bg-blue-500",
       },
-      theme: theme || 'light',
+      theme: theme || "light",
       totalMeditationMinutes: extendedStats.totalMeditationMinutes || 0,
       dailyMeditationCount: 0,
       lastMeditationDate,
@@ -280,18 +290,22 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Verificar se foi resgatado hoje (cooldown diário)
         const claimedToday = r.claimedAt
           ? new Date(r.claimedAt).toDateString() === new Date().toDateString()
-          : false
+          : false;
 
         return {
           id: r.id,
           title: r.title,
-          category: (r.category as RewardCategory) || 'lazer',
+          category: (r.category as RewardCategory) || "lazer",
           cost: r.cost,
           // Status: redeemed se resgatou hoje, approved se tem custo, pending se aguarda aprovação
-          status: claimedToday ? 'redeemed' : r.cost > 0 ? 'approved' : 'pending',
+          status: claimedToday
+            ? "redeemed"
+            : r.cost > 0
+              ? "approved"
+              : "pending",
           createdAt: r.createdAt ? new Date(r.createdAt).getTime() : Date.now(),
           claimedAt: r.claimedAt ? new Date(r.claimedAt).getTime() : undefined,
-        }
+        };
       }),
       completedTasksHigh: extendedStats.completedTasksHigh || 0,
       completedTasksMedium: extendedStats.completedTasksMedium || 0,
@@ -302,8 +316,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       completedTasks: dbStats.completedTasks || 0,
       totalMeditations: dbStats.totalMeditations || 0,
       totalJournalEntries: dbStats.totalJournalEntries || 0,
-    }
-  }, [userProfile, journalData, rewardsData, badgesData])
+    };
+  }, [userProfile, journalData, rewardsData, badgesData]);
 
   // Convert tasks to the expected format (including tasks from therapist)
   const tasks = useMemo(() => {
@@ -311,42 +325,56 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const regularTasks = tasksData.map((task) => ({
       id: task.id,
       title: task.title,
-      priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
+      priority: (task.priority || "medium") as "high" | "medium" | "low",
       completed: Boolean(task.completed),
       dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
-      originalDueDate: task.originalDueDate ? new Date(task.originalDueDate).getTime() : undefined,
-      frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
+      originalDueDate: task.originalDueDate
+        ? new Date(task.originalDueDate).getTime()
+        : undefined,
+      frequency: (task.frequency || "once") as
+        | "once"
+        | "daily"
+        | "weekly"
+        | "monthly",
       weekDays: task.weekDays as number[] | undefined,
       monthDays: task.monthDays as number[] | undefined,
+      startTime: task.startTime ?? undefined,
+      endTime: task.endTime ?? undefined,
       isFromTherapist: false,
-    }))
+    }));
 
     // Tasks from therapist
     const fromTherapist = therapistTasksData.map((task) => ({
       id: task.id,
       title: task.title,
-      priority: (task.priority || 'medium') as 'high' | 'medium' | 'low',
-      completed: task.status === 'completed',
+      priority: (task.priority || "medium") as "high" | "medium" | "low",
+      completed: task.status === "completed",
       dueDate: task.dueDate ? new Date(task.dueDate).getTime() : Date.now(),
       originalDueDate: undefined,
-      frequency: (task.frequency || 'once') as 'once' | 'daily' | 'weekly' | 'monthly',
+      frequency: (task.frequency || "once") as
+        | "once"
+        | "daily"
+        | "weekly"
+        | "monthly",
       weekDays: task.weekDays as number[] | undefined,
       monthDays: undefined,
+      startTime: task.startTime ?? undefined,
+      endTime: task.endTime ?? undefined,
       isFromTherapist: true,
       category: task.category,
-    }))
+    }));
 
     // Combine and sort by dueDate (closest first), then priority (high first)
     return [...regularTasks, ...fromTherapist].sort((a, b) => {
       // First by date (closer dates first)
       if (a.dueDate !== b.dueDate) {
-        return a.dueDate - b.dueDate
+        return a.dueDate - b.dueDate;
       }
       // Then by priority (high > medium > low)
-      const priorityOrder = { high: 0, medium: 1, low: 2 }
-      return priorityOrder[a.priority] - priorityOrder[b.priority]
-    })
-  }, [tasksData, therapistTasksData])
+      const priorityOrder = { high: 0, medium: 1, low: 2 };
+      return priorityOrder[a.priority] - priorityOrder[b.priority];
+    });
+  }, [tasksData, therapistTasksData]);
 
   // Convert journal entries to the expected format
   const journal = useMemo(
@@ -354,53 +382,56 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       journalData.map((entry) => ({
         id: entry.id,
         timestamp: new Date(entry.createdAt).getTime(),
-        emotion: (entry.mood as Mood) || 'neutral',
+        emotion: (entry.mood as Mood) || "neutral",
         intensity: 5,
-        thought: entry.content || '',
+        thought: entry.content || "",
         aiAnalysis: entry.aiAnalysis || undefined,
         therapistFeedback: entry.therapistFeedback || undefined,
-        feedbackAt: entry.feedbackAt ? new Date(entry.feedbackAt).getTime() : undefined,
+        feedbackAt: entry.feedbackAt
+          ? new Date(entry.feedbackAt).getTime()
+          : undefined,
         feedbackViewed: entry.feedbackViewed ?? false,
       })),
-    [journalData]
-  )
+    [journalData],
+  );
 
   // Get current mood from moodHistory (or fallback to journal)
   const currentMood: Mood = useMemo(() => {
     // Priority: moodHistory > journal
-    if (latestMood) return latestMood as Mood
-    if (journal.length > 0) return journal[0]?.emotion || 'neutral'
-    return 'neutral'
-  }, [latestMood, journal])
+    if (latestMood) return latestMood as Mood;
+    if (journal.length > 0) return journal[0]?.emotion || "neutral";
+    return "neutral";
+  }, [latestMood, journal]);
 
   // Calculate badges with unlock status
   const allBadges = useMemo(() => {
     return BADGE_DEFINITIONS.map((def) => {
-      const isUnlocked = stats.badges.some((b) => b.id === def.id)
+      const isUnlocked = stats.badges.some((b) => b.id === def.id);
       // Extra UI check: if it's a level badge, ensure we actually have the level
-      const meetsLevelRequirement = def.metric !== 'level' || stats.level >= def.requirement
+      const meetsLevelRequirement =
+        def.metric !== "level" || stats.level >= def.requirement;
 
       return {
         ...def,
         isUnlocked: isUnlocked && meetsLevelRequirement,
         unlockedAt: stats.badges.find((b) => b.id === def.id)?.date,
-      }
-    })
-  }, [stats.badges, stats.level])
+      };
+    });
+  }, [stats.badges, stats.level]);
 
   // State for new badges
-  const [newBadges, setNewBadges] = useState<typeof BADGE_DEFINITIONS>([])
+  const [newBadges, setNewBadges] = useState<typeof BADGE_DEFINITIONS>([]);
 
   // Helper functions that use tRPC mutations
   const addXP = (amount: number) => {
     // XP is now managed by backend mutations
-    console.log('XP awarded:', amount)
-  }
+    console.log("XP awarded:", amount);
+  };
 
   const addPoints = (amount: number) => {
     // Points/coins are now managed by backend mutations
-    console.log('Points awarded:', amount)
-  }
+    console.log("Points awarded:", amount);
+  };
 
   const checkBadges = useCallback(() => {
     // Fire and forget - don't block UI
@@ -409,176 +440,185 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       .then((result) => {
         if (result.newBadges && result.newBadges.length > 0) {
           const unlockedBadges = BADGE_DEFINITIONS.filter((def) =>
-            result.newBadges.includes(def.id)
-          )
-          setNewBadges((prev) => [...prev, ...unlockedBadges])
+            result.newBadges.includes(def.id),
+          );
+          setNewBadges((prev) => [...prev, ...unlockedBadges]);
         }
         // Always invalidate to ensure consistency (e.g. if DB cleanup happened)
-        utils.badge.getAll.invalidate()
-        utils.user.getProfile.invalidate()
+        utils.badge.getAll.invalidate();
+        utils.user.getProfile.invalidate();
       })
       .catch((error) => {
-        console.error('Error checking badges:', error)
-      })
-  }, [utils])
+        console.error("Error checking badges:", error);
+      });
+  }, [utils]);
 
   // Check badges on mount/user load to ensure consistency
   useEffect(() => {
     if (userProfile?.id) {
-      checkBadges()
+      checkBadges();
     }
-  }, [userProfile?.id, checkBadges])
+  }, [userProfile?.id, checkBadges]);
 
   const dismissNewBadge = () => {
-    setNewBadges((prev) => prev.slice(1))
-  }
+    setNewBadges((prev) => prev.slice(1));
+  };
 
   const dismissUrgentTask = (id: string) => {
-    setUrgentOverdueTasks((prev) => prev.filter((t) => t.id !== id))
-  }
+    setUrgentOverdueTasks((prev) => prev.filter((t) => t.id !== id));
+  };
 
   // Helper to optimistically update user profile XP and coins
   const updateProfileOptimistically = (xpDelta: number, coinsDelta: number) => {
     utils.user.getProfile.setData(undefined, (old) => {
-      if (!old) return old
-      const newExperience = Math.max(0, (old.experience || 0) + xpDelta)
-      const newCoins = Math.max(0, (old.coins || 0) + coinsDelta)
+      if (!old) return old;
+      const newExperience = Math.max(0, (old.experience || 0) + xpDelta);
+      const newCoins = Math.max(0, (old.coins || 0) + coinsDelta);
 
       // Calculate correct level based on RANKS
       const newLevel =
         RANKS.slice()
           .reverse()
-          .find((rank) => newExperience >= rank.xpRequired)?.level || 1
+          .find((rank) => newExperience >= rank.xpRequired)?.level || 1;
 
       return {
         ...old,
         experience: newExperience,
         coins: newCoins,
         level: newLevel,
-      }
-    })
-  }
+      };
+    });
+  };
 
   const toggleTask = async (id: string) => {
     // Find the task - check both regular tasks and therapist tasks
-    const regularTask = tasksData.find((t) => t.id === id)
-    const therapistTask = therapistTasksData.find((t) => t.id === id)
-    const task = regularTask || therapistTask
-    const isFromTherapist = !!therapistTask
+    const regularTask = tasksData.find((t) => t.id === id);
+    const therapistTask = therapistTasksData.find((t) => t.id === id);
+    const task = regularTask || therapistTask;
+    const isFromTherapist = !!therapistTask;
 
-    if (!task) return
+    if (!task) return;
 
     const wasCompleted = isFromTherapist
-      ? therapistTask?.status === 'completed'
-      : (regularTask?.completed ?? false)
+      ? therapistTask?.status === "completed"
+      : (regularTask?.completed ?? false);
 
     // Optimistic update - update task cache immediately
     if (isFromTherapist) {
       utils.task.getMyTasksFromTherapist.setData(undefined, (old) => {
-        if (!old) return old
+        if (!old) return old;
         return old.map((t) =>
-          t.id === id ? { ...t, status: wasCompleted ? 'pending' : 'completed' } : t
-        )
-      })
+          t.id === id
+            ? { ...t, status: wasCompleted ? "pending" : "completed" }
+            : t,
+        );
+      });
     } else {
       utils.task.getAll.setData(undefined, (old) => {
-        if (!old) return old
-        return old.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
-      })
+        if (!old) return old;
+        return old.map((t) =>
+          t.id === id ? { ...t, completed: !t.completed } : t,
+        );
+      });
     }
 
     // If it's a temporary task, don't call backend
-    if (id.startsWith('temp-')) {
-      return
+    if (id.startsWith("temp-")) {
+      return;
     }
 
     // Optimistic update for XP/coins based on task type and priority
-    const priority = task.priority || 'medium'
+    const priority = task.priority || "medium";
     // Sessões (categoria 'sessao') dão 40 XP/coins
-    const isSession = isFromTherapist && therapistTask?.category === 'sessao'
-    let xp: number
-    let coins: number
+    const isSession = isFromTherapist && therapistTask?.category === "sessao";
+    let xp: number;
+    let coins: number;
 
     if (isSession) {
-      xp = 40
-      coins = 40
+      xp = 40;
+      coins = 40;
     } else {
       const xpRewards: Record<string, number> = {
         high: 30,
         medium: 10,
         low: 5,
-      }
+      };
       const coinRewards: Record<string, number> = {
         high: 30,
         medium: 10,
         low: 5,
-      }
-      xp = xpRewards[priority] || 10
-      coins = coinRewards[priority] || 10
+      };
+      xp = xpRewards[priority] || 10;
+      coins = coinRewards[priority] || 10;
     }
 
     if (wasCompleted) {
       // Uncompleting - remove XP/coins
-      updateProfileOptimistically(-xp, -coins)
+      updateProfileOptimistically(-xp, -coins);
     } else {
-      updateProfileOptimistically(xp, coins)
+      updateProfileOptimistically(xp, coins);
     }
 
     try {
       if (isFromTherapist) {
         // Complete therapist task
-        await utils.client.task.completeTherapistTask.mutate({ taskId: id })
-        utils.task.getMyTasksFromTherapist.invalidate()
+        await utils.client.task.completeTherapistTask.mutate({ taskId: id });
+        utils.task.getMyTasksFromTherapist.invalidate();
       } else {
         // Complete regular task
-        await utils.client.task.complete.mutate({ id })
-        utils.task.getAll.invalidate()
+        await utils.client.task.complete.mutate({ id });
+        utils.task.getAll.invalidate();
       }
       // After mutation, sync with actual server values in background
-      utils.user.getProfile.invalidate()
-      checkBadges()
+      utils.user.getProfile.invalidate();
+      checkBadges();
     } catch (error) {
       // Revert optimistic updates on error
-      utils.task.getAll.invalidate()
-      utils.task.getMyTasksFromTherapist.invalidate()
-      utils.user.getProfile.invalidate()
-      console.error('Error completing task:', error)
+      utils.task.getAll.invalidate();
+      utils.task.getMyTasksFromTherapist.invalidate();
+      utils.user.getProfile.invalidate();
+      console.error("Error completing task:", error);
     }
-  }
+  };
 
   const addTask = (taskData: {
-    title: string
-    description?: string
-    priority: 'low' | 'medium' | 'high'
-    dueDate?: number
-    frequency?: 'once' | 'daily' | 'weekly' | 'monthly'
-    weekDays?: number[]
-    monthDays?: number[]
+    title: string;
+    description?: string;
+    priority: "low" | "medium" | "high";
+    dueDate?: number;
+    frequency?: "once" | "daily" | "weekly" | "monthly";
+    weekDays?: number[];
+    monthDays?: number[];
+    startTime?: string;
+    endTime?: string;
+    metadata?: Record<string, unknown>;
   }) => {
     // Generate temporary ID for optimistic update
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
-    const dueDate = taskData.dueDate ? new Date(taskData.dueDate) : new Date()
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const dueDate = taskData.dueDate ? new Date(taskData.dueDate) : new Date();
 
     // Optimistic update - add task immediately to UI
     utils.task.getAll.setData(undefined, (old) => {
-      if (!old) return old
+      if (!old) return old;
       return [
         ...old,
         {
           id: tempId,
-          userId: '',
+          userId: "",
           title: taskData.title,
           description: taskData.description || null,
-          category: 'general',
+          category: "general",
           priority: taskData.priority,
           dueDate,
           completed: false,
           completedAt: null,
           experience: 0,
           coins: 0,
-          frequency: taskData.frequency || 'once',
+          frequency: taskData.frequency || "once",
           weekDays: taskData.weekDays || null,
           monthDays: taskData.monthDays || null,
+          startTime: taskData.startTime || null,
+          endTime: taskData.endTime || null,
           originalDueDate: null,
           transferCount: 0,
           createdAt: new Date(),
@@ -588,8 +628,8 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           therapistId: null,
           metadata: null,
         },
-      ]
-    })
+      ];
+    });
 
     try {
       // Fire and forget - don't await
@@ -597,298 +637,303 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         .mutate({
           title: taskData.title,
           description: taskData.description,
-          category: 'general',
+          category: "general",
           priority: taskData.priority,
           dueDate,
           frequency: taskData.frequency,
           weekDays: taskData.weekDays,
           monthDays: taskData.monthDays,
+          startTime: taskData.startTime,
+          endTime: taskData.endTime,
+          metadata: taskData.metadata,
         })
         .then(() => {
           // Background invalidation to sync with server
-          utils.task.getAll.invalidate()
+          utils.task.getAll.invalidate();
         })
         .catch((error) => {
-          console.error('Error creating task:', error)
+          console.error("Error creating task:", error);
           // Revert optimistic update on error
-          utils.task.getAll.invalidate()
-        })
+          utils.task.getAll.invalidate();
+        });
     } catch (error) {
-      console.error('Error creating task:', error)
-      utils.task.getAll.invalidate()
-      throw error
+      console.error("Error creating task:", error);
+      utils.task.getAll.invalidate();
+      throw error;
     }
-  }
+  };
 
   const deleteTask = async (id: string) => {
     // Find the task to check if it's from therapist
-    const therapistTask = therapistTasksData.find((t) => t.id === id)
-    const isFromTherapist = !!therapistTask
+    const therapistTask = therapistTasksData.find((t) => t.id === id);
+    const isFromTherapist = !!therapistTask;
 
     // Optimistic delete
     if (isFromTherapist) {
       utils.task.getMyTasksFromTherapist.setData(undefined, (old) => {
-        if (!old) return old
-        return old.filter((task) => task.id !== id)
-      })
+        if (!old) return old;
+        return old.filter((task) => task.id !== id);
+      });
     } else {
       utils.task.getAll.setData(undefined, (old) => {
-        if (!old) return old
-        return old.filter((task) => task.id !== id)
-      })
+        if (!old) return old;
+        return old.filter((task) => task.id !== id);
+      });
     }
 
     try {
-      if (id.startsWith('temp-')) {
-        return
+      if (id.startsWith("temp-")) {
+        return;
       }
 
       if (isFromTherapist) {
-        await utils.client.task.rejectTherapistTask.mutate({ taskId: id })
-        utils.task.getMyTasksFromTherapist.invalidate()
+        await utils.client.task.rejectTherapistTask.mutate({ taskId: id });
+        utils.task.getMyTasksFromTherapist.invalidate();
       } else {
-        await utils.client.task.delete.mutate({ id })
-        utils.task.getAll.invalidate()
+        await utils.client.task.delete.mutate({ id });
+        utils.task.getAll.invalidate();
       }
     } catch (error) {
-      utils.task.getAll.invalidate()
-      utils.task.getMyTasksFromTherapist.invalidate()
-      console.error('Error deleting task:', error)
+      utils.task.getAll.invalidate();
+      utils.task.getMyTasksFromTherapist.invalidate();
+      console.error("Error deleting task:", error);
     }
-  }
+  };
 
   const addJournalEntry = async (entryData: {
-    emotion: Mood
-    intensity: number
-    thought: string
-    aiAnalysis?: string
+    emotion: Mood;
+    intensity: number;
+    thought: string;
+    aiAnalysis?: string;
   }) => {
     // Optimistic update for XP/coins (journal gives 30 XP and 30 coins)
-    updateProfileOptimistically(30, 30)
+    updateProfileOptimistically(30, 30);
 
     try {
       await utils.client.journal.create.mutate({
         content: entryData.thought,
         mood: entryData.emotion,
         aiAnalysis: entryData.aiAnalysis,
-      })
+      });
       // Background invalidation
-      utils.journal.getAll.invalidate()
-      utils.user.getProfile.invalidate()
-      checkBadges()
+      utils.journal.getAll.invalidate();
+      utils.user.getProfile.invalidate();
+      checkBadges();
     } catch (error) {
       // Revert on error
-      utils.user.getProfile.invalidate()
-      console.error('Error creating journal entry:', error)
+      utils.user.getProfile.invalidate();
+      console.error("Error creating journal entry:", error);
     }
-  }
+  };
 
   const setMood = async (mood: Mood) => {
     // Check if XP is available (1 hour cooldown)
-    const lastXP = stats.lastMoodXPTimestamp || 0
-    const ONE_HOUR_MS = 60 * 60 * 1000
-    const now = Date.now()
-    const canGainXP = !lastXP || now - lastXP >= ONE_HOUR_MS
+    const lastXP = stats.lastMoodXPTimestamp || 0;
+    const ONE_HOUR_MS = 60 * 60 * 1000;
+    const now = Date.now();
+    const canGainXP = !lastXP || now - lastXP >= ONE_HOUR_MS;
 
     // Only do optimistic update if XP is available
     if (canGainXP) {
-      updateProfileOptimistically(10, 0)
+      updateProfileOptimistically(10, 0);
     } else {
-      return // Abort if no XP can be gained
+      return; // Abort if no XP can be gained
     }
 
     try {
-      await utils.client.user.trackMood.mutate({ mood })
+      await utils.client.user.trackMood.mutate({ mood });
       // Background invalidation
-      utils.user.getProfile.invalidate()
-      utils.user.getLatestMood.invalidate()
-      utils.user.hasRecentAnxiety.invalidate()
-      checkBadges()
+      utils.user.getProfile.invalidate();
+      utils.user.getLatestMood.invalidate();
+      utils.user.hasRecentAnxiety.invalidate();
+      checkBadges();
     } catch (error) {
       // Revert on error
-      utils.user.getProfile.invalidate()
-      console.error('Error tracking mood:', error)
+      utils.user.getProfile.invalidate();
+      console.error("Error tracking mood:", error);
     }
-  }
+  };
 
   const completeMeditation = async (minutes: number) => {
     // Calcula duração em segundos
-    const durationSeconds = minutes * 60
+    const durationSeconds = minutes * 60;
 
     // Calcula XP e coins baseado na duração
     // 1-3 min: 1x (30 XP/coins), 5 min: 1.5x (45 XP/coins), 10 min: 2x (60 XP/coins)
-    let multiplier = 1
+    let multiplier = 1;
     if (durationSeconds >= 600)
-      multiplier = 2 // 10+ min
-    else if (durationSeconds >= 300) multiplier = 1.5 // 5+ min
+      multiplier = 2; // 10+ min
+    else if (durationSeconds >= 300) multiplier = 1.5; // 5+ min
 
-    const xpReward = Math.round(30 * multiplier)
-    const coinReward = Math.round(30 * multiplier)
+    const xpReward = Math.round(30 * multiplier);
+    const coinReward = Math.round(30 * multiplier);
 
     // Optimistic update for XP/coins
-    updateProfileOptimistically(xpReward, coinReward)
+    updateProfileOptimistically(xpReward, coinReward);
 
     try {
       await utils.client.meditation.create.mutate({
         duration: durationSeconds,
-        type: 'guided',
-      })
+        type: "guided",
+      });
       // Background invalidation
-      utils.meditation.getHistory.invalidate()
-      utils.user.getProfile.invalidate()
-      checkBadges()
+      utils.meditation.getHistory.invalidate();
+      utils.user.getProfile.invalidate();
+      checkBadges();
     } catch (error) {
       // Revert on error
-      utils.user.getProfile.invalidate()
-      console.error('Error completing meditation:', error)
+      utils.user.getProfile.invalidate();
+      console.error("Error completing meditation:", error);
     }
-  }
+  };
 
   const updateAvatarConfig = async (config: AvatarConfig) => {
     try {
       await utils.client.user.updateAvatar.mutate({
         accessory: config.accessory,
         shirtColor: config.shirtColor,
-      })
+      });
       // Background invalidation
-      utils.user.getProfile.invalidate()
+      utils.user.getProfile.invalidate();
     } catch (error) {
-      console.error('Error updating avatar:', error)
+      console.error("Error updating avatar:", error);
     }
-  }
+  };
 
   const toggleTheme = () => {
     // Calculate new theme from current stats (already in memory)
-    const newTheme = stats.theme === 'light' ? 'dark' : 'light'
+    const newTheme = stats.theme === "light" ? "dark" : "light";
 
     // Add transition class for smooth animation
-    document.documentElement.classList.add('theme-transition')
+    document.documentElement.classList.add("theme-transition");
 
     // Immediately update DOM for instant visual feedback
-    document.documentElement.classList.toggle('dark', newTheme === 'dark')
+    document.documentElement.classList.toggle("dark", newTheme === "dark");
 
     // Remove transition class after animation completes
     setTimeout(() => {
-      document.documentElement.classList.remove('theme-transition')
-    }, 150)
+      document.documentElement.classList.remove("theme-transition");
+    }, 150);
 
     // Optimistic update of React Query cache
     utils.user.getProfile.setData(undefined, (old) => {
-      if (!old) return old
+      if (!old) return old;
       return {
         ...old,
         preferences: {
           ...((old.preferences as Record<string, unknown>) || {}),
           theme: newTheme,
         },
-      }
-    })
+      };
+    });
 
     // Save to backend in background (non-blocking)
     utils.client.user.updateTheme.mutate({ theme: newTheme }).catch((error) => {
-      console.error('Error saving theme:', error)
+      console.error("Error saving theme:", error);
       // Revert on error
-      document.documentElement.classList.toggle('dark', newTheme !== 'dark')
-      utils.user.getProfile.invalidate()
-    })
-  }
+      document.documentElement.classList.toggle("dark", newTheme !== "dark");
+      utils.user.getProfile.invalidate();
+    });
+  };
 
   const addRewardRequest = async (title: string, category: string) => {
     try {
       await utils.client.reward.create.mutate({
         title,
-        description: '',
+        description: "",
         category,
         cost: 0,
-      })
+      });
       // Background invalidation
-      utils.reward.getAll.invalidate()
+      utils.reward.getAll.invalidate();
     } catch (error) {
-      console.error('Error creating reward:', error)
+      console.error("Error creating reward:", error);
     }
-  }
+  };
 
   const redeemReward = async (id: string) => {
     // Find the reward to get its cost
-    const reward = rewardsData.find((r) => r.id === id)
-    const cost = reward?.cost || 0
+    const reward = rewardsData.find((r) => r.id === id);
+    const cost = reward?.cost || 0;
 
     // Optimistic update - mark claimedAt as now (cooldown diário)
     utils.reward.getAll.setData(undefined, (old) => {
-      if (!old) return old
-      return old.map((r) => (r.id === id ? { ...r, claimedAt: new Date() } : r))
-    })
+      if (!old) return old;
+      return old.map((r) =>
+        r.id === id ? { ...r, claimedAt: new Date() } : r,
+      );
+    });
 
     // Optimistic update - deduct coins
     if (cost > 0) {
-      updateProfileOptimistically(0, -cost)
+      updateProfileOptimistically(0, -cost);
     }
 
     try {
-      await utils.client.reward.claim.mutate({ id })
+      await utils.client.reward.claim.mutate({ id });
       // Background invalidation
-      utils.reward.getAll.invalidate()
-      utils.user.getProfile.invalidate()
-      checkBadges()
+      utils.reward.getAll.invalidate();
+      utils.user.getProfile.invalidate();
+      checkBadges();
     } catch (error) {
       // Revert on error
-      utils.reward.getAll.invalidate()
-      utils.user.getProfile.invalidate()
-      console.error('Error redeeming reward:', error)
+      utils.reward.getAll.invalidate();
+      utils.user.getProfile.invalidate();
+      console.error("Error redeeming reward:", error);
     }
-  }
+  };
 
   const deleteReward = async (id: string) => {
     // Optimistic delete
     utils.reward.getAll.setData(undefined, (old) => {
-      if (!old) return old
-      return old.filter((reward) => reward.id !== id)
-    })
+      if (!old) return old;
+      return old.filter((reward) => reward.id !== id);
+    });
 
     try {
-      await utils.client.reward.delete.mutate({ id })
+      await utils.client.reward.delete.mutate({ id });
       // Background invalidation
-      utils.reward.getAll.invalidate()
+      utils.reward.getAll.invalidate();
     } catch (error) {
-      utils.reward.getAll.invalidate()
-      console.error('Error deleting reward:', error)
+      utils.reward.getAll.invalidate();
+      console.error("Error deleting reward:", error);
     }
-  }
+  };
 
   const updateReward = async (
     id: string,
     updates: {
-      title?: string
-      description?: string
-      cost?: number
-      status?: string
-    }
+      title?: string;
+      description?: string;
+      cost?: number;
+      status?: string;
+    },
   ) => {
     try {
       await utils.client.reward.updateCost.mutate({
         rewardId: id,
         cost: updates.cost || 0,
-      })
+      });
       // Background invalidation
-      utils.reward.getAll.invalidate()
+      utils.reward.getAll.invalidate();
     } catch (error) {
-      console.error('Error updating reward:', error)
+      console.error("Error updating reward:", error);
     }
-  }
+  };
 
   // Refresh journal entries
   const refreshJournal = () => {
-    utils.journal.getAll.invalidate()
-  }
+    utils.journal.getAll.invalidate();
+  };
 
   // Apply theme to document
   useEffect(() => {
-    if (stats.theme === 'dark') {
-      document.documentElement.classList.add('dark')
+    if (stats.theme === "dark") {
+      document.documentElement.classList.add("dark");
     } else {
-      document.documentElement.classList.remove('dark')
+      document.documentElement.classList.remove("dark");
     }
-  }, [stats.theme])
+  }, [stats.theme]);
 
   return (
     <GameContext.Provider
@@ -921,13 +966,13 @@ export const GameProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     >
       {children}
     </GameContext.Provider>
-  )
-}
+  );
+};
 
 export const useGame = () => {
-  const context = useContext(GameContext)
+  const context = useContext(GameContext);
   if (context === undefined) {
-    throw new Error('useGame must be used within a GameProvider')
+    throw new Error("useGame must be used within a GameProvider");
   }
-  return context
-}
+  return context;
+};

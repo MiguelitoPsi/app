@@ -1,9 +1,8 @@
-
 import { randomBytes, scrypt } from 'node:crypto'
-import { eq, and } from 'drizzle-orm'
+import { config as dotenvConfig } from 'dotenv'
+import { and, eq } from 'drizzle-orm'
 import { db } from '../lib/db'
 import { accounts, users } from '../lib/db/schema'
-import { config as dotenvConfig } from 'dotenv'
 
 dotenvConfig({ path: '.env.local' })
 
@@ -52,7 +51,7 @@ async function main() {
   try {
     // Find the user first to get the ID
     const user = await db.query.users.findFirst({
-      where: eq(users.email, email)
+      where: eq(users.email, email),
     })
 
     if (!user) {
@@ -63,19 +62,16 @@ async function main() {
     const hashedPassword = await hashPasswordScrypt(newPassword)
 
     // Update the password in the accounts table
-    const result = await db.update(accounts)
-      .set({ 
+    const result = await db
+      .update(accounts)
+      .set({
         password: hashedPassword,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
-      .where(and(
-        eq(accounts.userId, user.id),
-        eq(accounts.providerId, 'credential')
-      ))
+      .where(and(eq(accounts.userId, user.id), eq(accounts.providerId, 'credential')))
 
     console.log(`✅ Password successfully reset for ${email}`)
     console.log(`📝 Hash updated in accounts table for userId: ${user.id}`)
-    
   } catch (error) {
     console.error('❌ Error resetting password:', error)
   }
