@@ -94,7 +94,7 @@ export default function AdminPage() {
   )
 }
 
-type StatsCardProps = {
+interface StatsCardProps {
   title: string
   value: number
   icon: string

@@ -1,209 +1,204 @@
 export type Mood =
-  | "happy"
-  | "excited"
-  | "grateful"
-  | "calm"
-  | "neutral"
-  | "tired"
-  | "bored"
-  | "sad"
-  | "anxious"
-  | "fearful"
-  | "angry"
-  | "disgusted";
+  | 'happy'
+  | 'excited'
+  | 'grateful'
+  | 'calm'
+  | 'neutral'
+  | 'tired'
+  | 'bored'
+  | 'sad'
+  | 'anxious'
+  | 'fearful'
+  | 'angry'
+  | 'disgusted'
 
-export type JournalEntry = {
-  id: string;
-  timestamp: number;
-  emotion: Mood;
-  intensity: number; // 1-10
-  thought: string;
-  aiAnalysis?: string;
-  isRead?: boolean;
-  therapistFeedback?: string;
-  feedbackViewed?: boolean;
-  feedbackAt?: number;
-};
+export interface JournalEntry {
+  id: string
+  timestamp: number
+  emotion: Mood
+  intensity: number // 1-10
+  thought: string
+  aiAnalysis?: string
+  isRead?: boolean
+  therapistFeedback?: string
+  feedbackViewed?: boolean
+  feedbackAt?: number
+}
 
-export type Task = {
-  id: string;
-  title: string;
-  priority: "high" | "medium" | "low";
-  completed: boolean;
-  dueDate: number; // Timestamp (start of day)
-  originalDueDate?: number; // Timestamp da data original (se a tarefa foi transferida)
-  frequency?: "once" | "daily" | "weekly" | "monthly";
-  weekDays?: number[]; // 0-6 (Sunday-Saturday) for weekly tasks
-  monthDays?: number[]; // 1-31 for monthly tasks
-  startTime?: string | null; // HH:MM format
-  endTime?: string | null; // HH:MM format
-  metadata?: Record<string, unknown> | null;
-  isFromTherapist?: boolean; // Se a tarefa foi criada pelo terapeuta
-  category?: string; // Categoria da tarefa (ex: 'sessao', 'terapia', etc.)
-};
+export interface Task {
+  id: string
+  title: string
+  description?: string | null // Descrição da tarefa
+  priority: 'high' | 'medium' | 'low'
+  completed: boolean
+  dueDate: number // Timestamp (start of day)
+  originalDueDate?: number // Timestamp da data original (se a tarefa foi transferida)
+  frequency?: 'once' | 'daily' | 'weekly' | 'monthly'
+  weekDays?: number[] // 0-6 (Sunday-Saturday) for weekly tasks
+  monthDays?: number[] // 1-31 for monthly tasks
+  startTime?: string | null // HH:MM format
+  endTime?: string | null // HH:MM format
+  metadata?: Record<string, unknown> | null
+  isFromTherapist?: boolean // Se a tarefa foi criada pelo terapeuta
+  category?: string // Categoria da tarefa (ex: 'sessao', 'terapia', etc.)
+}
 
-export type UrgentTask = {
-  id: string;
-  title: string;
-  priority: string;
-  originalDueDate: Date | null;
-  daysOverdue: number;
-};
+export interface UrgentTask {
+  id: string
+  title: string
+  priority: string
+  originalDueDate: Date | null
+  daysOverdue: number
+}
 
-export type BadgeUnlock = {
-  id: string;
-  date: number;
-};
+export interface BadgeUnlock {
+  id: string
+  date: number
+}
 
-export type AvatarAccessory =
-  | "none"
-  | "glasses"
-  | "crown"
-  | "headphones"
-  | "bow"
-  | "star";
+export type AvatarAccessory = 'none' | 'glasses' | 'crown' | 'headphones' | 'bow' | 'star'
 
-export type AvatarConfig = {
-  accessory: AvatarAccessory;
-  shirtColor: string; // Tailwind color class
-};
+export interface AvatarConfig {
+  accessory: AvatarAccessory
+  shirtColor: string // Tailwind color class
+}
 
 export type RewardCategory =
-  | "lazer"
-  | "autocuidado"
-  | "descanso"
-  | "social"
-  | "alimentacao"
-  | "compras"
-  | "cultura"
-  | "esporte"
-  | "criatividade"
-  | "natureza";
+  | 'lazer'
+  | 'autocuidado'
+  | 'descanso'
+  | 'social'
+  | 'alimentacao'
+  | 'compras'
+  | 'cultura'
+  | 'esporte'
+  | 'criatividade'
+  | 'natureza'
 
-export type Reward = {
-  id: string;
-  title: string;
-  category: RewardCategory;
-  cost: number; // 0 if pending
-  status: "pending" | "approved" | "redeemed";
-  createdAt: number;
-  claimedAt?: number; // Timestamp do último resgate (cooldown diário)
-};
+export interface Reward {
+  id: string
+  title: string
+  category: RewardCategory
+  cost: number // 0 if pending
+  status: 'pending' | 'approved' | 'redeemed'
+  createdAt: number
+  claimedAt?: number // Timestamp do último resgate (cooldown diário)
+}
 
-export type UserStats = {
-  id?: string;
-  name: string;
-  role?: "admin" | "psychologist" | "patient";
-  xp: number;
-  level: number;
-  points: number; // New Currency
-  streak: number;
-  longestStreak: number;
-  badges: BadgeUnlock[]; // Stores ID and timestamp
-  avatarConfig: AvatarConfig;
-  theme: "light" | "dark";
+export interface UserStats {
+  id?: string
+  name: string
+  role?: 'admin' | 'psychologist' | 'patient'
+  xp: number
+  level: number
+  points: number // New Currency
+  streak: number
+  longestStreak: number
+  badges: BadgeUnlock[] // Stores ID and timestamp
+  avatarConfig: AvatarConfig
+  theme: 'light' | 'dark'
   // Metrics for achievements
-  totalMeditationMinutes: number;
-  dailyMeditationCount: number; // Tracks daily sessions for point limit
-  lastMeditationDate: number; // Timestamp to reset daily count
-  totalTasksCompleted: number;
-  totalJournals: number;
-  tutorialCompleted: boolean;
-  lastMoodXPTimestamp?: number; // Timestamp for cooldown tracking
-  rewards: Reward[]; // User's custom rewards
+  totalMeditationMinutes: number
+  dailyMeditationCount: number // Tracks daily sessions for point limit
+  lastMeditationDate: number // Timestamp to reset daily count
+  totalTasksCompleted: number
+  totalJournals: number
+  tutorialCompleted: boolean
+  lastMoodXPTimestamp?: number // Timestamp for cooldown tracking
+  rewards: Reward[] // User's custom rewards
 
   // New metrics for achievements
-  completedTasksHigh: number;
-  completedTasksMedium: number;
-  completedTasksLow: number;
-  totalMoodLogs: number;
-  redeemedRewards: number;
-  engagement: number; // 0 or 1 (boolean-like) or score
-  completedTasks: number;
-  totalMeditations: number;
-  totalJournalEntries: number;
-};
+  completedTasksHigh: number
+  completedTasksMedium: number
+  completedTasksLow: number
+  totalMoodLogs: number
+  redeemedRewards: number
+  engagement: number // 0 or 1 (boolean-like) or score
+  completedTasks: number
+  totalMeditations: number
+  totalJournalEntries: number
+}
 
 export type BadgeCategory =
-  | "evolution"
-  | "tasks_general"
-  | "tasks_priority"
-  | "meditation"
-  | "journal"
-  | "mood"
-  | "consistency"
-  | "rewards"
-  | "engagement";
+  | 'evolution'
+  | 'tasks_general'
+  | 'tasks_priority'
+  | 'meditation'
+  | 'journal'
+  | 'mood'
+  | 'consistency'
+  | 'rewards'
+  | 'engagement'
 
-export type BadgeDefinition = {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  requirement: number;
-  category: BadgeCategory;
+export interface BadgeDefinition {
+  id: string
+  name: string
+  description: string
+  icon: string
+  requirement: number
+  category: BadgeCategory
   metric:
     | keyof Pick<
         UserStats,
-        | "totalMeditationMinutes"
-        | "totalTasksCompleted"
-        | "totalJournals"
-        | "streak"
-        | "tutorialCompleted"
-        | "completedTasks"
-        | "totalMeditations"
-        | "totalJournalEntries"
-        | "longestStreak"
+        | 'totalMeditationMinutes'
+        | 'totalTasksCompleted'
+        | 'totalJournals'
+        | 'streak'
+        | 'tutorialCompleted'
+        | 'completedTasks'
+        | 'totalMeditations'
+        | 'totalJournalEntries'
+        | 'longestStreak'
       >
-    | "auto"
-    | "level"
-    | "completedTasksHigh"
-    | "completedTasksMedium"
-    | "completedTasksLow"
-    | "totalMoodLogs"
-    | "redeemedRewards"
-    | "engagement";
+    | 'auto'
+    | 'level'
+    | 'completedTasksHigh'
+    | 'completedTasksMedium'
+    | 'completedTasksLow'
+    | 'totalMoodLogs'
+    | 'redeemedRewards'
+    | 'engagement'
   // Properties added by GameContext calculation
-  isUnlocked?: boolean;
-  unlockedAt?: number;
-};
+  isUnlocked?: boolean
+  unlockedAt?: number
+}
 
-export type GameContextType = {
-  stats: UserStats;
-  tasks: Task[];
-  journal: JournalEntry[];
-  currentMood: Mood;
-  allBadges: BadgeDefinition[];
-  newBadges: BadgeDefinition[];
-  urgentOverdueTasks: UrgentTask[];
-  dismissNewBadge: () => void;
-  dismissUrgentTask: (id: string) => void;
-  addXP: (amount: number) => void;
-  addPoints: (amount: number) => void;
-  toggleTask: (id: string) => void;
-  addTask: (task: Omit<Task, "id" | "completed">) => void;
-  deleteTask: (id: string) => void;
-  addJournalEntry: (entry: Omit<JournalEntry, "id" | "timestamp">) => void;
-  setMood: (mood: Mood) => void;
-  completeMeditation: (minutes: number) => void;
-  updateAvatarConfig: (config: AvatarConfig) => void;
-  toggleTheme: () => void;
-  addRewardRequest: (title: string, category: RewardCategory) => void;
-  redeemReward: (id: string) => void;
-  deleteReward: (id: string) => void;
-  updateReward: (id: string, updates: Partial<Reward>) => void;
-  refreshJournal: () => void;
-};
+export interface GameContextType {
+  stats: UserStats
+  tasks: Task[]
+  journal: JournalEntry[]
+  currentMood: Mood
+  allBadges: BadgeDefinition[]
+  newBadges: BadgeDefinition[]
+  urgentOverdueTasks: UrgentTask[]
+  dismissNewBadge: () => void
+  dismissUrgentTask: (id: string) => void
+  addXP: (amount: number) => void
+  addPoints: (amount: number) => void
+  toggleTask: (id: string) => void
+  addTask: (task: Omit<Task, 'id' | 'completed'>) => void
+  deleteTask: (id: string) => void
+  addJournalEntry: (entry: Omit<JournalEntry, 'id' | 'timestamp'>) => void
+  setMood: (mood: Mood) => void
+  completeMeditation: (minutes: number) => void
+  updateAvatarConfig: (config: AvatarConfig) => void
+  toggleTheme: () => void
+  addRewardRequest: (title: string, category: RewardCategory) => void
+  redeemReward: (id: string) => void
+  deleteReward: (id: string) => void
+  updateReward: (id: string, updates: Partial<Reward>) => void
+  refreshJournal: () => void
+}
 
 export const Tab = {
-  HOME: "home",
-  MEDITATION: "meditation",
-  ADD: "add",
-  ROUTINE: "routine",
-  PROFILE: "profile",
-  THERAPIST: "therapist",
-  REWARDS: "rewards",
-  DASHBOARD: "dashboard",
-} as const;
+  HOME: 'home',
+  MEDITATION: 'meditation',
+  ADD: 'add',
+  ROUTINE: 'routine',
+  PROFILE: 'profile',
+  THERAPIST: 'therapist',
+  REWARDS: 'rewards',
+  DASHBOARD: 'dashboard',
+} as const
 
-export type Tab = (typeof Tab)[keyof typeof Tab];
+export type Tab = (typeof Tab)[keyof typeof Tab]

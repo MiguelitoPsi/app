@@ -275,7 +275,7 @@ export const therapistChallengesRouter = router({
         )
       )
 
-    return { expired: result.rowsAffected || 0 }
+    return { expired: (result as any).count || 0 }
   }),
 
   // Obter estatísticas de desafios
@@ -305,9 +305,9 @@ export const therapistChallengesRouter = router({
       {} as Record<string, { total: number; completed: number }>
     )
 
-    const perfectWeeks = Object.values(weekGroups).filter(
-      (w) => w.total > 0 && w.completed === w.total
-    ).length
+    const perfectWeeks = (
+      Object.values(weekGroups) as { total: number; completed: number }[]
+    ).filter((w) => w.total > 0 && w.completed === w.total).length
 
     return {
       totalChallenges: allChallenges.length,

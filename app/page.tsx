@@ -1,64 +1,64 @@
-import { HeroSection } from "@/components/landing/HeroSection";
-import { AgentsShowcaseClient } from "@/components/landing/AgentsShowcaseClient";
-import dynamic from "next/dynamic";
+import dynamic from 'next/dynamic'
+import { AgentsShowcaseClient } from '@/components/landing/AgentsShowcaseClient'
+import { HeroSection } from '@/components/landing/HeroSection'
 
 const PainSection = dynamic(
   () =>
-    import("@/components/landing/PainSection").then((m) => ({
+    import('@/components/landing/PainSection').then((m) => ({
       default: m.PainSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const TransformSection = dynamic(
   () =>
-    import("@/components/landing/TransformSection").then((m) => ({
+    import('@/components/landing/TransformSection').then((m) => ({
       default: m.TransformSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const PatientSection = dynamic(
   () =>
-    import("@/components/landing/PatientSection").then((m) => ({
+    import('@/components/landing/PatientSection').then((m) => ({
       default: m.PatientSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const MethodologySection = dynamic(
   () =>
-    import("@/components/landing/MethodologySection").then((m) => ({
+    import('@/components/landing/MethodologySection').then((m) => ({
       default: m.MethodologySection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 
 const SocialProofSection = dynamic(
   () =>
-    import("@/components/landing/SocialProofSection").then((m) => ({
+    import('@/components/landing/SocialProofSection').then((m) => ({
       default: m.SocialProofSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const WhitelistSection = dynamic(
   () =>
-    import("@/components/landing/WhitelistSection").then((m) => ({
+    import('@/components/landing/WhitelistSection').then((m) => ({
       default: m.WhitelistSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const FinalCTASection = dynamic(
   () =>
-    import("@/components/landing/FinalCTASection").then((m) => ({
+    import('@/components/landing/FinalCTASection').then((m) => ({
       default: m.FinalCTASection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 const FooterSection = dynamic(
   () =>
-    import("@/components/landing/FooterSection").then((m) => ({
+    import('@/components/landing/FooterSection').then((m) => ({
       default: m.FooterSection,
     })),
-  { ssr: true },
-);
+  { ssr: true }
+)
 
 export default function LandingPage() {
   return (
@@ -75,5 +75,5 @@ export default function LandingPage() {
       <FinalCTASection />
       <FooterSection />
     </main>
-  );
+  )
 }

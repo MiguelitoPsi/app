@@ -62,7 +62,7 @@ export const THERAPIST_BADGE_CATEGORIES: Record<
  * DEFINIÇÕES DE CONQUISTAS DO TERAPEUTA
  * ============================================ */
 
-export type TherapistBadgeDefinition = {
+export interface TherapistBadgeDefinition {
   id: string
   name: string
   description: string
@@ -465,7 +465,7 @@ export const THERAPIST_BADGE_DEFINITIONS: TherapistBadgeDefinition[] = [
  * RANKS DO TERAPEUTA
  * ============================================ */
 
-export type TherapistRankDefinition = {
+export interface TherapistRankDefinition {
   level: number
   name: string
   minXp: number
@@ -549,7 +549,7 @@ export function getTherapistRankForLevel(level: number): TherapistRankDefinition
  * DEFINIÇÕES DE DESAFIOS SEMANAIS
  * ============================================ */
 
-export type WeeklyChallengeTemplate = {
+export interface WeeklyChallengeTemplate {
   id: string
   title: string
   description: string

@@ -84,7 +84,7 @@ export const therapistAchievementsRouter = router({
 
       return {
         category,
-        ...info,
+        ...(info as any),
         badges: categoryBadges.map((badge) => ({
           ...badge,
           unlocked: unlockedIds.has(badge.id),

@@ -1,6 +1,11 @@
 'use client'
 
-import { CheckCircle2, Clock, Target, Trophy } from 'lucide-react'
+import {
+  RiCheckboxCircleLine,
+  RiTimeLine,
+  RiTrophyLine,
+  RiTargetLine as Target,
+} from '@remixicon/react'
 import type React from 'react'
 import { trpc } from '@/lib/trpc/client'
 
@@ -23,7 +28,7 @@ export const WeeklyChallengeCard: React.FC = () => {
     return (
       <div className='rounded-2xl bg-white p-6 shadow-sm dark:bg-slate-900'>
         <div className='flex items-center gap-2 text-slate-800 dark:text-slate-200'>
-          <Trophy className='h-5 w-5 text-amber-500' />
+          <RiTrophyLine className='h-5 w-5 text-amber-500' />
           <h3 className='font-semibold'>Desafios da Semana</h3>
         </div>
         <p className='mt-4 text-center text-slate-500'>Nenhum desafio ativo esta semana</p>
@@ -38,7 +43,7 @@ export const WeeklyChallengeCard: React.FC = () => {
       {/* Header */}
       <div className='mb-4 flex items-center justify-between'>
         <div className='flex items-center gap-2 text-slate-800 dark:text-slate-200'>
-          <Trophy className='h-5 w-5 text-amber-500' />
+          <RiTrophyLine className='h-5 w-5 text-amber-500' />
           <h3 className='font-semibold'>Desafios da Semana</h3>
         </div>
         <span className='rounded-full bg-amber-100 px-3 py-1 font-medium text-amber-700 text-sm dark:bg-amber-900/30 dark:text-amber-400'>
@@ -66,7 +71,7 @@ export const WeeklyChallengeCard: React.FC = () => {
               <div className='mb-2 flex items-start justify-between'>
                 <div className='flex items-center gap-2'>
                   {isCompleted ? (
-                    <CheckCircle2 className='h-5 w-5 text-emerald-500' />
+                    <RiCheckboxCircleLine className='h-5 w-5 text-emerald-500' />
                   ) : (
                     <Target className='h-5 w-5 text-slate-400' />
                   )}
@@ -111,10 +116,12 @@ export const WeeklyChallengeCard: React.FC = () => {
               {/* Deadline */}
               {!isCompleted && challenge.weekEnd && (
                 <div className='mt-2 flex items-center gap-1 text-slate-400 text-xs'>
-                  <Clock className='h-3 w-3' />
+                  <RiTimeLine className='h-3 w-3' />
                   <span>
                     Termina em{' '}
-                    {new Date(challenge.weekEnd).toLocaleDateString('pt-BR', { weekday: 'long' })}
+                    {new Date(challenge.weekEnd).toLocaleDateString('pt-BR', {
+                      weekday: 'long',
+                    })}
                   </span>
                 </div>
               )}

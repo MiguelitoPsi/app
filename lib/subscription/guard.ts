@@ -1,28 +1,24 @@
-import { eq, and } from "drizzle-orm";
-import { db } from "@/lib/db";
-import {
-  therapistSubscriptions,
-  subscriptionPlans,
-  psychologistPatients,
-} from "@/lib/db/schema";
-import type { PlanFeatures } from "@shared/db/schema";
+import type { PlanFeatures } from '@shared/db/schema'
+import { eq } from 'drizzle-orm'
+import { db } from '@/lib/db'
+import { psychologistPatients, subscriptionPlans, therapistSubscriptions } from '@/lib/db/schema'
 
 // ============================================
 // Subscription Guard — Server-Side Functions
 // ============================================
 
 export interface ActiveSubscriptionInfo {
-  subscriptionId: string;
-  planId: string;
-  planName: string;
-  planSlug: string;
-  status: "active" | "past_due" | "cancelled" | "expired" | "pending";
-  cycle: "MONTHLY" | "YEARLY";
-  billingType: "CREDIT_CARD" | "PIX";
-  amount: string;
-  currentPeriodEnd: Date | null;
-  features: PlanFeatures;
-  maxPatients: number | null;
+  subscriptionId: string
+  planId: string
+  planName: string
+  planSlug: string
+  status: 'active' | 'past_due' | 'cancelled' | 'expired' | 'pending'
+  cycle: 'MONTHLY' | 'YEARLY'
+  billingType: 'CREDIT_CARD' | 'PIX'
+  amount: string
+  currentPeriodEnd: Date | null
+  features: PlanFeatures
+  maxPatients: number | null
 }
 
 /**
@@ -30,7 +26,7 @@ export interface ActiveSubscriptionInfo {
  * Returns null if no subscription or all subscriptions are cancelled/expired.
  */
 export async function getActiveSubscription(
-  therapistId: string,
+  therapistId: string
 ): Promise<ActiveSubscriptionInfo | null> {
   const results = await db
     .select({
@@ -47,18 +43,15 @@ export async function getActiveSubscription(
       maxPatients: subscriptionPlans.maxPatients,
     })
     .from(therapistSubscriptions)
-    .innerJoin(
-      subscriptionPlans,
-      eq(therapistSubscriptions.planId, subscriptionPlans.id),
-    )
+    .innerJoin(subscriptionPlans, eq(therapistSubscriptions.planId, subscriptionPlans.id))
     .where(eq(therapistSubscriptions.therapistId, therapistId))
     .orderBy(therapistSubscriptions.createdAt)
-    .limit(1);
+    .limit(1)
 
-  const sub = results[0];
-  if (!sub) return null;
+  const sub = results[0]
+  if (!sub) return null
 
-  return sub as ActiveSubscriptionInfo;
+  return sub as ActiveSubscriptionInfo
 }
 
 /**
@@ -66,28 +59,25 @@ export async function getActiveSubscription(
  */
 export async function checkFeature(
   therapistId: string,
-  featureKey: string,
+  featureKey: string
 ): Promise<boolean | number> {
-  const subscription = await getActiveSubscription(therapistId);
+  const subscription = await getActiveSubscription(therapistId)
 
   // No subscription = no features
-  if (!subscription) return false;
+  if (!subscription) return false
 
   // Expired / cancelled = no features
-  if (
-    subscription.status === "expired" ||
-    subscription.status === "cancelled"
-  ) {
-    return false;
+  if (subscription.status === 'expired' || subscription.status === 'cancelled') {
+    return false
   }
 
-  const features = subscription.features;
-  if (!features) return false;
+  const features = subscription.features
+  if (!features) return false
 
-  const value = features[featureKey];
-  if (value === undefined) return false;
+  const value = features[featureKey]
+  if (value === undefined) return false
 
-  return value;
+  return value
 }
 
 /**
@@ -95,88 +85,76 @@ export async function checkFeature(
  * Returns { allowed: boolean, current: number, max: number | null }
  */
 export async function checkPatientLimit(
-  therapistId: string,
+  therapistId: string
 ): Promise<{ allowed: boolean; current: number; max: number | null }> {
-  const subscription = await getActiveSubscription(therapistId);
+  const subscription = await getActiveSubscription(therapistId)
 
-  if (
-    !subscription ||
-    subscription.status === "expired" ||
-    subscription.status === "cancelled"
-  ) {
-    return { allowed: false, current: 0, max: 0 };
+  if (!subscription || subscription.status === 'expired' || subscription.status === 'cancelled') {
+    return { allowed: false, current: 0, max: 0 }
   }
 
   // Get max patients from plan features or plan-level setting
-  const maxFromFeatures = subscription.features?.max_patients;
-  const maxFromPlan = subscription.maxPatients;
-  const max =
-    typeof maxFromFeatures === "number" ? maxFromFeatures : maxFromPlan;
+  const maxFromFeatures = subscription.features?.max_patients
+  const maxFromPlan = subscription.maxPatients
+  const max = typeof maxFromFeatures === 'number' ? maxFromFeatures : maxFromPlan
 
   // 0 or null = unlimited
   if (!max || max === 0) {
-    return { allowed: true, current: 0, max: null };
+    return { allowed: true, current: 0, max: null }
   }
 
   // Count current patients
   const patients = await db
     .select({ id: psychologistPatients.id })
     .from(psychologistPatients)
-    .where(eq(psychologistPatients.psychologistId, therapistId));
+    .where(eq(psychologistPatients.psychologistId, therapistId))
 
-  const current = patients.length;
-  return { allowed: current < max, current, max };
+  const current = patients.length
+  return { allowed: current < max, current, max }
 }
 
 /**
  * Check if the therapist has an active (or past_due) subscription.
  */
-export async function isSubscriptionActive(
-  therapistId: string,
-): Promise<boolean> {
-  const subscription = await getActiveSubscription(therapistId);
-  if (!subscription) return false;
-  return subscription.status === "active" || subscription.status === "past_due";
+export async function isSubscriptionActive(therapistId: string): Promise<boolean> {
+  const subscription = await getActiveSubscription(therapistId)
+  if (!subscription) return false
+  return subscription.status === 'active' || subscription.status === 'past_due'
 }
 
 export type SubscriptionStatusInfo =
-  | { status: "active"; subscription: ActiveSubscriptionInfo }
+  | { status: 'active'; subscription: ActiveSubscriptionInfo }
   | {
-      status: "past_due";
-      subscription: ActiveSubscriptionInfo;
-      daysRemaining: number;
+      status: 'past_due'
+      subscription: ActiveSubscriptionInfo
+      daysRemaining: number
     }
-  | { status: "expired"; subscription: ActiveSubscriptionInfo }
-  | { status: "cancelled"; subscription: ActiveSubscriptionInfo }
-  | { status: "pending"; subscription: ActiveSubscriptionInfo }
-  | { status: "none" };
+  | { status: 'expired'; subscription: ActiveSubscriptionInfo }
+  | { status: 'cancelled'; subscription: ActiveSubscriptionInfo }
+  | { status: 'pending'; subscription: ActiveSubscriptionInfo }
+  | { status: 'none' }
 
 /**
  * Get detailed subscription status for a therapist.
  */
-export async function getSubscriptionStatus(
-  therapistId: string,
-): Promise<SubscriptionStatusInfo> {
-  const subscription = await getActiveSubscription(therapistId);
+export async function getSubscriptionStatus(therapistId: string): Promise<SubscriptionStatusInfo> {
+  const subscription = await getActiveSubscription(therapistId)
 
   if (!subscription) {
-    return { status: "none" };
+    return { status: 'none' }
   }
 
-  if (subscription.status === "past_due") {
-    const now = new Date();
-    const end = subscription.currentPeriodEnd;
+  if (subscription.status === 'past_due') {
+    const now = new Date()
+    const end = subscription.currentPeriodEnd
     const daysRemaining = end
-      ? Math.max(
-          0,
-          Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
-        )
-      : 0;
-    return { status: "past_due", subscription, daysRemaining };
+      ? Math.max(0, Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+      : 0
+    return { status: 'past_due', subscription, daysRemaining }
   }
 
   return {
     status: subscription.status,
     subscription,
-  } as SubscriptionStatusInfo;
+  } as SubscriptionStatusInfo
 }

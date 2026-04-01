@@ -1,11 +1,8 @@
-import { z } from "zod";
-import { eq, asc, desc, and, sql } from "drizzle-orm";
-import { router, adminProcedure, publicProcedure } from "../trpc";
-import { subscriptionPlans, therapistSubscriptions } from "@/lib/db/schema";
-import {
-  FEATURE_DEFINITIONS,
-  getDefaultFeatures,
-} from "@/lib/subscription/features";
+import { asc, desc, eq, sql } from 'drizzle-orm'
+import { z } from 'zod'
+import { subscriptionPlans, therapistSubscriptions } from '@/lib/db/schema'
+import { FEATURE_DEFINITIONS } from '@/lib/subscription/features'
+import { adminProcedure, publicProcedure, router } from '../trpc'
 
 export const subscriptionPlansRouter = router({
   /**
@@ -15,7 +12,7 @@ export const subscriptionPlansRouter = router({
     const plans = await ctx.db
       .select()
       .from(subscriptionPlans)
-      .orderBy(asc(subscriptionPlans.sortOrder));
+      .orderBy(asc(subscriptionPlans.sortOrder))
 
     // Count subscribers per plan
     const counts = await ctx.db
@@ -24,17 +21,15 @@ export const subscriptionPlansRouter = router({
         count: sql<number>`count(*)::int`,
       })
       .from(therapistSubscriptions)
-      .where(
-        sql`${therapistSubscriptions.status} IN ('active', 'past_due', 'pending')`,
-      )
-      .groupBy(therapistSubscriptions.planId);
+      .where(sql`${therapistSubscriptions.status} IN ('active', 'past_due', 'pending')`)
+      .groupBy(therapistSubscriptions.planId)
 
-    const countMap = new Map(counts.map((c) => [c.planId, c.count]));
+    const countMap = new Map(counts.map((c) => [c.planId, c.count]))
 
     return plans.map((plan) => ({
       ...plan,
       subscriberCount: countMap.get(plan.id) ?? 0,
-    }));
+    }))
   }),
 
   /**
@@ -45,14 +40,14 @@ export const subscriptionPlansRouter = router({
       .select()
       .from(subscriptionPlans)
       .where(eq(subscriptionPlans.isActive, true))
-      .orderBy(asc(subscriptionPlans.sortOrder));
+      .orderBy(asc(subscriptionPlans.sortOrder))
   }),
 
   /**
    * Get feature definitions for the admin form
    */
   getFeatureDefinitions: adminProcedure.query(() => {
-    return FEATURE_DEFINITIONS;
+    return FEATURE_DEFINITIONS
   }),
 
   /**
@@ -65,17 +60,14 @@ export const subscriptionPlansRouter = router({
         slug: z
           .string()
           .min(1)
-          .regex(
-            /^[a-z0-9-]+$/,
-            "Slug deve conter apenas letras minúsculas, números e hífens",
-          ),
+          .regex(/^[a-z0-9-]+$/, 'Slug deve conter apenas letras minúsculas, números e hífens'),
         description: z.string().optional(),
         monthlyPrice: z.string(),
         yearlyPrice: z.string(),
         maxPatients: z.number().int().nullable(),
-        features: z.record(z.union([z.boolean(), z.number()])),
+        features: z.record(z.string(), z.union([z.boolean(), z.number()])),
         isActive: z.boolean().default(true),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
       // Get next sort order
@@ -83,9 +75,9 @@ export const subscriptionPlansRouter = router({
         .select({ sortOrder: subscriptionPlans.sortOrder })
         .from(subscriptionPlans)
         .orderBy(desc(subscriptionPlans.sortOrder))
-        .limit(1);
+        .limit(1)
 
-      const sortOrder = (lastPlan?.sortOrder ?? -1) + 1;
+      const sortOrder = (lastPlan?.sortOrder ?? -1) + 1
 
       const [plan] = await ctx.db
         .insert(subscriptionPlans)
@@ -96,13 +88,13 @@ export const subscriptionPlansRouter = router({
           monthlyPrice: input.monthlyPrice,
           yearlyPrice: input.yearlyPrice,
           maxPatients: input.maxPatients,
-          features: input.features as Record<string, boolean | number>,
+          features: input.features as any,
           isActive: input.isActive,
           sortOrder,
         })
-        .returning();
+        .returning()
 
-      return plan;
+      return plan
     }),
 
   /**
@@ -122,34 +114,30 @@ export const subscriptionPlansRouter = router({
         monthlyPrice: z.string().optional(),
         yearlyPrice: z.string().optional(),
         maxPatients: z.number().int().nullable().optional(),
-        features: z.record(z.union([z.boolean(), z.number()])).optional(),
+        features: z.record(z.string(), z.union([z.boolean(), z.number()])).optional(),
         isActive: z.boolean().optional(),
-      }),
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input;
-      const updateData: Record<string, unknown> = { updatedAt: new Date() };
+      const { id, ...data } = input
+      const updateData: Record<string, unknown> = { updatedAt: new Date() }
 
-      if (data.name !== undefined) updateData.name = data.name;
-      if (data.slug !== undefined) updateData.slug = data.slug;
-      if (data.description !== undefined)
-        updateData.description = data.description;
-      if (data.monthlyPrice !== undefined)
-        updateData.monthlyPrice = data.monthlyPrice;
-      if (data.yearlyPrice !== undefined)
-        updateData.yearlyPrice = data.yearlyPrice;
-      if (data.maxPatients !== undefined)
-        updateData.maxPatients = data.maxPatients;
-      if (data.features !== undefined) updateData.features = data.features;
-      if (data.isActive !== undefined) updateData.isActive = data.isActive;
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.slug !== undefined) updateData.slug = data.slug
+      if (data.description !== undefined) updateData.description = data.description
+      if (data.monthlyPrice !== undefined) updateData.monthlyPrice = data.monthlyPrice
+      if (data.yearlyPrice !== undefined) updateData.yearlyPrice = data.yearlyPrice
+      if (data.maxPatients !== undefined) updateData.maxPatients = data.maxPatients
+      if (data.features !== undefined) updateData.features = data.features
+      if (data.isActive !== undefined) updateData.isActive = data.isActive
 
       const [plan] = await ctx.db
         .update(subscriptionPlans)
-        .set(updateData)
+        .set(updateData as any)
         .where(eq(subscriptionPlans.id, id))
-        .returning();
+        .returning()
 
-      return plan;
+      return plan
     }),
 
   /**
@@ -162,9 +150,9 @@ export const subscriptionPlansRouter = router({
         .update(subscriptionPlans)
         .set({ isActive: false, updatedAt: new Date() })
         .where(eq(subscriptionPlans.id, input.id))
-        .returning();
+        .returning()
 
-      return plan;
+      return plan
     }),
 
   /**
@@ -177,9 +165,9 @@ export const subscriptionPlansRouter = router({
         .update(subscriptionPlans)
         .set({ isActive: true, updatedAt: new Date() })
         .where(eq(subscriptionPlans.id, input.id))
-        .returning();
+        .returning()
 
-      return plan;
+      return plan
     }),
 
   /**
@@ -191,16 +179,16 @@ export const subscriptionPlansRouter = router({
         z.object({
           id: z.string().uuid(),
           sortOrder: z.number().int(),
-        }),
-      ),
+        })
+      )
     )
     .mutation(async ({ ctx, input }) => {
       for (const item of input) {
         await ctx.db
           .update(subscriptionPlans)
           .set({ sortOrder: item.sortOrder, updatedAt: new Date() })
-          .where(eq(subscriptionPlans.id, item.id));
+          .where(eq(subscriptionPlans.id, item.id))
       }
-      return { success: true };
+      return { success: true }
     }),
-});
+})

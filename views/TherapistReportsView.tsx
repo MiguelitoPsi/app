@@ -1,25 +1,25 @@
 'use client'
 
 import {
-  Brain,
-  CheckCircle2,
-  ChevronDown,
-  ClipboardList,
-  Edit3,
-  File,
-  FileImage,
-  FileSpreadsheet,
-  FileText,
-  Loader2,
-  Plus,
-  Save,
-  Sparkles,
-  Target,
-  Trash2,
-  Upload,
-  User,
-  X,
-} from 'lucide-react'
+  RiBrainLine as Brain,
+  RiCheckboxCircleLine as CheckCircle2,
+  RiArrowDownSLine as ChevronDown,
+  RiClipboardLine as ClipboardList,
+  RiEdit2Line as Edit3,
+  RiFile3Line as FileIcon,
+  RiFileImageLine as FileImage,
+  RiFileExcelLine as FileSpreadsheet,
+  RiLoader2Line as Loader2,
+  RiAddLine as Plus,
+  RiFileTextLine,
+  RiSparklingLine,
+  RiSaveLine as Save,
+  RiTargetLine as Target,
+  RiDeleteBin6Line as Trash2,
+  RiUpload2Line as Upload,
+  RiUserLine as User,
+  RiCloseLine as X,
+} from '@remixicon/react'
 import type React from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { useSelectedPatient } from '@/context/SelectedPatientContext'
@@ -33,7 +33,7 @@ import {
 
 type ReportSection = 'documents' | 'cognitive' | 'therapeutic'
 
-type SituationData = {
+interface SituationData {
   situation: string
   automaticThought: string
   meaningOfAT: string
@@ -41,7 +41,7 @@ type SituationData = {
   behavior: string
 }
 
-type CognitiveFormData = {
+interface CognitiveFormData {
   name: string
   date: string
   childhoodData: string
@@ -569,7 +569,7 @@ export default function TherapistReportsView(): React.ReactElement {
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-emerald-400 to-emerald-600' />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1 py-2 text-white sm:gap-2 sm:py-0'>
-                  <FileText className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <RiFileTextLine className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='font-semibold text-[9px] sm:text-xs'>Documentos</span>
                 </div>
               </button>
@@ -616,7 +616,7 @@ export default function TherapistReportsView(): React.ReactElement {
                 onClick={() => setActiveSection('documents')}
                 type='button'
               >
-                <FileText className='h-5 w-5' />
+                <RiFileTextLine className='h-5 w-5' />
                 <span>Documentos</span>
               </button>
               <button
@@ -686,17 +686,17 @@ export default function TherapistReportsView(): React.ReactElement {
                           }`}
                         >
                           {doc.fileType === 'pdf' ? (
-                            <FileText className='h-6 w-6' />
+                            <RiFileTextLine className='h-6 w-6' />
                           ) : doc.fileType === 'image' ? (
                             <FileImage className='h-6 w-6' />
                           ) : doc.fileType === 'spreadsheet' ? (
                             <FileSpreadsheet className='h-6 w-6' />
                           ) : doc.fileType === 'document' ? (
-                            <FileText className='h-6 w-6' />
+                            <RiFileTextLine className='h-6 w-6' />
                           ) : doc.fileType === 'presentation' ? (
-                            <FileText className='h-6 w-6' />
+                            <RiFileTextLine className='h-6 w-6' />
                           ) : (
-                            <File className='h-6 w-6' />
+                            <FileIcon className='h-6 w-6' />
                           )}
                         </div>
                         <div className='min-w-0 flex-1'>
@@ -731,7 +731,7 @@ export default function TherapistReportsView(): React.ReactElement {
                   </div>
                 ) : (
                   <div className='flex h-40 flex-col items-center justify-center'>
-                    <FileText className='mb-3 h-12 w-12 text-slate-300' />
+                    <RiFileTextLine className='mb-3 h-12 w-12 text-slate-300' />
                     <p className='text-slate-500'>Nenhum documento adicionado</p>
                     <p className='mt-1 text-slate-400 text-sm'>
                       Adicione PDFs ou imagens dos relatórios de sessão
@@ -824,7 +824,7 @@ export default function TherapistReportsView(): React.ReactElement {
                               </>
                             ) : (
                               <>
-                                <Sparkles className='h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4' />
+                                <RiSparklingLine className='h-3 w-3 flex-shrink-0 sm:h-4 sm:w-4' />
                                 <span className='truncate'>Aprovar e Criar Plano</span>
                               </>
                             )}
@@ -1069,7 +1069,7 @@ export default function TherapistReportsView(): React.ReactElement {
                       <div className='grid grid-cols-1 gap-4 md:grid-cols-3'>
                         {/* Situation 1 */}
                         <div
-                          className={`space-y-3 ${activeSituation !== 1 ? 'hidden md:block' : ''}`}
+                          className={`space-y-3 ${activeSituation === 1 ? '' : 'hidden md:block'}`}
                         >
                           <div className='rounded-xl border-2 border-rose-300 bg-gradient-to-br from-rose-50 to-rose-100 p-3 dark:border-rose-700 dark:from-rose-900/30 dark:to-rose-900/20'>
                             <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-rose-700 dark:text-rose-400'>
@@ -1201,7 +1201,7 @@ export default function TherapistReportsView(): React.ReactElement {
 
                         {/* Situation 2 */}
                         <div
-                          className={`space-y-3 ${activeSituation !== 2 ? 'hidden md:block' : ''}`}
+                          className={`space-y-3 ${activeSituation === 2 ? '' : 'hidden md:block'}`}
                         >
                           <div className='rounded-xl border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-amber-100 p-3 dark:border-amber-700 dark:from-amber-900/30 dark:to-amber-900/20'>
                             <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-amber-700 dark:text-amber-400'>
@@ -1333,7 +1333,7 @@ export default function TherapistReportsView(): React.ReactElement {
 
                         {/* Situation 3 */}
                         <div
-                          className={`space-y-3 ${activeSituation !== 3 ? 'hidden md:block' : ''}`}
+                          className={`space-y-3 ${activeSituation === 3 ? '' : 'hidden md:block'}`}
                         >
                           <div className='rounded-xl border-2 border-emerald-300 bg-gradient-to-br from-emerald-50 to-emerald-100 p-3 dark:border-emerald-700 dark:from-emerald-900/30 dark:to-emerald-900/20'>
                             <h5 className='mb-2 flex items-center justify-center gap-1.5 font-bold text-sm text-emerald-700 dark:text-emerald-400'>
@@ -1511,7 +1511,7 @@ export default function TherapistReportsView(): React.ReactElement {
                       </h3>
                       <div className='flex flex-wrap items-center gap-2'>
                         <span className='rounded-full bg-emerald-100 px-2 py-0.5 font-medium text-emerald-700 text-[10px] dark:bg-emerald-900/30 dark:text-emerald-400 sm:px-3 sm:py-1 sm:text-xs'>
-                          <Sparkles className='mr-1 inline h-3 w-3' />
+                          <RiSparklingLine className='mr-1 inline h-3 w-3' />
                           Gerado por IA
                         </span>
                         <button
@@ -1528,7 +1528,7 @@ export default function TherapistReportsView(): React.ReactElement {
                             </>
                           ) : (
                             <>
-                              <Sparkles className='h-3 w-3 sm:h-4 sm:w-4' />
+                              <RiSparklingLine className='h-3 w-3 sm:h-4 sm:w-4' />
                               <span>Regenerar</span>
                             </>
                           )}
@@ -1688,7 +1688,7 @@ export default function TherapistReportsView(): React.ReactElement {
                               </>
                             ) : (
                               <>
-                                <Sparkles className='h-5 w-5' />
+                                <RiSparklingLine className='h-5 w-5' />
                                 Gerar Plano com IA
                               </>
                             )}
@@ -1717,7 +1717,7 @@ export default function TherapistReportsView(): React.ReactElement {
           </div>
         ) : (
           <div className='flex h-64 flex-col items-center justify-center text-center'>
-            <FileText className='mb-4 h-16 w-16 text-slate-300' />
+            <RiFileTextLine className='mb-4 h-16 w-16 text-slate-300' />
             <h2 className='mb-2 font-semibold text-lg text-slate-700 dark:text-slate-200'>
               Selecione um paciente
             </h2>
@@ -1887,7 +1887,7 @@ export default function TherapistReportsView(): React.ReactElement {
               <div className='rounded-xl border border-sky-200 bg-sky-50 p-4 dark:border-sky-800 dark:bg-sky-900/20'>
                 <div className='flex items-start gap-3'>
                   <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-sky-100 dark:bg-sky-900/50'>
-                    <Sparkles className='h-5 w-5 text-sky-600 dark:text-sky-400' />
+                    <RiSparklingLine className='h-5 w-5 text-sky-600 dark:text-sky-400' />
                   </div>
                   <div>
                     <h4 className='font-semibold text-sky-800 text-sm dark:text-sky-300'>

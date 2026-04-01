@@ -4,14 +4,14 @@
  */
 
 import { and, count, eq, gte, lte, sql, sum } from 'drizzle-orm'
-import type { LibSQLDatabase } from 'drizzle-orm/libsql'
 import { therapistFinancial, therapistGoals, therapySessions } from '@/lib/db/schema'
 import { awardTherapistXP } from '@/lib/xp/therapist'
 
 type GoalCategory = 'schedule' | 'revenue' | 'retention' | 'expansion' | 'professional_development'
 
-type CalculateGoalProgressParams = {
-  db: LibSQLDatabase<Record<string, unknown>>
+interface CalculateGoalProgressParams {
+  // biome-ignore lint/suspicious/noExplicitAny: aceitar qualquer tipo de banco de dados Drizzle
+  db: any
   therapistId: string
   category: GoalCategory
   unit: string
@@ -182,7 +182,8 @@ async function calculateGoalProgress({
  * Atualiza automaticamente o progresso de todas as metas ativas de um terapeuta
  */
 export async function updateAllGoalsProgress(
-  db: LibSQLDatabase<Record<string, unknown>>,
+  // biome-ignore lint/suspicious/noExplicitAny: aceitar qualquer tipo de banco de dados Drizzle
+  db: any,
   therapistId: string
 ): Promise<{
   updated: number
@@ -264,7 +265,8 @@ export async function updateAllGoalsProgress(
  * Útil para chamar após ações específicas (ex: após completar sessão, atualizar metas de 'schedule')
  */
 export async function updateGoalsByCategory(
-  db: LibSQLDatabase<Record<string, unknown>>,
+  // biome-ignore lint/suspicious/noExplicitAny: aceitar qualquer tipo de banco de dados Drizzle
+  db: any,
   therapistId: string,
   category: GoalCategory
 ): Promise<void> {

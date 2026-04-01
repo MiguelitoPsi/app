@@ -1,6 +1,14 @@
 'use client'
 
-import { CreditCard, FileText, Home, Settings, User, Users, Video } from 'lucide-react'
+import {
+  RiCoinLine as CreditCard,
+  RiFileTextLine as FileText,
+  RiHome4Line as Home,
+  RiSettings5Line as Settings,
+  RiUserLine as User,
+  RiTeamLine as Users,
+  RiVideoLine as Video,
+} from '@remixicon/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type React from 'react'
@@ -16,7 +24,7 @@ const tabs = [
   { id: 'preferencias', label: 'Preferências', icon: Settings },
 ]
 
-type PatientContextSidebarProps = {
+interface PatientContextSidebarProps {
   patientName: string
   patientInitials: string
   onBackAction?: () => void

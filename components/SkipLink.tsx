@@ -2,7 +2,7 @@
 
 import type React from 'react'
 
-type SkipLinkProps = {
+interface SkipLinkProps {
   href?: string
   children?: React.ReactNode
 }

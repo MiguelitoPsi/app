@@ -1,6 +1,6 @@
 'use client'
 
-import { HelpCircle, X } from 'lucide-react'
+import { RiCloseLine, RiQuestionLine } from '@remixicon/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import { getIconByKey } from '@/lib/utils/icon-map'
@@ -14,7 +14,7 @@ type ScreenId =
   | 'rewards'
   | 'profile'
 
-type TutorialContent = {
+interface TutorialContent {
   title: string
   sections: {
     heading: string
@@ -245,7 +245,7 @@ const TUTORIALS: Record<ScreenId, TutorialContent> = {
   },
 }
 
-type HelpButtonProps = {
+interface HelpButtonProps {
   screenId: ScreenId
 }
 
@@ -274,8 +274,8 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
         onClick={() => setIsOpen(true)}
         type='button'
       >
-        <HelpCircle className='sm:hidden' size={22} />
-        <HelpCircle className='hidden sm:block' size={24} />
+        <RiQuestionLine className='sm:hidden' size={22} />
+        <RiQuestionLine className='hidden sm:block' size={24} />
       </button>
 
       {/* Tutorial Modal */}
@@ -288,7 +288,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
             {/* Header */}
             <div className='flex items-center justify-between border-b border-slate-100 p-4 sm:p-5 dark:border-slate-800'>
               <h3 className='flex items-center gap-2 font-bold text-base text-slate-800 sm:text-lg dark:text-white'>
-                <HelpCircle className='text-sky-500' size={20} />
+                <RiQuestionLine className='text-sky-500' size={20} />
                 Como usar: {tutorial.title}
               </h3>
               <button
@@ -297,7 +297,7 @@ export const HelpButton: React.FC<HelpButtonProps> = ({ screenId }) => {
                 onClick={() => setIsOpen(false)}
                 type='button'
               >
-                <X size={16} />
+                <RiCloseLine size={16} />
               </button>
             </div>
 

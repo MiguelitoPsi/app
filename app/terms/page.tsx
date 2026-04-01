@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, Brain, FileText, Scale } from 'lucide-react'
+import { RiArrowLeftLine, RiBrain2Line, RiFileTextLine, RiScalesLine } from '@remixicon/react'
 import Link from 'next/link'
 
 export default function TermsOfUsePage() {
@@ -13,12 +13,12 @@ export default function TermsOfUsePage() {
             className='flex items-center gap-2 text-slate-400 hover:text-white transition-colors'
             href='/'
           >
-            <ArrowLeft className='h-5 w-5' />
+            <RiArrowLeftLine className='h-5 w-5' />
             <span className='text-sm font-medium'>Voltar</span>
           </Link>
           <div className='flex items-center gap-2'>
             <div className='rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 p-1.5'>
-              <Brain className='h-5 w-5 text-white' />
+              <RiBrain2Line className='h-5 w-5 text-white' />
             </div>
             <span className='font-bold text-lg text-white'>Nepsis</span>
           </div>
@@ -30,7 +30,7 @@ export default function TermsOfUsePage() {
         <div className='mb-8'>
           <div className='flex items-center gap-3 mb-4'>
             <div className='rounded-xl bg-violet-600/20 p-3'>
-              <FileText className='h-8 w-8 text-violet-400' />
+              <RiFileTextLine className='h-8 w-8 text-violet-400' />
             </div>
             <div>
               <h1 className='font-bold text-3xl text-white'>Termos de Uso</h1>
@@ -53,7 +53,7 @@ export default function TermsOfUsePage() {
           {/* Definições */}
           <section className='mb-10'>
             <h2 className='flex items-center gap-2 text-xl font-bold'>
-              <Scale className='h-5 w-5 text-violet-400' />
+              <RiScalesLine className='h-5 w-5 text-violet-400' />
               1. Definições
             </h2>
             <ul>

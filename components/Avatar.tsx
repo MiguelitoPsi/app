@@ -1,29 +1,27 @@
 'use client'
 
 import {
-  Circle,
-  Cloud,
-  CloudRain,
-  Crown,
-  Droplets,
-  Flame,
-  Glasses,
-  Headphones,
-  Heart,
-  Meh,
-  Ribbon,
-  Smile,
-  Sparkles,
-  Star,
-  Sun,
-  Wind,
-  Zap,
-} from 'lucide-react'
+  RiBatteryChargeLine,
+  RiCircleLine,
+  RiCloudLine,
+  RiDropLine,
+  RiEmotionHappyLine,
+  RiEyeLine,
+  RiFireLine,
+  RiFlowerLine,
+  RiHeadphoneLine,
+  RiHeartLine,
+  RiEmotionHappyLine as RiSmileLine,
+  RiSparklingLine,
+  RiStarLine,
+  RiSunLine,
+  RiVipCrownLine,
+} from '@remixicon/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import type { AvatarConfig, Mood } from '../types'
 
-type AvatarProps = {
+interface AvatarProps {
   mood: Mood
   size?: 'sm' | 'md' | 'lg'
   config?: AvatarConfig
@@ -37,7 +35,10 @@ export const Avatar: React.FC<AvatarProps> = ({
   interactive = true,
 }) => {
   // Default config if none provided
-  const activeConfig = config || { accessory: 'none', shirtColor: 'bg-slate-800' }
+  const activeConfig = config || {
+    accessory: 'none',
+    shirtColor: 'bg-slate-800',
+  }
   const [isTapped, setIsTapped] = useState(false)
   const [particles, setParticles] = useState<Array<{ id: number; x: number; y: number }>>([])
   const [eyesBlink, setEyesBlink] = useState(false)
@@ -75,7 +76,7 @@ export const Avatar: React.FC<AvatarProps> = ({
     switch (m) {
       case 'happy':
         return {
-          icon: Smile,
+          icon: RiSmileLine,
           color: 'text-yellow-100',
           bg: 'bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(251,191,36,0.4)]',
@@ -87,7 +88,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         }
       case 'sad':
         return {
-          icon: CloudRain,
+          icon: RiCloudLine,
           color: 'text-blue-100',
           bg: 'bg-gradient-to-br from-blue-400 via-indigo-500 to-slate-600',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(99,102,241,0.3)]',
@@ -99,7 +100,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         }
       case 'anxious':
         return {
-          icon: Zap,
+          icon: RiBatteryChargeLine,
           color: 'text-purple-100',
           bg: 'bg-gradient-to-br from-sky-400 via-cyan-500 to-cyan-500',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(168,85,247,0.4)]',
@@ -111,7 +112,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         }
       case 'angry':
         return {
-          icon: Flame,
+          icon: RiFireLine,
           color: 'text-red-100',
           bg: 'bg-gradient-to-br from-orange-500 via-red-500 to-rose-600',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(239,68,68,0.4)]',
@@ -123,7 +124,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         }
       case 'calm':
         return {
-          icon: Smile,
+          icon: RiSmileLine,
           color: 'text-teal-100',
           bg: 'bg-gradient-to-br from-teal-400 via-emerald-500 to-cyan-600',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(20,184,166,0.3)]',
@@ -135,7 +136,7 @@ export const Avatar: React.FC<AvatarProps> = ({
         }
       default:
         return {
-          icon: Meh,
+          icon: RiEmotionHappyLine,
           color: 'text-slate-100',
           bg: 'bg-gradient-to-br from-slate-400 via-slate-500 to-slate-600',
           innerGlow: 'shadow-[inset_0_0_60px_rgba(100,116,139,0.3)]',
@@ -169,45 +170,37 @@ export const Avatar: React.FC<AvatarProps> = ({
     switch (activeConfig.accessory) {
       case 'glasses':
         return (
-          <Glasses
+          <RiEyeLine
             className='-mt-1 absolute text-slate-900/80 transition-transform duration-300 group-hover:scale-105'
             size={sizePx}
-            strokeWidth={2.5}
           />
         )
       case 'crown':
         return (
-          <Crown
+          <RiVipCrownLine
             className='-top-3/4 absolute text-yellow-300 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)] transition-all duration-500 animate-crown-float'
-            fill='currentColor'
             size={sizePx}
-            strokeWidth={2.5}
           />
         )
       case 'headphones':
         return (
-          <Headphones
+          <RiHeadphoneLine
             className='absolute text-slate-800/90 transition-transform duration-300 group-hover:scale-105'
             size={sizePx * 1.4}
-            strokeWidth={2}
           />
         )
       case 'bow':
         return (
-          <Ribbon
+          <RiFlowerLine
             className='-top-2/3 absolute right-0 rotate-12 text-pink-400 drop-shadow-[0_4px_12px_rgba(244,114,182,0.5)] transition-all duration-500 animate-bow-wiggle'
-            fill='currentColor'
             size={sizePx * 0.8}
-            strokeWidth={2.5}
           />
         )
       case 'star':
         return (
-          <Star
+          <RiStarLine
             className='-top-1/2 -right-1/4 absolute text-yellow-300 drop-shadow-[0_4px_12px_rgba(251,191,36,0.6)] animate-star-twinkle'
-            fill='currentColor'
             size={sizePx * 0.6}
-            strokeWidth={2.5}
           />
         )
       default:
@@ -230,24 +223,24 @@ export const Avatar: React.FC<AvatarProps> = ({
             />
 
             {/* Floating sparkles */}
-            <Sparkles
+            <RiSparklingLine
               className='absolute top-[15%] left-[15%] animate-sparkle-float text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]'
               size={sizePx * 0.35}
             />
-            <Sparkles
+            <RiSparklingLine
               className='absolute right-[20%] bottom-[25%] animate-sparkle-float text-yellow-200 drop-shadow-[0_0_8px_rgba(254,249,195,0.8)]'
               size={sizePx * 0.25}
               style={{ animationDelay: '0.5s' }}
             />
 
             {/* Rotating sun rays */}
-            <Sun
+            <RiSunLine
               className='absolute top-[12%] right-[18%] animate-sun-rotate text-yellow-200/70'
               size={sizePx * 0.35}
             />
 
             {/* Love hearts floating up */}
-            <Heart
+            <RiHeartLine
               className='absolute bottom-[30%] left-[25%] animate-heart-float fill-current text-pink-300/60'
               size={sizePx * 0.2}
               style={{ animationDelay: '0.8s' }}
@@ -258,29 +251,27 @@ export const Avatar: React.FC<AvatarProps> = ({
         return (
           <div className='pointer-events-none absolute inset-0 overflow-hidden rounded-full'>
             {/* Moody cloud layer */}
-            <Cloud
+            <RiCloudLine
               className='-translate-x-1/2 absolute top-[5%] left-[50%] animate-cloud-drift text-white/25'
-              fill='currentColor'
               size={sizePx * 0.9}
             />
-            <Cloud
+            <RiCloudLine
               className='absolute top-[15%] left-[10%] animate-cloud-drift text-white/15'
-              fill='currentColor'
               size={sizePx * 0.5}
               style={{ animationDelay: '2s', animationDirection: 'reverse' }}
             />
 
             {/* Falling rain drops */}
-            <Droplets
+            <RiDropLine
               className='absolute top-[35%] left-[25%] animate-rain-fall text-blue-200/80 drop-shadow-[0_2px_4px_rgba(147,197,253,0.5)]'
               size={sizePx * 0.2}
             />
-            <Droplets
+            <RiDropLine
               className='absolute top-[30%] left-[50%] animate-rain-fall text-blue-200/80 drop-shadow-[0_2px_4px_rgba(147,197,253,0.5)]'
               size={sizePx * 0.25}
               style={{ animationDelay: '0.3s' }}
             />
-            <Droplets
+            <RiDropLine
               className='absolute top-[40%] right-[25%] animate-rain-fall text-blue-200/80 drop-shadow-[0_2px_4px_rgba(147,197,253,0.5)]'
               size={sizePx * 0.18}
               style={{ animationDelay: '0.7s' }}
@@ -298,23 +289,23 @@ export const Avatar: React.FC<AvatarProps> = ({
             />
 
             {/* Electric zaps */}
-            <Zap
+            <RiBatteryChargeLine
               className='absolute top-[20%] left-[15%] animate-zap-flash fill-current text-yellow-300 drop-shadow-[0_0_12px_rgba(253,224,71,0.8)]'
               size={sizePx * 0.35}
             />
-            <Zap
+            <RiBatteryChargeLine
               className='absolute top-[30%] right-[18%] animate-zap-flash fill-current text-yellow-200 drop-shadow-[0_0_12px_rgba(254,240,138,0.8)]'
               size={sizePx * 0.28}
               style={{ animationDelay: '0.2s' }}
             />
-            <Zap
+            <RiBatteryChargeLine
               className='absolute bottom-[25%] left-[25%] animate-zap-flash fill-current text-purple-200 drop-shadow-[0_0_12px_rgba(221,214,254,0.8)]'
               size={sizePx * 0.22}
               style={{ animationDelay: '0.5s' }}
             />
 
             {/* Nervous sparkles */}
-            <Sparkles
+            <RiSparklingLine
               className='absolute right-[25%] bottom-[35%] animate-sparkle-nervous text-white/60'
               size={sizePx * 0.18}
             />
@@ -327,16 +318,16 @@ export const Avatar: React.FC<AvatarProps> = ({
             <div className='absolute bottom-0 left-0 h-2/3 w-full animate-fire-glow bg-gradient-to-t from-red-600/50 via-orange-500/30 to-transparent' />
 
             {/* Rising flames */}
-            <Flame
+            <RiFireLine
               className='absolute bottom-[10%] left-[18%] animate-flame-rise fill-current text-orange-400 drop-shadow-[0_0_15px_rgba(251,146,60,0.8)]'
               size={sizePx * 0.45}
             />
-            <Flame
+            <RiFireLine
               className='absolute bottom-[15%] left-[45%] animate-flame-rise fill-current text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.8)]'
               size={sizePx * 0.5}
               style={{ animationDelay: '0.2s' }}
             />
-            <Flame
+            <RiFireLine
               className='absolute right-[20%] bottom-[12%] animate-flame-rise fill-current text-red-400 drop-shadow-[0_0_15px_rgba(248,113,113,0.8)]'
               size={sizePx * 0.4}
               style={{ animationDelay: '0.4s' }}
@@ -357,23 +348,23 @@ export const Avatar: React.FC<AvatarProps> = ({
             <div className='-bottom-1/2 -left-1/2 absolute h-[200%] w-[200%] animate-zen-rotate rounded-[40%] bg-gradient-conic from-teal-300/15 via-emerald-200/10 to-teal-300/15' />
 
             {/* Floating zen circles */}
-            <Circle
+            <RiCircleLine
               className='absolute top-[25%] left-[22%] animate-zen-float fill-current text-teal-200/50'
               size={sizePx * 0.12}
             />
-            <Circle
+            <RiCircleLine
               className='absolute top-[35%] right-[25%] animate-zen-float fill-current text-emerald-200/40'
               size={sizePx * 0.15}
               style={{ animationDelay: '1s' }}
             />
-            <Circle
+            <RiCircleLine
               className='absolute bottom-[30%] left-[35%] animate-zen-float fill-current text-cyan-200/45'
               size={sizePx * 0.1}
               style={{ animationDelay: '2s' }}
             />
 
             {/* Gentle wind */}
-            <Wind
+            <RiSparklingLine
               className='absolute top-[20%] right-[15%] animate-wind-blow text-teal-200/60'
               size={sizePx * 0.4}
             />
@@ -386,16 +377,16 @@ export const Avatar: React.FC<AvatarProps> = ({
         return (
           <div className='pointer-events-none absolute inset-0 overflow-hidden rounded-full'>
             {/* Subtle floating circles */}
-            <Circle
+            <RiCircleLine
               className='absolute top-[28%] left-[18%] animate-zen-float fill-current text-white/20'
               size={sizePx * 0.15}
             />
-            <Circle
+            <RiCircleLine
               className='absolute top-[40%] right-[22%] animate-zen-float fill-current text-white/15'
               size={sizePx * 0.12}
               style={{ animationDelay: '1s' }}
             />
-            <Circle
+            <RiCircleLine
               className='absolute bottom-[32%] left-[40%] animate-zen-float fill-current text-white/18'
               size={sizePx * 0.1}
               style={{ animationDelay: '2s' }}
@@ -455,7 +446,7 @@ export const Avatar: React.FC<AvatarProps> = ({
           key={particle.id}
           style={{ left: `${particle.x}%`, top: `${particle.y}%` }}
         >
-          <Sparkles size={12} />
+          <RiSparklingLine size={12} />
         </div>
       ))}
 
@@ -491,7 +482,6 @@ export const Avatar: React.FC<AvatarProps> = ({
             <Icon
               className={`${configData.color} relative z-10 drop-shadow-[0_8px_16px_rgba(0,0,0,0.4)] transition-transform duration-200`}
               size={iconSize[size]}
-              strokeWidth={2.5}
             />
 
             {/* Accessory Layer */}

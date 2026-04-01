@@ -32,7 +32,7 @@ export const BADGE_CATEGORIES: Record<
   engagement: { label: 'Engajamento Geral', icon: 'engagement', color: 'text-indigo-500' },
 }
 
-export type BadgeDefinition = {
+export interface BadgeDefinition {
   id: string
   name: string
   description: string
@@ -354,7 +354,7 @@ export const BADGE_DEFINITIONS: BadgeDefinition[] = [
   },
 ]
 
-export type RankDefinition = {
+export interface RankDefinition {
   level: number
   name: string
   minXp: number

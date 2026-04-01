@@ -1,15 +1,15 @@
-import { GoogleGenAI } from "@google/genai";
-import { encode as encodeTOON } from "@toon-format/toon";
+import { GoogleGenAI } from '@google/genai'
 import {
   buildJournalAnalysisPrompt,
   buildMeditationScriptPrompt,
   buildTherapistChatPrompt,
   buildThoughtAnalysisFromToonPrompt,
-} from "@shared/ai/prompts";
-import { z } from "zod";
-import { protectedProcedure, router } from "../trpc";
+} from '@shared/ai/prompts'
+import { encode as encodeTOON } from '@toon-format/toon'
+import { z } from 'zod'
+import { protectedProcedure, router } from '../trpc'
 
-const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || "" });
+const ai = new GoogleGenAI({ apiKey: process.env.GOOGLE_AI_API_KEY || '' })
 
 export const aiRouter = router({
   analyzeThought: protectedProcedure
@@ -17,7 +17,7 @@ export const aiRouter = router({
       z.object({
         emotion: z.string(),
         thought: z.string(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       try {
@@ -27,29 +27,27 @@ export const aiRouter = router({
             emotion: input.emotion,
             thought: input.thought,
           },
-        };
+        }
 
-        const toonContext = encodeTOON(contextData);
-        const prompt = buildThoughtAnalysisFromToonPrompt(toonContext);
+        const toonContext = encodeTOON(contextData)
+        const prompt = buildThoughtAnalysisFromToonPrompt(toonContext)
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-lite",
+          model: 'gemini-2.5-flash-lite',
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        });
+        })
 
         return {
-          analysis:
-            response.text ||
-            "Não foi possível gerar uma análise neste momento.",
-        };
+          analysis: response.text || 'Não foi possível gerar uma análise neste momento.',
+        }
       } catch (error) {
-        console.error("Error calling Gemini:", error);
+        console.error('Error calling Gemini:', error)
         throw new Error(
-          "Desculpe, não consegui analisar seu pensamento agora. Por favor, tente novamente mais tarde.",
-        );
+          'Desculpe, não consegui analisar seu pensamento agora. Por favor, tente novamente mais tarde.'
+        )
       }
     }),
 
@@ -58,52 +56,45 @@ export const aiRouter = router({
       z.object({
         content: z.string(),
         mood: z.string().optional(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       try {
         const contextData = {
           entry: {
             content: input.content,
-            mood: input.mood || "not specified",
+            mood: input.mood || 'not specified',
           },
-        };
+        }
 
-        const toonContext = encodeTOON(contextData);
-        const prompt = buildJournalAnalysisPrompt(toonContext);
+        const toonContext = encodeTOON(contextData)
+        const prompt = buildJournalAnalysisPrompt(toonContext)
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-lite",
+          model: 'gemini-2.5-flash-lite',
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        });
+        })
 
         return {
-          analysis:
-            response.text ||
-            "Não foi possível gerar uma análise neste momento.",
-        };
+          analysis: response.text || 'Não foi possível gerar uma análise neste momento.',
+        }
       } catch (error) {
-        console.error("Error calling Gemini:", error);
+        console.error('Error calling Gemini:', error)
         throw new Error(
-          "Não foi possível analisar a entrada do diário. Por favor, tente novamente.",
-        );
+          'Não foi possível analisar a entrada do diário. Por favor, tente novamente.'
+        )
       }
     }),
 
   generateMeditationScript: protectedProcedure
     .input(
       z.object({
-        type: z.enum([
-          "breathing",
-          "body-scan",
-          "mindfulness",
-          "loving-kindness",
-        ]),
+        type: z.enum(['breathing', 'body-scan', 'mindfulness', 'loving-kindness']),
         duration: z.number(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       try {
@@ -112,28 +103,25 @@ export const aiRouter = router({
             type: input.type,
             duration_minutes: input.duration,
           },
-        };
+        }
 
-        const toonContext = encodeTOON(contextData);
-        const prompt = buildMeditationScriptPrompt(toonContext);
+        const toonContext = encodeTOON(contextData)
+        const prompt = buildMeditationScriptPrompt(toonContext)
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-lite",
+          model: 'gemini-2.5-flash-lite',
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        });
+        })
 
         return {
-          script:
-            response.text || "Não foi possível gerar o script neste momento.",
-        };
+          script: response.text || 'Não foi possível gerar o script neste momento.',
+        }
       } catch (error) {
-        console.error("Error calling Gemini:", error);
-        throw new Error(
-          "Não foi possível gerar o script de meditação. Por favor, tente novamente.",
-        );
+        console.error('Error calling Gemini:', error)
+        throw new Error('Não foi possível gerar o script de meditação. Por favor, tente novamente.')
       }
     }),
 
@@ -144,12 +132,12 @@ export const aiRouter = router({
         conversationHistory: z
           .array(
             z.object({
-              role: z.enum(["user", "assistant"]),
+              role: z.enum(['user', 'assistant']),
               content: z.string(),
-            }),
+            })
           )
           .optional(),
-      }),
+      })
     )
     .mutation(async ({ input }) => {
       try {
@@ -157,29 +145,26 @@ export const aiRouter = router({
         const contextData = {
           conversation: input.conversationHistory || [],
           current_message: input.message,
-        };
+        }
 
-        const toonContext = encodeTOON(contextData);
-        const prompt = buildTherapistChatPrompt(toonContext);
+        const toonContext = encodeTOON(contextData)
+        const prompt = buildTherapistChatPrompt(toonContext)
 
         const response = await ai.models.generateContent({
-          model: "gemini-2.5-flash-lite",
+          model: 'gemini-2.5-flash-lite',
           contents: prompt,
           config: {
             thinkingConfig: { thinkingBudget: 0 },
           },
-        });
+        })
 
         return {
           response:
-            response.text ||
-            "Me desculpe, mas preciso de um momento. Por favor, tente novamente.",
-        };
+            response.text || 'Me desculpe, mas preciso de um momento. Por favor, tente novamente.',
+        }
       } catch (error) {
-        console.error("Error calling Gemini:", error);
-        throw new Error(
-          "Não foi possível processar a mensagem. Por favor, tente novamente.",
-        );
+        console.error('Error calling Gemini:', error)
+        throw new Error('Não foi possível processar a mensagem. Por favor, tente novamente.')
       }
     }),
-});
+})

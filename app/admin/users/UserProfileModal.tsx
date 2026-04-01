@@ -2,7 +2,7 @@
 
 import { trpc } from '@/lib/trpc/client'
 
-type UserProfileModalProps = {
+interface UserProfileModalProps {
   userId: string
   isOpen: boolean
   onClose: () => void

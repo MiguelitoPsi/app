@@ -1,20 +1,20 @@
 'use client'
 
+import {
+  RiCalendarLine as CalendarIcon,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
+  RiCheckboxCircleLine,
+  RiCircleLine,
+  RiDeleteBinLine,
+  RiTimeLine,
+  RiUserLine,
+} from '@remixicon/react'
 import { format, isSameDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import {
-  Calendar as CalendarIcon,
-  CheckCircle2,
-  ChevronLeft,
-  ChevronRight,
-  Circle,
-  Clock,
-  Trash2,
-  User,
-} from 'lucide-react'
 import type React from 'react'
 
-type Task = {
+interface Task {
   id: string
   title: string
   dueDate: Date | string
@@ -27,7 +27,7 @@ type Task = {
   }
 }
 
-type AgendaSidebarProps = {
+interface AgendaSidebarProps {
   selectedDate: Date
   tasks: Task[]
   onCompleteTask: (task: Task) => void
@@ -93,14 +93,14 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
               onClick={() => onDateChange(-1)}
               type='button'
             >
-              <ChevronLeft size={16} />
+              <RiArrowLeftSLine size={16} />
             </button>
             <button
               className='p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors text-slate-400'
               onClick={() => onDateChange(1)}
               type='button'
             >
-              <ChevronRight size={16} />
+              <RiArrowRightSLine size={16} />
             </button>
           </div>
         </div>
@@ -110,7 +110,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
       <div className='flex-1 overflow-y-auto space-y-2.5 pr-1 custom-scrollbar'>
         {filteredTasks.length === 0 ? (
           <div className='flex flex-col items-center justify-center py-12 text-slate-500'>
-            <Circle className='mb-3 opacity-20' size={40} />
+            <RiCircleLine className='mb-3 opacity-20' size={40} />
             <p className='text-sm'>Nenhuma tarefa para este dia</p>
           </div>
         ) : (
@@ -152,7 +152,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                     <p className='text-xs text-slate-400 flex items-center gap-1.5'>
                       {task.type === 'session' ? (
                         <>
-                          <User size={12} />
+                          <RiUserLine size={12} />
                           Consulta online
                         </>
                       ) : (
@@ -176,7 +176,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                       onClick={() => onCompleteTask(task)}
                       type='button'
                     >
-                      <CheckCircle2 size={12} />
+                      <RiCheckboxCircleLine size={12} />
                     </button>
 
                     {/* Delete button */}
@@ -187,7 +187,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                         title='Excluir tarefa'
                         type='button'
                       >
-                        <Trash2 size={10} />
+                        <RiDeleteBinLine size={10} />
                       </button>
                     )}
                   </div>
@@ -198,7 +198,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                   <div className='flex items-center gap-2'>
                     <div className='flex -space-x-1.5'>
                       <div className='w-5 h-5 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center overflow-hidden'>
-                        <User className='text-slate-400' size={10} />
+                        <RiUserLine className='text-slate-400' size={10} />
                       </div>
                     </div>
                     {task.patientId && (
@@ -206,7 +206,7 @@ const AgendaSidebar: React.FC<AgendaSidebarProps> = ({
                     )}
                   </div>
                   <div className='flex items-center gap-2 text-[10px] text-slate-500'>
-                    <Clock size={10} />
+                    <RiTimeLine size={10} />
                     <span>45 min</span>
                   </div>
                 </div>

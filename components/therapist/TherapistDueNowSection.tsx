@@ -1,6 +1,10 @@
 'use client'
 
-import { AlertCircle, ChevronRight, Clock } from 'lucide-react'
+import {
+  RiArrowRightSLine as ChevronRight,
+  RiAlertLine as RiAlertCircleLine,
+  RiTimeLine,
+} from '@remixicon/react'
 import Link from 'next/link'
 import type React from 'react'
 import { memo, useMemo } from 'react'
@@ -143,7 +147,7 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
           <h2 className='font-semibold text-xs text-slate-800 dark:text-white'>Para hoje</h2>
           {dueTasks.some((t) => t.isOverdue) && (
             <span className='flex items-center gap-0.5 rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-medium text-red-600 dark:bg-red-900/30 dark:text-red-400'>
-              <AlertCircle className='h-2.5 w-2.5' />
+              <RiAlertCircleLine className='h-2.5 w-2.5' />
               {dueTasks.filter((t) => t.isOverdue).length}
             </span>
           )}
@@ -174,7 +178,7 @@ export const TherapistDueNowSection: React.FC = memo(function TherapistDueNowSec
               {/* Badge de prioridade/status */}
               {isOverdue ? (
                 <span className='absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-red-200 dark:bg-red-800'>
-                  <Clock className='h-2 w-2 text-red-600 dark:text-red-300' />
+                  <RiTimeLine className='h-2 w-2 text-red-600 dark:text-red-300' />
                 </span>
               ) : task.priority === 'high' ? (
                 <span className='absolute right-1 top-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-orange-200 dark:bg-orange-800'>

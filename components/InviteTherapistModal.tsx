@@ -1,4 +1,4 @@
-import { Check, Copy, Loader2, X } from 'lucide-react'
+import { RiCheckLine, RiCloseLine, RiFileCopyLine, RiLoaderLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 
 export function InviteTherapistModal({
@@ -48,7 +48,7 @@ export function InviteTherapistModal({
           onClick={onClose}
           type='button'
         >
-          <X size={18} />
+          <RiCloseLine size={18} />
         </button>
 
         {/* Icon */}
@@ -90,7 +90,7 @@ export function InviteTherapistModal({
           <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-4 min-h-[52px] flex items-center'>
             {isLoading ? (
               <div className='flex items-center gap-2 text-slate-400'>
-                <Loader2 className='h-4 w-4 animate-spin' />
+                <RiLoaderLine className='h-4 w-4 animate-spin' />
                 <span className='text-sm'>Gerando link...</span>
               </div>
             ) : (
@@ -112,12 +112,12 @@ export function InviteTherapistModal({
         >
           {isCopied ? (
             <>
-              <Check className='h-5 w-5' />
+              <RiCheckLine className='h-5 w-5' />
               Link Copiado!
             </>
           ) : (
             <>
-              <Copy className='h-5 w-5' />
+              <RiFileCopyLine className='h-5 w-5' />
               Copiar Link de Convite
             </>
           )}

@@ -295,7 +295,11 @@ export const patientRouter = router({
     })
 
     // Create a map of email to invite data for quick lookup
-    const inviteByEmail = new Map(acceptedInvites.map((invite) => [invite.email, invite]))
+    const inviteByEmail = new Map<string, (typeof acceptedInvites)[0]>(
+      acceptedInvites
+        .filter((invite): invite is typeof invite & { email: string } => !!invite.email)
+        .map((invite) => [invite.email, invite])
+    )
 
     return relationships
       .filter((rel) => rel.patient)
@@ -340,7 +344,11 @@ export const patientRouter = router({
       ),
     })
 
-    const inviteByEmail = new Map(acceptedInvites.map((invite) => [invite.email, invite]))
+    const inviteByEmail = new Map<string, (typeof acceptedInvites)[0]>(
+      acceptedInvites
+        .filter((invite): invite is typeof invite & { email: string } => !!invite.email)
+        .map((invite) => [invite.email, invite])
+    )
 
     return relationships
       .filter(

@@ -1,18 +1,18 @@
 'use client'
 
 import {
-  ArrowLeft,
-  Brain,
-  Calendar,
-  CalendarDays,
-  ChevronDown,
-  ChevronUp,
-  Eye,
-  Filter,
-  MessageSquare,
-  Sparkles,
-  X,
-} from 'lucide-react'
+  RiArrowLeftSLine as ArrowLeft,
+  RiBrainLine as Brain,
+  RiCalendarLine as Calendar,
+  RiCalendar2Line as CalendarDays,
+  RiArrowDownSLine as ChevronDown,
+  RiArrowUpSLine as ChevronUp,
+  RiEyeLine as Eye,
+  RiFilter3Line as Filter,
+  RiMessage2Line as MessageSquare,
+  RiSparklingLine,
+  RiCloseLine as X,
+} from '@remixicon/react'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -24,11 +24,11 @@ import type { Mood } from '../types'
 
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'custom'
 
-type JournalHistoryViewProps = {
+interface JournalHistoryViewProps {
   goBack: () => void
 }
 
-type JournalEntry = {
+interface JournalEntry {
   id: string
   thought: string
   emotion: Mood
@@ -39,7 +39,7 @@ type JournalEntry = {
   feedbackAt?: number
 }
 
-type GroupedJournal = {
+interface GroupedJournal {
   dateKey: string
   dateLabel: string
   entries: JournalEntry[]
@@ -653,7 +653,7 @@ export const JournalHistoryView: React.FC<JournalHistoryViewProps> = ({ goBack }
                             <div className='relative overflow-hidden rounded-xl border border-emerald-100 bg-emerald-50 p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10'>
                               <div className='-mr-6 -mt-6 absolute top-0 right-0 h-12 w-12 rounded-full bg-emerald-200/20' />
                               <div className='relative z-10 mb-2 flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400'>
-                                <Sparkles size={14} />
+                                <RiSparklingLine size={14} />
                                 <span className='font-black text-xs uppercase tracking-wider'>
                                   Feedback do Terapeuta
                                 </span>

@@ -1,6 +1,6 @@
 'use client'
 
-import { Bell } from 'lucide-react'
+import { RiBellLine } from '@remixicon/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSound } from '@/hooks/useSound'
@@ -75,7 +75,7 @@ export function InternalNotificationManager() {
       >
         <div className='flex items-start gap-3'>
           <div className='rounded-full bg-violet-100 p-2 text-violet-600 dark:bg-violet-900/30 dark:text-violet-400'>
-            <Bell size={20} />
+            <RiBellLine size={20} />
           </div>
           <div className='flex-1'>
             <h4 className='font-bold text-slate-900 text-sm dark:text-white'>

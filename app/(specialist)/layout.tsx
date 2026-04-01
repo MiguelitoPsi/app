@@ -1,85 +1,82 @@
-"use client";
+'use client'
 
-import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
-import { TherapistLevelUpManager } from "@/components/TherapistLevelUpManager";
-import { TherapistProfileModal } from "@/components/TherapistProfileModal";
-import { TherapistTermsModal } from "@/components/TherapistTermsModal";
-import { TherapistXPGainToast } from "@/components/TherapistXPGainToast";
-import { SubscriptionStatusBanner } from "@/components/SubscriptionStatusBanner";
-import { DashboardHeader } from "@/components/therapist/DashboardHeader";
-import { DashboardSidebar } from "@/components/therapist/DashboardSidebar";
-import {
-  SelectedPatientProvider,
-  useSelectedPatient,
-} from "@/context/SelectedPatientContext";
-import { TherapistGameProvider } from "@/context/TherapistGameContext";
-import { trpc } from "@/lib/trpc/client";
+import { usePathname } from 'next/navigation'
+import type { ReactNode } from 'react'
+import { SubscriptionStatusBanner } from '@/components/SubscriptionStatusBanner'
+import { TherapistLevelUpManager } from '@/components/TherapistLevelUpManager'
+import { TherapistProfileModal } from '@/components/TherapistProfileModal'
+import { TherapistTermsModal } from '@/components/TherapistTermsModal'
+import { TherapistXPGainToast } from '@/components/TherapistXPGainToast'
+import { DashboardHeader } from '@/components/therapist/DashboardHeader'
+import { DashboardSidebar } from '@/components/therapist/DashboardSidebar'
+import { SelectedPatientProvider, useSelectedPatient } from '@/context/SelectedPatientContext'
+import { TherapistGameProvider } from '@/context/TherapistGameContext'
+import { trpc } from '@/lib/trpc/client'
 
 function SpecialistContent({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
-  const isDashboard = pathname === "/dashboard";
-  const isRoutine = pathname === "/therapist-routine";
-  const isProfile = pathname === "/profile";
-  const { isPatientViewActive } = useSelectedPatient();
+  const pathname = usePathname()
+  const isDashboard = pathname === '/dashboard'
+  const isRoutine = pathname === '/therapist-routine'
+  const isProfile = pathname === '/profile'
+  const { isPatientViewActive } = useSelectedPatient()
 
-  const { data: termsData, isLoading: isLoadingTerms } =
-    trpc.user.checkTermsAccepted.useQuery(undefined, {
+  const { data: termsData, isLoading: isLoadingTerms } = trpc.user.checkTermsAccepted.useQuery(
+    undefined,
+    {
       staleTime: 0,
       refetchOnMount: true,
-    });
+    }
+  )
 
   const { data: profileData, isLoading: isLoadingProfile } =
     trpc.therapistProfile.checkProfileComplete.useQuery(undefined, {
       staleTime: 0,
       refetchOnMount: true,
-    });
+    })
 
-  const isLoading = isLoadingTerms || isLoadingProfile;
+  const isLoading = isLoadingTerms || isLoadingProfile
 
   // Determine which modal to show based on server data
   const getModalState = () => {
-    if (isLoading) return { showTerms: false, showProfile: false };
+    if (isLoading) return { showTerms: false, showProfile: false }
 
     // First check if terms need to be accepted
-    if (termsData?.needsToAcceptTerms)
-      return { showTerms: true, showProfile: false };
+    if (termsData?.needsToAcceptTerms) return { showTerms: true, showProfile: false }
 
     // Then check if profile needs to be created
-    if (profileData?.needsProfile)
-      return { showTerms: false, showProfile: true };
+    if (profileData?.needsProfile) return { showTerms: false, showProfile: true }
 
-    return { showTerms: false, showProfile: false };
-  };
+    return { showTerms: false, showProfile: false }
+  }
 
-  const { showTerms, showProfile } = getModalState();
+  const { showTerms, showProfile } = getModalState()
 
   // Se estiver na visão detalhada do paciente, não mostra sidebar e header
   // Exceto na rota de relatórios e configurações, onde precisamos da sidebar
   if (
     isPatientViewActive &&
-    pathname !== "/reports" &&
-    pathname !== "/settings" &&
-    pathname !== "/financial"
+    pathname !== '/reports' &&
+    pathname !== '/settings' &&
+    pathname !== '/financial'
   ) {
     return (
-      <div className="min-h-screen bg-[#f7f2ef] dark:bg-slate-900">
+      <div className='min-h-screen bg-[#f7f2ef] dark:bg-slate-900'>
         <TherapistTermsModal isOpen={showTerms} />
-        <TherapistProfileModal isOpen={showProfile} mode="create" />
+        <TherapistProfileModal isOpen={showProfile} mode='create' />
         <TherapistLevelUpManager />
         <TherapistXPGainToast />
-        <main className="min-h-screen">{children}</main>
+        <main className='min-h-screen'>{children}</main>
       </div>
-    );
+    )
   }
 
   return (
-    <div className="min-h-screen bg-[#f7f2ef] transition-colors duration-300 dark:bg-slate-900">
+    <div className='min-h-screen bg-[#f7f2ef] transition-colors duration-300 dark:bg-slate-900'>
       {/* Terms Modal - shown first */}
       <TherapistTermsModal isOpen={showTerms} />
 
       {/* Profile Modal - shown after terms are accepted */}
-      <TherapistProfileModal isOpen={showProfile} mode="create" />
+      <TherapistProfileModal isOpen={showProfile} mode='create' />
 
       {/* Level Up Manager - shows modal on level up */}
       <TherapistLevelUpManager />
@@ -91,46 +88,40 @@ function SpecialistContent({ children }: { children: ReactNode }) {
       {isDashboard || isRoutine ? (
         <>
           <DashboardSidebar />
-          <main className="ml-16 h-screen overflow-hidden bg-[#f7f2ef] dark:bg-slate-900">
+          <main className='ml-16 h-screen overflow-hidden bg-[#f7f2ef] dark:bg-slate-900'>
             <DashboardHeader />
             <SubscriptionStatusBanner />
-            <div className="h-[calc(100vh-64px)] overflow-hidden">
-              {children}
-            </div>
+            <div className='h-[calc(100vh-64px)] overflow-hidden'>{children}</div>
           </main>
         </>
       ) : isProfile ? (
         <>
           <DashboardSidebar />
-          <main className="ml-16 min-h-screen bg-[#f7f2ef] transition-colors duration-300 dark:bg-slate-900">
+          <main className='ml-16 min-h-screen bg-[#f7f2ef] transition-colors duration-300 dark:bg-slate-900'>
             <DashboardHeader />
             <SubscriptionStatusBanner />
-            <div className="min-h-[calc(100vh-64px)]">{children}</div>
+            <div className='min-h-[calc(100vh-64px)]'>{children}</div>
           </main>
         </>
       ) : (
         <>
           <DashboardSidebar />
-          <main className="ml-16 min-h-screen bg-[#f7f2ef] pb-8 transition-colors duration-300 dark:bg-slate-900">
+          <main className='ml-16 min-h-screen bg-[#f7f2ef] pb-8 transition-colors duration-300 dark:bg-slate-900'>
             <SubscriptionStatusBanner />
-            <div className="p-4">{children}</div>
+            <div className='p-4'>{children}</div>
           </main>
         </>
       )}
     </div>
-  );
+  )
 }
 
-export default function SpecialistLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export default function SpecialistLayout({ children }: { children: ReactNode }) {
   return (
     <TherapistGameProvider>
       <SelectedPatientProvider>
         <SpecialistContent>{children}</SpecialistContent>
       </SelectedPatientProvider>
     </TherapistGameProvider>
-  );
+  )
 }

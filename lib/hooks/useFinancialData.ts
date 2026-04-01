@@ -5,7 +5,7 @@ import { trpc } from '@/lib/trpc/client'
 
 export type PeriodType = 'month' | 'quarter' | 'semester' | 'year' | 'custom'
 
-export type PeriodRange = {
+export interface PeriodRange {
   startDate: Date
   endDate: Date
   label: string
@@ -147,7 +147,7 @@ export function formatDateMonthYear(date: Date | string): string {
   return `${month.charAt(0).toUpperCase()}${month.slice(1, 3)}`
 }
 
-export type FinancialProjection = {
+export interface FinancialProjection {
   projectedIncome: number
   projectedExpenses: number
   projectedBalance: number
@@ -200,7 +200,7 @@ export function calculateProjection(
   }
 }
 
-export type MonthlyDataPoint = {
+export interface MonthlyDataPoint {
   month: string
   monthLabel: string
   income: number
@@ -252,7 +252,7 @@ export function groupByMonth(
     .sort((a, b) => a.month.localeCompare(b.month))
 }
 
-export type UseFinancialDataOptions = {
+export interface UseFinancialDataOptions {
   period: PeriodType
   enableComparison?: boolean
   historyMonths?: number

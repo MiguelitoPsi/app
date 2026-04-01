@@ -5,7 +5,7 @@ import type React from 'react'
 import type { Particle } from '@/hooks/useXPAnimation'
 import { getIconByKey } from '@/lib/utils/icon-map'
 
-type XPParticleProps = {
+interface XPParticleProps {
   particle: Particle
 }
 

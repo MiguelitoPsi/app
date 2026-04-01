@@ -3,7 +3,7 @@
  * Upload em background com notificações de progresso.
  */
 
-type UploadOptions = {
+interface UploadOptions {
   file: File
   url: string
   patientId: string
@@ -12,7 +12,7 @@ type UploadOptions = {
   signal?: AbortSignal
 }
 
-type UploadResponse = {
+interface UploadResponse {
   success: boolean
   jobId: string
   message: string
@@ -120,7 +120,7 @@ export function uploadWithProgress(options: UploadOptions): Promise<UploadRespon
  * Gerenciador de uploads em background
  * Permite que o usuário continue usando o app enquanto o upload acontece
  */
-type BackgroundUpload = {
+interface BackgroundUpload {
   id: string
   filename: string
   progress: number
@@ -132,7 +132,7 @@ type BackgroundUpload = {
   abort: () => void
 }
 
-type BackgroundUploadCallbacks = {
+interface BackgroundUploadCallbacks {
   onProgress?: (upload: BackgroundUpload) => void
   onComplete?: (upload: BackgroundUpload) => void
   onError?: (upload: BackgroundUpload) => void

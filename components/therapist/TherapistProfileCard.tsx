@@ -1,6 +1,12 @@
 'use client'
 
-import { CheckCircle2, FileText, Flame, TrendingUp, Users } from 'lucide-react'
+import {
+  RiFileTextLine as FileText,
+  RiFireLine as Flame,
+  RiCheckboxCircleLine,
+  RiTeamLine,
+  RiArrowUpSLine as TrendingUp,
+} from '@remixicon/react'
 import type React from 'react'
 import { memo } from 'react'
 import { Avatar } from '@/components/Avatar'
@@ -108,7 +114,7 @@ export const TherapistProfileCard: React.FC = memo(function TherapistProfileCard
       <div className='grid grid-cols-2 gap-3 px-6 pt-4'>
         <div className='rounded-xl bg-emerald-50 p-3 dark:bg-emerald-900/20'>
           <div className='flex items-center gap-2'>
-            <Users className='h-4 w-4 text-emerald-600 dark:text-emerald-400' />
+            <RiTeamLine className='h-4 w-4 text-emerald-600 dark:text-emerald-400' />
             <span className='text-xs text-emerald-600 dark:text-emerald-400'>Pacientes</span>
           </div>
           <p className='mt-1 text-xl font-bold text-emerald-700 dark:text-emerald-300'>
@@ -118,7 +124,7 @@ export const TherapistProfileCard: React.FC = memo(function TherapistProfileCard
 
         <div className='rounded-xl bg-blue-50 p-3 dark:bg-blue-900/20'>
           <div className='flex items-center gap-2'>
-            <CheckCircle2 className='h-4 w-4 text-blue-600 dark:text-blue-400' />
+            <RiCheckboxCircleLine className='h-4 w-4 text-blue-600 dark:text-blue-400' />
             <span className='text-xs text-blue-600 dark:text-blue-400'>Sessões</span>
           </div>
           <p className='mt-1 text-xl font-bold text-blue-700 dark:text-blue-300'>

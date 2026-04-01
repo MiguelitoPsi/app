@@ -1,8 +1,8 @@
-import { Sparkles, Star, Trophy } from 'lucide-react'
+import { RiSparklingLine, RiStarLine, RiTrophyLine } from '@remixicon/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSound } from '@/hooks/useSound'
 
-type LevelUpModalProps = {
+interface LevelUpModalProps {
   newLevel: number
   onClose: () => void
 }
@@ -90,13 +90,13 @@ const LevelUpModal = ({ newLevel, onClose }: LevelUpModalProps) => {
               className='absolute inset-0 bg-yellow-500 blur-xl opacity-50 animate-pulse'
             />
             <div className='relative bg-gradient-to-br from-yellow-400 to-yellow-600 p-4 rounded-full shadow-lg animate-float'>
-              <Trophy aria-hidden='true' className='w-12 h-12 text-white' />
+              <RiTrophyLine aria-hidden='true' className='w-12 h-12 text-white' />
             </div>
             <div aria-hidden='true' className='absolute -top-2 -right-2'>
-              <Sparkles className='w-6 h-6 text-yellow-200 animate-bounce' />
+              <RiSparklingLine className='w-6 h-6 text-yellow-200 animate-bounce' />
             </div>
             <div aria-hidden='true' className='absolute -bottom-2 -left-2'>
-              <Star className='w-6 h-6 text-yellow-200 animate-spin-slow' />
+              <RiStarLine className='w-6 h-6 text-yellow-200 animate-spin-slow' />
             </div>
           </div>
 

@@ -1,11 +1,11 @@
 'use client'
 
-import { Check, FileText } from 'lucide-react'
+import { RiCheckLine, RiFileTextLine } from '@remixicon/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
-type PatientConsentModalProps = {
+interface PatientConsentModalProps {
   onSuccess: () => void
 }
 
@@ -44,7 +44,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
         <div className='border-slate-100 border-b bg-slate-50/50 px-6 py-6 dark:border-slate-800 dark:bg-slate-900/50'>
           <div className='flex items-center gap-4'>
             <div className='flex h-12 w-12 items-center justify-center rounded-2xl bg-sky-100 text-sky-600 dark:bg-sky-900/30 dark:text-sky-400'>
-              <FileText size={24} />
+              <RiFileTextLine size={24} />
             </div>
             <div>
               <h2 className='font-bold text-xl text-slate-900 sm:text-2xl dark:text-white'>
@@ -148,7 +148,7 @@ export function PatientConsentModal({ onSuccess }: PatientConsentModalProps) {
                 </>
               ) : (
                 <>
-                  <Check size={20} />
+                  <RiCheckLine size={20} />
                   Li e Concordo
                 </>
               )}

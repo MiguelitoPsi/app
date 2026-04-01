@@ -1,5 +1,6 @@
 'use client'
 
+import { RiArrowLeftSLine, RiArrowRightSLine } from '@remixicon/react'
 import {
   addMonths,
   eachDayOfInterval,
@@ -13,10 +14,9 @@ import {
   subMonths,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import React from 'react'
 
-type CalendarProps = {
+interface CalendarProps {
   selectedDate: Date
   onChange: (date: Date) => void
   tasks?: Array<{
@@ -47,14 +47,14 @@ const Calendar: React.FC<CalendarProps> = ({ selectedDate, onChange, tasks = [] 
           onClick={prevMonth}
           type='button'
         >
-          <ChevronLeft size={18} />
+          <RiArrowLeftSLine size={18} />
         </button>
         <button
           className='p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 transition-colors'
           onClick={nextMonth}
           type='button'
         >
-          <ChevronRight size={18} />
+          <RiArrowRightSLine size={18} />
         </button>
       </div>
     </div>

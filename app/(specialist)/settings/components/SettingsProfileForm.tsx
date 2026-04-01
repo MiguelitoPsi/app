@@ -1,16 +1,16 @@
 'use client'
 
 import {
-  BookOpen,
-  Building2,
-  Calendar,
-  CheckCircle,
-  CreditCard,
-  Image as ImageIcon,
-  MapPin,
-  Phone,
-  User,
-} from 'lucide-react'
+  RiBookOpenLine,
+  RiBuilding2Line,
+  RiCalendarLine,
+  RiCheckDoubleLine,
+  RiIdCardLine,
+  RiImageAddLine,
+  RiMapPinLine,
+  RiPhoneLine,
+  RiUserLine,
+} from '@remixicon/react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
@@ -18,7 +18,7 @@ import { compressImage } from '@/lib/utils/image-compression'
 
 type AttendanceType = 'online' | 'presential' | 'both'
 
-type SettingsProfileFormProps = {
+interface SettingsProfileFormProps {
   activeTab: 'profile' | 'clinic'
 }
 
@@ -286,13 +286,13 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
                   />
                   <div className='absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100'>
                     <span className='rounded-full bg-black/50 p-1.5 text-white'>
-                      <ImageIcon className='h-4 w-4' />
+                      <RiImageAddLine className='h-4 w-4' />
                     </span>
                   </div>
                 </div>
               ) : (
                 <div className='flex h-full w-full cursor-pointer items-center justify-center text-slate-300 dark:text-slate-600'>
-                  <ImageIcon className='h-8 w-8' />
+                  <RiImageAddLine className='h-8 w-8' />
                 </div>
               )}
             </button>
@@ -309,7 +309,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* Full Name */}
             <div className='col-span-12'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <User className='h-3 w-3' />
+                <RiUserLine className='h-3 w-3' />
                 Nome Completo *
               </label>
               <input
@@ -329,7 +329,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* CPF */}
             <div className='col-span-12 sm:col-span-4'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <CreditCard className='h-3 w-3' />
+                <RiIdCardLine className='h-3 w-3' />
                 CPF *
               </label>
               <input
@@ -349,7 +349,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* Birth Date */}
             <div className='col-span-12 sm:col-span-4'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <Calendar className='h-3 w-3' />
+                <RiCalendarLine className='h-3 w-3' />
                 Nascimento *
               </label>
               <input
@@ -374,7 +374,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* CRP */}
             <div className='col-span-12 sm:col-span-4'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <CreditCard className='h-3 w-3' />
+                <RiIdCardLine className='h-3 w-3' />
                 CRP *
               </label>
               <input
@@ -394,7 +394,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* Education */}
             <div className='col-span-12'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <BookOpen className='h-3 w-3' />
+                <RiBookOpenLine className='h-3 w-3' />
                 Formação *
               </label>
               <input
@@ -414,7 +414,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             {/* Bio */}
             <div className='col-span-12'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <BookOpen className='h-3 w-3' />
+                <RiBookOpenLine className='h-3 w-3' />
                 Biografia
               </label>
               <textarea
@@ -443,7 +443,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
           {/* City */}
           <div>
             <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-              <MapPin className='h-3 w-3' />
+              <RiMapPinLine className='h-3 w-3' />
               Cidade *
             </label>
             <input
@@ -463,7 +463,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
           {/* Attendance Type */}
           <div>
             <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-              <Building2 className='h-3 w-3' />
+              <RiBuilding2Line className='h-3 w-3' />
               Tipo *
             </label>
             <div className='grid grid-cols-3 gap-2'>
@@ -497,7 +497,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
           {showClinicAddress && (
             <div className='md:col-span-2 animate-in fade-in slide-in-from-top-2 duration-200'>
               <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-                <Building2 className='h-3 w-3' />
+                <RiBuilding2Line className='h-3 w-3' />
                 Endereço da Clínica *
               </label>
               <input
@@ -520,7 +520,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
           {/* Phone */}
           <div className='md:col-span-2'>
             <label className='mb-1 flex items-center gap-2 font-medium text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400'>
-              <Phone className='h-3 w-3' />
+              <RiPhoneLine className='h-3 w-3' />
               Telefone *
             </label>
             <input
@@ -558,7 +558,7 @@ export function SettingsProfileForm({ activeTab }: SettingsProfileFormProps) {
             </span>
           ) : (
             <span className='flex items-center justify-center gap-2'>
-              <CheckCircle className='h-4 w-4' />
+              <RiCheckDoubleLine className='h-4 w-4' />
               Salvar
             </span>
           )}

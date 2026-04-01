@@ -130,7 +130,7 @@ export function getTherapistLevelProgress(currentXP: number): number {
  * TIPOS DE RESULTADO
  * ============================================ */
 
-export type TherapistXPResult = {
+export interface TherapistXPResult {
   xpAwarded: number
   newExperience: number
   newLevel: number
@@ -139,7 +139,7 @@ export type TherapistXPResult = {
   newStreak: number
 }
 
-export type TherapistXPInfo = {
+export interface TherapistXPInfo {
   currentXP: number
   currentLevel: number
   xpForCurrentLevel: number

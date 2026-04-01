@@ -1,9 +1,10 @@
 'use client'
 
-import type { LucideIcon } from 'lucide-react'
 import type React from 'react'
 
-type TherapistPageLayoutProps = {
+type RemixiconIcon = React.ComponentType<{ className?: string }>
+
+interface TherapistPageLayoutProps {
   children: React.ReactNode
   /**
    * Se true, remove todo o padding do container (útil para pages com header próprio)
@@ -15,10 +16,10 @@ type TherapistPageLayoutProps = {
   className?: string
 }
 
-type TherapistPageHeaderProps = {
+interface TherapistPageHeaderProps {
   title: string
   subtitle?: string
-  icon?: LucideIcon
+  icon?: RemixiconIcon
   /**
    * Classes de gradiente Tailwind (ex: "from-violet-600 to-purple-700")
    */

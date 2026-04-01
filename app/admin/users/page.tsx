@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, Copy } from 'lucide-react'
+import { RiCheckLine, RiFileCopyLine, RiSearchLine } from '@remixicon/react'
 import React, { useState } from 'react'
 import { InviteTherapistModal } from '@/components/InviteTherapistModal'
 import { trpc } from '@/lib/trpc/client'
@@ -141,9 +141,14 @@ export default function UsersPage() {
         alert('Motivo da suspensão é obrigatório')
         return
       }
-      suspendPsychologist.mutate({ psychologistId: selectedPsychologist.id, reason })
+      suspendPsychologist.mutate({
+        psychologistId: selectedPsychologist.id,
+        reason,
+      })
     } else if (selectedPsychologist.action === 'reactivate') {
-      reactivatePsychologist.mutate({ psychologistId: selectedPsychologist.id })
+      reactivatePsychologist.mutate({
+        psychologistId: selectedPsychologist.id,
+      })
     } else if (selectedPsychologist.action === 'delete') {
       deletePsychologist.mutate({ psychologistId: selectedPsychologist.id })
     }
@@ -265,7 +270,7 @@ export default function UsersPage() {
 
       {/* Search */}
       <div className='relative'>
-        <SearchIcon className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
+        <RiSearchLine className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
         <input
           className='w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -925,7 +930,7 @@ function CreateUserModal({
             <div className='space-y-4 animate-in fade-in zoom-in duration-300'>
               <div className='rounded-lg bg-emerald-500/10 p-4 border border-emerald-500/20 text-center'>
                 <div className='mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-emerald-500/20'>
-                  <Check className='h-5 w-5 text-emerald-500' />
+                  <RiCheckLine className='h-5 w-5 text-emerald-500' />
                 </div>
                 <h3 className='font-medium text-white'>Link Gerado com Sucesso!</h3>
                 <p className='text-sm text-slate-400 mt-1'>
@@ -952,7 +957,11 @@ function CreateUserModal({
                     title='Copiar Link'
                     type='button'
                   >
-                    {isCopied ? <Check className='h-5 w-5' /> : <Copy className='h-5 w-5' />}
+                    {isCopied ? (
+                      <RiCheckLine className='h-5 w-5' />
+                    ) : (
+                      <RiFileCopyLine className='h-5 w-5' />
+                    )}
                   </button>
                 </div>
               </div>
@@ -1033,7 +1042,7 @@ function CreateUserModal({
   )
 }
 
-function SearchIcon({ className }: { className?: string }) {
+function _SearchIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill='none' stroke='currentColor' viewBox='0 0 24 24'>
       <title>Buscar</title>

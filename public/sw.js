@@ -89,15 +89,13 @@ self.addEventListener('fetch', (event) => {
         })
         .catch(() =>
           // Fallback para cache se offline
-          caches
-            .match(request)
-            .then((cachedResponse) => {
-              if (cachedResponse) {
-                return cachedResponse
-              }
-              // Retornar página offline ou home como fallback
-              return caches.match('/home') || caches.match('/')
-            })
+          caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              return cachedResponse
+            }
+            // Retornar página offline ou home como fallback
+            return caches.match('/home') || caches.match('/')
+          })
         )
     )
     return

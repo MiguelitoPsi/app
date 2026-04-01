@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import { ProfileView } from "@/app/(app)/pacient/profile/ProfileView";
+import { ProfileView } from '@/app/(app)/pacient/profile/ProfileView'
 
 export default function PacientProfilePage() {
-  return <ProfileView />;
+  return <ProfileView />
 }

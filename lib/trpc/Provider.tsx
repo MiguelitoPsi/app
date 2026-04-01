@@ -30,9 +30,9 @@ export function TRPCProvider({ children }: { children: React.ReactNode }) {
       links: [
         httpBatchLink({
           url:
-            typeof window !== 'undefined'
-              ? '/api/trpc'
-              : `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
+            typeof window === 'undefined'
+              ? `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`
+              : '/api/trpc',
           transformer: superjson,
           fetch: (url, options) =>
             fetch(url, {

@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Eye, EyeOff, Key } from 'lucide-react'
+import { RiCheckFill, RiEyeLine, RiEyeOffLine, RiKeyLine } from '@remixicon/react'
 import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 
@@ -108,7 +108,7 @@ export default function AdminSettingsPage() {
           >
             <div className='flex items-center gap-4'>
               <div className='rounded-xl bg-amber-600/20 p-3 text-amber-500'>
-                <Key size={24} />
+                <RiKeyLine size={24} />
               </div>
               <div className='text-left'>
                 <h4 className='text-lg font-bold text-white'>Segurança</h4>
@@ -122,7 +122,7 @@ export default function AdminSettingsPage() {
               {passwordSuccess ? (
                 <div className='flex flex-col items-center py-4 text-center'>
                   <div className='mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600/20'>
-                    <CheckCircle2 className='h-6 w-6 text-emerald-500' />
+                    <RiCheckFill className='h-6 w-6 text-emerald-500' />
                   </div>
                   <h4 className='mb-1 font-bold text-white'>Senha alterada!</h4>
                   <p className='text-sm text-slate-400'>Sua senha foi atualizada com sucesso.</p>
@@ -159,7 +159,11 @@ export default function AdminSettingsPage() {
                           onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                           type='button'
                         >
-                          {showCurrentPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showCurrentPassword ? (
+                            <RiEyeOffLine size={20} />
+                          ) : (
+                            <RiEyeLine size={20} />
+                          )}
                         </button>
                       </div>
                     </div>
@@ -187,7 +191,7 @@ export default function AdminSettingsPage() {
                           onClick={() => setShowNewPassword(!showNewPassword)}
                           type='button'
                         >
-                          {showNewPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showNewPassword ? <RiEyeOffLine size={20} /> : <RiEyeLine size={20} />}
                         </button>
                       </div>
                       <p className='mt-1 text-xs text-slate-500'>Mínimo de 8 caracteres</p>
@@ -216,7 +220,11 @@ export default function AdminSettingsPage() {
                           onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                           type='button'
                         >
-                          {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                          {showConfirmPassword ? (
+                            <RiEyeOffLine size={20} />
+                          ) : (
+                            <RiEyeLine size={20} />
+                          )}
                         </button>
                       </div>
                     </div>

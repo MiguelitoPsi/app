@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame } from 'lucide-react'
+import { RiFireLine as Flame } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 

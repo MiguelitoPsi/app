@@ -1,6 +1,14 @@
 'use client'
 
-import { MessageCircle, PartyPopper, Search, Sparkles, User, UserMinus, X } from 'lucide-react'
+import {
+  RiChat3Line,
+  RiCloseLine,
+  RiGiftLine,
+  RiSearchLine,
+  RiSparklingLine,
+  RiUserLine,
+  RiUserUnfollowLine,
+} from '@remixicon/react'
 import Image from 'next/image'
 import { useCallback, useEffect, useState } from 'react'
 import { authClient } from '@/lib/auth-client'
@@ -19,7 +27,7 @@ const DISCHARGE_MESSAGES = [
 // Constante para o canal de broadcast de suspensão
 const SUSPENSION_CHANNEL = 'nepsis-suspension-channel'
 
-type Therapist = {
+interface Therapist {
   id: string
   fullName: string
   crp: string
@@ -201,14 +209,14 @@ export function UnlinkedPatientModal() {
               onClick={() => setShowTherapistList(false)}
               type='button'
             >
-              <X className='h-5 w-5' />
+              <RiCloseLine className='h-5 w-5' />
             </button>
           </div>
 
           {/* Search and Filter */}
           <div className='space-y-3 border-b border-slate-700 p-4'>
             <div className='relative'>
-              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
+              <RiSearchLine className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400' />
               <input
                 className='w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pr-4 pl-10 text-white placeholder-slate-400 focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -265,7 +273,7 @@ export function UnlinkedPatientModal() {
                             width={48}
                           />
                         ) : (
-                          <User className='h-6 w-6 text-slate-400' />
+                          <RiUserLine className='h-6 w-6 text-slate-400' />
                         )}
                       </div>
                       <div className='flex-1'>
@@ -308,7 +316,7 @@ export function UnlinkedPatientModal() {
                       onClick={() => handleContactTherapist(therapist)}
                       type='button'
                     >
-                      <MessageCircle className='h-5 w-5' />
+                      <RiChat3Line className='h-5 w-5' />
                       Contatar via WhatsApp
                     </button>
                   </div>
@@ -316,7 +324,7 @@ export function UnlinkedPatientModal() {
               </div>
             ) : (
               <div className='flex h-40 flex-col items-center justify-center text-center'>
-                <UserMinus className='mb-3 h-12 w-12 text-slate-500' />
+                <RiUserUnfollowLine className='mb-3 h-12 w-12 text-slate-500' />
                 <p className='text-slate-400'>Nenhum terapeuta encontrado</p>
                 <p className='text-slate-500 text-sm'>Tente ajustar os filtros de busca</p>
               </div>
@@ -382,9 +390,9 @@ export function UnlinkedPatientModal() {
 
           <div className='mb-4 flex items-center justify-center'>
             <div className='relative flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/30'>
-              <PartyPopper className='h-10 w-10 text-white' />
+              <RiGiftLine className='h-10 w-10 text-white' />
               <div className='absolute -right-1 -top-1'>
-                <Sparkles className='h-6 w-6 text-yellow-400' />
+                <RiSparklingLine className='h-6 w-6 text-yellow-400' />
               </div>
             </div>
           </div>
@@ -429,7 +437,7 @@ export function UnlinkedPatientModal() {
       <div className='mx-4 w-full max-w-md rounded-xl border border-red-500/50 bg-slate-900 p-6 shadow-2xl'>
         <div className='mb-4 flex items-center justify-center'>
           <div className='flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20'>
-            <UserMinus className='h-8 w-8 text-red-400' />
+            <RiUserUnfollowLine className='h-8 w-8 text-red-400' />
           </div>
         </div>
 

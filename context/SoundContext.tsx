@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { SoundContext, useSound } from '@/hooks/useSound'
 
-type SoundProviderProps = {
+interface SoundProviderProps {
   children: ReactNode
 }
 

@@ -1,10 +1,10 @@
 'use client'
 
-import { Award, Crown, Sparkles, Star } from 'lucide-react'
+import { RiAwardLine as Award, RiSparklingLine, RiStarLine, RiVipCrownLine } from '@remixicon/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TherapistRankDefinition } from '@/lib/constants/therapist'
 
-type TherapistLevelUpModalProps = {
+interface TherapistLevelUpModalProps {
   newLevel: number
   rank: TherapistRankDefinition
   onClose: () => void
@@ -98,13 +98,13 @@ export function TherapistLevelUpModal({ newLevel, rank, onClose }: TherapistLeve
               className='absolute inset-0 animate-pulse bg-emerald-500 opacity-50 blur-xl'
             />
             <div className='animate-float relative rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 p-4 shadow-lg'>
-              <Crown aria-hidden='true' className='h-12 w-12 text-white' />
+              <RiVipCrownLine aria-hidden='true' className='h-12 w-12 text-white' />
             </div>
             <div aria-hidden='true' className='absolute -right-2 -top-2'>
-              <Sparkles className='h-6 w-6 animate-bounce text-emerald-200' />
+              <RiSparklingLine className='h-6 w-6 animate-bounce text-emerald-200' />
             </div>
             <div aria-hidden='true' className='absolute -bottom-2 -left-2'>
-              <Star className='animate-spin-slow h-6 w-6 text-teal-200' />
+              <RiStarLine className='animate-spin-slow h-6 w-6 text-teal-200' />
             </div>
           </div>
 

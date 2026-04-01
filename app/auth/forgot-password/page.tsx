@@ -1,7 +1,7 @@
 'use client'
 
+import { RiArrowLeftLine, RiMailLine, RiSendPlaneLine } from '@remixicon/react'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Mail, Send } from 'lucide-react'
 import Link from 'next/link'
 import { useId, useState } from 'react'
 
@@ -48,7 +48,11 @@ export default function ForgotPasswordPage() {
             y: [0, -50, 40, 0, 0],
           }}
           className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl'
-          transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 12,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
         <motion.div
           animate={{
@@ -56,7 +60,11 @@ export default function ForgotPasswordPage() {
             y: [0, 60, -40, 0],
           }}
           className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl'
-          transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 10,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
         <motion.div
           animate={{
@@ -64,7 +72,11 @@ export default function ForgotPasswordPage() {
             y: [0, -70, 50, 0],
           }}
           className='absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-cyan-500/20 blur-3xl'
-          transition={{ duration: 14, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 14,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
       </div>
 
@@ -77,7 +89,7 @@ export default function ForgotPasswordPage() {
               className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-sky-400'
               href='/auth/signin'
             >
-              <ArrowLeft className='h-4 w-4' />
+              <RiArrowLeftLine className='h-4 w-4' />
               <span className='text-sm'>Voltar ao login</span>
             </Link>
 
@@ -95,7 +107,7 @@ export default function ForgotPasswordPage() {
                 initial={{ opacity: 0, y: 20 }}
               >
                 <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20'>
-                  <Mail className='h-8 w-8 text-green-400' />
+                  <RiMailLine className='h-8 w-8 text-green-400' />
                 </div>
                 <h2 className='mb-2 font-semibold text-lg text-white'>Verifique seu e-mail</h2>
                 <p className='mb-6 text-slate-400 text-sm'>
@@ -181,7 +193,7 @@ export default function ForgotPasswordPage() {
                     </>
                   ) : (
                     <>
-                      <Send className='h-5 w-5' />
+                      <RiSendPlaneLine className='h-5 w-5' />
                       Enviar link de recuperação
                     </>
                   )}

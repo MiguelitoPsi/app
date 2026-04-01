@@ -1,16 +1,16 @@
 'use client'
 
 import {
-  AlertTriangle,
-  CheckCircle2,
-  Eye,
-  EyeOff,
-  FileText,
-  Key,
-  Moon,
-  Sun,
-  Trash2,
-} from 'lucide-react'
+  RiAlertLine,
+  RiCheckDoubleLine,
+  RiDeleteBin2Line,
+  RiEyeLine,
+  RiEyeOffLine,
+  RiFileTextLine,
+  RiKeyLine,
+  RiMoonLine,
+  RiSunLine,
+} from '@remixicon/react'
 import { useState } from 'react'
 import { TherapistTermsModal } from '@/components/TherapistTermsModal'
 import { useTherapistGame } from '@/context/TherapistGameContext'
@@ -152,7 +152,7 @@ export function AccountSection() {
         >
           <div className='flex items-center gap-3 sm:gap-4'>
             <div className='rounded-xl bg-amber-100 p-2.5 text-amber-600 sm:p-3 dark:bg-amber-900/30 dark:text-amber-400'>
-              <Key size={20} />
+              <RiKeyLine size={20} />
             </div>
             <div className='text-left'>
               <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
@@ -170,7 +170,7 @@ export function AccountSection() {
             {passwordSuccess ? (
               <div className='flex flex-col items-center py-4 text-center'>
                 <div className='mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30'>
-                  <CheckCircle2 className='h-6 w-6 text-green-600 dark:text-green-400' />
+                  <RiCheckDoubleLine className='h-6 w-6 text-green-600 dark:text-green-400' />
                 </div>
                 <h4 className='mb-1 font-bold text-slate-800 text-base dark:text-white'>
                   Senha alterada!
@@ -210,7 +210,7 @@ export function AccountSection() {
                         onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                         type='button'
                       >
-                        {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showCurrentPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
                       </button>
                     </div>
                   </div>
@@ -238,7 +238,7 @@ export function AccountSection() {
                         onClick={() => setShowNewPassword(!showNewPassword)}
                         type='button'
                       >
-                        {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showNewPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
                       </button>
                     </div>
                     <p className='mt-1 text-slate-400 text-[10px] sm:text-xs dark:text-slate-500'>
@@ -269,7 +269,7 @@ export function AccountSection() {
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                         type='button'
                       >
-                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                        {showConfirmPassword ? <RiEyeOffLine size={18} /> : <RiEyeLine size={18} />}
                       </button>
                     </div>
                   </div>
@@ -300,7 +300,7 @@ export function AccountSection() {
       <div className='flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-white p-4 shadow-sm transition-colors sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
         <div className='flex min-w-0 flex-1 items-center gap-3 sm:gap-4'>
           <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-violet-100 text-violet-600 sm:h-12 sm:w-12 dark:bg-violet-900/30 dark:text-violet-400'>
-            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            {theme === 'dark' ? <RiMoonLine size={20} /> : <RiSunLine size={20} />}
           </div>
           <div className='min-w-0'>
             <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
@@ -338,7 +338,7 @@ export function AccountSection() {
       >
         <div className='flex items-center gap-3 sm:gap-4'>
           <div className='rounded-xl bg-violet-100 p-2.5 text-violet-600 sm:p-3 dark:bg-violet-900/30 dark:text-violet-400'>
-            <FileText size={20} />
+            <RiFileTextLine size={20} />
           </div>
           <div className='text-left'>
             <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
@@ -360,7 +360,7 @@ export function AccountSection() {
         >
           <div className='flex items-center gap-3 sm:gap-4'>
             <div className='rounded-xl bg-red-100 p-2.5 text-red-600 sm:p-3 dark:bg-red-900/30 dark:text-red-400'>
-              <Trash2 size={20} />
+              <RiDeleteBin2Line size={20} />
             </div>
             <div className='text-left'>
               <h4 className='font-bold text-slate-800 text-sm sm:text-base dark:text-white'>
@@ -377,7 +377,7 @@ export function AccountSection() {
           <div className='mt-4 border-slate-100 border-t pt-4 sm:mt-5 sm:pt-5 dark:border-slate-800'>
             <div className='mb-4 rounded-xl bg-red-50 p-4 text-red-700 dark:bg-red-900/20 dark:text-red-400'>
               <div className='flex gap-3'>
-                <AlertTriangle className='h-5 w-5 shrink-0' />
+                <RiAlertLine className='h-5 w-5 shrink-0' />
                 <div className='text-sm'>
                   <p className='font-bold mb-1'>Atenção: Zona de Perigo</p>
                   <p>

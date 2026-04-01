@@ -1,19 +1,19 @@
 'use client'
 
 import {
-  ArrowLeft,
-  Brain,
-  CheckCircle2,
-  Minus,
-  Moon,
-  Pause,
-  Play,
-  Plus,
-  Settings2,
-  Sparkles,
-  Sun,
-  Wind,
-} from 'lucide-react'
+  RiArrowLeftSLine as ArrowLeft,
+  RiBrainLine as Brain,
+  RiCheckboxCircleLine as CheckCircle2,
+  RiSubtractLine as Minus,
+  RiMoonLine as Moon,
+  RiPauseLine as Pause,
+  RiPlayLine as Play,
+  RiAddLine as Plus,
+  RiSettings5Line,
+  RiSparklingLine,
+  RiSunLine as Sun,
+  RiWindyLine as Wind,
+} from '@remixicon/react'
 import type React from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { HelpButton } from '@/components/HelpButton'
@@ -25,7 +25,7 @@ import { useGame } from '../context/GameContext'
 
 // Breathing configurations based on physiological parameters
 // Inhale: 3-4s, Exhale: 4-8s (longer exhale for relaxation)
-type BreathConfig = {
+interface BreathConfig {
   inhale: number // milliseconds
   exhale: number // milliseconds
 }
@@ -61,12 +61,16 @@ const getPhaseText = (elapsed: number, config: BreathConfig): 'Inspirar' | 'Expi
   const cyclePosition = elapsed % totalCycle
   return cyclePosition < config.inhale ? 'Inspirar' : 'Expirar'
 }
-
-type MeditationType = {
+type IconComponent = React.ComponentType<{
+  className?: string
+  size?: number | string
+  [key: string]: any
+}>
+interface MeditationType {
   id: string
   title: string
   description: string
-  icon: React.ElementType
+  icon: IconComponent
   colorFrom: string
   colorTo: string
   shadowColor: string
@@ -83,7 +87,7 @@ const DEFAULT_BREATH_VALUES: Record<string, { inhale: number; exhale: number }> 
   sleep: { inhale: 4, exhale: 8 },
 }
 
-type MeditationViewProps = {
+interface MeditationViewProps {
   goHome: () => void
 }
 
@@ -359,7 +363,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
                         type.colorFrom.split('-')[1]
                       }-500 transition-colors`}
                     >
-                      <Sparkles size={16} />
+                      <RiSparklingLine size={16} />
                     </div>
                   </div>
                 </button>
@@ -655,7 +659,7 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
             onClick={() => setShowSettings(true)}
             type='button'
           >
-            <Settings2 className='text-slate-500 dark:text-slate-400' size={18} />
+            <RiSettings5Line className='text-slate-500 dark:text-slate-400' size={18} />
           </button>
         </div>
 
@@ -784,14 +788,14 @@ export const MeditationView: React.FC<MeditationViewProps> = ({ goHome }) => {
               type='button'
             >
               {isActive ? (
-                <Pause className='sm:hidden' fill='currentColor' size={28} />
+                <Pause className='sm:hidden' size={28} />
               ) : (
-                <Play className='ml-1 sm:hidden' fill='currentColor' size={28} />
+                <Play className='ml-1 sm:hidden' size={28} />
               )}
               {isActive ? (
-                <Pause className='hidden sm:block' fill='currentColor' size={32} />
+                <Pause className='hidden sm:block' size={32} />
               ) : (
-                <Play className='ml-1 hidden sm:block' fill='currentColor' size={32} />
+                <Play className='ml-1 hidden sm:block' size={32} />
               )}
             </button>
           </div>

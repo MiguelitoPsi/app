@@ -1,8 +1,8 @@
-import { Sparkles } from 'lucide-react'
+import { RiSparklingLine } from '@remixicon/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useSound } from '@/hooks/useSound'
 
-type AchievementModalProps = {
+interface AchievementModalProps {
   badge: {
     name: string
     description: string
@@ -104,7 +104,7 @@ const AchievementModal = ({ badge, onClose }: AchievementModalProps) => {
               {badge.icon}
             </div>
             <div aria-hidden='true' className='absolute -top-2 -right-2'>
-              <Sparkles className='w-6 h-6 text-sky-200 animate-bounce' />
+              <RiSparklingLine className='w-6 h-6 text-sky-200 animate-bounce' />
             </div>
           </div>
 

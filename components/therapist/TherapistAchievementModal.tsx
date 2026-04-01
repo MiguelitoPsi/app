@@ -1,6 +1,6 @@
 'use client'
 
-import { Award, Star, X } from 'lucide-react'
+import { RiAwardLine as Award, RiStarLine, RiCloseLine as X } from '@remixicon/react'
 import type React from 'react'
 import { useEffect, useState } from 'react'
 import {
@@ -9,7 +9,7 @@ import {
 } from '@/lib/constants/therapist'
 import { getIconByKey } from '@/lib/utils/icon-map'
 
-type TherapistAchievementModalProps = {
+interface TherapistAchievementModalProps {
   achievement: TherapistBadgeDefinition | null
   onClose: () => void
 }
@@ -125,7 +125,7 @@ export const TherapistAchievementModal: React.FC<TherapistAchievementModalProps>
 
         {/* XP Reward */}
         <div className='mb-6 flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-100 to-indigo-100 p-4 dark:from-purple-900/30 dark:to-indigo-900/30'>
-          <Star className='h-6 w-6 text-purple-600 dark:text-purple-400' />
+          <RiStarLine className='h-6 w-6 text-purple-600 dark:text-purple-400' />
           <span className='font-bold text-2xl text-purple-700 dark:text-purple-300'>
             +{achievement.xpReward} XP
           </span>

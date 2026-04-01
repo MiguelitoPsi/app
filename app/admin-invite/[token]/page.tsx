@@ -1,7 +1,7 @@
 'use client'
 
+import { RiAlertLine, RiCheckFill, RiUserAddLine } from '@remixicon/react'
 import { motion } from 'framer-motion'
-import { AlertCircle, CheckCircle2, UserPlus } from 'lucide-react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
@@ -50,7 +50,7 @@ export default function AdminInvitePage() {
         <div className='bg-slate-900 rounded-2xl shadow-2xl p-8 max-w-md w-full border border-slate-800'>
           <div className='text-center'>
             <div className='mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-900/20'>
-              <AlertCircle className='h-6 w-6 text-red-500' />
+              <RiAlertLine className='h-6 w-6 text-red-500' />
             </div>
             <h3 className='mt-4 text-lg font-medium text-white'>Convite Inválido</h3>
             <p className='mt-2 text-sm text-slate-400'>
@@ -81,7 +81,11 @@ export default function AdminInvitePage() {
             y: [0, -50, 40, 0, 0],
           }}
           className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-violet-600/20 blur-3xl'
-          transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 12,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
         <motion.div
           animate={{
@@ -89,7 +93,11 @@ export default function AdminInvitePage() {
             y: [0, 60, -40, 0],
           }}
           className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-fuchsia-500/15 blur-3xl'
-          transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 10,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
       </div>
 
@@ -99,7 +107,7 @@ export default function AdminInvitePage() {
             {/* Icon */}
             <div className='mb-6 flex justify-center'>
               <div className='rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 p-4 shadow-lg'>
-                <UserPlus className='h-10 w-10 text-white' />
+                <RiUserAddLine className='h-10 w-10 text-white' />
               </div>
             </div>
 
@@ -118,7 +126,7 @@ export default function AdminInvitePage() {
             {/* Info Card */}
             <div className='mb-8 space-y-4 rounded-2xl border border-violet-500/30 bg-violet-500/10 p-5'>
               <div className='flex items-start gap-3'>
-                <CheckCircle2 className='mt-0.5 h-5 w-5 flex-shrink-0 text-violet-400' />
+                <RiCheckFill className='mt-0.5 h-5 w-5 flex-shrink-0 text-violet-400' />
                 <div>
                   <h3 className='font-semibold text-white'>Acesso Exclusivo</h3>
                   <p className='text-sm text-slate-400'>

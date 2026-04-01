@@ -1,8 +1,8 @@
-import { Check, Copy, Loader2, X } from 'lucide-react'
+import { RiCheckLine, RiCloseLine, RiFileCopyLine, RiLoaderLine } from '@remixicon/react'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
-type InvitePatientModalProps = {
+interface InvitePatientModalProps {
   isOpen: boolean
   onClose: () => void
 }
@@ -60,7 +60,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
           onClick={handleClose}
           type='button'
         >
-          <X size={20} />
+          <RiCloseLine size={20} />
         </button>
 
         <div className='mb-6 text-center'>
@@ -103,7 +103,7 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
               <div className='flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-900/50'>
                 {createInviteMutation.isPending ? (
                   <div className='flex w-full items-center justify-center gap-2 py-1 text-slate-500'>
-                    <Loader2 className='h-4 w-4 animate-spin' />
+                    <RiLoaderLine className='h-4 w-4 animate-spin' />
                     <span className='text-sm'>Gerando link...</span>
                   </div>
                 ) : (
@@ -127,12 +127,12 @@ export function InvitePatientModal({ isOpen, onClose }: InvitePatientModalProps)
               >
                 {isCopied ? (
                   <>
-                    <Check className='h-5 w-5' />
+                    <RiCheckLine className='h-5 w-5' />
                     Copiado!
                   </>
                 ) : (
                   <>
-                    <Copy className='h-5 w-5' />
+                    <RiFileCopyLine className='h-5 w-5' />
                     Copiar Link
                   </>
                 )}

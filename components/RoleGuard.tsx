@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { getHomeRouteForRole, type UserRole } from '@/lib/auth/roles'
 import { authClient } from '@/lib/auth-client'
 
-type RoleGuardProps = {
+interface RoleGuardProps {
   children: ReactNode
   allowedRoles: UserRole[]
   fallbackPath?: string

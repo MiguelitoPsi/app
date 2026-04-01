@@ -1,6 +1,6 @@
 'use client'
 
-import { UserPlus } from 'lucide-react'
+import { RiUserAddLine } from '@remixicon/react'
 import { useParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
@@ -123,7 +123,7 @@ export default function InvitePage() {
               onClick={() => router.push(`/auth/signup?invite=${token}`)}
               type='button'
             >
-              <UserPlus aria-hidden='true' className='h-5 w-5' />
+              <RiUserAddLine aria-hidden='true' className='h-5 w-5' />
               Aceitar Convite e Criar Conta
             </button>
             <button

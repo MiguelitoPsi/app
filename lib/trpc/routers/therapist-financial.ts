@@ -430,7 +430,14 @@ export const therapistFinancialRouter = router({
         {} as Record<string, { month: string; income: number; expense: number; balance: number }>
       )
 
-      return Object.values(monthly).sort((a, b) => a.month.localeCompare(b.month))
+      return (
+        Object.values(monthly) as {
+          month: string
+          income: number
+          expense: number
+          balance: number
+        }[]
+      ).sort((a, b) => a.month.localeCompare(b.month))
     }),
 
   // Obter resumo anual completo

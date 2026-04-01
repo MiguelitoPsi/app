@@ -342,7 +342,7 @@ function getLastActivityDate(user: InferSelectModel<typeof users>): Date | null 
  * LÓGICA DE GANHO DE XP E COINS
  * ============================================ */
 
-export type XPResult = {
+export interface XPResult {
   xpAwarded: number
   coinsAwarded: number
   newExperience: number
@@ -596,7 +596,7 @@ export async function addCoins(
  * INFORMAÇÕES DE PROGRESSO
  * ============================================ */
 
-export type XPInfo = {
+export interface XPInfo {
   currentXP: number
   currentLevel: number
   xpForCurrentLevel: number

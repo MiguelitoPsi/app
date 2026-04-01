@@ -3,7 +3,7 @@
  * Permite upload direto do browser para o R2 sem passar pelo servidor
  */
 
-type PresignUploadResponse = {
+interface PresignUploadResponse {
   jobId: string
   presignedUrl: string
   r2Key: string
@@ -12,7 +12,7 @@ type PresignUploadResponse = {
   expiresIn: number
 }
 
-type ConfirmUploadResponse = {
+interface ConfirmUploadResponse {
   success: boolean
   message: string
   uploadJob: {
@@ -22,7 +22,7 @@ type ConfirmUploadResponse = {
   }
 }
 
-type R2UploadOptions = {
+interface R2UploadOptions {
   file: File
   patientId: string
   purpose: 'transcription' | 'document'
@@ -30,7 +30,7 @@ type R2UploadOptions = {
   signal?: AbortSignal
 }
 
-type R2UploadResult = {
+interface R2UploadResult {
   success: boolean
   jobId: string
   r2Key: string
@@ -56,7 +56,7 @@ function formatTime(seconds: number): string {
   return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}min`
 }
 
-type GetPresignedUploadUrlParams = {
+interface GetPresignedUploadUrlParams {
   patientId: string
   filename: string
   contentType: string
@@ -191,7 +191,7 @@ export async function uploadToR2(options: R2UploadOptions): Promise<R2UploadResu
 /**
  * Gerenciador de uploads em background para R2
  */
-export type R2BackgroundUpload = {
+export interface R2BackgroundUpload {
   id: string
   filename: string
   progress: number
@@ -203,7 +203,7 @@ export type R2BackgroundUpload = {
   abort: () => void
 }
 
-type R2BackgroundUploadCallbacks = {
+interface R2BackgroundUploadCallbacks {
   onProgress?: (upload: R2BackgroundUpload) => void
   onComplete?: (upload: R2BackgroundUpload) => void
   onError?: (upload: R2BackgroundUpload) => void

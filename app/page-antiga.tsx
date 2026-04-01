@@ -1,32 +1,10 @@
-'use client'
-
-import { motion } from 'framer-motion'
-import {
-  Activity,
-  ArrowRight,
-  BarChart,
-  Bell,
-  Brain,
-  Calendar,
-  Check,
-  ChevronRight,
-  FileText,
-  Heart,
-  MessageCircle,
-  Shield,
-  Smartphone,
-  Sparkles,
-  Target,
-  Trophy,
-  Users,
-} from 'lucide-react'
-import Image from 'next/image'
-import Link from 'next/link'
-
 export default function LandingPage() {
+  return <div />
+}
+/*
   return (
     <div className='min-h-screen bg-slate-950 text-slate-200 selection:bg-sky-500/30 relative overflow-x-hidden scroll-smooth'>
-      {/* Animated gradient orbs */}
+   
       <div className='pointer-events-none fixed inset-0 z-0'>
         <motion.div
           animate={{
@@ -65,7 +43,7 @@ export default function LandingPage() {
           }}
         />
       </div>
-      {/* Header Profissional */}
+    
       <header className='fixed top-0 z-40 w-full border-b border-slate-800/50 bg-slate-950/80 backdrop-blur-xl'>
         <div className='mx-auto flex max-w-6xl items-center justify-between px-4 py-3'>
           <div className='flex items-center gap-2'>
@@ -113,9 +91,9 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* Hero Section - Foco em Apoio e Ciência */}
+   
       <section className='relative overflow-hidden px-4 pt-32 pb-20'>
-        {/* Background Effects - Mais sutis */}
+       
         <div className='pointer-events-none absolute inset-0'>
           <div className='absolute top-20 left-1/4 h-96 w-96 rounded-full bg-sky-600/10 blur-[120px]' />
           <div className='absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-sky-600/10 blur-[120px]' />
@@ -181,7 +159,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* App Preview Section */}
+
       <section className='relative px-4 pb-20'>
         <div className='mx-auto max-w-5xl'>
           <div className='relative rounded-2xl border border-slate-800 bg-slate-900/50 p-4 backdrop-blur-sm shadow-2xl'>
@@ -193,7 +171,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Features Grid */}
+
       <section className='px-4 py-24 bg-slate-900/30 border-y border-slate-800/50' id='recursos'>
         <div className='mx-auto max-w-6xl'>
           <div className='mb-16 text-center max-w-3xl mx-auto'>
@@ -241,7 +219,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Section for Patients */}
+   
       <section className='px-4 py-24 relative overflow-hidden' id='pacientes'>
         <div className='absolute inset-0 bg-gradient-to-b from-slate-950 to-emerald-950/20' />
         <div className='mx-auto max-w-6xl relative'>
@@ -249,7 +227,7 @@ export default function LandingPage() {
             <div className='relative order-2 md:order-1'>
               <div className='absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent rounded-2xl blur-2xl' />
               <div className='relative rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl'>
-                {/* Mockup de Lista de Psicólogos */}
+              
                 <div className='space-y-4'>
                   <div className='flex items-center justify-between border-b border-slate-800 pb-4'>
                     <div className='flex items-center gap-3'>
@@ -324,7 +302,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Section for Therapists (B2B) */}
+
       <section className='px-4 py-24 relative overflow-hidden' id='profissionais'>
         <div className='absolute inset-0 bg-gradient-to-b from-slate-950 to-violet-950/20' />
         <div className='mx-auto max-w-6xl relative'>
@@ -370,7 +348,7 @@ export default function LandingPage() {
             <div className='relative'>
               <div className='absolute inset-0 bg-gradient-to-br from-sky-600/20 to-transparent rounded-2xl blur-2xl' />
               <div className='relative rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl'>
-                {/* Mockup de Dashboard do Terapeuta */}
+       
                 <div className='space-y-4'>
                   <div className='flex items-center justify-between border-b border-slate-800 pb-4'>
                     <div className='flex items-center gap-3'>
@@ -407,7 +385,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* CTA / Pricing Simplified */}
+ 
       <section className='px-4 py-24'>
         <div className='mx-auto max-w-4xl'>
           <div className='relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-900 to-slate-900 p-8 md:p-16 text-center border border-sky-500/30'>
@@ -431,7 +409,6 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Decorative background */}
             <div className='absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none'>
               <div className='absolute -top-24 -right-24 w-64 h-64 bg-sky-500/20 rounded-full blur-3xl' />
               <div className='absolute -bottom-24 -left-24 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl' />
@@ -440,7 +417,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* FAQ */}
+  
       <section className='px-4 py-20 border-t border-slate-800/50 bg-transparent'>
         <div className='mx-auto max-w-3xl'>
           <h2 className='mb-12 text-center font-bold text-2xl text-white'>Dúvidas Frequentes</h2>
@@ -469,7 +446,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
+   
       <footer className='border-t border-slate-800 bg-slate-950 px-4 py-12'>
         <div className='mx-auto max-w-6xl'>
           <div className='flex flex-col md:flex-row justify-between items-center gap-6'>
@@ -510,7 +487,12 @@ export default function LandingPage() {
       </footer>
     </div>
   )
-}
+
+ "use client";
+
+import { motion } from "framer-motion";
+import Image from "next/image";
+import Link from "next/link";
 
 function FeatureCard({
   icon,
@@ -551,12 +533,12 @@ function DataFlowAnimation() {
     <div className='relative w-full h-full flex items-center justify-center overflow-hidden bg-slate-950 perspective-1000'>
       <div className='absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-sky-900/20 via-slate-950 to-slate-950' />
 
-      {/* Background Grid Animation */}
+    
       <div className='absolute inset-0 opacity-20'>
         <div className='absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]' />
       </div>
 
-      {/* 3D Container */}
+  
       <motion.div
         animate={{ rotateX: [10, 15, 10] }}
         className='relative w-full max-w-4xl h-[70%] sm:h-[60%] flex items-center justify-center'
@@ -568,7 +550,7 @@ function DataFlowAnimation() {
           ease: 'easeInOut',
         }}
       >
-        {/* Central Hub - AI */}
+     
         <div className='absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20'>
           <motion.div
             animate={{
@@ -588,7 +570,7 @@ function DataFlowAnimation() {
           >
             <Brain className='w-10 h-10 sm:w-16 sm:h-16 text-white' />
 
-            {/* Rotating Rings */}
+       x
             {[1, 2, 3].map((i) => (
               <motion.div
                 animate={{ rotate: 360, scale: [1, 1.02, 1] }}
@@ -616,7 +598,7 @@ function DataFlowAnimation() {
           </div>
         </div>
 
-        {/* Left Node - Patient */}
+    
         <div className='absolute left-[5%] sm:left-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 sm:gap-4'>
           <motion.div
             animate={{ y: [0, -15, 0] }}
@@ -631,7 +613,7 @@ function DataFlowAnimation() {
           </motion.div>
           <span className='text-[10px] sm:text-sm font-medium text-slate-400'>Paciente</span>
 
-          {/* Satellite Nodes */}
+
           <motion.div
             animate={{ y: [0, -5, 0] }}
             className='absolute -top-8 -left-4 sm:-top-12 sm:-left-8 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700'
@@ -656,7 +638,7 @@ function DataFlowAnimation() {
           </motion.div>
         </div>
 
-        {/* Right Node - Therapist */}
+  
         <div className='absolute right-[5%] sm:right-[10%] top-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 sm:gap-4'>
           <motion.div
             animate={{ y: [0, -15, 0] }}
@@ -672,7 +654,7 @@ function DataFlowAnimation() {
           </motion.div>
           <span className='text-[10px] sm:text-sm font-medium text-slate-400'>Terapeuta</span>
 
-          {/* Satellite Nodes */}
+     
           <motion.div
             animate={{ y: [0, -5, 0] }}
             className='absolute -top-8 -right-4 sm:-top-10 sm:-right-6 bg-slate-800 p-1.5 sm:p-2 rounded-lg border border-slate-700'
@@ -697,7 +679,7 @@ function DataFlowAnimation() {
           </motion.div>
         </div>
 
-        {/* Connecting Lines (SVG) */}
+
         <svg className='absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible'>
           <title>Data Flow Connections</title>
           <defs>
@@ -713,7 +695,7 @@ function DataFlowAnimation() {
             </linearGradient>
           </defs>
 
-          {/* Left to Center Lines */}
+  
           <path
             className='opacity-30'
             d='M 15% 50% Q 32% 40% 50% 50%'
@@ -729,7 +711,7 @@ function DataFlowAnimation() {
             strokeWidth='2'
           />
 
-          {/* Center to Right Lines */}
+       
           <path
             className='opacity-30'
             d='M 50% 50% Q 68% 40% 85% 50%'
@@ -745,7 +727,7 @@ function DataFlowAnimation() {
             strokeWidth='2'
           />
 
-          {/* Animated Particles */}
+       
           <circle fill='#a78bfa' r='3'>
             <animateMotion dur='3s' path='M 15% 50% Q 32% 40% 50% 50%' repeatCount='indefinite' />
           </circle>
@@ -776,7 +758,7 @@ function DataFlowAnimation() {
           </circle>
         </svg>
 
-        {/* Floating Data Cards - More Dynamic */}
+
         {[
           {
             icon: <Activity className='w-3 h-3 text-emerald-400' />,
@@ -839,3 +821,4 @@ function DataFlowAnimation() {
     </div>
   )
 }
+ */

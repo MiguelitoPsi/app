@@ -1,6 +1,13 @@
 'use client'
 
-import { ArrowLeft, Brain, Mail, MapPin, Shield, User } from 'lucide-react'
+import {
+  RiArrowLeftLine,
+  RiBrain2Line,
+  RiMailLine,
+  RiMapPinLine,
+  RiShieldLine,
+  RiUserLine,
+} from '@remixicon/react'
 import Link from 'next/link'
 
 export default function PrivacyPolicyPage() {
@@ -13,12 +20,12 @@ export default function PrivacyPolicyPage() {
             className='flex items-center gap-2 text-slate-400 hover:text-white transition-colors'
             href='/'
           >
-            <ArrowLeft className='h-5 w-5' />
+            <RiArrowLeftLine className='h-5 w-5' />
             <span className='text-sm font-medium'>Voltar</span>
           </Link>
           <div className='flex items-center gap-2'>
             <div className='rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 p-1.5'>
-              <Brain className='h-5 w-5 text-white' />
+              <RiBrain2Line className='h-5 w-5 text-white' />
             </div>
             <span className='font-bold text-lg text-white'>Nepsis</span>
           </div>
@@ -30,7 +37,7 @@ export default function PrivacyPolicyPage() {
         <div className='mb-8'>
           <div className='flex items-center gap-3 mb-4'>
             <div className='rounded-xl bg-violet-600/20 p-3'>
-              <Shield className='h-8 w-8 text-violet-400' />
+              <RiShieldLine className='h-8 w-8 text-violet-400' />
             </div>
             <div>
               <h1 className='font-bold text-3xl text-white'>Política de Privacidade</h1>
@@ -43,7 +50,7 @@ export default function PrivacyPolicyPage() {
           {/* Identificação do Controlador */}
           <section className='mb-10 rounded-2xl border border-slate-800 bg-slate-900/50 p-6'>
             <h2 className='flex items-center gap-2 text-xl font-bold text-white mt-0'>
-              <User className='h-5 w-5 text-violet-400' />
+              <RiUserLine className='h-5 w-5 text-violet-400' />
               1. Identificação do Controlador
             </h2>
             <p>O controlador dos dados pessoais tratados por meio do aplicativo Nepsis é:</p>
@@ -52,11 +59,11 @@ export default function PrivacyPolicyPage() {
                 Nepsis Tecnologia em Saúde Mental LTDA
               </p>
               <p className='flex items-center gap-2 text-slate-300 text-sm mb-1'>
-                <MapPin className='h-4 w-4 text-slate-400' />
+                <RiMapPinLine className='h-4 w-4 text-slate-400' />
                 Lins, SP - Brasil
               </p>
               <p className='flex items-center gap-2 text-slate-300 text-sm'>
-                <Mail className='h-4 w-4 text-slate-400' />
+                <RiMailLine className='h-4 w-4 text-slate-400' />
                 psijmrodrigues@gmail.com
               </p>
             </div>
@@ -385,7 +392,7 @@ export default function PrivacyPolicyPage() {
                 Encarregado de Proteção de Dados (DPO)
               </p>
               <p className='flex items-center gap-2 text-slate-300 text-sm'>
-                <Mail className='h-4 w-4 text-slate-400' />
+                <RiMailLine className='h-4 w-4 text-slate-400' />
                 <a
                   className='text-violet-400 hover:underline'
                   href='mailto:psijmrodrigues@gmail.com'

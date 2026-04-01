@@ -1,7 +1,7 @@
 'use client'
 
+import { RiShiningLine, RiSparklingLine, RiStarLine } from '@remixicon/react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { Sparkles, Star, Zap } from 'lucide-react'
 import { useTherapistGame } from '@/context/TherapistGameContext'
 
 /**
@@ -90,7 +90,7 @@ export function TherapistXPGainToast() {
                   repeat: Number.POSITIVE_INFINITY,
                 }}
               >
-                <Sparkles className='h-5 w-5' />
+                <RiSparklingLine className='h-5 w-5' />
               </motion.div>
 
               {/* XP amount with counter effect would be nice but keeping it simple */}
@@ -110,7 +110,7 @@ export function TherapistXPGainToast() {
                   delay: 0.3,
                 }}
               >
-                <Star className='h-3 w-3 fill-yellow-300 text-yellow-300' />
+                <RiStarLine className='h-3 w-3 fill-yellow-300 text-yellow-300' />
               </motion.div>
 
               <motion.div
@@ -127,7 +127,7 @@ export function TherapistXPGainToast() {
                   delay: 0.5,
                 }}
               >
-                <Zap className='h-2.5 w-2.5 fill-yellow-200 text-yellow-200' />
+                <RiShiningLine className='h-2.5 w-2.5 fill-yellow-200 text-yellow-200' />
               </motion.div>
             </motion.div>
           </motion.div>

@@ -1,44 +1,44 @@
 'use client'
 
 import {
-  Activity,
-  ArrowRightLeft,
-  BarChart2,
-  Brain,
-  Calendar,
-  CheckCircle2,
-  ChevronDown,
-  Clock,
-  CloudRain,
-  Eye,
-  EyeOff,
-  FileText,
-  Filter,
-  Flame,
-  Frown,
-  Gift,
-  Key,
-  LogOut,
-  Mail,
-  MapPin,
-  Meh,
-  MessageSquare,
-  Moon,
-  Phone,
-  Plus,
-  Save,
-  Search,
-  Settings,
-  Smile,
-  Sparkles,
-  Sun,
-  User,
-  UserCircle,
-  UserMinus,
-  UserPlus,
-  Users,
-  X,
-} from 'lucide-react'
+  RiPulseLine as Activity,
+  RiExchangeLine as ArrowRightLeft,
+  RiBarChart2Line as BarChart2,
+  RiBrainLine as Brain,
+  RiCalendarLine as Calendar,
+  RiCheckboxCircleLine as CheckCircle2,
+  RiArrowDownSLine as ChevronDown,
+  RiTimeLine as Clock,
+  RiRainyLine as CloudRain,
+  RiEyeLine as Eye,
+  RiEyeOffLine as EyeOff,
+  RiFilter3Line as Filter,
+  RiFireLine as Flame,
+  RiEmotionUnhappyLine as Frown,
+  RiGiftLine as Gift,
+  RiKeyLine as Key,
+  RiLogoutBoxRLine as LogOut,
+  RiMailLine as Mail,
+  RiMapPinLine as MapPin,
+  RiEmotionNormalLine as Meh,
+  RiMessage2Line as MessageSquare,
+  RiMoonLine as Moon,
+  RiPhoneLine as Phone,
+  RiAddLine as Plus,
+  RiFileTextLine,
+  RiSparklingLine,
+  RiSaveLine as Save,
+  RiSearchLine as Search,
+  RiSettings4Line as Settings,
+  RiEmotionHappyLine as Smile,
+  RiSunLine as Sun,
+  RiUserLine as User,
+  RiUserShared2Line as UserCircle,
+  RiUserUnfollowLine as UserMinus,
+  RiUserAddLine as UserPlus,
+  RiGroupLine as Users,
+  RiCloseLine as X,
+} from '@remixicon/react'
 import type React from 'react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis } from 'recharts'
@@ -722,7 +722,7 @@ export const TherapistView: React.FC = () => {
               >
                 <div className='absolute inset-0 bg-gradient-to-br from-rose-400 to-rose-600' />
                 <div className='relative flex h-full flex-col items-center justify-center gap-1.5 text-white sm:gap-2'>
-                  <FileText className='h-5 w-5 sm:h-7 sm:w-7' />
+                  <RiFileTextLine className='h-5 w-5 sm:h-7 sm:w-7' />
                   <span className='font-semibold text-[9px] sm:text-xs'>
                     Diário{' '}
                     {journalData.filter((e) => !e.isRead).length > 0 &&
@@ -790,7 +790,7 @@ export const TherapistView: React.FC = () => {
                 onClick={() => setActiveSection('journal')}
                 type='button'
               >
-                <FileText className='h-5 w-5' />
+                <RiFileTextLine className='h-5 w-5' />
                 <span>
                   Diário{' '}
                   {journalData.filter((e) => !e.isRead).length > 0 &&
@@ -850,7 +850,7 @@ export const TherapistView: React.FC = () => {
                 <div className='rounded-2xl border border-slate-100 bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:rounded-3xl sm:p-5 dark:border-slate-800 dark:bg-slate-900'>
                   <div className='mb-2 flex items-center gap-1.5 text-slate-400 sm:mb-3 sm:gap-2'>
                     <div className='rounded-md bg-sky-50 p-1.5 text-sky-500 sm:rounded-lg sm:p-2 dark:bg-sky-900/20'>
-                      <FileText size={16} />
+                      <RiFileTextLine size={16} />
                     </div>
                     <span className='font-bold text-[9px] uppercase tracking-wider sm:text-[10px]'>
                       Registros
@@ -961,7 +961,9 @@ export const TherapistView: React.FC = () => {
                         >
                           <span className='text-base drop-shadow-sm filter sm:text-lg'>
                             {(() => {
-                              const MoodIcon = getMoodIcon(item.emotion as Mood)
+                              const MoodIcon = getMoodIcon(
+                                item.emotion as Mood
+                              ) as React.ComponentType<{ size?: number; className?: string }>
                               return <MoodIcon size={18} />
                             })()}
                           </span>
@@ -1167,8 +1169,8 @@ export const TherapistView: React.FC = () => {
               <div className='flex items-center justify-between rounded-xl bg-indigo-50 px-3 py-2 sm:rounded-2xl sm:px-4 sm:py-2.5 dark:bg-indigo-900/20'>
                 <span className='font-medium text-[10px] text-indigo-600 sm:text-xs dark:text-indigo-400'>
                   {journalData.length} registro
-                  {journalData.length !== 1 ? 's' : ''} encontrado
-                  {journalData.length !== 1 ? 's' : ''}
+                  {journalData.length === 1 ? '' : 's'} encontrado
+                  {journalData.length === 1 ? '' : 's'}
                 </span>
                 <span className='text-[10px] text-indigo-500 sm:text-xs dark:text-indigo-400'>
                   de {journalDataRaw.length} total
@@ -1472,7 +1474,7 @@ export const TherapistView: React.FC = () => {
                           title='Editar custo'
                           type='button'
                         >
-                          <FileText size={16} />
+                          <RiFileTextLine size={16} />
                         </button>
                       </div>
                     ))
@@ -1636,7 +1638,7 @@ export const TherapistView: React.FC = () => {
                 </div>
                 <div className='rounded-xl bg-gradient-to-br from-sky-50 to-sky-100/50 p-3 sm:rounded-2xl sm:p-4 dark:from-sky-900/20 dark:to-sky-900/10'>
                   <div className='mb-1 flex items-center gap-1.5 text-sky-600 sm:mb-2 dark:text-sky-400'>
-                    <FileText size={14} />
+                    <RiFileTextLine size={14} />
                     <span className='font-bold text-[9px] uppercase tracking-wider sm:text-[10px]'>
                       Registros
                     </span>
@@ -2154,7 +2156,7 @@ export const TherapistView: React.FC = () => {
               >
                 <div className='flex items-center gap-2 sm:gap-3'>
                   <div className='rounded-lg bg-sky-100 p-1.5 text-sky-600 sm:p-2 dark:bg-sky-900/30 dark:text-sky-400'>
-                    <FileText size={18} />
+                    <RiFileTextLine size={18} />
                   </div>
                   <div className='text-left'>
                     <h4 className='font-bold text-slate-800 text-xs sm:text-sm dark:text-white'>
@@ -2559,7 +2561,7 @@ export const TherapistView: React.FC = () => {
       {xpNotification && (
         <div className='pointer-events-none fixed inset-0 z-[100] flex items-start justify-center pt-20'>
           <div className='animate-in fade-in slide-in-from-top-4 zoom-in-95 flex items-center gap-2 rounded-2xl bg-gradient-to-r from-indigo-600 to-sky-600 px-5 py-3 text-white shadow-2xl shadow-indigo-500/30 duration-300'>
-            <Sparkles className='animate-pulse text-yellow-300' size={20} />
+            <RiSparklingLine className='animate-pulse text-yellow-300' size={20} />
             <span className='font-bold text-sm'>+{xpNotification.amount} XP</span>
             <span className='text-indigo-200 text-xs'>({xpNotification.action})</span>
           </div>

@@ -1,7 +1,14 @@
 'use client'
 
+import {
+  RiAlertLine,
+  RiArrowLeftLine,
+  RiCheckFill,
+  RiEyeLine,
+  RiEyeOffLine,
+  RiLockLine,
+} from '@remixicon/react'
 import { motion } from 'framer-motion'
-import { AlertCircle, ArrowLeft, CheckCircle, Eye, EyeOff, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useId, useState } from 'react'
@@ -113,7 +120,7 @@ function ResetPasswordForm() {
           <div className='w-full max-w-md'>
             <main className='rounded-3xl border border-slate-800/50 bg-slate-900/50 p-8 shadow-xl backdrop-blur-sm text-center'>
               <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/20'>
-                <AlertCircle className='h-8 w-8 text-red-400' />
+                <RiAlertLine className='h-8 w-8 text-red-400' />
               </div>
               <h1 className='mb-2 font-bold text-xl text-white'>Link Inválido ou Expirado</h1>
               <p className='mb-6 text-slate-400'>
@@ -154,7 +161,7 @@ function ResetPasswordForm() {
                 className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/20'
                 initial={{ scale: 0.5, opacity: 0 }}
               >
-                <CheckCircle className='h-8 w-8 text-green-400' />
+                <RiCheckFill className='h-8 w-8 text-green-400' />
               </motion.div>
               <h1 className='mb-2 font-bold text-xl text-white'>Senha Redefinida!</h1>
               <p className='mb-6 text-slate-400'>
@@ -189,7 +196,11 @@ function ResetPasswordForm() {
             y: [0, -50, 40, 0, 0],
           }}
           className='absolute -left-32 -top-32 h-96 w-96 rounded-full bg-sky-600/20 blur-3xl'
-          transition={{ duration: 12, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 12,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
         <motion.div
           animate={{
@@ -197,7 +208,11 @@ function ResetPasswordForm() {
             y: [0, 60, -40, 0],
           }}
           className='absolute -right-32 top-1/3 h-80 w-80 rounded-full bg-cyan-400/15 blur-3xl'
-          transition={{ duration: 10, repeat: Number.POSITIVE_INFINITY, ease: 'easeInOut' }}
+          transition={{
+            duration: 10,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: 'easeInOut',
+          }}
         />
       </div>
 
@@ -209,14 +224,14 @@ function ResetPasswordForm() {
               className='mb-6 inline-flex items-center gap-2 text-slate-400 transition-colors hover:text-sky-400'
               href='/auth/signin'
             >
-              <ArrowLeft className='h-4 w-4' />
+              <RiArrowLeftLine className='h-4 w-4' />
               <span className='text-sm'>Voltar ao login</span>
             </Link>
 
             {/* Title */}
             <div className='mb-8 text-center'>
               <div className='mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-sky-500/20'>
-                <Lock className='h-7 w-7 text-sky-400' />
+                <RiLockLine className='h-7 w-7 text-sky-400' />
               </div>
               <h1 className='font-bold text-2xl text-white'>Nova Senha</h1>
               <p className='mt-2 text-slate-400 text-sm'>
@@ -270,7 +285,11 @@ function ResetPasswordForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     type='button'
                   >
-                    {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+                    {showPassword ? (
+                      <RiEyeOffLine className='h-5 w-5' />
+                    ) : (
+                      <RiEyeLine className='h-5 w-5' />
+                    )}
                   </button>
                 </div>
               </div>
@@ -301,9 +320,9 @@ function ResetPasswordForm() {
                     type='button'
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className='h-5 w-5' />
+                      <RiEyeOffLine className='h-5 w-5' />
                     ) : (
-                      <Eye className='h-5 w-5' />
+                      <RiEyeLine className='h-5 w-5' />
                     )}
                   </button>
                 </div>

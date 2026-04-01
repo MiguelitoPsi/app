@@ -2,7 +2,7 @@
 
 import { createContext, type ReactNode, useCallback, useContext, useState } from 'react'
 
-type SelectedPatientContextType = {
+interface SelectedPatientContextType {
   selectedPatientId: string | null
   setSelectedPatientId: (id: string | null) => void
   onPatientSelected: (id: string | null) => void

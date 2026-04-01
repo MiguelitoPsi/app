@@ -1,18 +1,17 @@
 'use client'
 
 import {
-  BookOpen,
-  Building2,
-  Calendar,
-  CheckCircle,
-  CreditCard,
-  Image as ImageIcon,
-  MapPin,
-  Phone,
-  User,
-  UserCircle,
-  X,
-} from 'lucide-react'
+  RiImageEditLine as ImageIcon,
+  RiBook2Line,
+  RiBuildingLine,
+  RiCalendarLine,
+  RiCheckboxCircleLine,
+  RiCloseLine,
+  RiCoinLine,
+  RiMapPinLine,
+  RiPhoneLine,
+  RiUserLine,
+} from '@remixicon/react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
@@ -20,7 +19,7 @@ import { compressImage } from '@/lib/utils/image-compression'
 
 type AttendanceType = 'online' | 'presential' | 'both'
 
-type TherapistProfileModalProps = {
+interface TherapistProfileModalProps {
   isOpen: boolean
   onComplete?: () => void
   onClose?: () => void
@@ -290,7 +289,7 @@ export function TherapistProfileModal({
         <div className='flex items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-sky-600 to-indigo-600 px-6 py-4 dark:border-slate-700'>
           <div className='flex items-center gap-3'>
             <div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
-              <UserCircle className='h-5 w-5 text-white' />
+              <RiUserLine className='h-5 w-5 text-white' />
             </div>
             <div>
               <h2 className='font-bold text-lg text-white'>
@@ -308,7 +307,7 @@ export function TherapistProfileModal({
               onClick={handleClose}
               type='button'
             >
-              <X className='h-5 w-5' />
+              <RiCloseLine className='h-5 w-5' />
             </button>
           )}
         </div>
@@ -389,7 +388,7 @@ export function TherapistProfileModal({
                   {/* Full Name */}
                   <div>
                     <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                      <User className='h-4 w-4 text-sky-500' />
+                      <RiUserLine className='h-4 w-4 text-sky-500' />
                       Nome Completo *
                     </label>
                     <input
@@ -413,7 +412,7 @@ export function TherapistProfileModal({
               {/* CPF */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <CreditCard className='h-4 w-4 text-sky-500' />
+                  <RiCoinLine className='h-4 w-4 text-sky-500' />
                   CPF *
                 </label>
                 <input
@@ -433,7 +432,7 @@ export function TherapistProfileModal({
               {/* Birth Date */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Calendar className='h-4 w-4 text-sky-500' />
+                  <RiCalendarLine className='h-4 w-4 text-sky-500' />
                   Data de Nascimento *
                 </label>
                 <input
@@ -460,7 +459,7 @@ export function TherapistProfileModal({
               {/* CRP */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <CreditCard className='h-4 w-4 text-sky-500' />
+                  <RiCoinLine className='h-4 w-4 text-sky-500' />
                   CRP *
                 </label>
                 <input
@@ -480,7 +479,7 @@ export function TherapistProfileModal({
               {/* Education */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <BookOpen className='h-4 w-4 text-sky-500' />
+                  <RiBook2Line className='h-4 w-4 text-sky-500' />
                   Formação *
                 </label>
                 <input
@@ -502,7 +501,7 @@ export function TherapistProfileModal({
               {/* City */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <MapPin className='h-4 w-4 text-sky-500' />
+                  <RiMapPinLine className='h-4 w-4 text-sky-500' />
                   Cidade *
                 </label>
                 <input
@@ -522,7 +521,7 @@ export function TherapistProfileModal({
               {/* Bio */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <BookOpen className='h-4 w-4 text-sky-500' />
+                  <RiBook2Line className='h-4 w-4 text-sky-500' />
                   Biografia
                 </label>
                 <textarea
@@ -548,7 +547,7 @@ export function TherapistProfileModal({
               {/* Attendance Type */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Building2 className='h-4 w-4 text-sky-500' />
+                  <RiBuildingLine className='h-4 w-4 text-sky-500' />
                   Tipo de Atendimento *
                 </label>
                 <div className='grid grid-cols-3 gap-2'>
@@ -582,7 +581,7 @@ export function TherapistProfileModal({
               {showClinicAddress && (
                 <div className='animate-in fade-in slide-in-from-top-2 duration-200'>
                   <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                    <Building2 className='h-4 w-4 text-sky-500' />
+                    <RiBuildingLine className='h-4 w-4 text-sky-500' />
                     Endereço da Clínica *
                   </label>
                   <input
@@ -610,7 +609,7 @@ export function TherapistProfileModal({
               {/* Phone */}
               <div>
                 <label className='mb-1.5 flex items-center gap-2 font-medium text-sm text-slate-700 dark:text-slate-300'>
-                  <Phone className='h-4 w-4 text-sky-500' />
+                  <RiPhoneLine className='h-4 w-4 text-sky-500' />
                   Telefone *
                 </label>
                 <input
@@ -685,7 +684,7 @@ export function TherapistProfileModal({
                 </span>
               ) : (
                 <span className='flex items-center justify-center gap-2'>
-                  <CheckCircle className='h-5 w-5' />
+                  <RiCheckboxCircleLine className='h-5 w-5' />
                   {isEditMode ? 'Salvar Alterações' : 'Criar Perfil'}
                 </span>
               )}

@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import type { Mood } from '@/lib/constants'
 
-type AvatarOficialProps = {
+interface AvatarOficialProps {
   mood?: Mood
   size?: 'xs' | 'sm' | 'md' | 'lg'
 }

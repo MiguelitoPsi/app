@@ -28,13 +28,13 @@ export const R2_CONFIG = {
   publicUrl: R2_PUBLIC_URL,
 }
 
-type PresignedUploadOptions = {
+interface PresignedUploadOptions {
   key: string
   contentType: string
   expiresIn?: number // seconds, default 1 hour
 }
 
-type PresignedDownloadOptions = {
+interface PresignedDownloadOptions {
   key: string
   expiresIn?: number // seconds, default 1 hour
 }
@@ -91,7 +91,7 @@ export function getPublicUrl(key: string): string | null {
   return `${R2_PUBLIC_URL}/${key}`
 }
 
-type GenerateR2KeyParams = {
+interface GenerateR2KeyParams {
   purpose: 'transcription' | 'document'
   therapistId: string
   patientId: string

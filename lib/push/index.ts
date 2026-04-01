@@ -24,7 +24,7 @@ export type PushNotificationType =
   | 'therapist_task' // Terapeuta adicionou tarefa
   | 'general' // Notificação geral
 
-export type PushPayload = {
+export interface PushPayload {
   title: string
   body: string
   icon?: string

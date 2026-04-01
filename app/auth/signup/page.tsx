@@ -1,6 +1,6 @@
 'use client'
 
-import { Eye, EyeOff, Loader2 } from 'lucide-react'
+import { RiEyeLine, RiEyeOffLine, RiLoaderLine } from '@remixicon/react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useId, useState } from 'react'
@@ -272,7 +272,11 @@ function SignUpForm() {
                     onClick={() => setShowPassword(!showPassword)}
                     type='button'
                   >
-                    {showPassword ? <EyeOff className='h-5 w-5' /> : <Eye className='h-5 w-5' />}
+                    {showPassword ? (
+                      <RiEyeOffLine className='h-5 w-5' />
+                    ) : (
+                      <RiEyeLine className='h-5 w-5' />
+                    )}
                   </button>
                 </div>
               </div>
@@ -289,7 +293,12 @@ function SignUpForm() {
                     autoComplete='new-password'
                     className='w-full rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3.5 pr-12 text-white placeholder-slate-500 transition-all focus:border-sky-500 focus:outline-none focus:ring-2 focus:ring-sky-500/20'
                     id={confirmPasswordId}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        confirmPassword: e.target.value,
+                      })
+                    }
                     placeholder='••••••••'
                     required
                     type={showConfirmPassword ? 'text' : 'password'}
@@ -302,9 +311,9 @@ function SignUpForm() {
                     type='button'
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className='h-5 w-5' />
+                      <RiEyeOffLine className='h-5 w-5' />
                     ) : (
-                      <Eye className='h-5 w-5' />
+                      <RiEyeLine className='h-5 w-5' />
                     )}
                   </button>
                 </div>
@@ -318,7 +327,7 @@ function SignUpForm() {
               >
                 {loading ? (
                   <>
-                    <Loader2 aria-hidden='true' className='h-5 w-5 animate-spin' />
+                    <RiLoaderLine aria-hidden='true' className='h-5 w-5 animate-spin' />
                     <span className='sr-only'>Carregando...</span>
                     <span aria-hidden='true'>Criando conta...</span>
                   </>

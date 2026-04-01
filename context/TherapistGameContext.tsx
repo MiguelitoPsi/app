@@ -19,14 +19,14 @@ import { trpc } from '@/lib/trpc/client'
 
 export type TherapistRank = (typeof THERAPIST_RANKS)[number]
 
-export type TherapistXPGain = {
+export interface TherapistXPGain {
   id: string
   amount: number
   action: string
   timestamp: number
 }
 
-export type TherapistGameStats = {
+export interface TherapistGameStats {
   name: string
   level: number
   experience: number
@@ -41,7 +41,7 @@ export type TherapistGameStats = {
   nextRank: TherapistRank | null
 }
 
-export type WeeklyChallengeProgress = {
+export interface WeeklyChallengeProgress {
   id: string
   title: string
   currentCount: number
@@ -50,7 +50,7 @@ export type WeeklyChallengeProgress = {
   status: 'active' | 'completed' | 'expired'
 }
 
-export type TherapistGameContextType = {
+export interface TherapistGameContextType {
   stats: TherapistGameStats
   challenges: WeeklyChallengeProgress[]
   isLoading: boolean

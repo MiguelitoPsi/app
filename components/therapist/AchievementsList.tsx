@@ -1,6 +1,6 @@
 'use client'
 
-import { Award, Lock } from 'lucide-react'
+import { RiLockLine, RiTrophyLine } from '@remixicon/react'
 import type React from 'react'
 import { useState } from 'react'
 import {
@@ -68,7 +68,7 @@ export const AchievementsList: React.FC = () => {
 
       {/* Stats */}
       <div className='flex items-center gap-2 text-slate-600 dark:text-slate-400'>
-        <Award className='h-5 w-5 text-amber-500' />
+        <RiTrophyLine className='h-5 w-5 text-amber-500' />
         <span className='text-sm'>
           {unlockedIds.size} de {THERAPIST_BADGE_DEFINITIONS.length} conquistas desbloqueadas
         </span>
@@ -92,7 +92,7 @@ export const AchievementsList: React.FC = () => {
               {/* Lock Icon for Locked Badges */}
               {!isUnlocked && (
                 <div className='absolute top-2 right-2'>
-                  <Lock className='h-4 w-4 text-slate-400' />
+                  <RiLockLine className='h-4 w-4 text-slate-400' />
                 </div>
               )}
 

@@ -1,12 +1,19 @@
 'use client'
 
-import { Brain, GraduationCap, MapPin, Phone, Video, X } from 'lucide-react'
+import {
+  RiBrainLine,
+  RiCloseLine,
+  RiGraduationCapLine,
+  RiMapPinLine,
+  RiPhoneLine,
+  RiVideoLine,
+} from '@remixicon/react'
 import Image from 'next/image'
 import { useEffect, useState } from 'react'
 
 type AttendanceType = 'all' | 'online' | 'presential' | 'both'
 
-type Psychologist = {
+interface Psychologist {
   id: string
   fullName: string
   crp: string
@@ -19,7 +26,7 @@ type Psychologist = {
   image: string | null
 }
 
-type PsychologistProfileModalProps = {
+interface PsychologistProfileModalProps {
   isOpen: boolean
   onClose: () => void
   therapist: Psychologist | null
@@ -92,7 +99,7 @@ export function PsychologistProfileModal({
             onClick={onClose}
             type='button'
           >
-            <X className='h-5 w-5' />
+            <RiCloseLine className='h-5 w-5' />
           </button>
         </div>
 
@@ -124,11 +131,11 @@ export function PsychologistProfileModal({
               <h2 className='text-2xl font-bold text-white'>{therapist.fullName}</h2>
               <div className='flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-slate-400'>
                 <span className='flex items-center gap-1.5'>
-                  <Brain className='h-4 w-4 text-violet-400' />
+                  <RiBrainLine className='h-4 w-4 text-violet-400' />
                   CRP: {therapist.crp}
                 </span>
                 <span className='flex items-center gap-1.5'>
-                  <MapPin className='h-4 w-4 text-emerald-400' />
+                  <RiMapPinLine className='h-4 w-4 text-emerald-400' />
                   {therapist.city}
                 </span>
               </div>
@@ -144,7 +151,7 @@ export function PsychologistProfileModal({
 
               <div className='space-y-3'>
                 <div className='flex items-start gap-3 text-slate-300'>
-                  <GraduationCap className='h-5 w-5 text-violet-400 shrink-0 mt-0.5' />
+                  <RiGraduationCapLine className='h-5 w-5 text-violet-400 shrink-0 mt-0.5' />
                   <div>
                     <span className='block text-sm font-medium text-slate-400'>Formação</span>
                     <span>{therapist.education}</span>
@@ -152,7 +159,7 @@ export function PsychologistProfileModal({
                 </div>
 
                 <div className='flex items-start gap-3 text-slate-300'>
-                  <Video className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
+                  <RiVideoLine className='h-5 w-5 text-emerald-400 shrink-0 mt-0.5' />
                   <div>
                     <span className='block text-sm font-medium text-slate-400'>Modalidade</span>
                     <span>{attendanceLabels[therapist.attendanceType]}</span>
@@ -161,7 +168,7 @@ export function PsychologistProfileModal({
 
                 {therapist.clinicAddress && (
                   <div className='flex items-start gap-3 text-slate-300'>
-                    <MapPin className='h-5 w-5 text-amber-400 shrink-0 mt-0.5' />
+                    <RiMapPinLine className='h-5 w-5 text-amber-400 shrink-0 mt-0.5' />
                     <div>
                       <span className='block text-sm font-medium text-slate-400'>
                         Endereço Consultório
@@ -200,7 +207,7 @@ export function PsychologistProfileModal({
               onClick={handleContact}
               type='button'
             >
-              <Phone className='h-4 w-4' />
+              <RiPhoneLine className='h-4 w-4' />
               Entrar em contato pelo WhatsApp
             </button>
           </div>

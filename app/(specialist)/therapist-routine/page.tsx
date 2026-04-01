@@ -1,7 +1,7 @@
-"use client";
+'use client'
 
-import TherapistRoutineView from "@/app/(specialist)/therapist-routine/TherapistRoutineView";
+import TherapistRoutineView from '@/app/(specialist)/therapist-routine/TherapistRoutineView'
 
 export default function TherapistRoutinePage() {
-  return <TherapistRoutineView />;
+  return <TherapistRoutineView />
 }

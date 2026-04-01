@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react'
 
 export type ParticleType = 'xp' | 'pts'
 
-export type Particle = {
+export interface Particle {
   id: string
   amount: number
   type: ParticleType
@@ -12,7 +12,7 @@ export type Particle = {
   target: { x: number; y: number }
 }
 
-export type UseXPAnimationReturn = {
+export interface UseXPAnimationReturn {
   particles: Particle[]
   triggerAnimation: (amount: number, type: ParticleType, originX: number, originY: number) => void
   clearParticles: () => void

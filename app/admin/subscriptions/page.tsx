@@ -1,220 +1,208 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { trpc } from "@/lib/trpc/client";
-import { toast } from "sonner";
 import {
-  Search,
-  Users,
-  TrendingUp,
-  AlertTriangle,
-  CreditCard,
-  Eye,
-  X,
-  RefreshCw,
-  DollarSign,
-} from "lucide-react";
+  RiAlertLine,
+  RiArrowUpLine,
+  RiBankCardLine,
+  RiCloseLine,
+  RiEyeLine,
+  RiGroupLine,
+  RiMoneyDollarCircleLine,
+  RiRefreshLine,
+  RiSearchLine,
+} from '@remixicon/react'
+import { useState } from 'react'
+import { toast } from 'sonner'
+import { trpc } from '@/lib/trpc/client'
 
-type SubStatus = "active" | "past_due" | "cancelled" | "expired" | "pending";
+type SubStatus = 'active' | 'past_due' | 'cancelled' | 'expired' | 'pending'
 
 interface AdminPlan {
-  id: string;
-  name: string;
-  slug: string;
-  subscriberCount: number;
+  id: string
+  name: string
+  slug: string
+  subscriberCount: number
 }
 
 interface SubscriptionRow {
   subscription: {
-    id: string;
-    therapistId: string;
-    planId: string;
-    status: string;
-    billingType: string | null;
-    cycle: string | null;
-    amount: string;
-    currentPeriodStart: Date | string | null;
-    currentPeriodEnd: Date | string | null;
-    asaasSubscriptionId: string | null;
-    createdAt: Date | string;
-  };
-  plan: { name: string; id: string };
-  therapistName: string | null;
-  therapistEmail: string | null;
+    id: string
+    therapistId: string
+    planId: string
+    status: string
+    billingType: string | null
+    cycle: string | null
+    amount: string
+    currentPeriodStart: Date | string | null
+    currentPeriodEnd: Date | string | null
+    asaasSubscriptionId: string | null
+    createdAt: Date | string
+  }
+  plan: { name: string; id: string }
+  therapistName: string | null
+  therapistEmail: string | null
 }
 
 interface RevenueStat {
-  planId: string;
-  planName: string | null;
-  count: number;
-  revenue: string;
+  planId: string
+  planName: string | null
+  count: number
+  revenue: string
 }
 
 const statusLabels: Record<SubStatus, string> = {
-  active: "Ativa",
-  past_due: "Vencida",
-  cancelled: "Cancelada",
-  expired: "Expirada",
-  pending: "Pendente",
-};
+  active: 'Ativa',
+  past_due: 'Vencida',
+  cancelled: 'Cancelada',
+  expired: 'Expirada',
+  pending: 'Pendente',
+}
 
 const statusColors: Record<SubStatus, string> = {
-  active: "bg-emerald-500/20 text-emerald-400",
-  past_due: "bg-amber-500/20 text-amber-400",
-  cancelled: "bg-rose-500/20 text-rose-400",
-  expired: "bg-red-500/20 text-red-400",
-  pending: "bg-blue-500/20 text-blue-400",
-};
+  active: 'bg-emerald-500/20 text-emerald-400',
+  past_due: 'bg-amber-500/20 text-amber-400',
+  cancelled: 'bg-rose-500/20 text-rose-400',
+  expired: 'bg-red-500/20 text-red-400',
+  pending: 'bg-blue-500/20 text-blue-400',
+}
 
 const cycleLabels: Record<string, string> = {
-  MONTHLY: "Mensal",
-  YEARLY: "Anual",
-};
+  MONTHLY: 'Mensal',
+  YEARLY: 'Anual',
+}
 
 const billingLabels: Record<string, string> = {
-  CREDIT_CARD: "Cartão",
-  PIX: "PIX",
-};
+  CREDIT_CARD: 'Cartão',
+  PIX: 'PIX',
+}
 
 export default function SubscriptionsPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<SubStatus | "all">("all");
-  const [planFilter, setPlanFilter] = useState<string>("all");
-  const [detailSubId, setDetailSubId] = useState<string | null>(null);
-  const [overrideSubId, setOverrideSubId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('')
+  const [statusFilter, setStatusFilter] = useState<SubStatus | 'all'>('all')
+  const [planFilter, setPlanFilter] = useState<string>('all')
+  const [detailSubId, setDetailSubId] = useState<string | null>(null)
+  const [overrideSubId, setOverrideSubId] = useState<string | null>(null)
 
-  const utils = trpc.useUtils();
+  const utils = trpc.useUtils()
 
-  const { data: stats } =
-    trpc.therapistSubscription.getRevenueStats.useQuery() as {
-      data:
-        | {
-            activeSubscriptions: number;
-            pastDueSubscriptions: number;
-            mrr: string;
-            byPlan: RevenueStat[];
-            byBillingType: { billingType: string; count: number }[];
-          }
-        | undefined;
-    };
+  const { data: stats } = trpc.therapistSubscription.getRevenueStats.useQuery() as {
+    data:
+      | {
+          activeSubscriptions: number
+          pastDueSubscriptions: number
+          mrr: string
+          byPlan: RevenueStat[]
+          byBillingType: { billingType: string; count: number }[]
+        }
+      | undefined
+  }
   const { data: plans } = trpc.subscriptionPlans.getAll.useQuery() as {
-    data: AdminPlan[] | undefined;
-  };
+    data: AdminPlan[] | undefined
+  }
 
   const {
     data: rawData,
     isLoading,
     refetch,
   } = trpc.therapistSubscription.getAllSubscriptions.useQuery({
-    status: statusFilter !== "all" ? statusFilter : undefined,
-    planId: planFilter !== "all" ? planFilter : undefined,
+    status: statusFilter === 'all' ? undefined : statusFilter,
+    planId: planFilter === 'all' ? undefined : planFilter,
     search: searchQuery || undefined,
     limit: 50,
     offset: 0,
-  });
+  })
 
-  const data = rawData as
-    | { subscriptions: SubscriptionRow[]; total: number }
-    | undefined;
+  const data = rawData as { subscriptions: SubscriptionRow[]; total: number } | undefined
 
   return (
-    <div className="space-y-6">
+    <div className='space-y-6'>
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className='flex items-center justify-between'>
         <div>
-          <h1 className="text-3xl font-bold text-white">Assinaturas</h1>
-          <p className="mt-1 text-slate-400">
-            Gerencie assinaturas Asaas dos terapeutas
-          </p>
+          <h1 className='text-3xl font-bold text-white'>Assinaturas</h1>
+          <p className='mt-1 text-slate-400'>Gerencie assinaturas Asaas dos terapeutas</p>
         </div>
         <button
-          type="button"
+          className='flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700'
           onClick={() => refetch()}
-          className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-3 py-2 text-sm text-slate-300 hover:bg-slate-700"
+          type='button'
         >
-          <RefreshCw className="h-4 w-4" />
+          <RiRefreshLine className='h-4 w-4' />
           Atualizar
         </button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className='grid gap-4 sm:grid-cols-2 lg:grid-cols-4'>
         <StatsCard
-          title="Assinaturas Ativas"
+          color='emerald'
+          icon={<RiGroupLine className='h-5 w-5' />}
+          title='Assinaturas Ativas'
           value={stats?.activeSubscriptions ?? 0}
-          icon={<Users className="h-5 w-5" />}
-          color="emerald"
         />
         <StatsCard
-          title="Vencidas"
+          color='amber'
+          icon={<RiAlertLine className='h-5 w-5' />}
+          title='Vencidas'
           value={stats?.pastDueSubscriptions ?? 0}
-          icon={<AlertTriangle className="h-5 w-5" />}
-          color="amber"
         />
         <StatsCard
-          title="MRR"
+          color='violet'
+          icon={<RiArrowUpLine className='h-5 w-5' />}
+          title='MRR'
           value={formatCurrency(Number(stats?.mrr ?? 0))}
-          icon={<TrendingUp className="h-5 w-5" />}
-          color="violet"
         />
         <StatsCard
-          title="Total Registros"
+          color='blue'
+          icon={<RiBankCardLine className='h-5 w-5' />}
+          title='Total Registros'
           value={data?.total ?? 0}
-          icon={<CreditCard className="h-5 w-5" />}
-          color="blue"
         />
       </div>
 
       {/* Revenue by plan */}
       {stats?.byPlan && stats.byPlan.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-4'>
           {stats.byPlan.map((p) => (
-            <div
-              key={p.planId}
-              className="rounded-xl border border-slate-700 bg-slate-800/50 p-3"
-            >
-              <p className="text-xs text-slate-400">{p.planName}</p>
-              <p className="text-lg font-bold text-white">
-                {p.count} assinantes
-              </p>
-              <p className="text-xs text-emerald-400">
-                R$ {Number(p.revenue).toFixed(2)} total
-              </p>
+            <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-3' key={p.planId}>
+              <p className='text-xs text-slate-400'>{p.planName}</p>
+              <p className='text-lg font-bold text-white'>{p.count} assinantes</p>
+              <p className='text-xs text-emerald-400'>R$ {Number(p.revenue).toFixed(2)} total</p>
             </div>
           ))}
         </div>
       )}
 
       {/* Filters */}
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+      <div className='flex flex-col gap-3 sm:flex-row'>
+        <div className='relative flex-1'>
+          <RiSearchLine className='absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400' />
           <input
-            className="w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500"
+            className='w-full rounded-lg border border-slate-700 bg-slate-800/50 py-2.5 pl-10 pr-4 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none focus:ring-1 focus:ring-violet-500'
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por nome ou email..."
-            type="text"
+            placeholder='Buscar por nome ou email...'
+            type='text'
             value={searchQuery}
           />
         </div>
         <select
-          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none"
-          onChange={(e) => setStatusFilter(e.target.value as SubStatus | "all")}
+          className='rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none'
+          onChange={(e) => setStatusFilter(e.target.value as SubStatus | 'all')}
           value={statusFilter}
         >
-          <option value="all">Todos os Status</option>
-          <option value="active">Ativas</option>
-          <option value="past_due">Vencidas</option>
-          <option value="expired">Expiradas</option>
-          <option value="pending">Pendentes</option>
-          <option value="cancelled">Canceladas</option>
+          <option value='all'>Todos os Status</option>
+          <option value='active'>Ativas</option>
+          <option value='past_due'>Vencidas</option>
+          <option value='expired'>Expiradas</option>
+          <option value='pending'>Pendentes</option>
+          <option value='cancelled'>Canceladas</option>
         </select>
         <select
-          className="rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none"
+          className='rounded-lg border border-slate-700 bg-slate-800/50 px-4 py-2.5 text-white focus:border-violet-500 focus:outline-none'
           onChange={(e) => setPlanFilter(e.target.value)}
           value={planFilter}
         >
-          <option value="all">Todos os Planos</option>
+          <option value='all'>Todos os Planos</option>
           {plans?.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -224,128 +212,115 @@ export default function SubscriptionsPage() {
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+      <div className='overflow-hidden rounded-xl border border-slate-700 bg-slate-800/50'>
+        <div className='overflow-x-auto'>
+          <table className='w-full'>
             <thead>
-              <tr className="border-b border-slate-700 bg-slate-800">
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <tr className='border-b border-slate-700 bg-slate-800'>
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Terapeuta
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Plano
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Status
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Ciclo
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Valor
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Período
                 </th>
-                <th className="px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <th className='px-5 py-3 text-left text-xs font-semibold uppercase tracking-wider text-slate-400'>
                   Ações
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-700">
+            <tbody className='divide-y divide-slate-700'>
               {isLoading ? (
-                [...Array(5)].map((_, i) => (
+                [...new Array(5)].map((_, i) => (
                   <tr key={i}>
-                    <td className="px-5 py-4" colSpan={7}>
-                      <div className="h-10 animate-pulse rounded bg-slate-700" />
+                    <td className='px-5 py-4' colSpan={7}>
+                      <div className='h-10 animate-pulse rounded bg-slate-700' />
                     </td>
                   </tr>
                 ))
               ) : data?.subscriptions.length === 0 ? (
                 <tr>
-                  <td
-                    className="px-5 py-12 text-center text-slate-400"
-                    colSpan={7}
-                  >
+                  <td className='px-5 py-12 text-center text-slate-400' colSpan={7}>
                     Nenhuma assinatura encontrada
                   </td>
                 </tr>
               ) : (
                 data?.subscriptions.map((row) => (
-                  <tr
-                    key={row.subscription.id}
-                    className="transition-colors hover:bg-slate-800/50"
-                  >
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-violet-600/20 text-sm font-medium text-violet-400">
-                          {row.therapistName?.charAt(0).toUpperCase() ?? "?"}
+                  <tr className='transition-colors hover:bg-slate-800/50' key={row.subscription.id}>
+                    <td className='px-5 py-3'>
+                      <div className='flex items-center gap-3'>
+                        <div className='flex h-9 w-9 items-center justify-center rounded-full bg-violet-600/20 text-sm font-medium text-violet-400'>
+                          {row.therapistName?.charAt(0).toUpperCase() ?? '?'}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-white">
-                            {row.therapistName}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {row.therapistEmail}
-                          </p>
+                          <p className='text-sm font-medium text-white'>{row.therapistName}</p>
+                          <p className='text-xs text-slate-500'>{row.therapistEmail}</p>
                         </div>
                       </div>
                     </td>
-                    <td className="px-5 py-3 text-sm text-slate-300">
-                      {row.plan.name}
-                    </td>
-                    <td className="px-5 py-3">
+                    <td className='px-5 py-3 text-sm text-slate-300'>{row.plan.name}</td>
+                    <td className='px-5 py-3'>
                       <span
                         className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           statusColors[row.subscription.status as SubStatus] ??
-                          "bg-slate-500/20 text-slate-400"
+                          'bg-slate-500/20 text-slate-400'
                         }`}
                       >
                         {statusLabels[row.subscription.status as SubStatus] ??
                           row.subscription.status}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-sm text-slate-300">
-                      <span className="text-xs">
-                        {cycleLabels[row.subscription.cycle ?? ""] ??
-                          row.subscription.cycle}
+                    <td className='px-5 py-3 text-sm text-slate-300'>
+                      <span className='text-xs'>
+                        {cycleLabels[row.subscription.cycle ?? ''] ?? row.subscription.cycle}
                       </span>
-                      <span className="ml-1 text-xs text-slate-500">
+                      <span className='ml-1 text-xs text-slate-500'>
                         (
-                        {billingLabels[row.subscription.billingType ?? ""] ??
+                        {billingLabels[row.subscription.billingType ?? ''] ??
                           row.subscription.billingType}
                         )
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-sm font-medium text-white">
+                    <td className='px-5 py-3 text-sm font-medium text-white'>
                       R$ {Number(row.subscription.amount).toFixed(2)}
                     </td>
-                    <td className="px-5 py-3 text-xs text-slate-400">
+                    <td className='px-5 py-3 text-xs text-slate-400'>
                       {row.subscription.currentPeriodStart
                         ? formatDate(row.subscription.currentPeriodStart)
-                        : "-"}
-                      {" → "}
+                        : '-'}
+                      {' → '}
                       {row.subscription.currentPeriodEnd
                         ? formatDate(row.subscription.currentPeriodEnd)
-                        : "-"}
+                        : '-'}
                     </td>
-                    <td className="px-5 py-3">
-                      <div className="flex items-center gap-1">
+                    <td className='px-5 py-3'>
+                      <div className='flex items-center gap-1'>
                         <button
-                          type="button"
+                          className='rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white'
                           onClick={() => setDetailSubId(row.subscription.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
-                          title="Detalhes"
+                          title='Detalhes'
+                          type='button'
                         >
-                          <Eye className="h-4 w-4" />
+                          <RiEyeLine className='h-4 w-4' />
                         </button>
                         <button
-                          type="button"
+                          className='rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white'
                           onClick={() => setOverrideSubId(row.subscription.id)}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-700 hover:text-white"
-                          title="Alterar status"
+                          title='Alterar status'
+                          type='button'
                         >
-                          <RefreshCw className="h-4 w-4" />
+                          <RiRefreshLine className='h-4 w-4' />
                         </button>
                       </div>
                     </td>
@@ -356,7 +331,7 @@ export default function SubscriptionsPage() {
           </table>
         </div>
         {data && data.total > 50 && (
-          <div className="border-t border-slate-700 px-5 py-3 text-center text-xs text-slate-400">
+          <div className='border-t border-slate-700 px-5 py-3 text-center text-xs text-slate-400'>
             Mostrando 50 de {data.total} assinaturas
           </div>
         )}
@@ -364,165 +339,136 @@ export default function SubscriptionsPage() {
 
       {/* Detail Modal */}
       {detailSubId && (
-        <DetailModal
-          subscriptionId={detailSubId}
-          onClose={() => setDetailSubId(null)}
-        />
+        <DetailModal onClose={() => setDetailSubId(null)} subscriptionId={detailSubId} />
       )}
 
       {/* Override Modal */}
       {overrideSubId && (
         <OverrideModal
-          subscriptionId={overrideSubId}
           onClose={() => setOverrideSubId(null)}
           onSuccess={() => {
-            setOverrideSubId(null);
-            utils.therapistSubscription.getAllSubscriptions.invalidate();
-            utils.therapistSubscription.getRevenueStats.invalidate();
+            setOverrideSubId(null)
+            utils.therapistSubscription.getAllSubscriptions.invalidate()
+            utils.therapistSubscription.getRevenueStats.invalidate()
           }}
+          subscriptionId={overrideSubId}
         />
       )}
     </div>
-  );
+  )
 }
 
 // ============================================
 // Detail Modal
 // ============================================
 
-function DetailModal({
-  subscriptionId,
-  onClose,
-}: {
-  subscriptionId: string;
-  onClose: () => void;
-}) {
-  const { data: rawDetail, isLoading } =
-    trpc.therapistSubscription.getSubscriptionDetail.useQuery({
-      subscriptionId,
-    });
+function DetailModal({ subscriptionId, onClose }: { subscriptionId: string; onClose: () => void }) {
+  const { data: rawDetail, isLoading } = trpc.therapistSubscription.getSubscriptionDetail.useQuery({
+    subscriptionId,
+  })
 
   const data = rawDetail as
     | {
-        subscription: SubscriptionRow["subscription"];
-        plan: { name: string; id: string };
-        therapistName: string | null;
-        therapistEmail: string | null;
+        subscription: SubscriptionRow['subscription']
+        plan: { name: string; id: string }
+        therapistName: string | null
+        therapistEmail: string | null
         payments: {
-          id: string;
-          amount: string;
-          status: string | null;
-          dueDate: Date | string | null;
-          invoiceUrl: string | null;
-        }[];
+          id: string
+          amount: string
+          status: string | null
+          dueDate: Date | string | null
+          invoiceUrl: string | null
+        }[]
       }
     | null
-    | undefined;
+    | undefined
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-700 bg-slate-800 px-6 py-4">
-          <h2 className="text-lg font-bold text-white">
-            Detalhes da Assinatura
-          </h2>
+    <div className='fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4'>
+      <div className='relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl'>
+        <div className='sticky top-0 z-10 flex items-center justify-between border-b border-slate-700 bg-slate-800 px-6 py-4'>
+          <h2 className='text-lg font-bold text-white'>Detalhes da Assinatura</h2>
           <button
-            type="button"
+            className='rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white'
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
+            type='button'
           >
-            <X className="h-5 w-5" />
+            <RiCloseLine className='h-5 w-5' />
           </button>
         </div>
 
         {isLoading ? (
-          <div className="p-6 space-y-3">
+          <div className='p-6 space-y-3'>
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-6 animate-pulse rounded bg-slate-700" />
+              <div className='h-6 animate-pulse rounded bg-slate-700' key={i} />
             ))}
           </div>
         ) : data ? (
-          <div className="p-6 space-y-6">
+          <div className='p-6 space-y-6'>
             {/* Therapist info */}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <InfoRow label="Terapeuta" value={data.therapistName ?? "-"} />
-              <InfoRow label="Email" value={data.therapistEmail ?? "-"} />
-              <InfoRow label="Plano" value={data.plan.name} />
+            <div className='grid gap-4 sm:grid-cols-2'>
+              <InfoRow label='Terapeuta' value={data.therapistName ?? '-'} />
+              <InfoRow label='Email' value={data.therapistEmail ?? '-'} />
+              <InfoRow label='Plano' value={data.plan.name} />
               <InfoRow
-                label="Status"
+                label='Status'
                 value={
-                  statusLabels[data.subscription.status as SubStatus] ??
-                  data.subscription.status
+                  statusLabels[data.subscription.status as SubStatus] ?? data.subscription.status
                 }
               />
+              <InfoRow label='Ciclo' value={cycleLabels[data.subscription.cycle ?? ''] ?? '-'} />
               <InfoRow
-                label="Ciclo"
-                value={cycleLabels[data.subscription.cycle ?? ""] ?? "-"}
+                label='Forma de pagamento'
+                value={billingLabels[data.subscription.billingType ?? ''] ?? '-'}
               />
-              <InfoRow
-                label="Forma de pagamento"
-                value={
-                  billingLabels[data.subscription.billingType ?? ""] ?? "-"
-                }
-              />
-              <InfoRow
-                label="Valor"
-                value={`R$ ${Number(data.subscription.amount).toFixed(2)}`}
-              />
-              <InfoRow
-                label="Asaas ID"
-                value={data.subscription.asaasSubscriptionId ?? "-"}
-              />
+              <InfoRow label='Valor' value={`R$ ${Number(data.subscription.amount).toFixed(2)}`} />
+              <InfoRow label='Asaas ID' value={data.subscription.asaasSubscriptionId ?? '-'} />
             </div>
 
             {/* Payment history */}
             <div>
-              <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400">
+              <h3 className='mb-3 text-sm font-semibold uppercase tracking-wider text-slate-400'>
                 Histórico de Pagamentos
               </h3>
               {data.payments.length === 0 ? (
-                <p className="text-sm text-slate-500">
-                  Nenhum pagamento registrado
-                </p>
+                <p className='text-sm text-slate-500'>Nenhum pagamento registrado</p>
               ) : (
-                <div className="space-y-2">
+                <div className='space-y-2'>
                   {data.payments.map((pmt) => (
                     <div
+                      className='flex items-center justify-between rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5'
                       key={pmt.id}
-                      className="flex items-center justify-between rounded-lg border border-slate-700 bg-slate-900/50 px-4 py-2.5"
                     >
-                      <div className="flex items-center gap-3">
-                        <DollarSign className="h-4 w-4 text-slate-500" />
+                      <div className='flex items-center gap-3'>
+                        <RiMoneyDollarCircleLine className='h-4 w-4 text-slate-500' />
                         <div>
-                          <p className="text-sm text-white">
-                            R$ {Number(pmt.amount).toFixed(2)}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {pmt.dueDate ? formatDate(pmt.dueDate) : "-"}
+                          <p className='text-sm text-white'>R$ {Number(pmt.amount).toFixed(2)}</p>
+                          <p className='text-xs text-slate-500'>
+                            {pmt.dueDate ? formatDate(pmt.dueDate) : '-'}
                           </p>
                         </div>
                       </div>
-                      <div className="text-right">
+                      <div className='text-right'>
                         <span
                           className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-medium ${
-                            pmt.status === "RECEIVED" ||
-                            pmt.status === "CONFIRMED"
-                              ? "bg-emerald-500/20 text-emerald-400"
-                              : pmt.status === "OVERDUE"
-                                ? "bg-red-500/20 text-red-400"
-                                : pmt.status === "PENDING"
-                                  ? "bg-blue-500/20 text-blue-400"
-                                  : "bg-slate-500/20 text-slate-400"
+                            pmt.status === 'RECEIVED' || pmt.status === 'CONFIRMED'
+                              ? 'bg-emerald-500/20 text-emerald-400'
+                              : pmt.status === 'OVERDUE'
+                                ? 'bg-red-500/20 text-red-400'
+                                : pmt.status === 'PENDING'
+                                  ? 'bg-blue-500/20 text-blue-400'
+                                  : 'bg-slate-500/20 text-slate-400'
                           }`}
                         >
                           {pmt.status}
                         </span>
                         {pmt.invoiceUrl && (
                           <a
+                            className='ml-2 text-xs text-violet-400 hover:underline'
                             href={pmt.invoiceUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-2 text-xs text-violet-400 hover:underline"
+                            rel='noopener noreferrer'
+                            target='_blank'
                           >
                             Fatura
                           </a>
@@ -535,22 +481,20 @@ function DetailModal({
             </div>
           </div>
         ) : (
-          <div className="p-6 text-center text-slate-400">
-            Assinatura não encontrada
-          </div>
+          <div className='p-6 text-center text-slate-400'>Assinatura não encontrada</div>
         )}
       </div>
     </div>
-  );
+  )
 }
 
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-xs text-slate-500">{label}</p>
-      <p className="text-sm font-medium text-white">{value}</p>
+      <p className='text-xs text-slate-500'>{label}</p>
+      <p className='text-sm font-medium text-white'>{value}</p>
     </div>
-  );
+  )
 }
 
 // ============================================
@@ -562,77 +506,76 @@ function OverrideModal({
   onClose,
   onSuccess,
 }: {
-  subscriptionId: string;
-  onClose: () => void;
-  onSuccess: () => void;
+  subscriptionId: string
+  onClose: () => void
+  onSuccess: () => void
 }) {
-  const [newStatus, setNewStatus] = useState<
-    "active" | "past_due" | "cancelled" | "expired"
-  >("active");
-  const [reason, setReason] = useState("");
+  const [newStatus, setNewStatus] = useState<'active' | 'past_due' | 'cancelled' | 'expired'>(
+    'active'
+  )
+  const [reason, setReason] = useState('')
 
   const mutation = trpc.therapistSubscription.overrideStatus.useMutation({
     onSuccess: () => {
-      toast.success("Status alterado com sucesso");
-      onSuccess();
+      toast.success('Status alterado com sucesso')
+      onSuccess()
     },
     onError: (err) => toast.error(err.message),
-  });
+  })
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-700 px-6 py-4">
-          <h2 className="text-lg font-bold text-white">Alterar Status</h2>
+    <div className='fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4'>
+      <div className='w-full max-w-md rounded-2xl border border-slate-700 bg-slate-800 shadow-2xl'>
+        <div className='flex items-center justify-between border-b border-slate-700 px-6 py-4'>
+          <h2 className='text-lg font-bold text-white'>Alterar Status</h2>
           <button
-            type="button"
+            className='rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white'
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-700 hover:text-white"
+            type='button'
           >
-            <X className="h-5 w-5" />
+            <RiCloseLine className='h-5 w-5' />
           </button>
         </div>
 
-        <div className="space-y-4 p-6">
+        <div className='space-y-4 p-6'>
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-300">
-              Novo Status
-            </label>
+            <label className='mb-1.5 block text-sm font-medium text-slate-300'>Novo Status</label>
             <select
-              value={newStatus}
+              className='w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-violet-500 focus:outline-none'
               onChange={(e) => setNewStatus(e.target.value as typeof newStatus)}
-              className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white focus:border-violet-500 focus:outline-none"
+              value={newStatus}
             >
-              <option value="active">Ativa</option>
-              <option value="past_due">Vencida</option>
-              <option value="cancelled">Cancelada</option>
-              <option value="expired">Expirada</option>
+              <option value='active'>Ativa</option>
+              <option value='past_due'>Vencida</option>
+              <option value='cancelled'>Cancelada</option>
+              <option value='expired'>Expirada</option>
             </select>
           </div>
 
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-slate-300">
+            <label className='mb-1.5 block text-sm font-medium text-slate-300'>
               Motivo (opcional)
             </label>
             <textarea
-              value={reason}
+              className='w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none'
               onChange={(e) => setReason(e.target.value)}
+              placeholder='Motivo da alteração manual...'
               rows={2}
-              className="w-full rounded-lg border border-slate-600 bg-slate-700 px-3 py-2 text-white placeholder-slate-400 focus:border-violet-500 focus:outline-none"
-              placeholder="Motivo da alteração manual..."
+              value={reason}
             />
           </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className='flex justify-end gap-3 pt-2'>
             <button
-              type="button"
+              className='rounded-lg px-4 py-2 text-sm text-slate-400 hover:bg-slate-700'
               onClick={onClose}
-              className="rounded-lg px-4 py-2 text-sm text-slate-400 hover:bg-slate-700"
+              type='button'
             >
               Cancelar
             </button>
             <button
-              type="button"
+              className='rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50'
+              disabled={mutation.isPending}
               onClick={() =>
                 mutation.mutate({
                   subscriptionId,
@@ -640,16 +583,15 @@ function OverrideModal({
                   reason: reason || undefined,
                 })
               }
-              disabled={mutation.isPending}
-              className="rounded-lg bg-violet-600 px-5 py-2 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50"
+              type='button'
             >
-              {mutation.isPending ? "Salvando..." : "Confirmar"}
+              {mutation.isPending ? 'Salvando...' : 'Confirmar'}
             </button>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // ============================================
@@ -662,24 +604,24 @@ function StatsCard({
   icon,
   color,
 }: {
-  title: string;
-  value: number | string;
-  icon: React.ReactNode;
-  color: "violet" | "emerald" | "amber" | "blue";
+  title: string
+  value: number | string
+  icon: React.ReactNode
+  color: 'violet' | 'emerald' | 'amber' | 'blue'
 }) {
   const colorClasses = {
-    violet: "bg-violet-600/20 text-violet-400",
-    emerald: "bg-emerald-600/20 text-emerald-400",
-    amber: "bg-amber-600/20 text-amber-400",
-    blue: "bg-blue-600/20 text-blue-400",
-  };
+    violet: 'bg-violet-600/20 text-violet-400',
+    emerald: 'bg-emerald-600/20 text-emerald-400',
+    amber: 'bg-amber-600/20 text-amber-400',
+    blue: 'bg-blue-600/20 text-blue-400',
+  }
 
   return (
-    <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4">
-      <div className="flex items-center justify-between">
+    <div className='rounded-xl border border-slate-700 bg-slate-800/50 p-4'>
+      <div className='flex items-center justify-between'>
         <div>
-          <p className="text-xs text-slate-400">{title}</p>
-          <p className="mt-1 text-xl font-bold text-white">{value}</p>
+          <p className='text-xs text-slate-400'>{title}</p>
+          <p className='mt-1 text-xl font-bold text-white'>{value}</p>
         </div>
         <div
           className={`flex h-10 w-10 items-center justify-center rounded-lg ${colorClasses[color]}`}
@@ -688,7 +630,7 @@ function StatsCard({
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // ============================================
@@ -696,12 +638,12 @@ function StatsCard({
 // ============================================
 
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(value);
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
 }
 
 function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("pt-BR");
+  return new Date(date).toLocaleDateString('pt-BR')
 }

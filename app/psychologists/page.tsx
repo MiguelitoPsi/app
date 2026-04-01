@@ -1,6 +1,14 @@
 'use client'
 
-import { ArrowLeft, ChevronRight, MapPin, Phone, Search, User, Video } from 'lucide-react'
+import {
+  RiArrowLeftLine,
+  RiArrowRightLine,
+  RiMapPinLine,
+  RiPhoneLine,
+  RiSearchLine,
+  RiUserLine,
+  RiVideoLine,
+} from '@remixicon/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState } from 'react'
@@ -9,7 +17,7 @@ import { PsychologistProfileModal } from './PsychologistProfileModal'
 
 type AttendanceType = 'all' | 'online' | 'presential' | 'both'
 
-type Therapist = {
+interface Therapist {
   id: string
   fullName: string
   crp: string
@@ -30,12 +38,12 @@ const attendanceLabels: Record<AttendanceType, string> = {
 }
 
 const attendanceIcons: Record<Exclude<AttendanceType, 'all'>, React.ReactNode> = {
-  online: <Video className='h-4 w-4' />,
-  presential: <MapPin className='h-4 w-4' />,
+  online: <RiVideoLine className='h-4 w-4' />,
+  presential: <RiMapPinLine className='h-4 w-4' />,
   both: (
     <>
-      <Video className='h-4 w-4' />
-      <MapPin className='h-4 w-4' />
+      <RiVideoLine className='h-4 w-4' />
+      <RiMapPinLine className='h-4 w-4' />
     </>
   ),
 }
@@ -107,7 +115,7 @@ export default function PsychologistsPage() {
               className='flex items-center gap-2 text-slate-400 transition-colors hover:text-white'
               href='/'
             >
-              <ArrowLeft className='h-5 w-5' />
+              <RiArrowLeftLine className='h-5 w-5' />
               <span className='hidden sm:inline'>Voltar</span>
             </Link>
             <div className='flex items-center gap-2'>
@@ -145,7 +153,7 @@ export default function PsychologistsPage() {
           {/* Page Header */}
           <div className='mb-6 sm:mb-10 text-center'>
             <div className='mb-3 sm:mb-4 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 sm:px-4 py-1 sm:py-1.5 text-xs sm:text-sm font-medium text-emerald-400'>
-              <User className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
+              <RiUserLine className='h-3.5 w-3.5 sm:h-4 sm:w-4' />
               Profissionais Cadastrados
             </div>
             <h1 className='mb-3 sm:mb-4 text-2xl sm:text-3xl md:text-4xl font-bold text-white'>
@@ -161,7 +169,7 @@ export default function PsychologistsPage() {
           <div className='mb-6 sm:mb-8 flex flex-col gap-3 sm:gap-4 sm:flex-row sm:items-center sm:justify-between'>
             {/* Search */}
             <div className='relative flex-1 sm:max-w-md'>
-              <Search className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500' />
+              <RiSearchLine className='absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500' />
               <input
                 className='w-full rounded-xl border border-slate-700 bg-slate-800/50 py-2.5 sm:py-3 pl-10 pr-4 text-sm sm:text-base text-white placeholder:text-slate-500 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20'
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -218,7 +226,7 @@ export default function PsychologistsPage() {
           {!isLoading && filteredTherapists && filteredTherapists.length === 0 && (
             <div className='rounded-xl sm:rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-8 sm:p-12 text-center'>
               <div className='mx-auto mb-3 sm:mb-4 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-slate-800'>
-                <User className='h-6 w-6 sm:h-8 sm:w-8 text-slate-500' />
+                <RiUserLine className='h-6 w-6 sm:h-8 sm:w-8 text-slate-500' />
               </div>
               <h3 className='mb-2 text-base sm:text-lg font-semibold text-white'>
                 Nenhum terapeuta encontrado
@@ -278,7 +286,7 @@ export default function PsychologistsPage() {
                       </p>
                     )}
                     <div className='flex items-center gap-2 text-xs sm:text-sm text-slate-500'>
-                      <MapPin className='h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0' />
+                      <RiMapPinLine className='h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0' />
                       <span className='truncate'>{therapist.city}</span>
                     </div>
                     <div className='flex items-center gap-2 text-xs sm:text-sm'>
@@ -306,9 +314,9 @@ export default function PsychologistsPage() {
                     }}
                     type='button'
                   >
-                    <Phone className='h-4 w-4' />
+                    <RiPhoneLine className='h-4 w-4' />
                     Entrar em contato
-                    <ChevronRight className='h-4 w-4 transition-transform group-hover:translate-x-1' />
+                    <RiArrowRightLine className='h-4 w-4 transition-transform group-hover:translate-x-1' />
                   </button>
                 </div>
               ))}

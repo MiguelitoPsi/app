@@ -1,11 +1,19 @@
 'use client'
 
-import { AlertTriangle, CheckCircle, CreditCard, FileText, Scale, Shield, X } from 'lucide-react'
+import {
+  RiAlertLine,
+  RiCheckboxCircleLine,
+  RiCloseLine,
+  RiCoinLine,
+  RiFileTextLine,
+  RiScalesLine,
+  RiShieldLine,
+} from '@remixicon/react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { trpc } from '@/lib/trpc/client'
 
-type TherapistTermsModalProps = {
+interface TherapistTermsModalProps {
   isOpen: boolean
   onAccept?: () => void
   onClose?: () => void
@@ -76,7 +84,7 @@ export function TherapistTermsModal({
         <div className='flex items-center justify-between gap-3 border-b border-slate-200 bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-4 dark:border-slate-700'>
           <div className='flex items-center gap-3'>
             <div className='flex h-10 w-10 items-center justify-center rounded-full bg-white/20'>
-              <FileText className='h-5 w-5 text-white' />
+              <RiFileTextLine className='h-5 w-5 text-white' />
             </div>
             <div>
               <h2 className='font-bold text-lg text-white'>Termo de Responsabilidade</h2>
@@ -90,7 +98,7 @@ export function TherapistTermsModal({
               onClick={handleClose}
               type='button'
             >
-              <X className='h-5 w-5' />
+              <RiCloseLine className='h-5 w-5' />
             </button>
           )}
         </div>
@@ -108,7 +116,7 @@ export function TherapistTermsModal({
             {/* Section 1 */}
             <div className='mt-6 rounded-xl border border-violet-100 bg-violet-50/50 p-4 dark:border-violet-900/30 dark:bg-violet-900/10'>
               <div className='mb-3 flex items-center gap-2'>
-                <Scale className='h-5 w-5 text-violet-600 dark:text-violet-400' />
+                <RiScalesLine className='h-5 w-5 text-violet-600 dark:text-violet-400' />
                 <h3 className='m-0 font-semibold text-base text-violet-700 dark:text-violet-300'>
                   1. Exercício Profissional e Ética
                 </h3>
@@ -141,7 +149,7 @@ export function TherapistTermsModal({
             {/* Section 2 */}
             <div className='mt-4 rounded-xl border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900/30 dark:bg-amber-900/10'>
               <div className='mb-3 flex items-center gap-2'>
-                <AlertTriangle className='h-5 w-5 text-amber-600 dark:text-amber-400' />
+                <RiAlertLine className='h-5 w-5 text-amber-600 dark:text-amber-400' />
                 <h3 className='m-0 font-semibold text-base text-amber-700 dark:text-amber-300'>
                   2. Uso das Funcionalidades e Supervisão de Conteúdo
                 </h3>
@@ -180,7 +188,7 @@ export function TherapistTermsModal({
             {/* Section 3 */}
             <div className='mt-4 rounded-xl border border-emerald-100 bg-emerald-50/50 p-4 dark:border-emerald-900/30 dark:bg-emerald-900/10'>
               <div className='mb-3 flex items-center gap-2'>
-                <Shield className='h-5 w-5 text-emerald-600 dark:text-emerald-400' />
+                <RiShieldLine className='h-5 w-5 text-emerald-600 dark:text-emerald-400' />
                 <h3 className='m-0 font-semibold text-base text-emerald-700 dark:text-emerald-300'>
                   3. Privacidade, Sigilo e Armazenamento de Informações
                 </h3>
@@ -208,7 +216,7 @@ export function TherapistTermsModal({
             {/* Section 4 */}
             <div className='mt-4 rounded-xl border border-blue-100 bg-blue-50/50 p-4 dark:border-blue-900/30 dark:bg-blue-900/10'>
               <div className='mb-3 flex items-center gap-2'>
-                <CreditCard className='h-5 w-5 text-blue-600 dark:text-blue-400' />
+                <RiCoinLine className='h-5 w-5 text-blue-600 dark:text-blue-400' />
                 <h3 className='m-0 font-semibold text-base text-blue-700 dark:text-blue-300'>
                   4. Planos, Pagamentos e Suspensão de Acesso
                 </h3>
@@ -235,7 +243,7 @@ export function TherapistTermsModal({
             {/* Section 5 */}
             <div className='mt-4 rounded-xl border border-red-100 bg-red-50/50 p-4 dark:border-red-900/30 dark:bg-red-900/10'>
               <div className='mb-3 flex items-center gap-2'>
-                <X className='h-5 w-5 text-red-600 dark:text-red-400' />
+                <RiCloseLine className='h-5 w-5 text-red-600 dark:text-red-400' />
                 <h3 className='m-0 font-semibold text-base text-red-700 dark:text-red-300'>
                   5. Isenção de Responsabilidade do Aplicativo
                 </h3>
@@ -274,7 +282,7 @@ export function TherapistTermsModal({
             {/* Section 6 */}
             <div className='mt-4 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-slate-700 dark:bg-slate-800'>
               <div className='mb-3 flex items-center gap-2'>
-                <CheckCircle className='h-5 w-5 text-slate-600 dark:text-slate-400' />
+                <RiCheckboxCircleLine className='h-5 w-5 text-slate-600 dark:text-slate-400' />
                 <h3 className='m-0 font-semibold text-base text-slate-700 dark:text-slate-300'>
                   6. Aceite do Termo
                 </h3>
@@ -329,7 +337,7 @@ export function TherapistTermsModal({
           {isViewMode && termsAcceptedAt && (
             <div className='mt-6 rounded-xl border border-green-100 bg-green-50/50 p-4 dark:border-green-900/30 dark:bg-green-900/10'>
               <div className='flex items-center gap-2'>
-                <CheckCircle className='h-5 w-5 text-green-600 dark:text-green-400' />
+                <RiCheckboxCircleLine className='h-5 w-5 text-green-600 dark:text-green-400' />
                 <div>
                   <p className='m-0 font-semibold text-green-700 text-sm dark:text-green-300'>
                     Termo assinado em:
@@ -366,7 +374,7 @@ export function TherapistTermsModal({
             <>
               {!hasScrolledToBottom && (
                 <p className='mb-3 flex items-center gap-2 text-sm text-amber-600 dark:text-amber-400'>
-                  <AlertTriangle className='h-4 w-4' />
+                  <RiAlertLine className='h-4 w-4' />
                   Role até o final para habilitar o botão de aceite
                 </p>
               )}
@@ -407,7 +415,7 @@ export function TherapistTermsModal({
                   </span>
                 ) : (
                   <span className='flex items-center justify-center gap-2'>
-                    <CheckCircle className='h-5 w-5' />
+                    <RiCheckboxCircleLine className='h-5 w-5' />
                     Li e aceito o Termo de Responsabilidade
                   </span>
                 )}

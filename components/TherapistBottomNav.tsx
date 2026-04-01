@@ -1,6 +1,11 @@
 'use client'
 
-import { BarChart3, Calendar, DollarSign, Home } from 'lucide-react'
+import {
+  RiBarChartLine as BarChart3,
+  RiCalendarLine as Calendar,
+  RiMoneyDollarCircleLine as DollarSign,
+  RiHomeLine as Home,
+} from '@remixicon/react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import type React from 'react'

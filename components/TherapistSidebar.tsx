@@ -1,6 +1,6 @@
 'use client'
 
-import { Flame, Sparkles } from 'lucide-react'
+import { RiFireLine, RiSparklingLine } from '@remixicon/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
@@ -86,7 +86,7 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
                     className='flex items-center gap-1 rounded-full bg-orange-500/20 px-2 py-1 text-xs font-medium text-orange-600 dark:text-orange-400'
                     title={`${stats.currentStreak} dias consecutivos`}
                   >
-                    <Flame className='h-3.5 w-3.5' />
+                    <RiFireLine className='h-3.5 w-3.5' />
                     {stats.currentStreak}
                   </span>
                 )}
@@ -143,7 +143,7 @@ export const TherapistSidebar: React.FC = memo(function TherapistSidebarComponen
 
             <div className='relative'>
               <div className='mb-2 flex items-center gap-1.5'>
-                <Sparkles className='h-4 w-4 text-sky-600 dark:text-sky-400' />
+                <RiSparklingLine className='h-4 w-4 text-sky-600 dark:text-sky-400' />
                 <span className='text-xs font-semibold text-sky-700 dark:text-sky-300'>
                   Dica do dia
                 </span>

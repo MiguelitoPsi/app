@@ -334,7 +334,7 @@ export const therapistReportsRouter = router({
         {} as Record<string, number>
       )
 
-      const dominantMoods = Object.entries(moodCounts)
+      const dominantMoods = (Object.entries(moodCounts) as [string, number][])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3)
         .map(([mood]) => mood)
@@ -691,13 +691,14 @@ export const therapistReportsRouter = router({
       }
 
       const dailyScores = Object.entries(dailyMoods).map(([date, dayMoods]) => {
+        const moodsArray = dayMoods as string[]
         const avgScore =
-          dayMoods.reduce((sum, m) => sum + (moodScores[m] || 50), 0) / dayMoods.length
+          moodsArray.reduce((sum, m) => sum + (moodScores[m] || 50), 0) / moodsArray.length
         return {
           date,
           avgScore: Math.round(avgScore),
-          moods: dayMoods,
-          count: dayMoods.length,
+          moods: moodsArray,
+          count: moodsArray.length,
         }
       })
 

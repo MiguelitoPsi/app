@@ -51,27 +51,36 @@ export const therapistProfileRouter = router({
   }),
 
   // Get therapist profile
-  getProfile: protectedProcedure.query(async ({ ctx }) => {
-    if (ctx.user.role !== 'psychologist') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Apenas terapeutas podem acessar seu perfil profissional',
-      })
+  getProfile: protectedProcedure.query(
+    async ({
+      ctx,
+    }): Promise<
+      | (typeof therapistProfiles.$inferSelect & {
+          image: string | null | undefined
+        })
+      | null
+    > => {
+      if (ctx.user.role !== 'psychologist') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Apenas terapeutas podem acessar seu perfil profissional',
+        })
+      }
+
+      const [profile] = await ctx.db
+        .select()
+        .from(therapistProfiles)
+        .where(eq(therapistProfiles.therapistId, ctx.user.id))
+        .limit(1)
+
+      return profile
+        ? {
+            ...profile,
+            image: ctx.user.image,
+          }
+        : null
     }
-
-    const [profile] = await ctx.db
-      .select()
-      .from(therapistProfiles)
-      .where(eq(therapistProfiles.therapistId, ctx.user.id))
-      .limit(1)
-
-    return profile
-      ? {
-          ...profile,
-          image: ctx.user.image,
-        }
-      : null
-  }),
+  ),
 
   // Check if username is available
   checkUsername: protectedProcedure

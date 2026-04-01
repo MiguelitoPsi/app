@@ -323,27 +323,34 @@ export const userRouter = router({
     }
   }),
 
-  checkTermsAccepted: protectedProcedure.query(async ({ ctx }) => {
-    const [user] = await ctx.db
-      .select({ termsAcceptedAt: users.termsAcceptedAt, role: users.role })
-      .from(users)
-      .where(eq(users.id, ctx.user.id))
-      .limit(1)
+  checkTermsAccepted: protectedProcedure.query(
+    async ({
+      ctx,
+    }): Promise<{
+      needsToAcceptTerms: boolean
+      termsAcceptedAt: Date | null
+    }> => {
+      const [user] = await ctx.db
+        .select({ termsAcceptedAt: users.termsAcceptedAt, role: users.role })
+        .from(users)
+        .where(eq(users.id, ctx.user.id))
+        .limit(1)
 
-    if (!user) {
-      throw new Error('User not found')
-    }
+      if (!user) {
+        throw new Error('User not found')
+      }
 
-    // Both psychologists and patients need to accept terms
-    if (user.role !== 'psychologist' && user.role !== 'patient') {
-      return { needsToAcceptTerms: false, termsAcceptedAt: null }
-    }
+      // Both psychologists and patients need to accept terms
+      if (user.role !== 'psychologist' && user.role !== 'patient') {
+        return { needsToAcceptTerms: false, termsAcceptedAt: null }
+      }
 
-    return {
-      needsToAcceptTerms: !user.termsAcceptedAt,
-      termsAcceptedAt: user.termsAcceptedAt,
+      return {
+        needsToAcceptTerms: !user.termsAcceptedAt,
+        termsAcceptedAt: user.termsAcceptedAt,
+      }
     }
-  }),
+  ),
 
   acceptTerms: protectedProcedure.mutation(async ({ ctx }) => {
     const [user] = await ctx.db

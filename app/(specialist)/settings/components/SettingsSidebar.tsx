@@ -1,12 +1,12 @@
 'use client'
 
-import { Building2, LogOut, Settings, UserCircle } from 'lucide-react'
+import { RiBuildingLine, RiLogoutBoxRLine, RiSettings4Line, RiUserLine } from '@remixicon/react'
 import { useState } from 'react'
 import { authClient } from '@/lib/auth-client'
 
 type TabId = 'profile' | 'clinic' | 'account'
 
-type SettingsSidebarProps = {
+interface SettingsSidebarProps {
   activeTab: TabId
   onTabChangeAction?: (tab: TabId) => void
   onTabChange?: (tab: TabId) => void
@@ -24,17 +24,17 @@ export function SettingsSidebar({
     {
       id: 'profile' as const,
       label: 'Perfil Profissional',
-      icon: UserCircle,
+      icon: RiUserLine,
     },
     {
       id: 'clinic' as const,
       label: 'Dados da Clínica',
-      icon: Building2,
+      icon: RiBuildingLine,
     },
     {
       id: 'account' as const,
       label: 'Conta',
-      icon: Settings,
+      icon: RiSettings4Line,
     },
   ]
 
@@ -94,7 +94,7 @@ export function SettingsSidebar({
             </>
           ) : (
             <>
-              <LogOut size={18} /> Sair da conta
+              <RiLogoutBoxRLine size={18} /> Sair da conta
             </>
           )}
         </button>

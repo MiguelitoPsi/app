@@ -1,17 +1,17 @@
-"use client";
+'use client'
 
-import { useSubscription } from "@/hooks/useSubscription";
-import { Crown } from "lucide-react";
+import { RiVipCrownLine } from '@remixicon/react'
+import { useSubscription } from '@/hooks/useSubscription'
 
 interface FeatureGateProps {
   /** The feature key to check against the plan's features */
-  feature: string;
+  feature: string
   /** Content to render when the feature is available */
-  children: React.ReactNode;
+  children: React.ReactNode
   /** Optional: Custom fallback when feature is not available */
-  fallback?: React.ReactNode;
+  fallback?: React.ReactNode
   /** If true, shows a disabled version with upgrade badge instead of hiding */
-  showUpgradeBadge?: boolean;
+  showUpgradeBadge?: boolean
 }
 
 /**
@@ -35,44 +35,44 @@ export function FeatureGate({
   fallback,
   showUpgradeBadge = false,
 }: FeatureGateProps) {
-  const { hasFeature, isLoading, isActive } = useSubscription();
+  const { hasFeature, isLoading, isActive } = useSubscription()
 
   // While loading, show nothing to avoid layout shift
-  if (isLoading) return null;
+  if (isLoading) return null
 
   // If no active subscription, block all features
   if (!isActive) {
-    if (fallback) return <>{fallback}</>;
+    if (fallback) return <>{fallback}</>
     if (showUpgradeBadge) {
       return (
-        <div className="relative opacity-50 pointer-events-none select-none">
+        <div className='relative opacity-50 pointer-events-none select-none'>
           {children}
-          <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
-            <Crown className="w-3 h-3" />
+          <div className='absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm'>
+            <RiVipCrownLine className='w-3 h-3' />
             PRO
           </div>
         </div>
-      );
+      )
     }
-    return null;
+    return null
   }
 
   // Check the specific feature
   if (!hasFeature(feature)) {
-    if (fallback) return <>{fallback}</>;
+    if (fallback) return <>{fallback}</>
     if (showUpgradeBadge) {
       return (
-        <div className="relative opacity-50 pointer-events-none select-none">
+        <div className='relative opacity-50 pointer-events-none select-none'>
           {children}
-          <div className="absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
-            <Crown className="w-3 h-3" />
+          <div className='absolute -top-1 -right-1 bg-amber-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm'>
+            <RiVipCrownLine className='w-3 h-3' />
             PRO
           </div>
         </div>
-      );
+      )
     }
-    return null;
+    return null
   }
 
-  return <>{children}</>;
+  return <>{children}</>
 }
